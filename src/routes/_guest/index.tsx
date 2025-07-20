@@ -64,9 +64,10 @@ function RouteComponent() {
 			});
 		},
 	});
+
 	return (
 		<Template>
-			<section className=" flex flex-col gap-y-6 w-[clamp(var(--container-xs),calc(100svw-4rem),var(--container-md))]">
+			<section className="flex flex-col gap-y-6 w-[clamp(var(--container-xs),calc(100svw-4rem),var(--container-md))]">
 				<div className="text-center">
 					<h1 className="font-bold text-2xl">Login to your account</h1>
 					<span className="text-muted-foreground text-sm">
@@ -93,7 +94,7 @@ function RouteComponent() {
 									className="p-0 h-[unset] absolute top-0 right-0 -translate-y-1/5"
 									asChild
 								>
-									<Link to="/">Forgot your password?</Link>
+									<Link to="/forgot-password">Forgot your password?</Link>
 								</Button>
 							</div>
 						)}

@@ -1,3 +1,5 @@
+// ~/routes/_guest/register.tsx
+
 import { Button } from "@/components/ui/button";
 import { useAppForm } from "@/hooks/form";
 import { supabase } from "@/integrations/supabase";

@@ -14,7 +14,9 @@ import { Route as AuthedRouteRouteImport } from './routes/_authed/route'
 import { Route as GuestIndexRouteImport } from './routes/_guest/index'
 import { Route as DemoTanstackQueryRouteImport } from './routes/demo.tanstack-query'
 import { Route as DemoTableRouteImport } from './routes/demo.table'
+import { Route as GuestResetPasswordRouteImport } from './routes/_guest/reset-password'
 import { Route as GuestRegisterRouteImport } from './routes/_guest/register'
+import { Route as GuestForgotPasswordRouteImport } from './routes/_guest/forgot-password'
 import { Route as AuthedDashboardRouteImport } from './routes/_authed/dashboard'
 import { Route as AuthedBucketsRouteImport } from './routes/_authed/buckets'
 import { Route as DemoFormSimpleRouteImport } from './routes/demo.form.simple'
@@ -43,9 +45,19 @@ const DemoTableRoute = DemoTableRouteImport.update({
   path: '/demo/table',
   getParentRoute: () => rootRouteImport,
 } as any)
+const GuestResetPasswordRoute = GuestResetPasswordRouteImport.update({
+  id: '/reset-password',
+  path: '/reset-password',
+  getParentRoute: () => GuestRouteRoute,
+} as any)
 const GuestRegisterRoute = GuestRegisterRouteImport.update({
   id: '/register',
   path: '/register',
+  getParentRoute: () => GuestRouteRoute,
+} as any)
+const GuestForgotPasswordRoute = GuestForgotPasswordRouteImport.update({
+  id: '/forgot-password',
+  path: '/forgot-password',
   getParentRoute: () => GuestRouteRoute,
 } as any)
 const AuthedDashboardRoute = AuthedDashboardRouteImport.update({
@@ -72,7 +84,9 @@ const DemoFormAddressRoute = DemoFormAddressRouteImport.update({
 export interface FileRoutesByFullPath {
   '/buckets': typeof AuthedBucketsRoute
   '/dashboard': typeof AuthedDashboardRoute
+  '/forgot-password': typeof GuestForgotPasswordRoute
   '/register': typeof GuestRegisterRoute
+  '/reset-password': typeof GuestResetPasswordRoute
   '/demo/table': typeof DemoTableRoute
   '/demo/tanstack-query': typeof DemoTanstackQueryRoute
   '/': typeof GuestIndexRoute
@@ -82,7 +96,9 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/buckets': typeof AuthedBucketsRoute
   '/dashboard': typeof AuthedDashboardRoute
+  '/forgot-password': typeof GuestForgotPasswordRoute
   '/register': typeof GuestRegisterRoute
+  '/reset-password': typeof GuestResetPasswordRoute
   '/demo/table': typeof DemoTableRoute
   '/demo/tanstack-query': typeof DemoTanstackQueryRoute
   '/': typeof GuestIndexRoute
@@ -95,7 +111,9 @@ export interface FileRoutesById {
   '/_guest': typeof GuestRouteRouteWithChildren
   '/_authed/buckets': typeof AuthedBucketsRoute
   '/_authed/dashboard': typeof AuthedDashboardRoute
+  '/_guest/forgot-password': typeof GuestForgotPasswordRoute
   '/_guest/register': typeof GuestRegisterRoute
+  '/_guest/reset-password': typeof GuestResetPasswordRoute
   '/demo/table': typeof DemoTableRoute
   '/demo/tanstack-query': typeof DemoTanstackQueryRoute
   '/_guest/': typeof GuestIndexRoute
@@ -107,7 +125,9 @@ export interface FileRouteTypes {
   fullPaths:
     | '/buckets'
     | '/dashboard'
+    | '/forgot-password'
     | '/register'
+    | '/reset-password'
     | '/demo/table'
     | '/demo/tanstack-query'
     | '/'
@@ -117,7 +137,9 @@ export interface FileRouteTypes {
   to:
     | '/buckets'
     | '/dashboard'
+    | '/forgot-password'
     | '/register'
+    | '/reset-password'
     | '/demo/table'
     | '/demo/tanstack-query'
     | '/'
@@ -129,7 +151,9 @@ export interface FileRouteTypes {
     | '/_guest'
     | '/_authed/buckets'
     | '/_authed/dashboard'
+    | '/_guest/forgot-password'
     | '/_guest/register'
+    | '/_guest/reset-password'
     | '/demo/table'
     | '/demo/tanstack-query'
     | '/_guest/'
@@ -183,11 +207,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DemoTableRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_guest/reset-password': {
+      id: '/_guest/reset-password'
+      path: '/reset-password'
+      fullPath: '/reset-password'
+      preLoaderRoute: typeof GuestResetPasswordRouteImport
+      parentRoute: typeof GuestRouteRoute
+    }
     '/_guest/register': {
       id: '/_guest/register'
       path: '/register'
       fullPath: '/register'
       preLoaderRoute: typeof GuestRegisterRouteImport
+      parentRoute: typeof GuestRouteRoute
+    }
+    '/_guest/forgot-password': {
+      id: '/_guest/forgot-password'
+      path: '/forgot-password'
+      fullPath: '/forgot-password'
+      preLoaderRoute: typeof GuestForgotPasswordRouteImport
       parentRoute: typeof GuestRouteRoute
     }
     '/_authed/dashboard': {
@@ -236,12 +274,16 @@ const AuthedRouteRouteWithChildren = AuthedRouteRoute._addFileChildren(
 )
 
 interface GuestRouteRouteChildren {
+  GuestForgotPasswordRoute: typeof GuestForgotPasswordRoute
   GuestRegisterRoute: typeof GuestRegisterRoute
+  GuestResetPasswordRoute: typeof GuestResetPasswordRoute
   GuestIndexRoute: typeof GuestIndexRoute
 }
 
 const GuestRouteRouteChildren: GuestRouteRouteChildren = {
+  GuestForgotPasswordRoute: GuestForgotPasswordRoute,
   GuestRegisterRoute: GuestRegisterRoute,
+  GuestResetPasswordRoute: GuestResetPasswordRoute,
   GuestIndexRoute: GuestIndexRoute,
 }
 
