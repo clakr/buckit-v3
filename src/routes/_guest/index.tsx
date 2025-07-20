@@ -12,7 +12,7 @@ import {
 import { toast } from "sonner";
 import z from "zod";
 
-export const Route = createFileRoute("/")({
+export const Route = createFileRoute("/_guest/")({
 	component: RouteComponent,
 	validateSearch: z.object({
 		redirectTo: z.string().default("/dashboard"),
@@ -60,6 +60,7 @@ function RouteComponent() {
 
 			navigate({
 				to: redirectTo,
+				replace: true,
 			});
 		},
 	});

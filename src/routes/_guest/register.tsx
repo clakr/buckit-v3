@@ -8,7 +8,7 @@ import { Link, createFileRoute } from "@tanstack/react-router";
 import { toast } from "sonner";
 import z from "zod";
 
-export const Route = createFileRoute("/register")({
+export const Route = createFileRoute("/_guest/register")({
 	component: RouteComponent,
 });
 
@@ -83,11 +83,11 @@ function RouteComponent() {
 						last_name: value.lastName,
 					},
 				},
-			});
+			})
 
 			if (error) {
 				toast.error(getErrorMessage(error.code));
-				return;
+				return
 			}
 
 			// todo: redirect
@@ -157,5 +157,5 @@ function RouteComponent() {
 				</span>
 			</section>
 		</Template>
-	);
+	)
 }
