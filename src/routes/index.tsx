@@ -1,41 +1,89 @@
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import { useAppForm } from "@/hooks/form";
+import { supabase } from "@/integrations/supabase";
+import { getErrorMessage } from "@/integrations/supabase/utils";
 import { Template } from "@/modules/authentication/template";
 import { Icon } from "@iconify/react";
 import { Link, createFileRoute } from "@tanstack/react-router";
+import { toast } from "sonner";
+import z from "zod";
 
 export const Route = createFileRoute("/")({
 	component: RouteComponent,
 });
 
+const schema = z.object({
+	email: z
+		.string()
+		.min(1, "Email is required")
+		.email("Please enter a valid email address")
+		.toLowerCase(),
+
+	password: z.string().min(1, "Password is required"),
+});
+
 function RouteComponent() {
+	const form = useAppForm({
+		defaultValues: {
+			firstName: "",
+			lastName: "",
+			email: "",
+			password: "",
+			confirmPassword: "",
+		} as z.infer<typeof schema>,
+		validators: {
+			onBlur: schema,
+		},
+		onSubmit: async ({ value }) => {
+			const { error, data } = await supabase.auth.signInWithPassword({
+				email: value.email,
+				password: value.password,
+			});
+
+			if (error) {
+				toast.error(getErrorMessage(error.code));
+				return;
+			}
+
+			// todo: redirect
+
+			console.log(data);
+		},
+	});
 	return (
 		<Template>
-			<section className="w-[calc(100svw-4rem)] max-w-md flex flex-col gap-y-6">
+			<section className=" flex flex-col gap-y-6 w-[clamp(var(--container-xs),calc(100svw-4rem),var(--container-md))]">
 				<div className="text-center">
 					<h1 className="font-bold text-2xl">Login to your account</h1>
 					<span className="text-muted-foreground text-sm">
 						Enter your email below to login to your account
 					</span>
 				</div>
-				<form className="flex flex-col gap-y-4">
-					<div className="flex flex-col gap-y-2">
-						<Label htmlFor="email">Email</Label>
-						<Input type="email" name="email" id="email" />
-					</div>
-					<div className="flex flex-wrap justify-between gap-2">
-						<Label htmlFor="password">Password</Label>
-						<Button variant="link" className="p-0 h-[unset]" asChild>
-							<Link to="/">Forgot your password?</Link>
-						</Button>
-						<Input
-							type="password"
-							name="password"
-							id="password"
-							className="basis-full"
-						/>
-					</div>
+				<form
+					className="flex flex-col gap-y-4"
+					onSubmit={(event) => {
+						event.preventDefault();
+						event.stopPropagation();
+						form.handleSubmit();
+					}}
+				>
+					<form.AppField name="email">
+						{(field) => <field.Input label="Email" id="email" type="email" />}
+					</form.AppField>
+					<form.AppField name="password">
+						{(field) => (
+							<div className="relative">
+								<field.Input label="Password" id="password" type="password" />
+								<Button
+									variant="link"
+									className="p-0 h-[unset] absolute top-0 right-0 -translate-y-1/5"
+									asChild
+								>
+									<Link to="/">Forgot your password?</Link>
+								</Button>
+							</div>
+						)}
+					</form.AppField>
 					<Button>Login</Button>
 				</form>
 				<div className="relative after:inset-0 after:absolute after:border-border after:border-t after:top-1/2 text-center text-muted-foreground after:-z-10">

@@ -3,16 +3,17 @@ import { Label } from "@/components/ui/label";
 import { useFieldContext } from "@/hooks/form";
 import { useStore } from "@tanstack/react-form";
 
-type Props = { label: string } & React.ComponentProps<"input">;
+type Props = { label: string; id: string } & React.ComponentProps<"input">;
 
-export default function Input({ label, id, ...props }: Props) {
+export default function Input({ label, id, children, ...props }: Props) {
 	const field = useFieldContext<string>();
+
 	const errors = useStore(field.store, (state) => state.meta.errors);
 
 	const errorElementId = `${id}-error`;
 
 	return (
-		<div className="flex flex-col gap-y-2">
+		<div className="flex flex-col gap-y-2 ">
 			<Label htmlFor={id}>{label}</Label>
 			<UIInput
 				{...props}

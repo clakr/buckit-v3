@@ -90,13 +90,15 @@ function RouteComponent() {
 				return;
 			}
 
+			// todo: redirect
+
 			console.log(data);
 		},
 	});
 
 	return (
 		<Template>
-			<section className="w-[calc(100svw-4rem)] max-w-md flex flex-col gap-y-6">
+			<section className=" flex flex-col gap-y-6 w-[clamp(var(--container-xs),calc(100svw-4rem),var(--container-md))]">
 				<div className="text-center">
 					<h1 className="font-bold text-2xl">Create an account</h1>
 					<span className="text-muted-foreground text-sm">
@@ -113,22 +115,28 @@ function RouteComponent() {
 				>
 					<div className="grid gap-4 sm:grid-cols-2">
 						<form.AppField name="firstName">
-							{(field) => <field.Input label="First Name" />}
+							{(field) => <field.Input label="First Name" id="first-name" />}
 						</form.AppField>
 						<form.AppField name="lastName">
-							{(field) => <field.Input label="Last Name" />}
+							{(field) => <field.Input label="Last Name" id="last-name" />}
 						</form.AppField>
 					</div>
 					<form.AppField name="email">
-						{(field) => <field.Input label="Email" type="email" />}
+						{(field) => <field.Input label="Email" type="email" id="email" />}
 					</form.AppField>
 					<div className="grid gap-4 sm:grid-cols-2">
 						<form.AppField name="password">
-							{(field) => <field.Input label="Password" type="password" />}
+							{(field) => (
+								<field.Input label="Password" type="password" id="password" />
+							)}
 						</form.AppField>
 						<form.AppField name="confirmPassword">
 							{(field) => (
-								<field.Input label="Confirm Password" type="password" />
+								<field.Input
+									label="Confirm Password"
+									type="password"
+									id="confirm-password"
+								/>
 							)}
 						</form.AppField>
 					</div>
