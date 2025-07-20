@@ -1,3 +1,4 @@
+import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase";
 import { Outlet, createFileRoute, redirect } from "@tanstack/react-router";
 
@@ -19,5 +20,21 @@ export const Route = createFileRoute("/_authed")({
 });
 
 function RouteComponent() {
-	return <Outlet />;
+	const navigate = Route.useNavigate();
+
+	async function handleLogout() {
+		await supabase.auth.signOut();
+
+		navigate({
+			to: "/",
+			replace: true,
+		});
+	}
+
+	return (
+		<>
+			<Outlet />
+			<Button onClick={handleLogout}>logout</Button>
+		</>
+	);
 }

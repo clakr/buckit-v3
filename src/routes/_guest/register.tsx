@@ -62,6 +62,8 @@ const schema = z
 	});
 
 function RouteComponent() {
+	const navigate = Route.useNavigate();
+
 	const form = useAppForm({
 		defaultValues: {
 			firstName: "",
@@ -74,7 +76,7 @@ function RouteComponent() {
 			onBlur: schema,
 		},
 		onSubmit: async ({ value }) => {
-			const { error, data } = await supabase.auth.signUp({
+			const { error } = await supabase.auth.signUp({
 				email: value.email,
 				password: value.password,
 				options: {
@@ -83,16 +85,17 @@ function RouteComponent() {
 						last_name: value.lastName,
 					},
 				},
-			})
+			});
 
 			if (error) {
 				toast.error(getErrorMessage(error.code));
-				return
+				return;
 			}
 
-			// todo: redirect
-
-			console.log(data);
+			navigate({
+				to: "/dashboard",
+				replace: true,
+			});
 		},
 	});
 
@@ -157,5 +160,5 @@ function RouteComponent() {
 				</span>
 			</section>
 		</Template>
-	)
+	);
 }
