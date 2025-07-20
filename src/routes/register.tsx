@@ -1,8 +1,11 @@
 import { Button } from "@/components/ui/button";
 import { useAppForm } from "@/hooks/form";
+import { supabase } from "@/integrations/supabase";
+import { getErrorMessage } from "@/integrations/supabase/utils";
 import { Template } from "@/modules/authentication/template";
 import { Icon } from "@iconify/react";
 import { Link, createFileRoute } from "@tanstack/react-router";
+import { toast } from "sonner";
 import z from "zod";
 
 export const Route = createFileRoute("/register")({
@@ -70,8 +73,24 @@ function RouteComponent() {
 		validators: {
 			onBlur: schema,
 		},
-		onSubmit: ({ value }) => {
-			alert(value);
+		onSubmit: async ({ value }) => {
+			const { error, data } = await supabase.auth.signUp({
+				email: value.email,
+				password: value.password,
+				options: {
+					data: {
+						first_name: value.firstName,
+						last_name: value.lastName,
+					},
+				},
+			});
+
+			if (error) {
+				toast.error(getErrorMessage(error.code));
+				return;
+			}
+
+			console.log(data);
 		},
 	});
 
