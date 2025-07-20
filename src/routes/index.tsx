@@ -4,12 +4,22 @@ import { supabase } from "@/integrations/supabase";
 import { getErrorMessage } from "@/integrations/supabase/utils";
 import { Template } from "@/modules/authentication/template";
 import { Icon } from "@iconify/react";
-import { Link, createFileRoute } from "@tanstack/react-router";
+import {
+	Link,
+	createFileRoute,
+	stripSearchParams,
+} from "@tanstack/react-router";
 import { toast } from "sonner";
 import z from "zod";
 
 export const Route = createFileRoute("/")({
 	component: RouteComponent,
+	validateSearch: z.object({
+		redirectTo: z.string().default("/dashboard"),
+	}),
+	search: {
+		middlewares: [stripSearchParams({ redirectTo: "/dashboard" })],
+	},
 });
 
 const schema = z.object({
@@ -23,6 +33,9 @@ const schema = z.object({
 });
 
 function RouteComponent() {
+	const navigate = Route.useNavigate();
+	const { redirectTo } = Route.useSearch();
+
 	const form = useAppForm({
 		defaultValues: {
 			firstName: "",
@@ -35,7 +48,7 @@ function RouteComponent() {
 			onBlur: schema,
 		},
 		onSubmit: async ({ value }) => {
-			const { error, data } = await supabase.auth.signInWithPassword({
+			const { error } = await supabase.auth.signInWithPassword({
 				email: value.email,
 				password: value.password,
 			});
@@ -45,9 +58,9 @@ function RouteComponent() {
 				return;
 			}
 
-			// todo: redirect
-
-			console.log(data);
+			navigate({
+				to: redirectTo,
+			});
 		},
 	});
 	return (
