@@ -103,7 +103,7 @@ function RouteComponent() {
 
 	return (
 		<Template>
-			<section className=" flex flex-col gap-y-6 w-[clamp(var(--container-xs),calc(100svw-4rem),var(--container-md))]">
+			<section className=" flex flex-col gap-y-6 w-[clamp(var(--container-xs),calc(100svw-4rem),var(--container-lg))]">
 				<div className="text-center">
 					<h1 className="font-bold text-2xl">Create an account</h1>
 					<span className="text-muted-foreground text-sm">
@@ -145,15 +145,15 @@ function RouteComponent() {
 							)}
 						</form.AppField>
 					</div>
-					<Button>Sign up</Button>
+					<Button className="mt-3">Sign up</Button>
 				</form>
-				<div className="relative after:inset-0 after:absolute after:border-border after:border-t after:top-1/2 text-center text-muted-foreground after:-z-10">
+				{/* <div className="relative after:inset-0 after:absolute after:border-border after:border-t after:top-1/2 text-center text-muted-foreground after:-z-10">
 					<span className="px-2 text-sm bg-background">Or continue with</span>
 				</div>
 				<Button variant="outline">
 					<Icon icon="bxl:google" />
 					Sign up with Google
-				</Button>
+				</Button> */}
 				<span className="text-sm flex gap-x-2 justify-center">
 					Already have an account?
 					<Button variant="link" className="underline p-0 h-[unset]" asChild>

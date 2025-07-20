@@ -8,6 +8,10 @@ type Props = { label: string; id: string } & React.ComponentProps<"input">;
 export default function Input({ label, id, children, ...props }: Props) {
 	const field = useFieldContext<string>();
 
+	const isError = useStore(
+		field.store,
+		(state) => state.meta.isTouched && state.meta.errors.length > 0,
+	);
 	const errors = useStore(field.store, (state) => state.meta.errors);
 
 	const errorElementId = `${id}-error`;
@@ -21,10 +25,10 @@ export default function Input({ label, id, children, ...props }: Props) {
 				value={field.state.value}
 				onBlur={field.handleBlur}
 				onChange={(e) => field.handleChange(e.target.value)}
-				aria-invalid={errors.length > 0}
-				aria-describedby={errors.length > 0 ? errorElementId : undefined}
+				aria-invalid={isError}
+				aria-describedby={isError ? errorElementId : undefined}
 			/>
-			{errors.length > 0 && (
+			{isError && (
 				<span id={errorElementId} className="text-destructive text-xs">
 					{errors.at(0).message}
 				</span>
