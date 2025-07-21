@@ -4,8 +4,9 @@ import { Button } from "@/components/ui/button";
 import { useAppForm } from "@/hooks/form";
 import { supabase } from "@/integrations/supabase";
 import { getErrorMessage } from "@/integrations/supabase/utils";
+import { PasswordRequirements } from "@/modules/authentication/components/password-requirement";
 import { Template } from "@/modules/authentication/template";
-import { Icon } from "@iconify/react";
+import { useStore } from "@tanstack/react-form";
 import { Link, createFileRoute } from "@tanstack/react-router";
 import { toast } from "sonner";
 import z from "zod";
@@ -101,6 +102,8 @@ function RouteComponent() {
 		},
 	});
 
+	const password = useStore(form.store, (state) => state.values.password);
+
 	return (
 		<Template>
 			<section className=" flex flex-col gap-y-6 w-[clamp(var(--container-xs),calc(100svw-4rem),var(--container-lg))]">
@@ -145,8 +148,9 @@ function RouteComponent() {
 							)}
 						</form.AppField>
 					</div>
+					<PasswordRequirements password={password} />
 					<form.AppForm>
-						<form.Button className="mt-3">Sign up</form.Button>
+						<form.Button>Sign up</form.Button>
 					</form.AppForm>
 				</form>
 				{/* <div className="relative after:inset-0 after:absolute after:border-border after:border-t after:top-1/2 text-center text-muted-foreground after:-z-10">

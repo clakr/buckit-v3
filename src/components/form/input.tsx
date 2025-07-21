@@ -17,7 +17,7 @@ export default function Input({ label, id, children, ...props }: Props) {
 	const errorElementId = `${id}-error`;
 
 	return (
-		<div className="flex flex-col gap-y-2 ">
+		<div className="flex flex-col gap-y-2">
 			<Label htmlFor={id}>{label}</Label>
 			<UIInput
 				{...props}

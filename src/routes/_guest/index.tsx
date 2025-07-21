@@ -1,9 +1,10 @@
+// ~/routes/_guest/index.tsx
+
 import { Button } from "@/components/ui/button";
 import { useAppForm } from "@/hooks/form";
 import { supabase } from "@/integrations/supabase";
 import { getErrorMessage } from "@/integrations/supabase/utils";
 import { Template } from "@/modules/authentication/template";
-import { Icon } from "@iconify/react";
 import {
 	Link,
 	createFileRoute,
@@ -87,16 +88,7 @@ function RouteComponent() {
 					</form.AppField>
 					<form.AppField name="password">
 						{(field) => (
-							<div className="relative">
-								<field.Input label="Password" id="password" type="password" />
-								<Button
-									variant="link"
-									className="p-0 h-[unset] absolute top-0 right-0 -translate-y-1/5"
-									asChild
-								>
-									<Link to="/forgot-password">Forgot your password?</Link>
-								</Button>
-							</div>
+							<field.Input label="Password" id="password" type="password" />
 						)}
 					</form.AppField>
 					<form.AppForm>
