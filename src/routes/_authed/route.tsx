@@ -1,6 +1,8 @@
-import { Button } from "@/components/ui/button";
+import { useAppForm } from "@/hooks/form";
 import { supabase } from "@/integrations/supabase";
+import { getErrorMessage } from "@/integrations/supabase/utils";
 import { Outlet, createFileRoute, redirect } from "@tanstack/react-router";
+import { toast } from "sonner";
 
 export const Route = createFileRoute("/_authed")({
 	component: RouteComponent,
@@ -22,19 +24,36 @@ export const Route = createFileRoute("/_authed")({
 function RouteComponent() {
 	const navigate = Route.useNavigate();
 
-	async function handleLogout() {
-		await supabase.auth.signOut();
+	const form = useAppForm({
+		onSubmit: async () => {
+			const { error } = await supabase.auth.signOut();
 
-		navigate({
-			to: "/",
-			replace: true,
-		});
-	}
+			if (error) {
+				toast.error(getErrorMessage(error.code));
+				return;
+			}
+
+			navigate({
+				to: "/",
+				replace: true,
+			});
+		},
+	});
 
 	return (
 		<>
 			<Outlet />
-			<Button onClick={handleLogout}>logout</Button>
+			<form
+				onSubmit={(event) => {
+					event.preventDefault();
+					event.stopPropagation();
+					form.handleSubmit();
+				}}
+			>
+				<form.AppForm>
+					<form.Button>Logout</form.Button>
+				</form.AppForm>
+			</form>
 		</>
 	);
 }

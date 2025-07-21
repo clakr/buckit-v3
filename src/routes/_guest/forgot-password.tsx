@@ -86,7 +86,9 @@ function RouteComponent() {
 					<form.AppField name="email">
 						{(field) => <field.Input label="Email" id="email" type="email" />}
 					</form.AppField>
-					<Button>Reset Password</Button>
+					<form.AppForm>
+						<form.Button>Reset Password</form.Button>
+					</form.AppForm>
 				</form>
 				<Button variant="link" className="p-0 h-[unset]" asChild>
 					<Link to="/">

@@ -99,7 +99,9 @@ function RouteComponent() {
 							</div>
 						)}
 					</form.AppField>
-					<Button className="mt-3">Login</Button>
+					<form.AppForm>
+						<form.Button className="mt-3">Login</form.Button>
+					</form.AppForm>
 				</form>
 				{/* <div className="relative after:inset-0 after:absolute after:border-border after:border-t after:top-1/2 text-center text-muted-foreground after:-z-10">
 					<span className="px-2 text-sm bg-background">Or continue with</span>

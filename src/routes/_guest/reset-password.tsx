@@ -116,7 +116,9 @@ function RouteComponent() {
 							/>
 						)}
 					</form.AppField>
-					<Button>Reset Password</Button>
+					<form.AppForm>
+						<form.Button>Reset Password</form.Button>
+					</form.AppForm>
 				</form>
 				<Button variant="link" className="p-0 h-[unset]" asChild>
 					<Link to="/">
