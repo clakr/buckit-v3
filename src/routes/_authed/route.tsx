@@ -1,4 +1,13 @@
 import {
+	BreadcrumbItem,
+	BreadcrumbLink,
+	BreadcrumbList,
+	BreadcrumbPage,
+	BreadcrumbSeparator,
+	Breadcrumb as UIBreadcrumb,
+} from "@/components/ui/breadcrumb";
+import { Separator } from "@/components/ui/separator";
+import {
 	SidebarGroup,
 	SidebarGroupContent,
 	SidebarInset,
@@ -6,19 +15,23 @@ import {
 	SidebarMenuButton,
 	SidebarMenuItem,
 	SidebarProvider,
+	SidebarTrigger,
 	Sidebar as UISidebar,
 	SidebarContent as UISidebarContent,
 	SidebarFooter as UISidebarFooter,
 } from "@/components/ui/sidebar";
 import { supabase } from "@/integrations/supabase";
 import { getErrorMessage } from "@/integrations/supabase/utils";
+import { getRoutesHeading, getSegmentLabel } from "@/lib/utils";
 import { Icon } from "@iconify/react/dist/iconify.js";
 import {
 	Link,
 	Outlet,
 	createFileRoute,
 	redirect,
+	useLocation,
 } from "@tanstack/react-router";
+import { Fragment } from "react/jsx-runtime";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/_authed")({
@@ -43,7 +56,11 @@ function RouteComponent() {
 		<SidebarProvider>
 			<Sidebar />
 			<SidebarInset>
-				<Outlet />
+				<Header />
+				<div className="p-6">
+					<Heading />
+					<Outlet />
+				</div>
 			</SidebarInset>
 		</SidebarProvider>
 	);
@@ -149,4 +166,60 @@ function SidebarFooter({
 			</SidebarMenu>
 		</UISidebarFooter>
 	);
+}
+
+function Header() {
+	return (
+		<header className="px-6 py-4 border-b flex items-center gap-x-4">
+			<SidebarTrigger />
+			<Separator orientation="vertical" />
+			<Breadcrumbs />
+		</header>
+	);
+}
+
+function Breadcrumbs() {
+	const location = useLocation();
+
+	const pathSegments = location.pathname.split("/").filter(Boolean);
+
+	const breadcrumbs = pathSegments.map((segment, index) => {
+		const path = `/${pathSegments.slice(0, index + 1).join("/")}`;
+
+		return {
+			label: getSegmentLabel(segment),
+			path,
+		};
+	});
+
+	if (breadcrumbs.length === 0) return null;
+
+	return (
+		<UIBreadcrumb>
+			<BreadcrumbList>
+				{breadcrumbs.map((breadcrumb, index) => (
+					<Fragment key={breadcrumb.path}>
+						<BreadcrumbItem>
+							{index === breadcrumbs.length - 1 ? (
+								<BreadcrumbPage>{breadcrumb.label}</BreadcrumbPage>
+							) : (
+								<BreadcrumbLink asChild>
+									<Link to={breadcrumb.path}>{breadcrumb.label}</Link>
+								</BreadcrumbLink>
+							)}
+						</BreadcrumbItem>
+						{index < breadcrumbs.length - 1 && <BreadcrumbSeparator />}
+					</Fragment>
+				))}
+			</BreadcrumbList>
+		</UIBreadcrumb>
+	);
+}
+
+function Heading() {
+	const location = useLocation();
+
+	const heading = getRoutesHeading(location.pathname);
+
+	return <h1 className="font-bold text-3xl">{heading}</h1>;
 }
