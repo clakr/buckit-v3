@@ -74,7 +74,7 @@ function RouteComponent() {
 			email: "",
 			password: "",
 			confirmPassword: "",
-		} as z.infer<typeof schema>,
+		} as z.input<typeof schema>,
 		validators: {
 			onBlur: schema,
 		},

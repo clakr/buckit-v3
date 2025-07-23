@@ -1,9 +1,20 @@
-import { createFileRoute } from '@tanstack/react-router'
+import { Button } from "@/components/ui/button";
+import { Icon } from "@iconify/react/dist/iconify.js";
+import { Link, createFileRoute } from "@tanstack/react-router";
 
-export const Route = createFileRoute('/_authed/buckets/')({
-  component: RouteComponent,
-})
+export const Route = createFileRoute("/_authed/buckets/")({
+	component: RouteComponent,
+});
 
 function RouteComponent() {
-  return <div>Hello "/_authed/buckets/"!</div>
+	return (
+		<>
+			<Button asChild>
+				<Link to="/buckets/create">
+					<Icon icon="bx:plus" />
+					Create Bucket
+				</Link>
+			</Button>
+		</>
+	);
 }
