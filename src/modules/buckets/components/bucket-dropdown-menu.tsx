@@ -1,0 +1,34 @@
+import { Button } from "@/components/ui/button";
+import {
+	DropdownMenu,
+	DropdownMenuContent,
+	DropdownMenuItem,
+	DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Icon } from "@iconify/react/dist/iconify.js";
+
+export function BucketDropdownMenu() {
+	return (
+		<DropdownMenu>
+			<DropdownMenuTrigger asChild>
+				<Button variant="ghost" size="icon" className="absolute top-2 right-2">
+					<Icon icon="bx:dots-vertical" />
+				</Button>
+			</DropdownMenuTrigger>
+			<DropdownMenuContent>
+				<DropdownMenuItem disabled>
+					<Icon icon="bx:show" />
+					View
+				</DropdownMenuItem>
+				<DropdownMenuItem disabled>
+					<Icon icon="bx:edit" />
+					Edit
+				</DropdownMenuItem>
+				<DropdownMenuItem disabled>
+					<Icon icon="bx:trash" />
+					Delete
+				</DropdownMenuItem>
+			</DropdownMenuContent>
+		</DropdownMenu>
+	);
+}

@@ -1,6 +1,6 @@
 import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
-import { Icon } from "@iconify/react/dist/iconify.js";
+import { Icon } from "@iconify/react";
 
 interface Props {
 	password: string;

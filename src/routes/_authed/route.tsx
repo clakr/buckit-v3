@@ -23,7 +23,7 @@ import {
 import { supabase } from "@/integrations/supabase";
 import { getErrorMessage } from "@/integrations/supabase/utils";
 import { getRoutesHeading, getSegmentLabel } from "@/lib/utils";
-import { Icon } from "@iconify/react/dist/iconify.js";
+import { Icon } from "@iconify/react";
 import {
 	Link,
 	Outlet,

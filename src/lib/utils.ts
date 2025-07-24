@@ -47,3 +47,16 @@ export function getRoutesHeading(route: string) {
 
 	return route;
 }
+
+export function formatToCurrency(value: number | null) {
+	if (value === null) return "N/A";
+
+	const formatter = Intl.NumberFormat(navigator.language, {
+		style: "currency",
+		currency: "PHP",
+		minimumFractionDigits: 2,
+		maximumFractionDigits: 2,
+	});
+
+	return formatter.format(value);
+}

@@ -1,7 +1,7 @@
 import { useAppForm } from "@/hooks/form";
 import { supabase } from "@/integrations/supabase";
 import { getErrorMessage } from "@/integrations/supabase/utils";
-import { Icon } from "@iconify/react/dist/iconify.js";
+import { Icon } from "@iconify/react";
 import { createFileRoute } from "@tanstack/react-router";
 import { toast } from "sonner";
 import z from "zod";
