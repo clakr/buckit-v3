@@ -17,8 +17,6 @@ import { Route as DemoTableRouteImport } from './routes/demo.table'
 import { Route as GuestRegisterRouteImport } from './routes/_guest/register'
 import { Route as AuthedDashboardRouteImport } from './routes/_authed/dashboard'
 import { Route as AuthedBucketsIndexRouteImport } from './routes/_authed/buckets/index'
-import { Route as DemoFormSimpleRouteImport } from './routes/demo.form.simple'
-import { Route as DemoFormAddressRouteImport } from './routes/demo.form.address'
 import { Route as AuthedBucketsCreateRouteImport } from './routes/_authed/buckets/create'
 import { Route as AuthedBucketsIdRouteImport } from './routes/_authed/buckets/$id'
 
@@ -60,16 +58,6 @@ const AuthedBucketsIndexRoute = AuthedBucketsIndexRouteImport.update({
   path: '/buckets/',
   getParentRoute: () => AuthedRouteRoute,
 } as any)
-const DemoFormSimpleRoute = DemoFormSimpleRouteImport.update({
-  id: '/demo/form/simple',
-  path: '/demo/form/simple',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const DemoFormAddressRoute = DemoFormAddressRouteImport.update({
-  id: '/demo/form/address',
-  path: '/demo/form/address',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const AuthedBucketsCreateRoute = AuthedBucketsCreateRouteImport.update({
   id: '/buckets/create',
   path: '/buckets/create',
@@ -89,8 +77,6 @@ export interface FileRoutesByFullPath {
   '/': typeof GuestIndexRoute
   '/buckets/$id': typeof AuthedBucketsIdRoute
   '/buckets/create': typeof AuthedBucketsCreateRoute
-  '/demo/form/address': typeof DemoFormAddressRoute
-  '/demo/form/simple': typeof DemoFormSimpleRoute
   '/buckets': typeof AuthedBucketsIndexRoute
 }
 export interface FileRoutesByTo {
@@ -101,8 +87,6 @@ export interface FileRoutesByTo {
   '/': typeof GuestIndexRoute
   '/buckets/$id': typeof AuthedBucketsIdRoute
   '/buckets/create': typeof AuthedBucketsCreateRoute
-  '/demo/form/address': typeof DemoFormAddressRoute
-  '/demo/form/simple': typeof DemoFormSimpleRoute
   '/buckets': typeof AuthedBucketsIndexRoute
 }
 export interface FileRoutesById {
@@ -116,8 +100,6 @@ export interface FileRoutesById {
   '/_guest/': typeof GuestIndexRoute
   '/_authed/buckets/$id': typeof AuthedBucketsIdRoute
   '/_authed/buckets/create': typeof AuthedBucketsCreateRoute
-  '/demo/form/address': typeof DemoFormAddressRoute
-  '/demo/form/simple': typeof DemoFormSimpleRoute
   '/_authed/buckets/': typeof AuthedBucketsIndexRoute
 }
 export interface FileRouteTypes {
@@ -130,8 +112,6 @@ export interface FileRouteTypes {
     | '/'
     | '/buckets/$id'
     | '/buckets/create'
-    | '/demo/form/address'
-    | '/demo/form/simple'
     | '/buckets'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -142,8 +122,6 @@ export interface FileRouteTypes {
     | '/'
     | '/buckets/$id'
     | '/buckets/create'
-    | '/demo/form/address'
-    | '/demo/form/simple'
     | '/buckets'
   id:
     | '__root__'
@@ -156,8 +134,6 @@ export interface FileRouteTypes {
     | '/_guest/'
     | '/_authed/buckets/$id'
     | '/_authed/buckets/create'
-    | '/demo/form/address'
-    | '/demo/form/simple'
     | '/_authed/buckets/'
   fileRoutesById: FileRoutesById
 }
@@ -166,8 +142,6 @@ export interface RootRouteChildren {
   GuestRouteRoute: typeof GuestRouteRouteWithChildren
   DemoTableRoute: typeof DemoTableRoute
   DemoTanstackQueryRoute: typeof DemoTanstackQueryRoute
-  DemoFormAddressRoute: typeof DemoFormAddressRoute
-  DemoFormSimpleRoute: typeof DemoFormSimpleRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -228,20 +202,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthedBucketsIndexRouteImport
       parentRoute: typeof AuthedRouteRoute
     }
-    '/demo/form/simple': {
-      id: '/demo/form/simple'
-      path: '/demo/form/simple'
-      fullPath: '/demo/form/simple'
-      preLoaderRoute: typeof DemoFormSimpleRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/demo/form/address': {
-      id: '/demo/form/address'
-      path: '/demo/form/address'
-      fullPath: '/demo/form/address'
-      preLoaderRoute: typeof DemoFormAddressRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/_authed/buckets/create': {
       id: '/_authed/buckets/create'
       path: '/buckets/create'
@@ -296,8 +256,6 @@ const rootRouteChildren: RootRouteChildren = {
   GuestRouteRoute: GuestRouteRouteWithChildren,
   DemoTableRoute: DemoTableRoute,
   DemoTanstackQueryRoute: DemoTanstackQueryRoute,
-  DemoFormAddressRoute: DemoFormAddressRoute,
-  DemoFormSimpleRoute: DemoFormSimpleRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
