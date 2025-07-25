@@ -9,7 +9,7 @@ import {
 } from "@/components/ui/card";
 import { supabase } from "@/integrations/supabase";
 import { getErrorMessage } from "@/integrations/supabase/utils";
-import { formatToCurrency } from "@/lib/utils";
+import { formatCurrency } from "@/lib/utils";
 import { BucketDropdownMenu } from "@/modules/buckets/components/bucket-dropdown-menu";
 import { Icon } from "@iconify/react";
 import { queryOptions, useSuspenseQuery } from "@tanstack/react-query";
@@ -54,7 +54,7 @@ function RouteComponent() {
 						key={bucket.id}
 						className="relative grid grid-rows-subgrid row-span-2"
 					>
-						<BucketDropdownMenu />
+						<BucketDropdownMenu id={bucket.id} />
 						<CardHeader>
 							<CardTitle>{bucket.name}</CardTitle>
 							<CardDescription>{bucket.description}</CardDescription>
@@ -74,7 +74,7 @@ function RouteComponent() {
 								</Badge>
 							</div>
 							<strong className="text-2xl font-bold justify-end">
-								{formatToCurrency(bucket.current_amount)}
+								{formatCurrency(bucket.current_amount)}
 							</strong>
 						</CardFooter>
 					</Card>

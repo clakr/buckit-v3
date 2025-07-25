@@ -48,7 +48,7 @@ export function getRoutesHeading(route: string) {
 	return route;
 }
 
-export function formatToCurrency(value: number | null) {
+export function formatCurrency(value: number | null) {
 	if (value === null) return "N/A";
 
 	const formatter = Intl.NumberFormat(navigator.language, {
@@ -59,4 +59,12 @@ export function formatToCurrency(value: number | null) {
 	});
 
 	return formatter.format(value);
+}
+
+export function formatDate(value: string | null) {
+	if (value === null) return "N/A";
+
+	const formatter = new Intl.DateTimeFormat(navigator.language);
+
+	return formatter.format(new Date(value));
 }
