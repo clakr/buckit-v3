@@ -5,8 +5,10 @@ import {
 	DropdownMenuItem,
 	DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { useAlert } from "@/hooks/use-alert";
 import type { Bucket } from "@/integrations/supabase/types";
-import { Icon } from "@iconify/react/dist/iconify.js";
+import { useDeleteBucket } from "@/modules/buckets/mutations";
+import { Icon } from "@iconify/react";
 import { Link } from "@tanstack/react-router";
 
 type Props = {
@@ -14,6 +16,27 @@ type Props = {
 };
 
 export function BucketDropdownMenu({ id }: Props) {
+	/**
+	 * delete bucket action
+	 */
+	/**
+	 * delete bucket action
+	 */
+	const { show } = useAlert();
+	const mutation = useDeleteBucket();
+
+	function handleDeleteBucket() {
+		show({
+			title: "Are you absolutely sure?",
+			description:
+				"This action cannot be undone. This will permanently delete your bucket along with its respective data.",
+			actionText: "Delete this Bucket",
+			onAction: () => {
+				mutation.mutate(id);
+			},
+		});
+	}
+
 	return (
 		<DropdownMenu>
 			<DropdownMenuTrigger asChild>
@@ -44,7 +67,7 @@ export function BucketDropdownMenu({ id }: Props) {
 						Edit
 					</Link>
 				</DropdownMenuItem>
-				<DropdownMenuItem disabled>
+				<DropdownMenuItem onClick={handleDeleteBucket}>
 					<Icon icon="bx:trash" />
 					Delete
 				</DropdownMenuItem>

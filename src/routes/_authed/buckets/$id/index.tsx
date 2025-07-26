@@ -1,4 +1,3 @@
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
 	Card,
@@ -8,9 +7,11 @@ import {
 	CardHeader,
 	CardTitle,
 } from "@/components/ui/card";
+import { useAlert } from "@/hooks/use-alert";
 import { formatCurrency, formatDate } from "@/lib/utils";
+import { useDeleteBucket } from "@/modules/buckets/mutations";
 import { bucketQueryOption } from "@/modules/buckets/query-options";
-import { Icon } from "@iconify/react/dist/iconify.js";
+import { Icon } from "@iconify/react";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { Link, createFileRoute } from "@tanstack/react-router";
 
@@ -22,8 +23,31 @@ export const Route = createFileRoute("/_authed/buckets/$id/")({
 });
 
 function RouteComponent() {
+	/**
+	 * fetching data
+	 */
 	const { id } = Route.useParams();
 	const { data: bucket } = useSuspenseQuery(bucketQueryOption(id));
+
+	/**
+	 * delete bucket action
+	 */
+	const navigate = Route.useNavigate();
+	const { show } = useAlert();
+	const mutation = useDeleteBucket();
+
+	function handleDeleteBucket() {
+		show({
+			title: "Are you absolutely sure?",
+			description:
+				"This action cannot be undone. This will permanently delete your bucket along with its respective data.",
+			actionText: "Delete this Bucket",
+			onAction: () => {
+				mutation.mutate(id);
+				navigate({ to: "/buckets" });
+			},
+		});
+	}
 
 	if (!bucket) return <div>no bucket</div>;
 
@@ -66,12 +90,6 @@ function RouteComponent() {
 				</CardHeader>
 				<CardContent>
 					<dl className="grid grid-cols-2 text-sm gap-2">
-						<dt className="font-semibold">Status</dt>
-						<dd className="text-end">
-							<Badge variant={bucket.is_active ? "default" : "outline"}>
-								{bucket.is_active ? "Active" : "Inactive"}
-							</Badge>
-						</dd>
 						<dt className="font-semibold">Created</dt>
 						<dd className="text-end text-muted-foreground font-medium">
 							{formatDate(bucket.created_at)}
@@ -100,7 +118,7 @@ function RouteComponent() {
 							Edit Bucket
 						</Link>
 					</Button>
-					<Button variant="outline" disabled>
+					<Button variant="outline" onClick={handleDeleteBucket}>
 						<Icon icon="bx:trash" />
 						Delete Bucket
 					</Button>

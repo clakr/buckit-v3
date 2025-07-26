@@ -1,10 +1,8 @@
 import { useAppForm } from "@/hooks/form";
-import { supabase } from "@/integrations/supabase";
-import { getErrorMessage } from "@/integrations/supabase/utils";
+import { useCreateBucket } from "@/modules/buckets/mutations";
 import { createBucketFormSchema } from "@/modules/buckets/schemas";
-import { Icon } from "@iconify/react/dist/iconify.js";
+import { Icon } from "@iconify/react";
 import { createFileRoute } from "@tanstack/react-router";
-import { toast } from "sonner";
 import type z from "zod";
 
 export const Route = createFileRoute("/_authed/buckets/create")({
@@ -13,6 +11,8 @@ export const Route = createFileRoute("/_authed/buckets/create")({
 
 function RouteComponent() {
 	const navigate = Route.useNavigate();
+
+	const mutation = useCreateBucket();
 
 	const defaultValues: z.input<typeof createBucketFormSchema> = {
 		name: "",
@@ -26,19 +26,9 @@ function RouteComponent() {
 			onBlur: createBucketFormSchema,
 		},
 		onSubmit: async ({ value }) => {
-			const { error } = await supabase
-				.from("buckets")
-				.insert({
-					name: value.name,
-					description: value.description,
-					current_amount: value.current_amount,
-				})
-				.select();
+			const payload = createBucketFormSchema.parse(value);
 
-			if (error) {
-				toast.error(getErrorMessage(error.code));
-				return;
-			}
+			mutation.mutate(payload);
 
 			navigate({ to: "/buckets" });
 		},

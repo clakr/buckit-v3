@@ -1,12 +1,10 @@
 import { useAppForm } from "@/hooks/form";
-import { supabase } from "@/integrations/supabase";
-import { getErrorMessage } from "@/integrations/supabase/utils";
+import { useUpdateBucket } from "@/modules/buckets/mutations";
 import { bucketQueryOption } from "@/modules/buckets/query-options";
 import { editBucketFormSchema } from "@/modules/buckets/schemas";
-import { Icon } from "@iconify/react/dist/iconify.js";
+import { Icon } from "@iconify/react";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
-import { toast } from "sonner";
 import type z from "zod";
 
 export const Route = createFileRoute("/_authed/buckets/$id/edit")({
@@ -22,6 +20,8 @@ function RouteComponent() {
 
 	const { data: bucket } = useSuspenseQuery(bucketQueryOption(id));
 
+	const mutation = useUpdateBucket();
+
 	const defaultValues: z.input<typeof editBucketFormSchema> = {
 		id: bucket?.id || "",
 		name: bucket?.name || "",
@@ -34,19 +34,9 @@ function RouteComponent() {
 			onBlur: editBucketFormSchema,
 		},
 		onSubmit: async ({ value }) => {
-			const { error } = await supabase
-				.from("buckets")
-				.update({
-					name: value.name,
-					description: value.description,
-				})
-				.eq("id", value.id)
-				.select();
+			const payload = editBucketFormSchema.parse(value);
 
-			if (error) {
-				toast.error(getErrorMessage(error.code));
-				return;
-			}
+			mutation.mutate(payload);
 
 			navigate({ to: "/buckets" });
 		},
@@ -69,7 +59,7 @@ function RouteComponent() {
 			</form.AppField>
 			<form.AppForm>
 				<form.Button className="self-end">
-					<Icon icon="bx:minus" />
+					<Icon icon="bx:edit" />
 					Edit Bucket
 				</form.Button>
 			</form.AppForm>

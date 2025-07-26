@@ -26,7 +26,7 @@ function RouteComponent() {
 
 	return (
 		<>
-			<Button asChild>
+			<Button asChild className="self-end">
 				<Link to="/buckets/create">
 					<Icon icon="bx:plus" />
 					Create Bucket

@@ -1,3 +1,4 @@
+import { AlertDialog } from "@/components/alert-dialog.tsx";
 import { Toaster } from "@/components/ui/sonner.tsx";
 import type { QueryClient } from "@tanstack/react-query";
 import { Outlet, createRootRouteWithContext } from "@tanstack/react-router";
@@ -17,6 +18,7 @@ export const Route = createRootRouteWithContext<MyRouterContext>()({
 			<TanStackQueryLayout />
 
 			<Toaster position="top-center" />
+			<AlertDialog />
 		</>
 	),
 });

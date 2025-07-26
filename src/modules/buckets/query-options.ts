@@ -5,7 +5,10 @@ import { queryOptions } from "@tanstack/react-query";
 export const bucketsQueryOption = queryOptions({
 	queryKey: ["buckets"],
 	queryFn: async () => {
-		const { data } = await supabase.from("buckets").select("*");
+		const { data } = await supabase
+			.from("buckets")
+			.select("*")
+			.eq("is_active", true);
 
 		return data;
 	},
