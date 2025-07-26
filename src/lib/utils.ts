@@ -64,7 +64,13 @@ export function formatCurrency(value: number | null) {
 export function formatDate(value: string | null) {
 	if (value === null) return "N/A";
 
-	const formatter = new Intl.DateTimeFormat(navigator.language);
+	const formatter = new Intl.DateTimeFormat(navigator.language, {
+		year: "numeric",
+		month: "long",
+		day: "numeric",
+		hour: "2-digit",
+		minute: "2-digit",
+	});
 
 	return formatter.format(new Date(value));
 }

@@ -5,12 +5,12 @@ import {
 	DropdownMenuItem,
 	DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import type { UserBucket } from "@/integrations/supabase/types";
+import type { Bucket } from "@/integrations/supabase/types";
 import { Icon } from "@iconify/react/dist/iconify.js";
 import { Link } from "@tanstack/react-router";
 
 type Props = {
-	id: UserBucket["id"];
+	id: Bucket["id"];
 };
 
 export function BucketDropdownMenu({ id }: Props) {
@@ -33,9 +33,16 @@ export function BucketDropdownMenu({ id }: Props) {
 						View
 					</Link>
 				</DropdownMenuItem>
-				<DropdownMenuItem disabled>
-					<Icon icon="bx:edit" />
-					Edit
+				<DropdownMenuItem asChild>
+					<Link
+						to="/buckets/$id/edit"
+						params={{
+							id,
+						}}
+					>
+						<Icon icon="bx:edit" />
+						Edit
+					</Link>
 				</DropdownMenuItem>
 				<DropdownMenuItem disabled>
 					<Icon icon="bx:trash" />

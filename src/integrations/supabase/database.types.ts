@@ -17,8 +17,8 @@ export type Database = {
     Functions: {
       graphql: {
         Args: {
-          query?: string
           operationName?: string
+          query?: string
           variables?: Json
           extensions?: Json
         }
@@ -34,98 +34,42 @@ export type Database = {
   }
   public: {
     Tables: {
-      bucket_members: {
-        Row: {
-          bucket_id: string
-          id: string
-          invited_by: string
-          joined_at: string
-          role: string
-          user_id: string
-        }
-        Insert: {
-          bucket_id: string
-          id?: string
-          invited_by: string
-          joined_at?: string
-          role?: string
-          user_id: string
-        }
-        Update: {
-          bucket_id?: string
-          id?: string
-          invited_by?: string
-          joined_at?: string
-          role?: string
-          user_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "bucket_members_bucket_id_fkey"
-            columns: ["bucket_id"]
-            isOneToOne: false
-            referencedRelation: "buckets"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "bucket_members_bucket_id_fkey"
-            columns: ["bucket_id"]
-            isOneToOne: false
-            referencedRelation: "user_buckets"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       buckets: {
         Row: {
           created_at: string
-          current_amount: number | null
+          current_amount: number
           description: string | null
           id: string
           is_active: boolean
           name: string
-          owner_id: string
           updated_at: string
+          user_id: string
         }
         Insert: {
           created_at?: string
-          current_amount?: number | null
+          current_amount?: number
           description?: string | null
           id?: string
           is_active?: boolean
           name: string
-          owner_id?: string
           updated_at?: string
+          user_id?: string
         }
         Update: {
           created_at?: string
-          current_amount?: number | null
+          current_amount?: number
           description?: string | null
           id?: string
           is_active?: boolean
           name?: string
-          owner_id?: string
           updated_at?: string
+          user_id?: string
         }
         Relationships: []
       }
     }
     Views: {
-      user_buckets: {
-        Row: {
-          created_at: string | null
-          current_amount: number | null
-          description: string | null
-          id: string | null
-          is_active: boolean | null
-          is_owner: boolean | null
-          name: string | null
-          owner_id: string | null
-          updated_at: string | null
-          user_role: string | null
-        }
-        Relationships: []
-      }
+      [_ in never]: never
     }
     Functions: {
       [_ in never]: never

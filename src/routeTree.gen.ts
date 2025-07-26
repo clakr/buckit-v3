@@ -18,7 +18,8 @@ import { Route as GuestRegisterRouteImport } from './routes/_guest/register'
 import { Route as AuthedDashboardRouteImport } from './routes/_authed/dashboard'
 import { Route as AuthedBucketsIndexRouteImport } from './routes/_authed/buckets/index'
 import { Route as AuthedBucketsCreateRouteImport } from './routes/_authed/buckets/create'
-import { Route as AuthedBucketsIdRouteImport } from './routes/_authed/buckets/$id'
+import { Route as AuthedBucketsIdIndexRouteImport } from './routes/_authed/buckets/$id/index'
+import { Route as AuthedBucketsIdEditRouteImport } from './routes/_authed/buckets/$id/edit'
 
 const GuestRouteRoute = GuestRouteRouteImport.update({
   id: '/_guest',
@@ -63,9 +64,14 @@ const AuthedBucketsCreateRoute = AuthedBucketsCreateRouteImport.update({
   path: '/buckets/create',
   getParentRoute: () => AuthedRouteRoute,
 } as any)
-const AuthedBucketsIdRoute = AuthedBucketsIdRouteImport.update({
-  id: '/buckets/$id',
-  path: '/buckets/$id',
+const AuthedBucketsIdIndexRoute = AuthedBucketsIdIndexRouteImport.update({
+  id: '/buckets/$id/',
+  path: '/buckets/$id/',
+  getParentRoute: () => AuthedRouteRoute,
+} as any)
+const AuthedBucketsIdEditRoute = AuthedBucketsIdEditRouteImport.update({
+  id: '/buckets/$id/edit',
+  path: '/buckets/$id/edit',
   getParentRoute: () => AuthedRouteRoute,
 } as any)
 
@@ -75,9 +81,10 @@ export interface FileRoutesByFullPath {
   '/demo/table': typeof DemoTableRoute
   '/demo/tanstack-query': typeof DemoTanstackQueryRoute
   '/': typeof GuestIndexRoute
-  '/buckets/$id': typeof AuthedBucketsIdRoute
   '/buckets/create': typeof AuthedBucketsCreateRoute
   '/buckets': typeof AuthedBucketsIndexRoute
+  '/buckets/$id/edit': typeof AuthedBucketsIdEditRoute
+  '/buckets/$id': typeof AuthedBucketsIdIndexRoute
 }
 export interface FileRoutesByTo {
   '/dashboard': typeof AuthedDashboardRoute
@@ -85,9 +92,10 @@ export interface FileRoutesByTo {
   '/demo/table': typeof DemoTableRoute
   '/demo/tanstack-query': typeof DemoTanstackQueryRoute
   '/': typeof GuestIndexRoute
-  '/buckets/$id': typeof AuthedBucketsIdRoute
   '/buckets/create': typeof AuthedBucketsCreateRoute
   '/buckets': typeof AuthedBucketsIndexRoute
+  '/buckets/$id/edit': typeof AuthedBucketsIdEditRoute
+  '/buckets/$id': typeof AuthedBucketsIdIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -98,9 +106,10 @@ export interface FileRoutesById {
   '/demo/table': typeof DemoTableRoute
   '/demo/tanstack-query': typeof DemoTanstackQueryRoute
   '/_guest/': typeof GuestIndexRoute
-  '/_authed/buckets/$id': typeof AuthedBucketsIdRoute
   '/_authed/buckets/create': typeof AuthedBucketsCreateRoute
   '/_authed/buckets/': typeof AuthedBucketsIndexRoute
+  '/_authed/buckets/$id/edit': typeof AuthedBucketsIdEditRoute
+  '/_authed/buckets/$id/': typeof AuthedBucketsIdIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -110,9 +119,10 @@ export interface FileRouteTypes {
     | '/demo/table'
     | '/demo/tanstack-query'
     | '/'
-    | '/buckets/$id'
     | '/buckets/create'
     | '/buckets'
+    | '/buckets/$id/edit'
+    | '/buckets/$id'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/dashboard'
@@ -120,9 +130,10 @@ export interface FileRouteTypes {
     | '/demo/table'
     | '/demo/tanstack-query'
     | '/'
-    | '/buckets/$id'
     | '/buckets/create'
     | '/buckets'
+    | '/buckets/$id/edit'
+    | '/buckets/$id'
   id:
     | '__root__'
     | '/_authed'
@@ -132,9 +143,10 @@ export interface FileRouteTypes {
     | '/demo/table'
     | '/demo/tanstack-query'
     | '/_guest/'
-    | '/_authed/buckets/$id'
     | '/_authed/buckets/create'
     | '/_authed/buckets/'
+    | '/_authed/buckets/$id/edit'
+    | '/_authed/buckets/$id/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -209,11 +221,18 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthedBucketsCreateRouteImport
       parentRoute: typeof AuthedRouteRoute
     }
-    '/_authed/buckets/$id': {
-      id: '/_authed/buckets/$id'
+    '/_authed/buckets/$id/': {
+      id: '/_authed/buckets/$id/'
       path: '/buckets/$id'
       fullPath: '/buckets/$id'
-      preLoaderRoute: typeof AuthedBucketsIdRouteImport
+      preLoaderRoute: typeof AuthedBucketsIdIndexRouteImport
+      parentRoute: typeof AuthedRouteRoute
+    }
+    '/_authed/buckets/$id/edit': {
+      id: '/_authed/buckets/$id/edit'
+      path: '/buckets/$id/edit'
+      fullPath: '/buckets/$id/edit'
+      preLoaderRoute: typeof AuthedBucketsIdEditRouteImport
       parentRoute: typeof AuthedRouteRoute
     }
   }
@@ -221,16 +240,18 @@ declare module '@tanstack/react-router' {
 
 interface AuthedRouteRouteChildren {
   AuthedDashboardRoute: typeof AuthedDashboardRoute
-  AuthedBucketsIdRoute: typeof AuthedBucketsIdRoute
   AuthedBucketsCreateRoute: typeof AuthedBucketsCreateRoute
   AuthedBucketsIndexRoute: typeof AuthedBucketsIndexRoute
+  AuthedBucketsIdEditRoute: typeof AuthedBucketsIdEditRoute
+  AuthedBucketsIdIndexRoute: typeof AuthedBucketsIdIndexRoute
 }
 
 const AuthedRouteRouteChildren: AuthedRouteRouteChildren = {
   AuthedDashboardRoute: AuthedDashboardRoute,
-  AuthedBucketsIdRoute: AuthedBucketsIdRoute,
   AuthedBucketsCreateRoute: AuthedBucketsCreateRoute,
   AuthedBucketsIndexRoute: AuthedBucketsIndexRoute,
+  AuthedBucketsIdEditRoute: AuthedBucketsIdEditRoute,
+  AuthedBucketsIdIndexRoute: AuthedBucketsIdIndexRoute,
 }
 
 const AuthedRouteRouteWithChildren = AuthedRouteRoute._addFileChildren(

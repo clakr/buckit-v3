@@ -7,38 +7,22 @@ import {
 	CardHeader,
 	CardTitle,
 } from "@/components/ui/card";
-import { supabase } from "@/integrations/supabase";
-import { getErrorMessage } from "@/integrations/supabase/utils";
 import { formatCurrency } from "@/lib/utils";
 import { BucketDropdownMenu } from "@/modules/buckets/components/bucket-dropdown-menu";
+import { bucketsQueryOption } from "@/modules/buckets/query-options";
 import { Icon } from "@iconify/react";
-import { queryOptions, useSuspenseQuery } from "@tanstack/react-query";
+import { useSuspenseQuery } from "@tanstack/react-query";
 import { Link, createFileRoute } from "@tanstack/react-router";
-import { toast } from "sonner";
-
-const queryOption = queryOptions({
-	queryKey: ["buckets"],
-	queryFn: async () => {
-		const { error, data } = await supabase.from("user_buckets").select("*");
-
-		if (error) {
-			toast.error(getErrorMessage(error.code));
-			return [];
-		}
-
-		return data;
-	},
-});
 
 export const Route = createFileRoute("/_authed/buckets/")({
 	component: RouteComponent,
 	loader: async ({ context: { queryClient } }) => {
-		await queryClient.ensureQueryData(queryOption);
+		await queryClient.ensureQueryData(bucketsQueryOption);
 	},
 });
 
 function RouteComponent() {
-	const { data: buckets } = useSuspenseQuery(queryOption);
+	const { data: buckets } = useSuspenseQuery(bucketsQueryOption);
 
 	return (
 		<>
@@ -49,7 +33,7 @@ function RouteComponent() {
 				</Link>
 			</Button>
 			<section className="grid grid-cols-[repeat(auto-fill,minmax(300px,1fr))] gap-4">
-				{buckets.map((bucket) => (
+				{buckets?.map((bucket) => (
 					<Card
 						key={bucket.id}
 						className="relative grid grid-rows-subgrid row-span-2"
@@ -61,15 +45,7 @@ function RouteComponent() {
 						</CardHeader>
 						<CardFooter className="justify-between">
 							<div className="flex flex-wrap gap-1">
-								<Badge
-									variant={
-										bucket.user_role === "owner" ? "default" : "secondary"
-									}
-									className="capitalize"
-								>
-									{bucket.user_role}
-								</Badge>
-								<Badge variant={bucket.is_active ? "default" : "secondary"}>
+								<Badge variant={bucket.is_active ? "default" : "outline"}>
 									{bucket.is_active ? "Active" : "Inactive"}
 								</Badge>
 							</div>
