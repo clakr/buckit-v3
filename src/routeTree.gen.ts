@@ -13,7 +13,6 @@ import { Route as GuestRouteRouteImport } from './routes/_guest/route'
 import { Route as AuthedRouteRouteImport } from './routes/_authed/route'
 import { Route as GuestIndexRouteImport } from './routes/_guest/index'
 import { Route as DemoTanstackQueryRouteImport } from './routes/demo.tanstack-query'
-import { Route as DemoTableRouteImport } from './routes/demo.table'
 import { Route as GuestRegisterRouteImport } from './routes/_guest/register'
 import { Route as AuthedDashboardRouteImport } from './routes/_authed/dashboard'
 import { Route as AuthedBucketsIndexRouteImport } from './routes/_authed/buckets.index'
@@ -38,11 +37,6 @@ const GuestIndexRoute = GuestIndexRouteImport.update({
 const DemoTanstackQueryRoute = DemoTanstackQueryRouteImport.update({
   id: '/demo/tanstack-query',
   path: '/demo/tanstack-query',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const DemoTableRoute = DemoTableRouteImport.update({
-  id: '/demo/table',
-  path: '/demo/table',
   getParentRoute: () => rootRouteImport,
 } as any)
 const GuestRegisterRoute = GuestRegisterRouteImport.update({
@@ -85,7 +79,6 @@ const AuthedBucketsIdCreateTransactionRoute =
 export interface FileRoutesByFullPath {
   '/dashboard': typeof AuthedDashboardRoute
   '/register': typeof GuestRegisterRoute
-  '/demo/table': typeof DemoTableRoute
   '/demo/tanstack-query': typeof DemoTanstackQueryRoute
   '/': typeof GuestIndexRoute
   '/buckets/create': typeof AuthedBucketsCreateRoute
@@ -97,7 +90,6 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/dashboard': typeof AuthedDashboardRoute
   '/register': typeof GuestRegisterRoute
-  '/demo/table': typeof DemoTableRoute
   '/demo/tanstack-query': typeof DemoTanstackQueryRoute
   '/': typeof GuestIndexRoute
   '/buckets/create': typeof AuthedBucketsCreateRoute
@@ -112,7 +104,6 @@ export interface FileRoutesById {
   '/_guest': typeof GuestRouteRouteWithChildren
   '/_authed/dashboard': typeof AuthedDashboardRoute
   '/_guest/register': typeof GuestRegisterRoute
-  '/demo/table': typeof DemoTableRoute
   '/demo/tanstack-query': typeof DemoTanstackQueryRoute
   '/_guest/': typeof GuestIndexRoute
   '/_authed/buckets/create': typeof AuthedBucketsCreateRoute
@@ -126,7 +117,6 @@ export interface FileRouteTypes {
   fullPaths:
     | '/dashboard'
     | '/register'
-    | '/demo/table'
     | '/demo/tanstack-query'
     | '/'
     | '/buckets/create'
@@ -138,7 +128,6 @@ export interface FileRouteTypes {
   to:
     | '/dashboard'
     | '/register'
-    | '/demo/table'
     | '/demo/tanstack-query'
     | '/'
     | '/buckets/create'
@@ -152,7 +141,6 @@ export interface FileRouteTypes {
     | '/_guest'
     | '/_authed/dashboard'
     | '/_guest/register'
-    | '/demo/table'
     | '/demo/tanstack-query'
     | '/_guest/'
     | '/_authed/buckets/create'
@@ -165,7 +153,6 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   AuthedRouteRoute: typeof AuthedRouteRouteWithChildren
   GuestRouteRoute: typeof GuestRouteRouteWithChildren
-  DemoTableRoute: typeof DemoTableRoute
   DemoTanstackQueryRoute: typeof DemoTanstackQueryRoute
 }
 
@@ -197,13 +184,6 @@ declare module '@tanstack/react-router' {
       path: '/demo/tanstack-query'
       fullPath: '/demo/tanstack-query'
       preLoaderRoute: typeof DemoTanstackQueryRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/demo/table': {
-      id: '/demo/table'
-      path: '/demo/table'
-      fullPath: '/demo/table'
-      preLoaderRoute: typeof DemoTableRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_guest/register': {
@@ -297,7 +277,6 @@ const GuestRouteRouteWithChildren = GuestRouteRoute._addFileChildren(
 const rootRouteChildren: RootRouteChildren = {
   AuthedRouteRoute: AuthedRouteRouteWithChildren,
   GuestRouteRoute: GuestRouteRouteWithChildren,
-  DemoTableRoute: DemoTableRoute,
   DemoTanstackQueryRoute: DemoTanstackQueryRoute,
 }
 export const routeTree = rootRouteImport
