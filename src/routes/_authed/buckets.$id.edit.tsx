@@ -1,32 +1,40 @@
 import { useAppForm } from "@/hooks/form";
-import { useCreateBucket } from "@/modules/buckets/mutations";
-import { createBucketFormSchema } from "@/modules/buckets/schemas";
+import { useUpdateBucket } from "@/modules/buckets/mutations";
+import { bucketQueryOption } from "@/modules/buckets/query-options";
+import { editBucketFormSchema } from "@/modules/buckets/schemas";
 import { Icon } from "@iconify/react";
+import { useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
 import type z from "zod";
 
-export const Route = createFileRoute("/_authed/buckets/create")({
+export const Route = createFileRoute("/_authed/buckets/$id/edit")({
 	component: RouteComponent,
+	loader: async ({ context: { queryClient }, params: { id } }) => {
+		await queryClient.ensureQueryData(bucketQueryOption(id));
+	},
 });
 
 function RouteComponent() {
+	const { id } = Route.useParams();
 	const navigate = Route.useNavigate();
 
-	const mutation = useCreateBucket();
+	const { data: bucket } = useSuspenseQuery(bucketQueryOption(id));
 
-	const defaultValues: z.input<typeof createBucketFormSchema> = {
-		name: "",
-		description: "",
-		current_amount: 0,
-	};
+	const mutation = useUpdateBucket();
+
+	const defaultValues: z.input<typeof editBucketFormSchema> = {
+		id: bucket?.id || "",
+		name: bucket?.name || "",
+		description: bucket?.description || "",
+	}
 
 	const form = useAppForm({
 		defaultValues,
 		validators: {
-			onBlur: createBucketFormSchema,
+			onBlur: editBucketFormSchema,
 		},
 		onSubmit: async ({ value }) => {
-			const payload = createBucketFormSchema.parse(value);
+			const payload = editBucketFormSchema.parse(value);
 
 			mutation.mutate(payload);
 
@@ -49,21 +57,12 @@ function RouteComponent() {
 			<form.AppField name="description">
 				{(field) => <field.Textarea label="Description" id="description" />}
 			</form.AppField>
-			<form.AppField name="current_amount">
-				{(field) => (
-					<field.Input
-						label="Initial Amount"
-						id="current-amount"
-						type="number"
-					/>
-				)}
-			</form.AppField>
 			<form.AppForm>
 				<form.Button className="self-end">
-					<Icon icon="bx:plus" />
-					Create Bucket
+					<Icon icon="bx:edit" />
+					Edit Bucket
 				</form.Button>
 			</form.AppForm>
 		</form>
-	);
+	)
 }

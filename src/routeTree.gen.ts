@@ -16,10 +16,10 @@ import { Route as DemoTanstackQueryRouteImport } from './routes/demo.tanstack-qu
 import { Route as DemoTableRouteImport } from './routes/demo.table'
 import { Route as GuestRegisterRouteImport } from './routes/_guest/register'
 import { Route as AuthedDashboardRouteImport } from './routes/_authed/dashboard'
-import { Route as AuthedBucketsIndexRouteImport } from './routes/_authed/buckets/index'
-import { Route as AuthedBucketsCreateRouteImport } from './routes/_authed/buckets/create'
-import { Route as AuthedBucketsIdIndexRouteImport } from './routes/_authed/buckets/$id/index'
-import { Route as AuthedBucketsIdEditRouteImport } from './routes/_authed/buckets/$id/edit'
+import { Route as AuthedBucketsIndexRouteImport } from './routes/_authed/buckets.index'
+import { Route as AuthedBucketsCreateRouteImport } from './routes/_authed/buckets.create'
+import { Route as AuthedBucketsIdIndexRouteImport } from './routes/_authed/buckets.$id.index'
+import { Route as AuthedBucketsIdEditRouteImport } from './routes/_authed/buckets.$id.edit'
 import { Route as AuthedBucketsIdCreateTransactionRouteImport } from './routes/_authed/buckets.$id.create-transaction'
 
 const GuestRouteRoute = GuestRouteRouteImport.update({

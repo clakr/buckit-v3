@@ -49,5 +49,5 @@ function RouteComponent() {
 				))}
 			</section>
 		</>
-	);
+	)
 }

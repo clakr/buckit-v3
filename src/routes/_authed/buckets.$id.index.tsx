@@ -46,7 +46,7 @@ function RouteComponent() {
 				mutation.mutate(id);
 				navigate({ to: "/buckets" });
 			},
-		});
+		})
 	}
 
 	if (!bucket) return <div>no bucket</div>;
@@ -125,5 +125,5 @@ function RouteComponent() {
 				</CardContent>
 			</Card>
 		</div>
-	);
+	)
 }
