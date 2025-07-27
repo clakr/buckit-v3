@@ -1,0 +1,7 @@
+ignoredBuiltDependencies:
+  - '@biomejs/biome'
+  - '@tailwindcss/oxide'
+  - esbuild
+
+onlyBuiltDependencies:
+  - supabase
