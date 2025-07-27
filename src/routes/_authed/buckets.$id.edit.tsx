@@ -1,3 +1,5 @@
+import { Container } from "@/components/container";
+import { Heading } from "@/components/heading";
 import { useAppForm } from "@/hooks/form";
 import { useUpdateBucket } from "@/modules/buckets/mutations";
 import { bucketQueryOption } from "@/modules/buckets/query-options";
@@ -26,7 +28,7 @@ function RouteComponent() {
 		id: bucket?.id || "",
 		name: bucket?.name || "",
 		description: bucket?.description || "",
-	}
+	};
 
 	const form = useAppForm({
 		defaultValues,
@@ -43,26 +45,29 @@ function RouteComponent() {
 	});
 
 	return (
-		<form
-			className="flex flex-col gap-y-4"
-			onSubmit={(event) => {
-				event.preventDefault();
-				event.stopPropagation();
-				form.handleSubmit();
-			}}
-		>
-			<form.AppField name="name">
-				{(field) => <field.Input label="Name" id="name" type="text" />}
-			</form.AppField>
-			<form.AppField name="description">
-				{(field) => <field.Textarea label="Description" id="description" />}
-			</form.AppField>
-			<form.AppForm>
-				<form.Button className="self-end">
-					<Icon icon="bx:edit" />
-					Edit Bucket
-				</form.Button>
-			</form.AppForm>
-		</form>
-	)
+		<Container>
+			<Heading heading="Edit Bucket" />
+			<form
+				className="flex flex-col gap-y-4"
+				onSubmit={(event) => {
+					event.preventDefault();
+					event.stopPropagation();
+					form.handleSubmit();
+				}}
+			>
+				<form.AppField name="name">
+					{(field) => <field.Input label="Name" id="name" type="text" />}
+				</form.AppField>
+				<form.AppField name="description">
+					{(field) => <field.Textarea label="Description" id="description" />}
+				</form.AppField>
+				<form.AppForm>
+					<form.Button className="self-end">
+						<Icon icon="bx:edit" />
+						Edit Bucket
+					</form.Button>
+				</form.AppForm>
+			</form>
+		</Container>
+	);
 }

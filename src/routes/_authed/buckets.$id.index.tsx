@@ -1,4 +1,6 @@
+import { Container } from "@/components/container";
 import { DataTable } from "@/components/data-table";
+import { Heading } from "@/components/heading";
 import { Button } from "@/components/ui/button";
 import {
 	Card,
@@ -57,25 +59,14 @@ function RouteComponent() {
 	if (!bucket) return <div>no bucket</div>;
 
 	return (
-		<div className="p-6 flex flex-col gap-y-6">
-			<div className="flex gap-x-4 items-center">
-				<Button asChild variant="ghost" size="icon">
-					<Link to="..">
-						<Icon icon="bx:left-arrow-alt" className="size-6" />
-					</Link>
-				</Button>
-				<div className="grow">
-					<h1 className="text-2xl font-bold capitalize">{bucket.name}</h1>
-					<span className="text-muted-foreground text-sm">
-						Created {formatDate(bucket.created_at)}
-					</span>
-				</div>
+		<Container>
+			<Heading heading={bucket.name} description={bucket.description}>
 				<div>
 					{/* <Button variant="outline" size="icon">
 						<Icon icon="bx:dots-vertical-rounded" />
 					</Button> */}
 				</div>
-			</div>
+			</Heading>
 
 			<div className="grid gap-4 lg:grid-cols-2 2xl:grid-cols-4">
 				<Card className="shadow-none">
@@ -153,6 +144,6 @@ function RouteComponent() {
 					/>
 				</CardContent>
 			</Card>
-		</div>
+		</Container>
 	);
 }

@@ -1,3 +1,5 @@
+import { Container } from "@/components/container";
+import { Heading } from "@/components/heading";
 import { useAppForm } from "@/hooks/form";
 import { useCreateBucketTransaction } from "@/modules/buckets/mutations";
 import {
@@ -42,37 +44,40 @@ function RouteComponent() {
 	});
 
 	return (
-		<form
-			className="flex flex-col gap-y-4"
-			onSubmit={(event) => {
-				event.preventDefault();
-				event.stopPropagation();
-				form.handleSubmit();
-			}}
-		>
-			<form.AppField name="description">
-				{(field) => (
-					<field.Input label="Description" id="description" type="text" />
-				)}
-			</form.AppField>
-			<form.AppField name="amount">
-				{(field) => <field.Input label="Amount" id="amount" type="number" />}
-			</form.AppField>
-			<form.AppField name="type">
-				{(field) => (
-					<field.Radio
-						label="Type"
-						id="type"
-						enumSchema={transactionTypeEnum}
-					/>
-				)}
-			</form.AppField>
-			<form.AppForm>
-				<form.Button className="self-end">
-					<Icon icon="bx:plus" />
-					Create Transaction
-				</form.Button>
-			</form.AppForm>
-		</form>
+		<Container>
+			<Heading heading="Create Transaction" />
+			<form
+				className="flex flex-col gap-y-4"
+				onSubmit={(event) => {
+					event.preventDefault();
+					event.stopPropagation();
+					form.handleSubmit();
+				}}
+			>
+				<form.AppField name="description">
+					{(field) => (
+						<field.Input label="Description" id="description" type="text" />
+					)}
+				</form.AppField>
+				<form.AppField name="amount">
+					{(field) => <field.Input label="Amount" id="amount" type="number" />}
+				</form.AppField>
+				<form.AppField name="type">
+					{(field) => (
+						<field.Radio
+							label="Type"
+							id="type"
+							enumSchema={transactionTypeEnum}
+						/>
+					)}
+				</form.AppField>
+				<form.AppForm>
+					<form.Button className="self-end">
+						<Icon icon="bx:plus" />
+						Create Transaction
+					</form.Button>
+				</form.AppForm>
+			</form>
+		</Container>
 	);
 }

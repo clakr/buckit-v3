@@ -1,3 +1,5 @@
+import { Container } from "@/components/container";
+import { Heading } from "@/components/heading";
 import { useAppForm } from "@/hooks/form";
 import { useCreateBucket } from "@/modules/buckets/mutations";
 import { createBucketFormSchema } from "@/modules/buckets/schemas";
@@ -18,7 +20,7 @@ function RouteComponent() {
 		name: "",
 		description: "",
 		current_amount: 0,
-	}
+	};
 
 	const form = useAppForm({
 		defaultValues,
@@ -35,35 +37,38 @@ function RouteComponent() {
 	});
 
 	return (
-		<form
-			className="flex flex-col gap-y-4"
-			onSubmit={(event) => {
-				event.preventDefault();
-				event.stopPropagation();
-				form.handleSubmit();
-			}}
-		>
-			<form.AppField name="name">
-				{(field) => <field.Input label="Name" id="name" type="text" />}
-			</form.AppField>
-			<form.AppField name="description">
-				{(field) => <field.Textarea label="Description" id="description" />}
-			</form.AppField>
-			<form.AppField name="current_amount">
-				{(field) => (
-					<field.Input
-						label="Initial Amount"
-						id="current-amount"
-						type="number"
-					/>
-				)}
-			</form.AppField>
-			<form.AppForm>
-				<form.Button className="self-end">
-					<Icon icon="bx:plus" />
-					Create Bucket
-				</form.Button>
-			</form.AppForm>
-		</form>
-	)
+		<Container>
+			<Heading heading="Create Bucket" />
+			<form
+				className="flex flex-col gap-y-4"
+				onSubmit={(event) => {
+					event.preventDefault();
+					event.stopPropagation();
+					form.handleSubmit();
+				}}
+			>
+				<form.AppField name="name">
+					{(field) => <field.Input label="Name" id="name" type="text" />}
+				</form.AppField>
+				<form.AppField name="description">
+					{(field) => <field.Textarea label="Description" id="description" />}
+				</form.AppField>
+				<form.AppField name="current_amount">
+					{(field) => (
+						<field.Input
+							label="Initial Amount"
+							id="current-amount"
+							type="number"
+						/>
+					)}
+				</form.AppField>
+				<form.AppForm>
+					<form.Button className="self-end">
+						<Icon icon="bx:plus" />
+						Create Bucket
+					</form.Button>
+				</form.AppForm>
+			</form>
+		</Container>
+	);
 }

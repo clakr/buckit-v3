@@ -1,3 +1,5 @@
+import { Container } from "@/components/container";
+import { Heading } from "@/components/heading";
 import { Button } from "@/components/ui/button";
 import {
 	Card,
@@ -24,13 +26,15 @@ function RouteComponent() {
 	const { data: buckets } = useSuspenseQuery(bucketsQueryOption);
 
 	return (
-		<>
-			<Button asChild className="self-end">
-				<Link to="/buckets/create">
-					<Icon icon="bx:plus" />
-					Create Bucket
-				</Link>
-			</Button>
+		<Container>
+			<Heading heading="Buckets">
+				<Button asChild className="self-end">
+					<Link to="/buckets/create">
+						<Icon icon="bx:plus" />
+						Create Bucket
+					</Link>
+				</Button>
+			</Heading>
 			<section className="grid grid-cols-[repeat(auto-fill,minmax(300px,1fr))] gap-4">
 				{buckets?.map((bucket) => (
 					<Card
@@ -48,6 +52,6 @@ function RouteComponent() {
 					</Card>
 				))}
 			</section>
-		</>
-	)
+		</Container>
+	);
 }
