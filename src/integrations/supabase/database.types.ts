@@ -17,10 +17,10 @@ export type Database = {
     Functions: {
       graphql: {
         Args: {
+          extensions?: Json
           operationName?: string
           query?: string
           variables?: Json
-          extensions?: Json
         }
         Returns: Json
       }
@@ -34,7 +34,7 @@ export type Database = {
   }
   public: {
     Tables: {
-      bucket_transaction: {
+      bucket_transactions: {
         Row: {
           amount: number
           balance_after: number | null

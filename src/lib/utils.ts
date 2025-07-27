@@ -85,7 +85,10 @@ export function formatCurrency(value: number | null) {
 	return formatter.format(value);
 }
 
-export function formatDate(value: string | null) {
+export function formatDate(
+	value: string | null,
+	opts?: Intl.DateTimeFormatOptions,
+) {
 	if (value === null) return "N/A";
 
 	const formatter = new Intl.DateTimeFormat(navigator.language, {
@@ -94,6 +97,7 @@ export function formatDate(value: string | null) {
 		day: "numeric",
 		hour: "2-digit",
 		minute: "2-digit",
+		...opts,
 	});
 
 	return formatter.format(new Date(value));

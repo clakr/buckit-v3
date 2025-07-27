@@ -1,3 +1,4 @@
+import { DataTable } from "@/components/data-table";
 import { Button } from "@/components/ui/button";
 import {
 	Card,
@@ -9,6 +10,7 @@ import {
 } from "@/components/ui/card";
 import { useAlert } from "@/hooks/use-alert";
 import { formatCurrency, formatDate } from "@/lib/utils";
+import { bucketTransactionsColumns } from "@/modules/buckets/columns";
 import { useDeleteBucket } from "@/modules/buckets/mutations";
 import { bucketQueryOption } from "@/modules/buckets/query-options";
 import { Icon } from "@iconify/react";
@@ -46,7 +48,7 @@ function RouteComponent() {
 				mutation.mutate(id);
 				navigate({ to: "/buckets" });
 			},
-		})
+		});
 	}
 
 	if (!bucket) return <div>no bucket</div>;
@@ -98,7 +100,22 @@ function RouteComponent() {
 						<dd className="text-end text-muted-foreground font-medium">
 							{formatDate(bucket.updated_at)}
 						</dd>
+						<dt className="font-semibold">Total Transactions</dt>
+						<dd className="text-end text-muted-foreground font-medium">
+							{bucket.bucket_transactions.length}
+						</dd>
 					</dl>
+				</CardContent>
+			</Card>
+			<Card className="col-span-full shadow-none">
+				<CardHeader>
+					<CardTitle className="text-2xl">Transaction History</CardTitle>
+				</CardHeader>
+				<CardContent>
+					<DataTable
+						columns={bucketTransactionsColumns}
+						data={bucket.bucket_transactions}
+					/>
 				</CardContent>
 			</Card>
 			<Card className="col-span-full shadow-none">
@@ -125,5 +142,5 @@ function RouteComponent() {
 				</CardContent>
 			</Card>
 		</div>
-	)
+	);
 }

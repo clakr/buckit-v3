@@ -22,7 +22,12 @@ export function bucketQueryOption(id: Bucket["id"]) {
 
 			const { data } = await supabase
 				.from("buckets")
-				.select("*")
+				.select(`
+					*, 
+					bucket_transactions (
+						*
+					)
+				`)
 				.eq("id", id)
 				.single();
 

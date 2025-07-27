@@ -73,7 +73,7 @@ export function useCreateBucketTransaction() {
 			payload: z.output<typeof createBucketTransactionFormSchema>,
 		) =>
 			await supabase
-				.from("bucket_transaction")
+				.from("bucket_transactions")
 				.insert({
 					bucket_id: payload.bucket_id,
 					description: payload.description,
