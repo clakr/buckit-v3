@@ -57,10 +57,7 @@ function RouteComponent() {
 			<Sidebar />
 			<SidebarInset>
 				<Header />
-				<div className="p-6 flex flex-col gap-y-6">
-					<Heading />
-					<Outlet />
-				</div>
+				<Outlet />
 			</SidebarInset>
 		</SidebarProvider>
 	);

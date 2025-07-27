@@ -45,7 +45,7 @@ export const bucketTransactionsColumns: ColumnDef<BucketTransaction>[] = [
 						type === "inbound" ? "text-primary" : "text-muted-foreground",
 					)}
 				>
-					{formatCurrency(amount)}
+					{type === "inbound" ? "+" : "-"} {formatCurrency(amount)}
 				</span>
 			);
 		},

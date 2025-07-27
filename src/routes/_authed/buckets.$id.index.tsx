@@ -4,14 +4,11 @@ import {
 	Card,
 	CardContent,
 	CardDescription,
-	CardFooter,
 	CardHeader,
 	CardTitle,
 } from "@/components/ui/card";
-import { useAlert } from "@/hooks/use-alert";
 import { formatCurrency, formatDate } from "@/lib/utils";
 import { bucketTransactionsColumns } from "@/modules/buckets/columns";
-import { useDeleteBucket } from "@/modules/buckets/mutations";
 import { bucketQueryOption } from "@/modules/buckets/query-options";
 import { Icon } from "@iconify/react";
 import { useSuspenseQuery } from "@tanstack/react-query";
@@ -32,113 +29,128 @@ function RouteComponent() {
 	const { data: bucket } = useSuspenseQuery(bucketQueryOption(id));
 
 	/**
-	 * delete bucket action
+	 * bucket transactions
 	 */
-	const navigate = Route.useNavigate();
-	const { show } = useAlert();
-	const mutation = useDeleteBucket();
+	let totalInboundTransactionsAmount = 0;
+	let totalInboundTransactionsCount = 0;
 
-	function handleDeleteBucket() {
-		show({
-			title: "Are you absolutely sure?",
-			description:
-				"This action cannot be undone. This will permanently delete your bucket along with its respective data.",
-			actionText: "Delete this Bucket",
-			onAction: () => {
-				mutation.mutate(id);
-				navigate({ to: "/buckets" });
-			},
-		});
+	let totalOutboundTransactionsAmount = 0;
+	let totalOutboundTransactionsCount = 0;
+
+	let netChange = 0;
+
+	for (const transaction of bucket?.bucket_transactions ?? []) {
+		if (transaction.type === "inbound") {
+			totalInboundTransactionsAmount += transaction.amount;
+			totalInboundTransactionsCount++;
+
+			netChange += transaction.amount;
+			continue;
+		}
+
+		totalOutboundTransactionsAmount += transaction.amount;
+		totalOutboundTransactionsCount++;
+
+		netChange -= transaction.amount;
 	}
 
 	if (!bucket) return <div>no bucket</div>;
 
 	return (
-		<div className="grid gap-4 lg:grid-cols-2">
-			<Card className="shadow-none col-span-full relative">
-				<CardHeader className="gap-y-0">
-					<CardTitle className="text-2xl">{bucket.name}</CardTitle>
-					<CardDescription>Total amount saved in this bucket</CardDescription>
-				</CardHeader>
-				<CardContent className="text-4xl font-bold">
-					{formatCurrency(bucket.current_amount)}
-				</CardContent>
-				<CardFooter className="grid gap-2 lg:grid-cols-2">
-					<Button disabled>
-						<Icon icon="bx:plus" />
-						Add Money
-					</Button>
-					<Button variant="outline" disabled>
-						<Icon icon="bx:minus" />
-						Withdraw
-					</Button>
-				</CardFooter>
-				<Icon
-					icon="bx:money"
-					className="size-8 absolute top-6 right-6 text-muted-foreground"
-				/>
-			</Card>
+		<div className="p-6 flex flex-col gap-y-6">
+			<div className="flex gap-x-4 items-center">
+				<Button asChild variant="ghost" size="icon">
+					<Link to="..">
+						<Icon icon="bx:left-arrow-alt" className="size-6" />
+					</Link>
+				</Button>
+				<div className="grow">
+					<h1 className="text-2xl font-bold capitalize">{bucket.name}</h1>
+					<span className="text-muted-foreground text-sm">
+						Created {formatDate(bucket.created_at)}
+					</span>
+				</div>
+				<div>
+					{/* <Button variant="outline" size="icon">
+						<Icon icon="bx:dots-vertical-rounded" />
+					</Button> */}
+				</div>
+			</div>
+
+			<div className="grid gap-4 lg:grid-cols-2 2xl:grid-cols-4">
+				<Card className="shadow-none">
+					<CardContent className="flex flex-col gap-y-2">
+						<h3 className="text-sm text-muted-foreground font-semibold">
+							Current Balance
+						</h3>
+						<b className="text-2xl">{formatCurrency(bucket.current_amount)}</b>
+					</CardContent>
+				</Card>
+
+				<Card className="shadow-none">
+					<CardContent className="flex flex-col gap-y-2">
+						<h3 className="text-sm text-muted-foreground font-semibold">
+							Total Inbound Transactions
+						</h3>
+						<b className="text-2xl">
+							{formatCurrency(totalInboundTransactionsAmount)}
+						</b>
+						<small className="text-xs text-muted-foreground">
+							{totalInboundTransactionsCount}{" "}
+							{totalInboundTransactionsCount > 1
+								? "transactions"
+								: "transaction"}
+						</small>
+					</CardContent>
+				</Card>
+
+				<Card className="shadow-none">
+					<CardContent className="flex flex-col gap-y-2">
+						<h3 className="text-sm text-muted-foreground font-semibold">
+							Total Outbound Transactions
+						</h3>
+						<b className="text-2xl">
+							{formatCurrency(totalOutboundTransactionsAmount)}
+						</b>
+						<small className="text-xs text-muted-foreground">
+							{totalOutboundTransactionsCount}{" "}
+							{totalOutboundTransactionsCount > 1
+								? "transactions"
+								: "transaction"}
+						</small>
+					</CardContent>
+				</Card>
+
+				<Card className="shadow-none">
+					<CardContent className="flex flex-col gap-y-2">
+						<h3 className="text-sm text-muted-foreground font-semibold">
+							Net Change
+						</h3>
+						<b className="text-2xl">{formatCurrency(netChange)}</b>
+						<small className="text-xs text-muted-foreground">
+							{bucket.bucket_transactions.length} transactions
+						</small>
+					</CardContent>
+				</Card>
+			</div>
+
 			<Card className="shadow-none">
 				<CardHeader>
-					<CardTitle className="text-2xl">Description</CardTitle>
-					<CardDescription className="text-base">
-						{bucket.description}
-					</CardDescription>
+					<CardTitle>Description</CardTitle>
+					<CardDescription>{bucket.description}</CardDescription>
 				</CardHeader>
 			</Card>
+
 			<Card className="shadow-none">
 				<CardHeader>
-					<CardTitle className="text-2xl">Details</CardTitle>
-				</CardHeader>
-				<CardContent>
-					<dl className="grid grid-cols-2 text-sm gap-2">
-						<dt className="font-semibold">Created</dt>
-						<dd className="text-end text-muted-foreground font-medium">
-							{formatDate(bucket.created_at)}
-						</dd>
-						<dt className="font-semibold">Last Updated</dt>
-						<dd className="text-end text-muted-foreground font-medium">
-							{formatDate(bucket.updated_at)}
-						</dd>
-						<dt className="font-semibold">Total Transactions</dt>
-						<dd className="text-end text-muted-foreground font-medium">
-							{bucket.bucket_transactions.length}
-						</dd>
-					</dl>
-				</CardContent>
-			</Card>
-			<Card className="col-span-full shadow-none">
-				<CardHeader>
-					<CardTitle className="text-2xl">Transaction History</CardTitle>
+					<CardTitle>Transaction History</CardTitle>
+					<CardDescription>All transactions for this bucket</CardDescription>
 				</CardHeader>
 				<CardContent>
 					<DataTable
 						columns={bucketTransactionsColumns}
 						data={bucket.bucket_transactions}
 					/>
-				</CardContent>
-			</Card>
-			<Card className="col-span-full shadow-none">
-				<CardHeader className="gap-y-0">
-					<CardTitle className="text-2xl">Actions</CardTitle>
-					<CardDescription>Manage this bucket</CardDescription>
-				</CardHeader>
-				<CardContent className="flex gap-x-2">
-					<Button asChild>
-						<Link
-							to="/buckets/$id/edit"
-							params={{
-								id: bucket.id,
-							}}
-						>
-							<Icon icon="bx:edit" />
-							Edit Bucket
-						</Link>
-					</Button>
-					<Button variant="outline" onClick={handleDeleteBucket}>
-						<Icon icon="bx:trash" />
-						Delete Bucket
-					</Button>
 				</CardContent>
 			</Card>
 		</div>

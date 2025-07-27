@@ -41,7 +41,7 @@ export function BucketDropdownMenu({ id }: Props) {
 		<DropdownMenu>
 			<DropdownMenuTrigger asChild>
 				<Button variant="ghost" size="icon" className="absolute top-2 right-2">
-					<Icon icon="bx:dots-vertical" />
+					<Icon icon="bx:dots-vertical-rounded" />
 				</Button>
 			</DropdownMenuTrigger>
 			<DropdownMenuContent>
