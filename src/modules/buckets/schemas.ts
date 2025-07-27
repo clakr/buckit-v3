@@ -53,3 +53,28 @@ export const editBucketFormSchema = z.object({
 	name: bucketBaseSchema.name,
 	description: bucketBaseSchema.description,
 });
+
+export const transactionTypeEnum = z.enum(["inbound", "outbound"]);
+
+export const createBucketTransactionFormSchema = z.object({
+	bucket_id: z.string().uuid({ message: "Invalid bucket ID format" }),
+
+	type: transactionTypeEnum,
+
+	amount: z.coerce
+		.number({
+			required_error: "Amount is required",
+			invalid_type_error: "Amount must be a valid number",
+		})
+		.positive({ message: "Amount must be greater than 0" })
+		.multipleOf(0.01, {
+			message: "Amount can only have up to 2 decimal places",
+		})
+		.max(9999999999.99, { message: "Amount cannot exceed 9,999,999,999.99" }),
+
+	description: z
+		.string()
+		.max(500, { message: "Description cannot exceed 500 characters" })
+		.optional()
+		.transform((val) => val?.trim() || undefined),
+});

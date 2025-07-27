@@ -1,4 +1,3 @@
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
 	Card,
@@ -43,15 +42,8 @@ function RouteComponent() {
 							<CardTitle>{bucket.name}</CardTitle>
 							<CardDescription>{bucket.description}</CardDescription>
 						</CardHeader>
-						<CardFooter className="justify-between">
-							<div className="flex flex-wrap gap-1">
-								<Badge variant={bucket.is_active ? "default" : "outline"}>
-									{bucket.is_active ? "Active" : "Inactive"}
-								</Badge>
-							</div>
-							<strong className="text-2xl font-bold justify-end">
-								{formatCurrency(bucket.current_amount)}
-							</strong>
+						<CardFooter className="text-2xl font-bold justify-end">
+							{formatCurrency(bucket.current_amount)}
 						</CardFooter>
 					</Card>
 				))}

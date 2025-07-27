@@ -2,6 +2,7 @@ import { supabase } from "@/integrations/supabase";
 import type { Bucket } from "@/integrations/supabase/types";
 import type {
 	createBucketFormSchema,
+	createBucketTransactionFormSchema,
 	editBucketFormSchema,
 } from "@/modules/buckets/schemas";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
@@ -60,6 +61,30 @@ export function useDeleteBucket() {
 				.eq("id", id),
 		onSuccess: async () => {
 			await queryClient.invalidateQueries({ queryKey: ["buckets"] });
+		},
+	});
+}
+
+export function useCreateBucketTransaction() {
+	const queryClient = useQueryClient();
+
+	return useMutation({
+		mutationFn: async (
+			payload: z.output<typeof createBucketTransactionFormSchema>,
+		) =>
+			await supabase
+				.from("bucket_transaction")
+				.insert({
+					bucket_id: payload.bucket_id,
+					description: payload.description,
+					amount: payload.amount,
+					type: payload.type,
+				})
+				.select(),
+		onSuccess: async () => {
+			await queryClient.invalidateQueries({
+				queryKey: ["buckets"],
+			});
 		},
 	});
 }

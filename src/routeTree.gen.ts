@@ -20,6 +20,7 @@ import { Route as AuthedBucketsIndexRouteImport } from './routes/_authed/buckets
 import { Route as AuthedBucketsCreateRouteImport } from './routes/_authed/buckets/create'
 import { Route as AuthedBucketsIdIndexRouteImport } from './routes/_authed/buckets/$id/index'
 import { Route as AuthedBucketsIdEditRouteImport } from './routes/_authed/buckets/$id/edit'
+import { Route as AuthedBucketsIdCreateTransactionRouteImport } from './routes/_authed/buckets.$id.create-transaction'
 
 const GuestRouteRoute = GuestRouteRouteImport.update({
   id: '/_guest',
@@ -74,6 +75,12 @@ const AuthedBucketsIdEditRoute = AuthedBucketsIdEditRouteImport.update({
   path: '/buckets/$id/edit',
   getParentRoute: () => AuthedRouteRoute,
 } as any)
+const AuthedBucketsIdCreateTransactionRoute =
+  AuthedBucketsIdCreateTransactionRouteImport.update({
+    id: '/buckets/$id/create-transaction',
+    path: '/buckets/$id/create-transaction',
+    getParentRoute: () => AuthedRouteRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/dashboard': typeof AuthedDashboardRoute
@@ -83,6 +90,7 @@ export interface FileRoutesByFullPath {
   '/': typeof GuestIndexRoute
   '/buckets/create': typeof AuthedBucketsCreateRoute
   '/buckets': typeof AuthedBucketsIndexRoute
+  '/buckets/$id/create-transaction': typeof AuthedBucketsIdCreateTransactionRoute
   '/buckets/$id/edit': typeof AuthedBucketsIdEditRoute
   '/buckets/$id': typeof AuthedBucketsIdIndexRoute
 }
@@ -94,6 +102,7 @@ export interface FileRoutesByTo {
   '/': typeof GuestIndexRoute
   '/buckets/create': typeof AuthedBucketsCreateRoute
   '/buckets': typeof AuthedBucketsIndexRoute
+  '/buckets/$id/create-transaction': typeof AuthedBucketsIdCreateTransactionRoute
   '/buckets/$id/edit': typeof AuthedBucketsIdEditRoute
   '/buckets/$id': typeof AuthedBucketsIdIndexRoute
 }
@@ -108,6 +117,7 @@ export interface FileRoutesById {
   '/_guest/': typeof GuestIndexRoute
   '/_authed/buckets/create': typeof AuthedBucketsCreateRoute
   '/_authed/buckets/': typeof AuthedBucketsIndexRoute
+  '/_authed/buckets/$id/create-transaction': typeof AuthedBucketsIdCreateTransactionRoute
   '/_authed/buckets/$id/edit': typeof AuthedBucketsIdEditRoute
   '/_authed/buckets/$id/': typeof AuthedBucketsIdIndexRoute
 }
@@ -121,6 +131,7 @@ export interface FileRouteTypes {
     | '/'
     | '/buckets/create'
     | '/buckets'
+    | '/buckets/$id/create-transaction'
     | '/buckets/$id/edit'
     | '/buckets/$id'
   fileRoutesByTo: FileRoutesByTo
@@ -132,6 +143,7 @@ export interface FileRouteTypes {
     | '/'
     | '/buckets/create'
     | '/buckets'
+    | '/buckets/$id/create-transaction'
     | '/buckets/$id/edit'
     | '/buckets/$id'
   id:
@@ -145,6 +157,7 @@ export interface FileRouteTypes {
     | '/_guest/'
     | '/_authed/buckets/create'
     | '/_authed/buckets/'
+    | '/_authed/buckets/$id/create-transaction'
     | '/_authed/buckets/$id/edit'
     | '/_authed/buckets/$id/'
   fileRoutesById: FileRoutesById
@@ -235,6 +248,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthedBucketsIdEditRouteImport
       parentRoute: typeof AuthedRouteRoute
     }
+    '/_authed/buckets/$id/create-transaction': {
+      id: '/_authed/buckets/$id/create-transaction'
+      path: '/buckets/$id/create-transaction'
+      fullPath: '/buckets/$id/create-transaction'
+      preLoaderRoute: typeof AuthedBucketsIdCreateTransactionRouteImport
+      parentRoute: typeof AuthedRouteRoute
+    }
   }
 }
 
@@ -242,6 +262,7 @@ interface AuthedRouteRouteChildren {
   AuthedDashboardRoute: typeof AuthedDashboardRoute
   AuthedBucketsCreateRoute: typeof AuthedBucketsCreateRoute
   AuthedBucketsIndexRoute: typeof AuthedBucketsIndexRoute
+  AuthedBucketsIdCreateTransactionRoute: typeof AuthedBucketsIdCreateTransactionRoute
   AuthedBucketsIdEditRoute: typeof AuthedBucketsIdEditRoute
   AuthedBucketsIdIndexRoute: typeof AuthedBucketsIdIndexRoute
 }
@@ -250,6 +271,7 @@ const AuthedRouteRouteChildren: AuthedRouteRouteChildren = {
   AuthedDashboardRoute: AuthedDashboardRoute,
   AuthedBucketsCreateRoute: AuthedBucketsCreateRoute,
   AuthedBucketsIndexRoute: AuthedBucketsIndexRoute,
+  AuthedBucketsIdCreateTransactionRoute: AuthedBucketsIdCreateTransactionRoute,
   AuthedBucketsIdEditRoute: AuthedBucketsIdEditRoute,
   AuthedBucketsIdIndexRoute: AuthedBucketsIdIndexRoute,
 }

@@ -2,7 +2,10 @@ import { Button } from "@/components/ui/button";
 import {
 	DropdownMenu,
 	DropdownMenuContent,
+	DropdownMenuGroup,
 	DropdownMenuItem,
+	DropdownMenuLabel,
+	DropdownMenuSeparator,
 	DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useAlert } from "@/hooks/use-alert";
@@ -16,9 +19,6 @@ type Props = {
 };
 
 export function BucketDropdownMenu({ id }: Props) {
-	/**
-	 * delete bucket action
-	 */
 	/**
 	 * delete bucket action
 	 */
@@ -45,32 +45,50 @@ export function BucketDropdownMenu({ id }: Props) {
 				</Button>
 			</DropdownMenuTrigger>
 			<DropdownMenuContent>
-				<DropdownMenuItem asChild>
-					<Link
-						to="/buckets/$id"
-						params={{
-							id,
-						}}
-					>
-						<Icon icon="bx:show" />
-						View
-					</Link>
-				</DropdownMenuItem>
-				<DropdownMenuItem asChild>
-					<Link
-						to="/buckets/$id/edit"
-						params={{
-							id,
-						}}
-					>
-						<Icon icon="bx:edit" />
-						Edit
-					</Link>
-				</DropdownMenuItem>
-				<DropdownMenuItem onClick={handleDeleteBucket}>
-					<Icon icon="bx:trash" />
-					Delete
-				</DropdownMenuItem>
+				<DropdownMenuGroup>
+					<DropdownMenuLabel>Transactions</DropdownMenuLabel>
+					<DropdownMenuItem asChild>
+						<Link
+							to="/buckets/$id/create-transaction"
+							params={{
+								id,
+							}}
+						>
+							<Icon icon="bx:plus" />
+							Create
+						</Link>
+					</DropdownMenuItem>
+					<DropdownMenuSeparator />
+				</DropdownMenuGroup>
+				<DropdownMenuGroup>
+					<DropdownMenuLabel>Bucket</DropdownMenuLabel>
+					<DropdownMenuItem asChild>
+						<Link
+							to="/buckets/$id"
+							params={{
+								id,
+							}}
+						>
+							<Icon icon="bx:show" />
+							View
+						</Link>
+					</DropdownMenuItem>
+					<DropdownMenuItem asChild>
+						<Link
+							to="/buckets/$id/edit"
+							params={{
+								id,
+							}}
+						>
+							<Icon icon="bx:edit" />
+							Edit
+						</Link>
+					</DropdownMenuItem>
+					<DropdownMenuItem onClick={handleDeleteBucket}>
+						<Icon icon="bx:trash" />
+						Delete
+					</DropdownMenuItem>
+				</DropdownMenuGroup>
 			</DropdownMenuContent>
 		</DropdownMenu>
 	);

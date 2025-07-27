@@ -34,6 +34,50 @@ export type Database = {
   }
   public: {
     Tables: {
+      bucket_transaction: {
+        Row: {
+          amount: number
+          balance_after: number | null
+          bucket_id: string
+          created_at: string
+          description: string | null
+          id: string
+          type: Database["public"]["Enums"]["transaction_type"]
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          amount: number
+          balance_after?: number | null
+          bucket_id: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          type: Database["public"]["Enums"]["transaction_type"]
+          updated_at?: string
+          user_id?: string
+        }
+        Update: {
+          amount?: number
+          balance_after?: number | null
+          bucket_id?: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          type?: Database["public"]["Enums"]["transaction_type"]
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "bucket_transaction_bucket_id_fkey"
+            columns: ["bucket_id"]
+            isOneToOne: false
+            referencedRelation: "buckets"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       buckets: {
         Row: {
           created_at: string
@@ -75,7 +119,7 @@ export type Database = {
       [_ in never]: never
     }
     Enums: {
-      [_ in never]: never
+      transaction_type: "inbound" | "outbound"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -205,7 +249,9 @@ export const Constants = {
     Enums: {},
   },
   public: {
-    Enums: {},
+    Enums: {
+      transaction_type: ["inbound", "outbound"],
+    },
   },
 } as const
 
