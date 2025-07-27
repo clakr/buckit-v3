@@ -19,59 +19,6 @@ export function getSegmentLabel(segment: string) {
 	return segment;
 }
 
-export const routesHeadingMapping = {
-	"/dashboard": "Dashboard",
-	"/buckets": "Buckets",
-	"/buckets/create": "Create Bucket",
-	"/buckets/$id": "View Bucket",
-	"/buckets/$id/edit": "Edit Bucket",
-	"/buckets/$id/create-transaction": "Create Transaction",
-} as const satisfies Record<
-	Exclude<
-		keyof FileRoutesByFullPath,
-		| "/"
-		| "/register"
-		| "/demo/form/simple"
-		| "/demo/form/address"
-		| "/demo/table"
-		| "/demo/tanstack-query"
-	>,
-	string
->;
-
-function matchRoute(
-	actualRoute: string,
-): keyof typeof routesHeadingMapping | null {
-	// First check for exact matches (routes without dynamic segments)
-	if (actualRoute in routesHeadingMapping)
-		return actualRoute as keyof typeof routesHeadingMapping;
-
-	// Then check for pattern matches (routes with dynamic segments)
-	for (const [pattern, _] of Object.entries(routesHeadingMapping)) {
-		// Convert route pattern to regex
-		// Replace $id with a pattern that matches UUIDs or any non-slash characters
-		const regexPattern = pattern.replace(
-			/\$id/g,
-			"[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}|[^/]+",
-		);
-
-		// Create regex with exact match (^ and $)
-		const regex = new RegExp(`^${regexPattern}$`);
-
-		if (regex.test(actualRoute)) {
-			return pattern as keyof typeof routesHeadingMapping;
-		}
-	}
-
-	return null;
-}
-
-export function getRoutesHeading(route: string) {
-	const matchedRoute = matchRoute(route);
-
-	if (matchedRoute) return routesHeadingMapping[matchedRoute];
-}
-
 export function formatCurrency(value: number | null) {
 	if (value === null) return "N/A";
 

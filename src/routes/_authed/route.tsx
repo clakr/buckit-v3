@@ -22,7 +22,7 @@ import {
 } from "@/components/ui/sidebar";
 import { supabase } from "@/integrations/supabase";
 import { getErrorMessage } from "@/integrations/supabase/utils";
-import { getRoutesHeading, getSegmentLabel } from "@/lib/utils";
+import { getSegmentLabel } from "@/lib/utils";
 import { Icon } from "@iconify/react";
 import {
 	Link,
@@ -211,12 +211,4 @@ function Breadcrumbs() {
 			</BreadcrumbList>
 		</UIBreadcrumb>
 	);
-}
-
-function Heading() {
-	const location = useLocation();
-
-	const heading = getRoutesHeading(location.pathname);
-
-	return <h1 className="font-bold text-3xl">{heading}</h1>;
 }
