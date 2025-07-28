@@ -1,4 +1,3 @@
-import type { FileRoutesByFullPath } from "@/routeTree.gen";
 import { type ClassValue, clsx } from "clsx";
 import { twMerge } from "tailwind-merge";
 

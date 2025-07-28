@@ -1,4 +1,4 @@
-import { useAlertStore } from "@/stores/useAlertStore";
+import { useAlertStore } from "@/components/alert-dialog";
 
 export function useAlert() {
 	const show = useAlertStore((state) => state.show);

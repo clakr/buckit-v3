@@ -1,7 +1,6 @@
 import { Container } from "@/components/container";
 import { DataTable } from "@/components/data-table";
 import { Heading } from "@/components/heading";
-import { Button } from "@/components/ui/button";
 import {
 	Card,
 	CardContent,
@@ -9,12 +8,11 @@ import {
 	CardHeader,
 	CardTitle,
 } from "@/components/ui/card";
-import { formatCurrency, formatDate } from "@/lib/utils";
+import { formatCurrency } from "@/lib/utils";
 import { bucketTransactionsColumns } from "@/modules/buckets/columns";
 import { bucketQueryOption } from "@/modules/buckets/query-options";
-import { Icon } from "@iconify/react";
 import { useSuspenseQuery } from "@tanstack/react-query";
-import { Link, createFileRoute } from "@tanstack/react-router";
+import { createFileRoute } from "@tanstack/react-router";
 
 export const Route = createFileRoute("/_authed/buckets/$id/")({
 	component: RouteComponent,
