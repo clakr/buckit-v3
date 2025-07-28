@@ -16,7 +16,6 @@ import { Route as DemoTanstackQueryRouteImport } from './routes/demo.tanstack-qu
 import { Route as GuestRegisterRouteImport } from './routes/_guest/register'
 import { Route as AuthedDashboardRouteImport } from './routes/_authed/dashboard'
 import { Route as AuthedBucketsIndexRouteImport } from './routes/_authed/buckets.index'
-import { Route as AuthedBucketsCreateRouteImport } from './routes/_authed/buckets.create'
 import { Route as AuthedBucketsIdIndexRouteImport } from './routes/_authed/buckets.$id.index'
 import { Route as AuthedBucketsIdEditRouteImport } from './routes/_authed/buckets.$id.edit'
 import { Route as AuthedBucketsIdCreateTransactionRouteImport } from './routes/_authed/buckets.$id.create-transaction'
@@ -54,11 +53,6 @@ const AuthedBucketsIndexRoute = AuthedBucketsIndexRouteImport.update({
   path: '/buckets/',
   getParentRoute: () => AuthedRouteRoute,
 } as any)
-const AuthedBucketsCreateRoute = AuthedBucketsCreateRouteImport.update({
-  id: '/buckets/create',
-  path: '/buckets/create',
-  getParentRoute: () => AuthedRouteRoute,
-} as any)
 const AuthedBucketsIdIndexRoute = AuthedBucketsIdIndexRouteImport.update({
   id: '/buckets/$id/',
   path: '/buckets/$id/',
@@ -81,7 +75,6 @@ export interface FileRoutesByFullPath {
   '/register': typeof GuestRegisterRoute
   '/demo/tanstack-query': typeof DemoTanstackQueryRoute
   '/': typeof GuestIndexRoute
-  '/buckets/create': typeof AuthedBucketsCreateRoute
   '/buckets': typeof AuthedBucketsIndexRoute
   '/buckets/$id/create-transaction': typeof AuthedBucketsIdCreateTransactionRoute
   '/buckets/$id/edit': typeof AuthedBucketsIdEditRoute
@@ -92,7 +85,6 @@ export interface FileRoutesByTo {
   '/register': typeof GuestRegisterRoute
   '/demo/tanstack-query': typeof DemoTanstackQueryRoute
   '/': typeof GuestIndexRoute
-  '/buckets/create': typeof AuthedBucketsCreateRoute
   '/buckets': typeof AuthedBucketsIndexRoute
   '/buckets/$id/create-transaction': typeof AuthedBucketsIdCreateTransactionRoute
   '/buckets/$id/edit': typeof AuthedBucketsIdEditRoute
@@ -106,7 +98,6 @@ export interface FileRoutesById {
   '/_guest/register': typeof GuestRegisterRoute
   '/demo/tanstack-query': typeof DemoTanstackQueryRoute
   '/_guest/': typeof GuestIndexRoute
-  '/_authed/buckets/create': typeof AuthedBucketsCreateRoute
   '/_authed/buckets/': typeof AuthedBucketsIndexRoute
   '/_authed/buckets/$id/create-transaction': typeof AuthedBucketsIdCreateTransactionRoute
   '/_authed/buckets/$id/edit': typeof AuthedBucketsIdEditRoute
@@ -119,7 +110,6 @@ export interface FileRouteTypes {
     | '/register'
     | '/demo/tanstack-query'
     | '/'
-    | '/buckets/create'
     | '/buckets'
     | '/buckets/$id/create-transaction'
     | '/buckets/$id/edit'
@@ -130,7 +120,6 @@ export interface FileRouteTypes {
     | '/register'
     | '/demo/tanstack-query'
     | '/'
-    | '/buckets/create'
     | '/buckets'
     | '/buckets/$id/create-transaction'
     | '/buckets/$id/edit'
@@ -143,7 +132,6 @@ export interface FileRouteTypes {
     | '/_guest/register'
     | '/demo/tanstack-query'
     | '/_guest/'
-    | '/_authed/buckets/create'
     | '/_authed/buckets/'
     | '/_authed/buckets/$id/create-transaction'
     | '/_authed/buckets/$id/edit'
@@ -207,13 +195,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthedBucketsIndexRouteImport
       parentRoute: typeof AuthedRouteRoute
     }
-    '/_authed/buckets/create': {
-      id: '/_authed/buckets/create'
-      path: '/buckets/create'
-      fullPath: '/buckets/create'
-      preLoaderRoute: typeof AuthedBucketsCreateRouteImport
-      parentRoute: typeof AuthedRouteRoute
-    }
     '/_authed/buckets/$id/': {
       id: '/_authed/buckets/$id/'
       path: '/buckets/$id'
@@ -240,7 +221,6 @@ declare module '@tanstack/react-router' {
 
 interface AuthedRouteRouteChildren {
   AuthedDashboardRoute: typeof AuthedDashboardRoute
-  AuthedBucketsCreateRoute: typeof AuthedBucketsCreateRoute
   AuthedBucketsIndexRoute: typeof AuthedBucketsIndexRoute
   AuthedBucketsIdCreateTransactionRoute: typeof AuthedBucketsIdCreateTransactionRoute
   AuthedBucketsIdEditRoute: typeof AuthedBucketsIdEditRoute
@@ -249,7 +229,6 @@ interface AuthedRouteRouteChildren {
 
 const AuthedRouteRouteChildren: AuthedRouteRouteChildren = {
   AuthedDashboardRoute: AuthedDashboardRoute,
-  AuthedBucketsCreateRoute: AuthedBucketsCreateRoute,
   AuthedBucketsIndexRoute: AuthedBucketsIndexRoute,
   AuthedBucketsIdCreateTransactionRoute: AuthedBucketsIdCreateTransactionRoute,
   AuthedBucketsIdEditRoute: AuthedBucketsIdEditRoute,

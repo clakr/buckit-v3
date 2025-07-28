@@ -10,10 +10,14 @@ import {
 } from "@/components/ui/card";
 import { formatCurrency } from "@/lib/utils";
 import { BucketDropdownMenu } from "@/modules/buckets/components/bucket-dropdown-menu";
+import {
+	CreateBucketDialog,
+	useCreateBucketDialogStore,
+} from "@/modules/buckets/components/create-bucket-dialog";
 import { bucketsQueryOption } from "@/modules/buckets/query-options";
 import { Icon } from "@iconify/react";
 import { useSuspenseQuery } from "@tanstack/react-query";
-import { Link, createFileRoute } from "@tanstack/react-router";
+import { createFileRoute } from "@tanstack/react-router";
 
 export const Route = createFileRoute("/_authed/buckets/")({
 	component: RouteComponent,
@@ -23,23 +27,31 @@ export const Route = createFileRoute("/_authed/buckets/")({
 });
 
 function RouteComponent() {
+	/**
+	 * data fetching
+	 */
 	const { data: buckets } = useSuspenseQuery(bucketsQueryOption);
+
+	/**
+	 * actions
+	 */
+	const handleOpenCreateBucketDialog = useCreateBucketDialogStore(
+		(state) => state.handleOpen,
+	);
 
 	return (
 		<Container>
 			<Heading heading="Buckets">
-				<Button asChild className="self-end">
-					<Link to="/buckets/create">
-						<Icon icon="bx:plus" />
-						Create Bucket
-					</Link>
+				<Button onClick={handleOpenCreateBucketDialog}>
+					<Icon icon="bx:plus" />
+					Create Bucket
 				</Button>
 			</Heading>
 			<section className="grid grid-cols-[repeat(auto-fill,minmax(300px,1fr))] gap-4">
 				{buckets?.map((bucket) => (
 					<Card
 						key={bucket.id}
-						className="relative grid grid-rows-subgrid row-span-2"
+						className="relative grid grid-rows-subgrid row-span-2 "
 					>
 						<BucketDropdownMenu id={bucket.id} />
 						<CardHeader>
@@ -52,6 +64,8 @@ function RouteComponent() {
 					</Card>
 				))}
 			</section>
+
+			<CreateBucketDialog />
 		</Container>
 	);
 }
