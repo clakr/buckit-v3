@@ -2,13 +2,13 @@ import { supabase } from "@/integrations/supabase";
 import type { Bucket } from "@/integrations/supabase/types";
 import type {
 	createBucketFormSchema,
-	createBucketTransactionFormSchema,
+	createTransactionFormSchema,
 	editBucketFormSchema,
 } from "@/modules/buckets/schemas";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import type z from "zod";
 
-export function useCreateBucket() {
+export function useCreateBucketMutation() {
 	const queryClient = useQueryClient();
 
 	return useMutation({
@@ -27,7 +27,7 @@ export function useCreateBucket() {
 	});
 }
 
-export function useUpdateBucket() {
+export function useUpdateBucketMutation() {
 	const queryClient = useQueryClient();
 
 	return useMutation({
@@ -48,7 +48,7 @@ export function useUpdateBucket() {
 	});
 }
 
-export function useDeleteBucket() {
+export function useDeleteBucketMutation() {
 	const queryClient = useQueryClient();
 
 	return useMutation({
@@ -65,13 +65,11 @@ export function useDeleteBucket() {
 	});
 }
 
-export function useCreateBucketTransaction() {
+export function useCreateTransactionMutation() {
 	const queryClient = useQueryClient();
 
 	return useMutation({
-		mutationFn: async (
-			payload: z.output<typeof createBucketTransactionFormSchema>,
-		) =>
+		mutationFn: async (payload: z.output<typeof createTransactionFormSchema>) =>
 			await supabase
 				.from("bucket_transactions")
 				.insert({

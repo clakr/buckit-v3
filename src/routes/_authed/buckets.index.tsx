@@ -14,6 +14,7 @@ import {
 	CreateBucketDialog,
 	useCreateBucketDialogStore,
 } from "@/modules/buckets/components/create-bucket-dialog";
+import { CreateTransactionDialog } from "@/modules/buckets/components/create-transaction-dialog";
 import { EditBucketDialog } from "@/modules/buckets/components/edit-bucket-dialog";
 import { bucketsQueryOption } from "@/modules/buckets/query-options";
 import { Icon } from "@iconify/react";
@@ -68,6 +69,7 @@ function RouteComponent() {
 
 			<CreateBucketDialog />
 			<EditBucketDialog />
+			<CreateTransactionDialog />
 		</Container>
 	);
 }

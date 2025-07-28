@@ -4,7 +4,7 @@ import { cn, formatCurrency, formatDate } from "@/lib/utils";
 import { Icon } from "@iconify/react/dist/iconify.js";
 import type { ColumnDef } from "@tanstack/react-table";
 
-export const bucketTransactionsColumns: ColumnDef<BucketTransaction>[] = [
+export const transactionColumns: ColumnDef<BucketTransaction>[] = [
 	{
 		accessorKey: "type",
 		header: "Type",

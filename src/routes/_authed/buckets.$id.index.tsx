@@ -9,7 +9,7 @@ import {
 	CardTitle,
 } from "@/components/ui/card";
 import { formatCurrency } from "@/lib/utils";
-import { bucketTransactionsColumns } from "@/modules/buckets/columns";
+import { transactionColumns } from "@/modules/buckets/columns";
 import { bucketQueryOption } from "@/modules/buckets/query-options";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
@@ -137,7 +137,7 @@ function RouteComponent() {
 				</CardHeader>
 				<CardContent>
 					<DataTable
-						columns={bucketTransactionsColumns}
+						columns={transactionColumns}
 						data={bucket.bucket_transactions}
 					/>
 				</CardContent>

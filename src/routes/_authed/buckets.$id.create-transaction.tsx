@@ -1,9 +1,9 @@
 import { Container } from "@/components/container";
 import { Heading } from "@/components/heading";
 import { useAppForm } from "@/hooks/form";
-import { useCreateBucketTransaction } from "@/modules/buckets/mutations";
+import { useCreateTransactionMutation } from "@/modules/buckets/mutations";
 import {
-	createBucketTransactionFormSchema,
+	createTransactionFormSchema,
 	transactionTypeEnum,
 } from "@/modules/buckets/schemas";
 import { Icon } from "@iconify/react";
@@ -20,9 +20,9 @@ function RouteComponent() {
 	const { id } = Route.useParams();
 	const navigate = Route.useNavigate();
 
-	const mutation = useCreateBucketTransaction();
+	const mutation = useCreateTransactionMutation();
 
-	const defaultValues: z.input<typeof createBucketTransactionFormSchema> = {
+	const defaultValues: z.input<typeof createTransactionFormSchema> = {
 		bucket_id: id,
 		description: "",
 		amount: 0,
@@ -32,10 +32,10 @@ function RouteComponent() {
 	const form = useAppForm({
 		defaultValues,
 		validators: {
-			onBlur: createBucketTransactionFormSchema,
+			onBlur: createTransactionFormSchema,
 		},
 		onSubmit: async ({ value }) => {
-			const payload = createBucketTransactionFormSchema.parse(value);
+			const payload = createTransactionFormSchema.parse(value);
 
 			mutation.mutate(payload);
 

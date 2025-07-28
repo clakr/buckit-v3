@@ -6,7 +6,7 @@ import {
 	DialogTitle,
 } from "@/components/ui/dialog";
 import { useAppForm } from "@/hooks/form";
-import { useCreateBucket } from "@/modules/buckets/mutations";
+import { useCreateBucketMutation } from "@/modules/buckets/mutations";
 import { createBucketFormSchema } from "@/modules/buckets/schemas";
 import { createDialogStore } from "@/stores/create-dialog-store";
 import { Icon } from "@iconify/react";
@@ -26,7 +26,7 @@ export function CreateBucketDialog() {
 	/**
 	 * form
 	 */
-	const mutation = useCreateBucket();
+	const mutation = useCreateBucketMutation();
 
 	const defaultValues: z.input<typeof createBucketFormSchema> = {
 		name: "",
@@ -43,6 +43,8 @@ export function CreateBucketDialog() {
 			const payload = createBucketFormSchema.parse(value);
 
 			mutation.mutate(payload);
+
+			form.reset();
 
 			handleToggle();
 		},

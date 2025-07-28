@@ -7,34 +7,35 @@ import {
 } from "@/components/ui/dialog";
 import { useAppForm } from "@/hooks/form";
 import type { Bucket } from "@/integrations/supabase/types";
-import { useUpdateBucketMutation } from "@/modules/buckets/mutations";
-import { bucketQueryOption } from "@/modules/buckets/query-options";
-import { editBucketFormSchema } from "@/modules/buckets/schemas";
+import { useCreateTransactionMutation } from "@/modules/buckets/mutations";
+import {
+	createTransactionFormSchema,
+	transactionTypeEnum,
+} from "@/modules/buckets/schemas";
 import {
 	type BaseDialogStore,
 	createDialogStore,
 } from "@/stores/create-dialog-store";
 import { Icon } from "@iconify/react/dist/iconify.js";
-import { useQuery } from "@tanstack/react-query";
 import type z from "zod";
 import { useShallow } from "zustand/react/shallow";
 
-interface EditBucketDialogStore extends BaseDialogStore {
+interface CreateTransactionDialogStore extends BaseDialogStore {
 	bucketId: Bucket["id"] | null;
 	setBucketId: (id: Bucket["id"] | null) => void;
 }
 
-export const useEditBucketDialogStore =
-	createDialogStore<EditBucketDialogStore>((set) => ({
+export const useCreateTransactionStore =
+	createDialogStore<CreateTransactionDialogStore>((set) => ({
 		bucketId: null,
 		setBucketId: (id) => set({ bucketId: id }),
 	}));
 
-export function EditBucketDialog() {
+export function CreateTransactionDialog() {
 	/**
 	 * dialog state
 	 */
-	const { isOpen, handleToggle, bucketId } = useEditBucketDialogStore(
+	const { isOpen, handleToggle, bucketId } = useCreateTransactionStore(
 		useShallow((state) => ({
 			isOpen: state.isOpen,
 			handleToggle: state.handleToggle,
@@ -43,36 +44,25 @@ export function EditBucketDialog() {
 	);
 
 	/**
-	 * data fetching
-	 */
-	const {
-		isLoading,
-		error,
-		data: bucket,
-	} = useQuery({
-		...bucketQueryOption(bucketId || ""),
-		enabled: !!bucketId,
-	});
-
-	/**
 	 * form
 	 */
 
-	const mutation = useUpdateBucketMutation();
+	const mutation = useCreateTransactionMutation();
 
-	const defaultValues: z.input<typeof editBucketFormSchema> = {
-		id: "",
-		name: "",
+	const defaultValues: z.input<typeof createTransactionFormSchema> = {
+		bucket_id: "",
 		description: "",
+		amount: 0,
+		type: "inbound",
 	};
 
 	const form = useAppForm({
 		defaultValues,
 		validators: {
-			onBlur: editBucketFormSchema,
+			onBlur: createTransactionFormSchema,
 		},
 		onSubmit: async ({ value }) => {
-			const payload = editBucketFormSchema.parse(value);
+			const payload = createTransactionFormSchema.parse(value);
 
 			mutation.mutate(payload);
 
@@ -82,14 +72,13 @@ export function EditBucketDialog() {
 		},
 	});
 
-	if (isLoading) return <div>Loading...</div>;
-	if (error) return <div>Error: {error.message}</div>;
+	if (!bucketId) return null;
 
 	return (
 		<Dialog open={isOpen} onOpenChange={handleToggle}>
 			<DialogContent>
 				<DialogHeader>
-					<DialogTitle>Edit Bucket</DialogTitle>
+					<DialogTitle>Create Transaction</DialogTitle>
 					<DialogDescription>
 						{/* todo: add edit bucket description */}
 					</DialogDescription>
@@ -102,19 +91,34 @@ export function EditBucketDialog() {
 						form.handleSubmit();
 					}}
 				>
-					<form.AppField name="id" defaultValue={bucket?.id}>
-						{(field) => <field.Input label="ID" id="id" type="hidden" />}
+					<form.AppField name="bucket_id" defaultValue={bucketId}>
+						{(field) => (
+							<field.Input label="Bucket ID" id="bucket-id" type="hidden" />
+						)}
 					</form.AppField>
-					<form.AppField name="name" defaultValue={bucket?.name}>
-						{(field) => <field.Input label="Name" id="name" type="text" />}
+					<form.AppField name="description">
+						{(field) => (
+							<field.Input label="Description" id="description" type="text" />
+						)}
 					</form.AppField>
-					<form.AppField name="description" defaultValue={bucket?.description}>
-						{(field) => <field.Textarea label="Description" id="description" />}
+					<form.AppField name="amount">
+						{(field) => (
+							<field.Input label="Amount" id="amount" type="number" />
+						)}
+					</form.AppField>
+					<form.AppField name="type">
+						{(field) => (
+							<field.Radio
+								label="Type"
+								id="type"
+								enumSchema={transactionTypeEnum}
+							/>
+						)}
 					</form.AppField>
 					<form.AppForm>
 						<form.Button className="self-end">
-							<Icon icon="bx:edit" />
-							Edit Bucket
+							<Icon icon="bx:plus" />
+							Create Transaction
 						</form.Button>
 					</form.AppForm>
 				</form>

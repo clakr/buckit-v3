@@ -10,8 +10,9 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { useAlert } from "@/hooks/use-alert";
 import type { Bucket } from "@/integrations/supabase/types";
+import { useCreateTransactionStore } from "@/modules/buckets/components/create-transaction-dialog";
 import { useEditBucketDialogStore } from "@/modules/buckets/components/edit-bucket-dialog";
-import { useDeleteBucket } from "@/modules/buckets/mutations";
+import { useDeleteBucketMutation } from "@/modules/buckets/mutations";
 import { Icon } from "@iconify/react";
 import { Link } from "@tanstack/react-router";
 import { useShallow } from "zustand/react/shallow";
@@ -25,7 +26,7 @@ export function BucketDropdownMenu({ id }: Props) {
 	 * delete bucket
 	 */
 	const { show } = useAlert();
-	const mutation = useDeleteBucket();
+	const mutation = useDeleteBucketMutation();
 
 	function handleDeleteBucket() {
 		show({
@@ -42,7 +43,7 @@ export function BucketDropdownMenu({ id }: Props) {
 	/**
 	 * edit bucket
 	 */
-	const { handleOpen, setBucketId } = useEditBucketDialogStore(
+	const editBucketDialogStore = useEditBucketDialogStore(
 		useShallow((state) => ({
 			handleOpen: state.handleOpen,
 			setBucketId: state.setBucketId,
@@ -50,8 +51,23 @@ export function BucketDropdownMenu({ id }: Props) {
 	);
 
 	function handleOpenEditBucketDialog() {
-		setBucketId(id);
-		handleOpen();
+		editBucketDialogStore.setBucketId(id);
+		editBucketDialogStore.handleOpen();
+	}
+
+	/**
+	 * create transaction
+	 */
+	const createTransactionDialogStore = useCreateTransactionStore(
+		useShallow((state) => ({
+			handleOpen: state.handleOpen,
+			setBucketId: state.setBucketId,
+		})),
+	);
+
+	function handleOpenCreateTransactionDialog() {
+		createTransactionDialogStore.setBucketId(id);
+		createTransactionDialogStore.handleOpen();
 	}
 
 	return (
@@ -64,16 +80,9 @@ export function BucketDropdownMenu({ id }: Props) {
 			<DropdownMenuContent>
 				<DropdownMenuGroup>
 					<DropdownMenuLabel>Transactions</DropdownMenuLabel>
-					<DropdownMenuItem asChild>
-						<Link
-							to="/buckets/$id/create-transaction"
-							params={{
-								id,
-							}}
-						>
-							<Icon icon="bx:plus" />
-							Create
-						</Link>
+					<DropdownMenuItem onClick={handleOpenCreateTransactionDialog}>
+						<Icon icon="bx:plus" />
+						Create
 					</DropdownMenuItem>
 					<DropdownMenuSeparator />
 				</DropdownMenuGroup>

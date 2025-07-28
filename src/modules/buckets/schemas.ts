@@ -56,7 +56,7 @@ export const editBucketFormSchema = z.object({
 
 export const transactionTypeEnum = z.enum(["inbound", "outbound"]);
 
-export const createBucketTransactionFormSchema = z.object({
+export const createTransactionFormSchema = z.object({
 	bucket_id: z.string().uuid({ message: "Invalid bucket ID format" }),
 
 	type: transactionTypeEnum,
