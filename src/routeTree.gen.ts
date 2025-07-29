@@ -15,6 +15,7 @@ import { Route as GuestIndexRouteImport } from './routes/_guest/index'
 import { Route as DemoTanstackQueryRouteImport } from './routes/demo.tanstack-query'
 import { Route as GuestRegisterRouteImport } from './routes/_guest/register'
 import { Route as AuthedDashboardRouteImport } from './routes/_authed/dashboard'
+import { Route as AuthedGoalsIndexRouteImport } from './routes/_authed/goals.index'
 import { Route as AuthedBucketsIndexRouteImport } from './routes/_authed/buckets.index'
 import { Route as AuthedBucketsIdIndexRouteImport } from './routes/_authed/buckets.$id.index'
 import { Route as AuthedBucketsIdCreateTransactionRouteImport } from './routes/_authed/buckets.$id.create-transaction'
@@ -47,6 +48,11 @@ const AuthedDashboardRoute = AuthedDashboardRouteImport.update({
   path: '/dashboard',
   getParentRoute: () => AuthedRouteRoute,
 } as any)
+const AuthedGoalsIndexRoute = AuthedGoalsIndexRouteImport.update({
+  id: '/goals/',
+  path: '/goals/',
+  getParentRoute: () => AuthedRouteRoute,
+} as any)
 const AuthedBucketsIndexRoute = AuthedBucketsIndexRouteImport.update({
   id: '/buckets/',
   path: '/buckets/',
@@ -70,6 +76,7 @@ export interface FileRoutesByFullPath {
   '/demo/tanstack-query': typeof DemoTanstackQueryRoute
   '/': typeof GuestIndexRoute
   '/buckets': typeof AuthedBucketsIndexRoute
+  '/goals': typeof AuthedGoalsIndexRoute
   '/buckets/$id/create-transaction': typeof AuthedBucketsIdCreateTransactionRoute
   '/buckets/$id': typeof AuthedBucketsIdIndexRoute
 }
@@ -79,6 +86,7 @@ export interface FileRoutesByTo {
   '/demo/tanstack-query': typeof DemoTanstackQueryRoute
   '/': typeof GuestIndexRoute
   '/buckets': typeof AuthedBucketsIndexRoute
+  '/goals': typeof AuthedGoalsIndexRoute
   '/buckets/$id/create-transaction': typeof AuthedBucketsIdCreateTransactionRoute
   '/buckets/$id': typeof AuthedBucketsIdIndexRoute
 }
@@ -91,6 +99,7 @@ export interface FileRoutesById {
   '/demo/tanstack-query': typeof DemoTanstackQueryRoute
   '/_guest/': typeof GuestIndexRoute
   '/_authed/buckets/': typeof AuthedBucketsIndexRoute
+  '/_authed/goals/': typeof AuthedGoalsIndexRoute
   '/_authed/buckets/$id/create-transaction': typeof AuthedBucketsIdCreateTransactionRoute
   '/_authed/buckets/$id/': typeof AuthedBucketsIdIndexRoute
 }
@@ -102,6 +111,7 @@ export interface FileRouteTypes {
     | '/demo/tanstack-query'
     | '/'
     | '/buckets'
+    | '/goals'
     | '/buckets/$id/create-transaction'
     | '/buckets/$id'
   fileRoutesByTo: FileRoutesByTo
@@ -111,6 +121,7 @@ export interface FileRouteTypes {
     | '/demo/tanstack-query'
     | '/'
     | '/buckets'
+    | '/goals'
     | '/buckets/$id/create-transaction'
     | '/buckets/$id'
   id:
@@ -122,6 +133,7 @@ export interface FileRouteTypes {
     | '/demo/tanstack-query'
     | '/_guest/'
     | '/_authed/buckets/'
+    | '/_authed/goals/'
     | '/_authed/buckets/$id/create-transaction'
     | '/_authed/buckets/$id/'
   fileRoutesById: FileRoutesById
@@ -176,6 +188,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthedDashboardRouteImport
       parentRoute: typeof AuthedRouteRoute
     }
+    '/_authed/goals/': {
+      id: '/_authed/goals/'
+      path: '/goals'
+      fullPath: '/goals'
+      preLoaderRoute: typeof AuthedGoalsIndexRouteImport
+      parentRoute: typeof AuthedRouteRoute
+    }
     '/_authed/buckets/': {
       id: '/_authed/buckets/'
       path: '/buckets'
@@ -203,6 +222,7 @@ declare module '@tanstack/react-router' {
 interface AuthedRouteRouteChildren {
   AuthedDashboardRoute: typeof AuthedDashboardRoute
   AuthedBucketsIndexRoute: typeof AuthedBucketsIndexRoute
+  AuthedGoalsIndexRoute: typeof AuthedGoalsIndexRoute
   AuthedBucketsIdCreateTransactionRoute: typeof AuthedBucketsIdCreateTransactionRoute
   AuthedBucketsIdIndexRoute: typeof AuthedBucketsIdIndexRoute
 }
@@ -210,6 +230,7 @@ interface AuthedRouteRouteChildren {
 const AuthedRouteRouteChildren: AuthedRouteRouteChildren = {
   AuthedDashboardRoute: AuthedDashboardRoute,
   AuthedBucketsIndexRoute: AuthedBucketsIndexRoute,
+  AuthedGoalsIndexRoute: AuthedGoalsIndexRoute,
   AuthedBucketsIdCreateTransactionRoute: AuthedBucketsIdCreateTransactionRoute,
   AuthedBucketsIdIndexRoute: AuthedBucketsIdIndexRoute,
 }

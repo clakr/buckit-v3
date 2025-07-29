@@ -1,11 +1,9 @@
 import { Container } from "@/components/container";
 import { Heading } from "@/components/heading";
 import { useAppForm } from "@/hooks/form";
+import { transactionTypeEnum } from "@/lib/schemas";
 import { useCreateTransactionMutation } from "@/modules/buckets/mutations";
-import {
-	createTransactionFormSchema,
-	transactionTypeEnum,
-} from "@/modules/buckets/schemas";
+import { createTransactionFormSchema } from "@/modules/buckets/schemas";
 import { Icon } from "@iconify/react";
 import { createFileRoute } from "@tanstack/react-router";
 import type z from "zod";

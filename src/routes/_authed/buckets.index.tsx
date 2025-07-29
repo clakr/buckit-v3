@@ -116,7 +116,7 @@ function RouteComponent() {
 				</Button>
 			</Heading>
 			<section className="grid grid-cols-[repeat(auto-fill,minmax(300px,1fr))] gap-4">
-				{buckets?.map((bucket) => (
+				{buckets.map((bucket) => (
 					<Card
 						key={bucket.id}
 						className="relative grid grid-rows-subgrid row-span-2 "

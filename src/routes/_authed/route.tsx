@@ -88,7 +88,6 @@ function SidebarContent() {
 			label: "Goals",
 			href: "/goals",
 			icon: "lucide:goal",
-			isDisabled: true,
 		},
 		{
 			label: "Distributions",

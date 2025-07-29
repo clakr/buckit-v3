@@ -7,11 +7,9 @@ import {
 } from "@/components/ui/dialog";
 import { useAppForm } from "@/hooks/form";
 import type { Bucket } from "@/integrations/supabase/types";
+import { transactionTypeEnum } from "@/lib/schemas";
 import { useCreateTransactionMutation } from "@/modules/buckets/mutations";
-import {
-	createTransactionFormSchema,
-	transactionTypeEnum,
-} from "@/modules/buckets/schemas";
+import { createTransactionFormSchema } from "@/modules/buckets/schemas";
 import {
 	type BaseDialogStore,
 	createDialogStore,

@@ -1,3 +1,4 @@
+import { transactionTypeEnum } from "@/lib/schemas";
 import z from "zod";
 
 const bucketBaseSchema = {
@@ -53,8 +54,6 @@ export const editBucketFormSchema = z.object({
 	name: bucketBaseSchema.name,
 	description: bucketBaseSchema.description,
 });
-
-export const transactionTypeEnum = z.enum(["inbound", "outbound"]);
 
 export const createTransactionFormSchema = z.object({
 	bucket_id: z.string().uuid({ message: "Invalid bucket ID format" }),
