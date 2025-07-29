@@ -1,5 +1,6 @@
 import { Container } from "@/components/container";
 import { Heading } from "@/components/heading";
+import { StateTemplate } from "@/components/states-template";
 import { Button } from "@/components/ui/button";
 import {
 	Card,
@@ -19,14 +20,49 @@ import { EditBucketDialog } from "@/modules/buckets/components/edit-bucket-dialo
 import { bucketsQueryOption } from "@/modules/buckets/query-options";
 import { Icon } from "@iconify/react";
 import { useSuspenseQuery } from "@tanstack/react-query";
-import { createFileRoute } from "@tanstack/react-router";
+import {
+	type ErrorComponentProps,
+	createFileRoute,
+} from "@tanstack/react-router";
 
 export const Route = createFileRoute("/_authed/buckets/")({
-	component: RouteComponent,
 	loader: async ({ context: { queryClient } }) => {
 		await queryClient.ensureQueryData(bucketsQueryOption);
 	},
+	pendingComponent: PendingComponent,
+	errorComponent: ErrorComponent,
+	component: RouteComponent,
 });
+
+function PendingComponent() {
+	return (
+		<Container>
+			<Heading heading="Buckets" />
+			<StateTemplate
+				state="loading"
+				heading="Loading buckets..."
+				description="Please wait while we load your buckets"
+			/>
+		</Container>
+	);
+}
+
+function ErrorComponent({ reset }: ErrorComponentProps) {
+	return (
+		<Container>
+			<Heading heading="Buckets" />
+			<StateTemplate
+				state="error"
+				heading="Failed to load buckets"
+				description="We encountered an error while loading your buckets."
+			>
+				<div>
+					<Button onClick={reset}>Try Again</Button>
+				</div>
+			</StateTemplate>
+		</Container>
+	);
+}
 
 function RouteComponent() {
 	/**
@@ -40,6 +76,36 @@ function RouteComponent() {
 	const handleOpenCreateBucketDialog = useCreateBucketDialogStore(
 		(state) => state.handleOpen,
 	);
+
+	/**
+	 * empty buckets
+	 */
+	if (buckets.length === 0) {
+		return (
+			<Container>
+				<Heading heading="Buckets">
+					<Button onClick={handleOpenCreateBucketDialog}>
+						<Icon icon="bx:plus" />
+						Create Bucket
+					</Button>
+				</Heading>
+				<StateTemplate
+					state="empty"
+					heading="No buckets yet"
+					description="Get started by creating your first bucket"
+				>
+					<div>
+						<Button variant="secondary" onClick={handleOpenCreateBucketDialog}>
+							<Icon icon="bx:plus" />
+							Create Bucket
+						</Button>
+					</div>
+				</StateTemplate>
+
+				<CreateBucketDialog />
+			</Container>
+		);
+	}
 
 	return (
 		<Container>

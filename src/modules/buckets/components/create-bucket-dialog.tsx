@@ -11,6 +11,7 @@ import { createBucketFormSchema } from "@/modules/buckets/schemas";
 import { createDialogStore } from "@/stores/create-dialog-store";
 import { Icon } from "@iconify/react";
 import type z from "zod";
+import { useShallow } from "zustand/react/shallow";
 
 export const useCreateBucketDialogStore = createDialogStore();
 
@@ -18,9 +19,11 @@ export function CreateBucketDialog() {
 	/**
 	 * dialog state
 	 */
-	const isOpen = useCreateBucketDialogStore((state) => state.isOpen);
-	const handleToggle = useCreateBucketDialogStore(
-		(state) => state.handleToggle,
+	const { isOpen, handleToggle } = useCreateBucketDialogStore(
+		useShallow((state) => ({
+			isOpen: state.isOpen,
+			handleToggle: state.handleToggle,
+		})),
 	);
 
 	/**
