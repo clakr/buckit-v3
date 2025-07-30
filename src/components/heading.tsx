@@ -25,7 +25,7 @@ export function Heading({ heading, description, children }: Props) {
 				</Button>
 			) : null}
 			<div className="grow">
-				<h1 className="text-2xl font-bold capitalize">{heading}</h1>
+				<h1 className="text-2xl font-bold">{heading}</h1>
 				{description ? (
 					<span className="text-muted-foreground text-sm">{description}</span>
 				) : null}

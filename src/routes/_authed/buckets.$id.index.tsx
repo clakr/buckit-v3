@@ -123,12 +123,14 @@ function RouteComponent() {
 				</Card>
 			</div>
 
-			<Card className="shadow-none">
-				<CardHeader>
-					<CardTitle>Description</CardTitle>
-					<CardDescription>{bucket.description}</CardDescription>
-				</CardHeader>
-			</Card>
+			{bucket.description ? (
+				<Card className="shadow-none">
+					<CardHeader>
+						<CardTitle>Description</CardTitle>
+						<CardDescription>{bucket.description}</CardDescription>
+					</CardHeader>
+				</Card>
+			) : null}
 
 			<Card className="shadow-none">
 				<CardHeader>

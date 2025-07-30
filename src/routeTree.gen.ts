@@ -18,7 +18,6 @@ import { Route as AuthedDashboardRouteImport } from './routes/_authed/dashboard'
 import { Route as AuthedGoalsIndexRouteImport } from './routes/_authed/goals.index'
 import { Route as AuthedBucketsIndexRouteImport } from './routes/_authed/buckets.index'
 import { Route as AuthedBucketsIdIndexRouteImport } from './routes/_authed/buckets.$id.index'
-import { Route as AuthedBucketsIdCreateTransactionRouteImport } from './routes/_authed/buckets.$id.create-transaction'
 
 const GuestRouteRoute = GuestRouteRouteImport.update({
   id: '/_guest',
@@ -63,12 +62,6 @@ const AuthedBucketsIdIndexRoute = AuthedBucketsIdIndexRouteImport.update({
   path: '/buckets/$id/',
   getParentRoute: () => AuthedRouteRoute,
 } as any)
-const AuthedBucketsIdCreateTransactionRoute =
-  AuthedBucketsIdCreateTransactionRouteImport.update({
-    id: '/buckets/$id/create-transaction',
-    path: '/buckets/$id/create-transaction',
-    getParentRoute: () => AuthedRouteRoute,
-  } as any)
 
 export interface FileRoutesByFullPath {
   '/dashboard': typeof AuthedDashboardRoute
@@ -77,7 +70,6 @@ export interface FileRoutesByFullPath {
   '/': typeof GuestIndexRoute
   '/buckets': typeof AuthedBucketsIndexRoute
   '/goals': typeof AuthedGoalsIndexRoute
-  '/buckets/$id/create-transaction': typeof AuthedBucketsIdCreateTransactionRoute
   '/buckets/$id': typeof AuthedBucketsIdIndexRoute
 }
 export interface FileRoutesByTo {
@@ -87,7 +79,6 @@ export interface FileRoutesByTo {
   '/': typeof GuestIndexRoute
   '/buckets': typeof AuthedBucketsIndexRoute
   '/goals': typeof AuthedGoalsIndexRoute
-  '/buckets/$id/create-transaction': typeof AuthedBucketsIdCreateTransactionRoute
   '/buckets/$id': typeof AuthedBucketsIdIndexRoute
 }
 export interface FileRoutesById {
@@ -100,7 +91,6 @@ export interface FileRoutesById {
   '/_guest/': typeof GuestIndexRoute
   '/_authed/buckets/': typeof AuthedBucketsIndexRoute
   '/_authed/goals/': typeof AuthedGoalsIndexRoute
-  '/_authed/buckets/$id/create-transaction': typeof AuthedBucketsIdCreateTransactionRoute
   '/_authed/buckets/$id/': typeof AuthedBucketsIdIndexRoute
 }
 export interface FileRouteTypes {
@@ -112,7 +102,6 @@ export interface FileRouteTypes {
     | '/'
     | '/buckets'
     | '/goals'
-    | '/buckets/$id/create-transaction'
     | '/buckets/$id'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -122,7 +111,6 @@ export interface FileRouteTypes {
     | '/'
     | '/buckets'
     | '/goals'
-    | '/buckets/$id/create-transaction'
     | '/buckets/$id'
   id:
     | '__root__'
@@ -134,7 +122,6 @@ export interface FileRouteTypes {
     | '/_guest/'
     | '/_authed/buckets/'
     | '/_authed/goals/'
-    | '/_authed/buckets/$id/create-transaction'
     | '/_authed/buckets/$id/'
   fileRoutesById: FileRoutesById
 }
@@ -209,13 +196,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthedBucketsIdIndexRouteImport
       parentRoute: typeof AuthedRouteRoute
     }
-    '/_authed/buckets/$id/create-transaction': {
-      id: '/_authed/buckets/$id/create-transaction'
-      path: '/buckets/$id/create-transaction'
-      fullPath: '/buckets/$id/create-transaction'
-      preLoaderRoute: typeof AuthedBucketsIdCreateTransactionRouteImport
-      parentRoute: typeof AuthedRouteRoute
-    }
   }
 }
 
@@ -223,7 +203,6 @@ interface AuthedRouteRouteChildren {
   AuthedDashboardRoute: typeof AuthedDashboardRoute
   AuthedBucketsIndexRoute: typeof AuthedBucketsIndexRoute
   AuthedGoalsIndexRoute: typeof AuthedGoalsIndexRoute
-  AuthedBucketsIdCreateTransactionRoute: typeof AuthedBucketsIdCreateTransactionRoute
   AuthedBucketsIdIndexRoute: typeof AuthedBucketsIdIndexRoute
 }
 
@@ -231,7 +210,6 @@ const AuthedRouteRouteChildren: AuthedRouteRouteChildren = {
   AuthedDashboardRoute: AuthedDashboardRoute,
   AuthedBucketsIndexRoute: AuthedBucketsIndexRoute,
   AuthedGoalsIndexRoute: AuthedGoalsIndexRoute,
-  AuthedBucketsIdCreateTransactionRoute: AuthedBucketsIdCreateTransactionRoute,
   AuthedBucketsIdIndexRoute: AuthedBucketsIdIndexRoute,
 }
 
