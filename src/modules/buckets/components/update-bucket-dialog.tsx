@@ -9,7 +9,7 @@ import { useAppForm } from "@/hooks/form";
 import type { Bucket } from "@/integrations/supabase/types";
 import { useUpdateBucketMutation } from "@/modules/buckets/mutations";
 import { bucketQueryOption } from "@/modules/buckets/query-options";
-import { editBucketFormSchema } from "@/modules/buckets/schemas";
+import { updateBucketFormSchema } from "@/modules/buckets/schemas";
 import {
 	type BaseDialogStore,
 	createDialogStore,
@@ -19,22 +19,22 @@ import { useQuery } from "@tanstack/react-query";
 import type z from "zod";
 import { useShallow } from "zustand/react/shallow";
 
-interface EditBucketDialogStore extends BaseDialogStore {
+interface UpdateBucketDialogStore extends BaseDialogStore {
 	bucketId: Bucket["id"] | null;
 	setBucketId: (id: Bucket["id"] | null) => void;
 }
 
-export const useEditBucketDialogStore =
-	createDialogStore<EditBucketDialogStore>((set) => ({
+export const useUpdateBucketDialogStore =
+	createDialogStore<UpdateBucketDialogStore>((set) => ({
 		bucketId: null,
 		setBucketId: (id) => set({ bucketId: id }),
 	}));
 
-export function EditBucketDialog() {
+export function UpdateBucketDialog() {
 	/**
 	 * dialog state
 	 */
-	const { isOpen, handleToggle, bucketId } = useEditBucketDialogStore(
+	const { isOpen, handleToggle, bucketId } = useUpdateBucketDialogStore(
 		useShallow((state) => ({
 			isOpen: state.isOpen,
 			handleToggle: state.handleToggle,
@@ -59,7 +59,7 @@ export function EditBucketDialog() {
 	 */
 	const mutation = useUpdateBucketMutation();
 
-	const defaultValues: z.input<typeof editBucketFormSchema> = {
+	const defaultValues: z.input<typeof updateBucketFormSchema> = {
 		id: "",
 		name: "",
 		description: "",
@@ -68,10 +68,10 @@ export function EditBucketDialog() {
 	const form = useAppForm({
 		defaultValues,
 		validators: {
-			onBlur: editBucketFormSchema,
+			onBlur: updateBucketFormSchema,
 		},
 		onSubmit: async ({ value }) => {
-			const payload = editBucketFormSchema.parse(value);
+			const payload = updateBucketFormSchema.parse(value);
 
 			mutation.mutate(payload);
 
@@ -89,9 +89,9 @@ export function EditBucketDialog() {
 		<Dialog open={isOpen} onOpenChange={handleToggle}>
 			<DialogContent>
 				<DialogHeader>
-					<DialogTitle>Edit Bucket</DialogTitle>
+					<DialogTitle>Update Bucket</DialogTitle>
 					<DialogDescription>
-						{/* todo: add edit bucket description */}
+						{/* todo: add update bucket description */}
 					</DialogDescription>
 				</DialogHeader>
 				<form
@@ -114,7 +114,7 @@ export function EditBucketDialog() {
 					<form.AppForm>
 						<form.Button className="self-end">
 							<Icon icon="bx:edit" />
-							Edit Bucket
+							Update Bucket
 						</form.Button>
 					</form.AppForm>
 				</form>

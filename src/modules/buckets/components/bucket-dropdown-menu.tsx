@@ -11,7 +11,7 @@ import {
 import { useAlert } from "@/hooks/use-alert";
 import type { Bucket } from "@/integrations/supabase/types";
 import { useCreateTransactionStore } from "@/modules/buckets/components/create-transaction-dialog";
-import { useEditBucketDialogStore } from "@/modules/buckets/components/edit-bucket-dialog";
+import { useUpdateBucketDialogStore } from "@/modules/buckets/components/update-bucket-dialog";
 import { useDeleteBucketMutation } from "@/modules/buckets/mutations";
 import { Icon } from "@iconify/react";
 import { Link } from "@tanstack/react-router";
@@ -41,18 +41,18 @@ export function BucketDropdownMenu({ id }: Props) {
 	}
 
 	/**
-	 * edit bucket
+	 * update bucket
 	 */
-	const editBucketDialogStore = useEditBucketDialogStore(
+	const updateBucketDialogStore = useUpdateBucketDialogStore(
 		useShallow((state) => ({
 			handleOpen: state.handleOpen,
 			setBucketId: state.setBucketId,
 		})),
 	);
 
-	function handleOpenEditBucketDialog() {
-		editBucketDialogStore.setBucketId(id);
-		editBucketDialogStore.handleOpen();
+	function handleOpenUpdateBucketDialog() {
+		updateBucketDialogStore.setBucketId(id);
+		updateBucketDialogStore.handleOpen();
 	}
 
 	/**
@@ -99,9 +99,9 @@ export function BucketDropdownMenu({ id }: Props) {
 							View
 						</Link>
 					</DropdownMenuItem>
-					<DropdownMenuItem onClick={handleOpenEditBucketDialog}>
+					<DropdownMenuItem onClick={handleOpenUpdateBucketDialog}>
 						<Icon icon="bx:edit" />
-						Edit
+						Update
 					</DropdownMenuItem>
 					<DropdownMenuItem onClick={handleDeleteBucket}>
 						<Icon icon="bx:trash" />

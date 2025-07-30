@@ -78,7 +78,7 @@ export function CreateTransactionDialog() {
 				<DialogHeader>
 					<DialogTitle>Create Transaction</DialogTitle>
 					<DialogDescription>
-						{/* todo: add edit bucket description */}
+						{/* todo: add create bucket description */}
 					</DialogDescription>
 				</DialogHeader>
 				<form

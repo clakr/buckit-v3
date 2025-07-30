@@ -3,7 +3,7 @@ import type { Bucket } from "@/integrations/supabase/types";
 import type {
 	createBucketFormSchema,
 	createTransactionFormSchema,
-	editBucketFormSchema,
+	updateBucketFormSchema,
 } from "@/modules/buckets/schemas";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import type z from "zod";
@@ -31,7 +31,7 @@ export function useUpdateBucketMutation() {
 	const queryClient = useQueryClient();
 
 	return useMutation({
-		mutationFn: async (payload: z.output<typeof editBucketFormSchema>) =>
+		mutationFn: async (payload: z.output<typeof updateBucketFormSchema>) =>
 			await supabase
 				.from("buckets")
 				.update({

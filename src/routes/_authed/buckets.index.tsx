@@ -16,7 +16,7 @@ import {
 	useCreateBucketDialogStore,
 } from "@/modules/buckets/components/create-bucket-dialog";
 import { CreateTransactionDialog } from "@/modules/buckets/components/create-transaction-dialog";
-import { EditBucketDialog } from "@/modules/buckets/components/edit-bucket-dialog";
+import { UpdateBucketDialog } from "@/modules/buckets/components/update-bucket-dialog";
 import { bucketsQueryOption } from "@/modules/buckets/query-options";
 import { Icon } from "@iconify/react";
 import { useSuspenseQuery } from "@tanstack/react-query";
@@ -134,7 +134,7 @@ function RouteComponent() {
 			</section>
 
 			<CreateBucketDialog />
-			<EditBucketDialog />
+			<UpdateBucketDialog />
 			<CreateTransactionDialog />
 		</Container>
 	);

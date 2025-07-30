@@ -9,7 +9,6 @@ export const segmentLabelMapping: Record<string, string> = {
 	dashboard: "Dashboard",
 	buckets: "Buckets",
 	create: "Create",
-	edit: "Edit",
 };
 
 export function getSegmentLabel(segment: string) {

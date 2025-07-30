@@ -49,7 +49,7 @@ export const createBucketFormSchema = z.object({
 	description: bucketBaseSchema.description,
 });
 
-export const editBucketFormSchema = z.object({
+export const updateBucketFormSchema = z.object({
 	id: z.string().uuid("Invalid Bucket ID"),
 	name: bucketBaseSchema.name,
 	description: bucketBaseSchema.description,

@@ -18,7 +18,7 @@ type Props = {
 
 export function GoalDropdownMenu({ id }: Props) {
 	/**
-	 * edit bucket
+	 * update goal
 	 */
 	const updateGoalDialogStore = useUpdateGoalDialogStore(
 		useShallow((state) => ({
@@ -44,7 +44,7 @@ export function GoalDropdownMenu({ id }: Props) {
 					<DropdownMenuLabel>Goal</DropdownMenuLabel>
 					<DropdownMenuItem onClick={handleOpenUpdateGoalDialog}>
 						<Icon icon="bx:edit" />
-						Edit
+						Update
 					</DropdownMenuItem>
 				</DropdownMenuGroup>
 			</DropdownMenuContent>
