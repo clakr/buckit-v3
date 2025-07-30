@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { Icon } from "@iconify/react/dist/iconify.js";
-import { Link } from "@tanstack/react-router";
+import { Link, useLocation } from "@tanstack/react-router";
 
 type Props = React.PropsWithChildren<{
 	heading: string;
@@ -8,13 +8,22 @@ type Props = React.PropsWithChildren<{
 }>;
 
 export function Heading({ heading, description, children }: Props) {
+	const location = useLocation();
+
+	const pathSegments = location.pathname
+		.split("/")
+		.filter((segment) => segment !== "");
+	const isNotBaseRoute = pathSegments.length !== 1;
+
 	return (
 		<div className="flex gap-x-4 items-center">
-			<Button asChild variant="ghost" size="icon">
-				<Link to="..">
-					<Icon icon="bx:left-arrow-alt" className="size-6" />
-				</Link>
-			</Button>
+			{isNotBaseRoute ? (
+				<Button asChild variant="ghost" size="icon">
+					<Link to="..">
+						<Icon icon="bx:left-arrow-alt" className="size-6" />
+					</Link>
+				</Button>
+			) : null}
 			<div className="grow">
 				<h1 className="text-2xl font-bold capitalize">{heading}</h1>
 				{description ? (
