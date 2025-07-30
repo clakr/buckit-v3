@@ -1,4 +1,5 @@
 import { supabase } from "@/integrations/supabase";
+import type { Goal } from "@/integrations/supabase/types";
 import type {
 	createGoalFormSchema,
 	updateGoalFormSchema,
@@ -44,6 +45,23 @@ export function useUpdateGoalMutation() {
 			await queryClient.invalidateQueries({
 				queryKey: ["goals"],
 			});
+		},
+	});
+}
+
+export function useDeleteGoalMutation() {
+	const queryClient = useQueryClient();
+
+	return useMutation({
+		mutationFn: async (id: Goal["id"]) =>
+			await supabase
+				.from("goals")
+				.update({
+					is_active: false,
+				})
+				.eq("id", id),
+		onSuccess: async () => {
+			await queryClient.invalidateQueries({ queryKey: ["goals"] });
 		},
 	});
 }

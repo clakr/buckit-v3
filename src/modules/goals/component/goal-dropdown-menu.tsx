@@ -7,8 +7,10 @@ import {
 	DropdownMenuLabel,
 	DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { useAlert } from "@/hooks/use-alert";
 import type { Goal } from "@/integrations/supabase/types";
 import { useUpdateGoalDialogStore } from "@/modules/goals/component/update-goal-dialog";
+import { useDeleteGoalMutation } from "@/modules/goals/mutations";
 import { Icon } from "@iconify/react";
 import { useShallow } from "zustand/react/shallow";
 
@@ -32,6 +34,24 @@ export function GoalDropdownMenu({ id }: Props) {
 		updateGoalDialogStore.handleOpen();
 	}
 
+	/**
+	 * delete goal
+	 */
+	const { show } = useAlert();
+	const mutation = useDeleteGoalMutation();
+
+	function handleDeleteGoal() {
+		show({
+			title: "Are you absolutely sure?",
+			description:
+				"This action cannot be undone. This will permanently delete your goal along with its respective data.",
+			actionText: "Delete this Goal",
+			onAction: () => {
+				mutation.mutate(id);
+			},
+		});
+	}
+
 	return (
 		<DropdownMenu>
 			<DropdownMenuTrigger asChild>
@@ -45,6 +65,10 @@ export function GoalDropdownMenu({ id }: Props) {
 					<DropdownMenuItem onClick={handleOpenUpdateGoalDialog}>
 						<Icon icon="bx:edit" />
 						Update
+					</DropdownMenuItem>
+					<DropdownMenuItem onClick={handleDeleteGoal}>
+						<Icon icon="bx:trash" />
+						Delete
 					</DropdownMenuItem>
 				</DropdownMenuGroup>
 			</DropdownMenuContent>
