@@ -6,10 +6,10 @@ import {
 	DialogTitle,
 } from "@/components/ui/dialog";
 import { useAppForm } from "@/hooks/form";
-import type { Bucket } from "@/integrations/supabase/types";
+import type { Goal } from "@/integrations/supabase/types";
 import { transactionTypeEnum } from "@/lib/schemas";
-import { useCreateTransactionMutation } from "@/modules/buckets/mutations";
-import { createTransactionFormSchema } from "@/modules/buckets/schemas";
+import { useCreateTransactionMutation } from "@/modules/goals/mutations";
+import { createTransactionFormSchema } from "@/modules/goals/schemas";
 import {
 	type BaseDialogStore,
 	createDialogStore,
@@ -19,25 +19,25 @@ import type z from "zod";
 import { useShallow } from "zustand/react/shallow";
 
 interface CreateTransactionDialogStore extends BaseDialogStore {
-	bucketId: Bucket["id"] | null;
-	setBucketId: (id: Bucket["id"] | null) => void;
+	goalId: Goal["id"] | null;
+	setGoalId: (id: Goal["id"] | null) => void;
 }
 
 export const useCreateTransactionStore =
 	createDialogStore<CreateTransactionDialogStore>((set) => ({
-		bucketId: null,
-		setBucketId: (id) => set({ bucketId: id }),
+		goalId: null,
+		setGoalId: (id) => set({ goalId: id }),
 	}));
 
 export function CreateTransactionDialog() {
 	/**
 	 * dialog state
 	 */
-	const { isOpen, handleToggle, bucketId } = useCreateTransactionStore(
+	const { isOpen, handleToggle, goalId } = useCreateTransactionStore(
 		useShallow((state) => ({
 			isOpen: state.isOpen,
 			handleToggle: state.handleToggle,
-			bucketId: state.bucketId,
+			goalId: state.goalId,
 		})),
 	);
 
@@ -47,7 +47,7 @@ export function CreateTransactionDialog() {
 	const mutation = useCreateTransactionMutation();
 
 	const defaultValues: z.input<typeof createTransactionFormSchema> = {
-		bucket_id: "",
+		goal_id: "",
 		description: "",
 		amount: 0,
 		type: "inbound",
@@ -69,7 +69,7 @@ export function CreateTransactionDialog() {
 		},
 	});
 
-	if (!bucketId) return null;
+	if (!goalId) return null;
 
 	return (
 		<Dialog open={isOpen} onOpenChange={handleToggle}>
@@ -77,7 +77,7 @@ export function CreateTransactionDialog() {
 				<DialogHeader>
 					<DialogTitle>Create Transaction</DialogTitle>
 					<DialogDescription>
-						{/* todo: add create bucket description */}
+						{/* todo: add create goal description */}
 					</DialogDescription>
 				</DialogHeader>
 				<form
@@ -88,9 +88,9 @@ export function CreateTransactionDialog() {
 						form.handleSubmit();
 					}}
 				>
-					<form.AppField name="bucket_id" defaultValue={bucketId}>
+					<form.AppField name="goal_id" defaultValue={goalId}>
 						{(field) => (
-							<field.Input label="Bucket ID" id="bucket-id" type="hidden" />
+							<field.Input label="Goal ID" id="goal-id" type="hidden" />
 						)}
 					</form.AppField>
 					<form.AppField name="description">

@@ -5,10 +5,12 @@ import {
 	DropdownMenuGroup,
 	DropdownMenuItem,
 	DropdownMenuLabel,
+	DropdownMenuSeparator,
 	DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useAlert } from "@/hooks/use-alert";
 import type { Goal } from "@/integrations/supabase/types";
+import { useCreateTransactionStore } from "@/modules/goals/component/create-transaction-dialog";
 import { useUpdateGoalDialogStore } from "@/modules/goals/component/update-goal-dialog";
 import { useDeleteGoalMutation } from "@/modules/goals/mutations";
 import { Icon } from "@iconify/react";
@@ -52,6 +54,21 @@ export function GoalDropdownMenu({ id }: Props) {
 		});
 	}
 
+	/**
+	 * create transaction
+	 */
+	const createTransactionDialogStore = useCreateTransactionStore(
+		useShallow((state) => ({
+			handleOpen: state.handleOpen,
+			setGoalId: state.setGoalId,
+		})),
+	);
+
+	function handleOpenCreateTransactionDialog() {
+		createTransactionDialogStore.setGoalId(id);
+		createTransactionDialogStore.handleOpen();
+	}
+
 	return (
 		<DropdownMenu>
 			<DropdownMenuTrigger asChild>
@@ -60,6 +77,14 @@ export function GoalDropdownMenu({ id }: Props) {
 				</Button>
 			</DropdownMenuTrigger>
 			<DropdownMenuContent>
+				<DropdownMenuGroup>
+					<DropdownMenuLabel>Transactions</DropdownMenuLabel>
+					<DropdownMenuItem onClick={handleOpenCreateTransactionDialog}>
+						<Icon icon="bx:plus" />
+						Create
+					</DropdownMenuItem>
+					<DropdownMenuSeparator />
+				</DropdownMenuGroup>
 				<DropdownMenuGroup>
 					<DropdownMenuLabel>Goal</DropdownMenuLabel>
 					<DropdownMenuItem onClick={handleOpenUpdateGoalDialog}>

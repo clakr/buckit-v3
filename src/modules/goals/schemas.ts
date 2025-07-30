@@ -100,8 +100,7 @@ export const updateGoalFormSchema = z.object({
 	description: goalBaseSchema.description,
 });
 
-// Create goal transaction form schema
-export const createGoalTransactionFormSchema = z.object({
+export const createTransactionFormSchema = z.object({
 	goal_id: z.string().uuid({ message: "Invalid goal ID format" }),
 
 	type: transactionTypeEnum,

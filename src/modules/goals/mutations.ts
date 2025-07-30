@@ -2,6 +2,7 @@ import { supabase } from "@/integrations/supabase";
 import type { Goal } from "@/integrations/supabase/types";
 import type {
 	createGoalFormSchema,
+	createTransactionFormSchema,
 	updateGoalFormSchema,
 } from "@/modules/goals/schemas";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
@@ -62,6 +63,28 @@ export function useDeleteGoalMutation() {
 				.eq("id", id),
 		onSuccess: async () => {
 			await queryClient.invalidateQueries({ queryKey: ["goals"] });
+		},
+	});
+}
+
+export function useCreateTransactionMutation() {
+	const queryClient = useQueryClient();
+
+	return useMutation({
+		mutationFn: async (payload: z.output<typeof createTransactionFormSchema>) =>
+			await supabase
+				.from("goal_transactions")
+				.insert({
+					goal_id: payload.goal_id,
+					description: payload.description,
+					amount: payload.amount,
+					type: payload.type,
+				})
+				.select(),
+		onSuccess: async () => {
+			await queryClient.invalidateQueries({
+				queryKey: ["goals"],
+			});
 		},
 	});
 }

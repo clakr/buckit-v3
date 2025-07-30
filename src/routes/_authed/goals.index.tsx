@@ -6,6 +6,7 @@ import {
 	CreateGoalDialog,
 	useCreateGoalDialogStore,
 } from "@/modules/goals/component/create-goal-dialog";
+import { CreateTransactionDialog } from "@/modules/goals/component/create-transaction-dialog";
 import { GoalCard } from "@/modules/goals/component/goal-card";
 import { UpdateGoalDialog } from "@/modules/goals/component/update-goal-dialog";
 import { goalsQueryOption } from "@/modules/goals/query-options";
@@ -114,6 +115,7 @@ function RouteComponent() {
 
 			<CreateGoalDialog />
 			<UpdateGoalDialog />
+			<CreateTransactionDialog />
 		</Container>
 	);
 }
