@@ -8,7 +8,6 @@ import {
 import { Progress } from "@/components/ui/progress";
 import type { Goal } from "@/integrations/supabase/types";
 import { formatCurrency, formatPercentage } from "@/lib/utils";
-import { GoalDropdownMenu } from "@/modules/goals/component/goal-dropdown-menu";
 
 type Props = {
 	goal: Goal;
@@ -19,8 +18,7 @@ export function GoalCard({ goal }: Props) {
 	const progress = progressRaw * 100;
 
 	return (
-		<Card className="relative grid grid-rows-subgrid row-span-2">
-			<GoalDropdownMenu id={goal.id} />
+		<Card>
 			<CardHeader>
 				<CardTitle>{goal.name}</CardTitle>
 				<CardDescription>{goal.description}</CardDescription>

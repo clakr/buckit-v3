@@ -1,4 +1,5 @@
 import { supabase } from "@/integrations/supabase";
+import type { Goal } from "@/integrations/supabase/types";
 import { queryOptions } from "@tanstack/react-query";
 
 export const goalsQueryOption = queryOptions({
@@ -14,3 +15,25 @@ export const goalsQueryOption = queryOptions({
 		return data;
 	},
 });
+
+export function goalQueryOption(id: Goal["id"]) {
+	return queryOptions({
+		queryKey: ["goals", id],
+		queryFn: async () => {
+			if (!id) return null;
+
+			const { data } = await supabase
+				.from("goals")
+				.select(`
+					*, 
+					goal_transactions (
+						*
+					)
+				`)
+				.eq("id", id)
+				.single();
+
+			return data;
+		},
+	});
+}

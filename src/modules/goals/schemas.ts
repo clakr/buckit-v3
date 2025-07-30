@@ -80,12 +80,11 @@ export const createGoalFormSchema = z
 		path: ["target_amount"],
 	});
 
-// Edit goal form schema
-export const editGoalFormSchema = z.object({
+export const updateGoalFormSchema = z.object({
 	id: z.string().uuid("Invalid Goal ID"),
+
 	name: goalBaseSchema.name,
 
-	// For edit, we might want to allow updating target amount
 	target_amount: z.coerce
 		.number({
 			required_error: "Target amount is required",

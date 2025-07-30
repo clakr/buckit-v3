@@ -7,6 +7,7 @@ import {
 	useCreateGoalDialogStore,
 } from "@/modules/goals/component/create-goal-dialog";
 import { GoalCard } from "@/modules/goals/component/goal-card";
+import { UpdateGoalDialog } from "@/modules/goals/component/update-goal-dialog";
 import { goalsQueryOption } from "@/modules/goals/query-options";
 import { Icon } from "@iconify/react/dist/iconify.js";
 import { useSuspenseQuery } from "@tanstack/react-query";
@@ -112,6 +113,7 @@ function RouteComponent() {
 			</section>
 
 			<CreateGoalDialog />
+			<UpdateGoalDialog />
 		</Container>
 	);
 }

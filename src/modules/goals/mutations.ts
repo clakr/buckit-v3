@@ -1,5 +1,8 @@
 import { supabase } from "@/integrations/supabase";
-import type { createGoalFormSchema } from "@/modules/goals/schemas";
+import type {
+	createGoalFormSchema,
+	updateGoalFormSchema,
+} from "@/modules/goals/schemas";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import type z from "zod";
 
@@ -19,6 +22,28 @@ export function useCreateGoalMutation() {
 				.select(),
 		onSuccess: async () => {
 			await queryClient.invalidateQueries({ queryKey: ["goals"] });
+		},
+	});
+}
+
+export function useUpdateGoalMutation() {
+	const queryClient = useQueryClient();
+
+	return useMutation({
+		mutationFn: async (payload: z.output<typeof updateGoalFormSchema>) =>
+			await supabase
+				.from("goals")
+				.update({
+					name: payload.name,
+					description: payload.description,
+					target_amount: payload.target_amount,
+				})
+				.eq("id", payload.id)
+				.select(),
+		onSuccess: async () => {
+			await queryClient.invalidateQueries({
+				queryKey: ["goals"],
+			});
 		},
 	});
 }
