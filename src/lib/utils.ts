@@ -48,3 +48,13 @@ export function formatDate(
 
 	return formatter.format(new Date(value));
 }
+
+export function formatPercentage(value: number) {
+	const formatter = new Intl.NumberFormat(navigator.language, {
+		style: "percent",
+		minimumFractionDigits: 2,
+		maximumFractionDigits: 2,
+	});
+
+	return formatter.format(value);
+}

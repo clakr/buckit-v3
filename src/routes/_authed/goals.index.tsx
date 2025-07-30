@@ -6,6 +6,7 @@ import {
 	CreateGoalDialog,
 	useCreateGoalDialogStore,
 } from "@/modules/goals/component/create-goal-dialog";
+import { GoalCard } from "@/modules/goals/component/goal-card";
 import { goalsQueryOption } from "@/modules/goals/query-options";
 import { Icon } from "@iconify/react/dist/iconify.js";
 import { useSuspenseQuery } from "@tanstack/react-query";
@@ -106,7 +107,7 @@ function RouteComponent() {
 			</Heading>
 			<section className="grid grid-cols-[repeat(auto-fill,minmax(300px,1fr))] gap-4">
 				{goals.map((goal) => (
-					<pre>{JSON.stringify(goal, null, 2)}</pre>
+					<GoalCard key={goal.id} goal={goal} />
 				))}
 			</section>
 
