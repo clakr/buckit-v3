@@ -77,28 +77,43 @@ function SidebarContent() {
 		{
 			label: "Dashboard",
 			href: "/dashboard",
-			icon: "bx:grid-alt",
+			icon: {
+				active: "material-symbols:dashboard-rounded",
+				inactive: "material-symbols:dashboard-outline-rounded",
+			},
 		},
 		{
 			label: "Buckets",
 			href: "/buckets",
-			icon: "tabler:bucket",
+			icon: {
+				active: "mdi:bucket",
+				inactive: "mdi:bucket-outline",
+			},
 		},
 		{
 			label: "Goals",
 			href: "/goals",
-			icon: "lucide:goal",
+			icon: {
+				active: "mage:goals-fill",
+				inactive: "mage:goals",
+			},
 		},
 		{
 			label: "Distributions",
 			href: "/distributions",
-			icon: "fluent-mdl2:distribute-down",
+			icon: {
+				active: "lsicon:integral-distribute-filled",
+				inactive: "lsicon:integral-distribute-outline",
+			},
 			isDisabled: true,
 		},
 		{
 			label: "Expenses",
 			href: "/expenses",
-			icon: "bx:receipt",
+			icon: {
+				active: "icon-park-solid:transaction-order",
+				inactive: "icon-park-outline:transaction-order",
+			},
 			isDisabled: true,
 		},
 	];
@@ -118,7 +133,14 @@ function SidebarContent() {
 										}}
 										disabled={link.isDisabled}
 									>
-										<Icon icon={link.icon} />
+										<Icon
+											icon={link.icon.active}
+											className="hidden [[data-active=true]>&]:block"
+										/>
+										<Icon
+											icon={link.icon.inactive}
+											className="hidden [[data-active=false]>&]:block"
+										/>
 										{link.label}
 									</Link>
 								</SidebarMenuButton>
