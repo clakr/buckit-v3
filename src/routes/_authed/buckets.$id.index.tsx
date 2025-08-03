@@ -27,7 +27,7 @@ import {
 	type ErrorComponentProps,
 	createFileRoute,
 } from "@tanstack/react-router";
-import { CartesianGrid, Line, LineChart, XAxis } from "recharts";
+import { CartesianGrid, Line, LineChart, XAxis, YAxis } from "recharts";
 
 export const Route = createFileRoute("/_authed/buckets/$id/")({
 	loader: async ({ context: { queryClient }, params: { id } }) => {
@@ -209,22 +209,23 @@ function RouteComponent() {
 							<LineChart
 								accessibilityLayer
 								data={chartData}
-								margin={{
-									left: 12,
-									right: 12,
-								}}
+								margin={{ left: 40, right: 40 }}
 							>
 								<CartesianGrid vertical={false} />
-								<XAxis
-									dataKey="date"
+								<YAxis
+									dataKey="balance"
+									tickMargin={10}
 									tickLine={false}
 									axisLine={false}
-									tickMargin={8}
+									tickFormatter={(value) => formatCurrency(value)}
 								/>
-								<ChartTooltip
-									cursor={false}
-									content={<ChartTooltipContent hideLabel />}
+								<XAxis
+									dataKey="date"
+									tickMargin={10}
+									tickLine={false}
+									axisLine={false}
 								/>
+								<ChartTooltip content={<ChartTooltipContent hideLabel />} />
 								<Line
 									dataKey="balance"
 									type="natural"

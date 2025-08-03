@@ -93,14 +93,14 @@ export function CreateTransactionDialog() {
 							<field.Input label="Goal ID" id="goal-id" type="hidden" />
 						)}
 					</form.AppField>
-					<form.AppField name="description">
-						{(field) => (
-							<field.Input label="Description" id="description" type="text" />
-						)}
-					</form.AppField>
 					<form.AppField name="amount">
 						{(field) => (
 							<field.Input label="Amount" id="amount" type="number" />
+						)}
+					</form.AppField>
+					<form.AppField name="description">
+						{(field) => (
+							<field.Input label="Description" id="description" type="text" />
 						)}
 					</form.AppField>
 					<form.AppField name="type">
