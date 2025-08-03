@@ -16,7 +16,7 @@ export function StateTemplate({
 	const statesIconMapping: Record<typeof state, string> = {
 		loading: "bx:loader-alt",
 		error: "bxs:info-circle",
-		empty: "bx:info-circle",
+		empty: "bxs:message-rounded-error",
 	};
 
 	return (

@@ -1,25 +1,72 @@
 import { Container } from "@/components/container";
 import { DataTable } from "@/components/data-table";
 import { Heading } from "@/components/heading";
+import { StateTemplate } from "@/components/states-template";
+import { Button } from "@/components/ui/button";
 import {
 	Card,
 	CardContent,
 	CardDescription,
+	CardFooter,
 	CardHeader,
 	CardTitle,
 } from "@/components/ui/card";
-import { formatCurrency } from "@/lib/utils";
+import {
+	type ChartConfig,
+	ChartContainer,
+	ChartTooltip,
+	ChartTooltipContent,
+} from "@/components/ui/chart";
+import type { BucketTransaction } from "@/integrations/supabase/types";
+import { formatCurrency, formatDate, formatDateTime } from "@/lib/utils";
 import { transactionColumns } from "@/modules/buckets/columns";
 import { bucketQueryOption } from "@/modules/buckets/query-options";
+import { Icon } from "@iconify/react/dist/iconify.js";
 import { useSuspenseQuery } from "@tanstack/react-query";
-import { createFileRoute } from "@tanstack/react-router";
+import {
+	type ErrorComponentProps,
+	createFileRoute,
+} from "@tanstack/react-router";
+import { CartesianGrid, Line, LineChart, XAxis } from "recharts";
 
 export const Route = createFileRoute("/_authed/buckets/$id/")({
-	component: RouteComponent,
 	loader: async ({ context: { queryClient }, params: { id } }) => {
 		await queryClient.ensureQueryData(bucketQueryOption(id));
 	},
+	pendingComponent: PendingComponent,
+	errorComponent: ErrorComponent,
+	component: RouteComponent,
 });
+
+function PendingComponent() {
+	return (
+		<Container>
+			<Heading heading="Bucket" />
+			<StateTemplate
+				state="loading"
+				heading="Loading bucket..."
+				description="Please wait while we load your bucket"
+			/>
+		</Container>
+	);
+}
+
+function ErrorComponent({ reset }: ErrorComponentProps) {
+	return (
+		<Container>
+			<Heading heading="Bucket" />
+			<StateTemplate
+				state="error"
+				heading="Failed to load bucket"
+				description="We encountered an error while loading your bucket."
+			>
+				<div>
+					<Button onClick={reset}>Try Again</Button>
+				</div>
+			</StateTemplate>
+		</Container>
+	);
+}
 
 function RouteComponent() {
 	/**
@@ -28,119 +75,187 @@ function RouteComponent() {
 	const { id } = Route.useParams();
 	const { data: bucket } = useSuspenseQuery(bucketQueryOption(id));
 
+	if (!bucket)
+		return (
+			<Container>
+				<StateTemplate
+					state="empty"
+					heading="We can't find that bucket"
+					description="If you think this is a mistake, please contact us"
+				/>
+			</Container>
+		);
+
 	/**
-	 * bucket transactions
+	 * derived
 	 */
-	let totalInboundTransactionsAmount = 0;
-	let totalInboundTransactionsCount = 0;
+	let totalDepositsAmount = 0;
+	let totalDepositsCount = 0;
 
-	let totalOutboundTransactionsAmount = 0;
-	let totalOutboundTransactionsCount = 0;
-
-	let netChange = 0;
+	let totalWithdrawalsAmount = 0;
+	let totalWithdrawalsCount = 0;
 
 	for (const transaction of bucket?.bucket_transactions ?? []) {
 		if (transaction.type === "inbound") {
-			totalInboundTransactionsAmount += transaction.amount;
-			totalInboundTransactionsCount++;
+			totalDepositsAmount += transaction.amount;
+			totalDepositsCount++;
 
-			netChange += transaction.amount;
 			continue;
 		}
 
-		totalOutboundTransactionsAmount += transaction.amount;
-		totalOutboundTransactionsCount++;
-
-		netChange -= transaction.amount;
+		totalWithdrawalsAmount += transaction.amount;
+		totalWithdrawalsCount++;
 	}
 
-	if (!bucket) return <div>no bucket</div>;
+	/**
+	 * chart
+	 */
+	const transactionsByDay = bucket.bucket_transactions.reduce<
+		Record<string, BucketTransaction>
+	>((acc, transaction) => {
+		const dateOnly = new Date(transaction.created_at)
+			.toISOString()
+			.split("T")[0];
+
+		acc[dateOnly] = transaction;
+
+		return acc;
+	}, {});
+
+	const chartData = Object.entries(transactionsByDay).map(
+		([date, transaction]) => ({
+			date: formatDate(date, { month: "short", day: "numeric" }),
+			balance: transaction.balance_after,
+		}),
+	);
+
+	const chartConfig = {
+		balance: {
+			label: "Balance",
+			color: "var(--chart-1)",
+		},
+	} satisfies ChartConfig;
 
 	return (
 		<Container>
-			<Heading heading={bucket.name} description={bucket.description}>
-				<div>
-					{/* <Button variant="outline" size="icon">
-						<Icon icon="bx:dots-vertical-rounded" />
-					</Button> */}
-				</div>
-			</Heading>
+			<Heading heading={bucket.name} description={bucket.description} />
 
-			<div className="grid gap-4 lg:grid-cols-2 2xl:grid-cols-4">
-				<Card className="shadow-none">
-					<CardContent className="flex flex-col gap-y-2">
-						<h3 className="text-sm text-muted-foreground font-semibold">
-							Current Balance
-						</h3>
+			<div className="grid lg:grid-cols-3 gap-4">
+				<Card className="gap-y-2">
+					<CardHeader>
+						<CardTitle>Current Balance</CardTitle>
+					</CardHeader>
+					<CardContent className="flex flex-col">
 						<b className="text-2xl">{formatCurrency(bucket.current_amount)}</b>
+						<span className="text-muted-foreground text-xs">
+							Last updated {formatDate(bucket.updated_at)}
+						</span>
 					</CardContent>
 				</Card>
 
-				<Card className="shadow-none">
-					<CardContent className="flex flex-col gap-y-2">
-						<h3 className="text-sm text-muted-foreground font-semibold">
-							Total Inbound Transactions
-						</h3>
-						<b className="text-2xl">
-							{formatCurrency(totalInboundTransactionsAmount)}
-						</b>
-						<small className="text-xs text-muted-foreground">
-							{totalInboundTransactionsCount}{" "}
-							{totalInboundTransactionsCount > 1
-								? "transactions"
-								: "transaction"}
-						</small>
+				<Card className="gap-y-2">
+					<CardHeader>
+						<CardTitle>Total Deposits</CardTitle>
+					</CardHeader>
+					<CardContent className="flex flex-col">
+						<b className="text-2xl">{formatCurrency(totalDepositsAmount)}</b>
+						<span className="text-muted-foreground text-xs">
+							{totalDepositsCount} deposits
+						</span>
 					</CardContent>
 				</Card>
 
-				<Card className="shadow-none">
-					<CardContent className="flex flex-col gap-y-2">
-						<h3 className="text-sm text-muted-foreground font-semibold">
-							Total Outbound Transactions
-						</h3>
-						<b className="text-2xl">
-							{formatCurrency(totalOutboundTransactionsAmount)}
-						</b>
-						<small className="text-xs text-muted-foreground">
-							{totalOutboundTransactionsCount}{" "}
-							{totalOutboundTransactionsCount > 1
-								? "transactions"
-								: "transaction"}
-						</small>
-					</CardContent>
-				</Card>
-
-				<Card className="shadow-none">
-					<CardContent className="flex flex-col gap-y-2">
-						<h3 className="text-sm text-muted-foreground font-semibold">
-							Net Change
-						</h3>
-						<b className="text-2xl">{formatCurrency(netChange)}</b>
-						<small className="text-xs text-muted-foreground">
-							{bucket.bucket_transactions.length} transactions
-						</small>
+				<Card className="gap-y-2">
+					<CardHeader>
+						<CardTitle>Total Withdrawals</CardTitle>
+					</CardHeader>
+					<CardContent className="flex flex-col">
+						<b className="text-2xl">{formatCurrency(totalWithdrawalsAmount)}</b>
+						<span className="text-muted-foreground text-xs">
+							{totalWithdrawalsCount} withdrawals
+						</span>
 					</CardContent>
 				</Card>
 			</div>
 
-			{bucket.description ? (
-				<Card className="shadow-none">
-					<CardHeader>
-						<CardTitle>Description</CardTitle>
-						<CardDescription>{bucket.description}</CardDescription>
-					</CardHeader>
-				</Card>
-			) : null}
-
-			<Card className="shadow-none">
+			<Card>
 				<CardHeader>
-					<CardTitle>Transaction History</CardTitle>
-					<CardDescription>All transactions for this bucket</CardDescription>
+					<CardTitle className="text-2xl">{bucket.name}</CardTitle>
+					<CardDescription className="text-base">
+						{bucket.description}
+					</CardDescription>
+				</CardHeader>
+				<CardFooter className="text-sm text-muted-foreground gap-x-2 flex-wrap">
+					<Icon icon="bx:calendar" />
+					<span className="flex items-center gap-x-1 me-2">
+						<b className="font-semibold whitespace-nowrap">Created</b>
+						{formatDateTime(bucket.created_at)}
+					</span>
+					<span className="flex items-center gap-x-1">
+						<b className="font-semibold whitespace-nowrap">Last Updated</b>
+						{formatDateTime(bucket.updated_at)}
+					</span>
+				</CardFooter>
+			</Card>
+
+			<Card>
+				<CardHeader>
+					<CardTitle className="text-2xl">Balance Trend</CardTitle>
+					<CardDescription>Bucket balance over time</CardDescription>
+				</CardHeader>
+				<CardContent>
+					{chartData.length > 1 ? (
+						<ChartContainer config={chartConfig} className="h-[300px] w-full">
+							<LineChart
+								accessibilityLayer
+								data={chartData}
+								margin={{
+									left: 12,
+									right: 12,
+								}}
+							>
+								<CartesianGrid vertical={false} />
+								<XAxis
+									dataKey="date"
+									tickLine={false}
+									axisLine={false}
+									tickMargin={8}
+								/>
+								<ChartTooltip
+									cursor={false}
+									content={<ChartTooltipContent hideLabel />}
+								/>
+								<Line
+									dataKey="balance"
+									type="natural"
+									stroke="var(--color-balance)"
+									strokeWidth={2}
+									dot={false}
+								/>
+							</LineChart>
+						</ChartContainer>
+					) : (
+						<StateTemplate
+							state="empty"
+							heading="Not enough data to generate chart"
+							description="Please add more transactions to the bucket to generate a chart"
+						/>
+					)}
+				</CardContent>
+			</Card>
+
+			<Card>
+				<CardHeader>
+					<CardTitle className="text-2xl">Transaction History</CardTitle>
+					<CardDescription>
+						All transactions for this bucket (
+						{bucket.bucket_transactions.length} total)
+					</CardDescription>
 				</CardHeader>
 				<CardContent>
 					<DataTable
-						columns={transactionColumns}
 						data={bucket.bucket_transactions}
+						columns={transactionColumns}
 					/>
 				</CardContent>
 			</Card>
