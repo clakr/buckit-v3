@@ -85,11 +85,15 @@ export function formatDateTime(
 	return formatter.format(new Date(value));
 }
 
-export function formatPercentage(value: number) {
+export function formatPercentage(
+	value: number,
+	opts?: Intl.NumberFormatOptions,
+) {
 	const formatter = new Intl.NumberFormat(navigator.language, {
 		style: "percent",
 		minimumFractionDigits: 2,
 		maximumFractionDigits: 2,
+		...opts,
 	});
 
 	return formatter.format(value);

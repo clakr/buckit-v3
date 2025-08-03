@@ -5,7 +5,6 @@ import {
 	DropdownMenuGroup,
 	DropdownMenuItem,
 	DropdownMenuLabel,
-	DropdownMenuSeparator,
 	DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useAlert } from "@/hooks/use-alert";
@@ -14,6 +13,7 @@ import { useCreateTransactionStore } from "@/modules/goals/component/create-tran
 import { useUpdateGoalDialogStore } from "@/modules/goals/component/update-goal-dialog";
 import { useDeleteGoalMutation } from "@/modules/goals/mutations";
 import { Icon } from "@iconify/react";
+import { Link } from "@tanstack/react-router";
 import { useShallow } from "zustand/react/shallow";
 
 type Props = {
@@ -83,10 +83,20 @@ export function GoalDropdownMenu({ id }: Props) {
 						<Icon icon="bx:plus" />
 						Create
 					</DropdownMenuItem>
-					<DropdownMenuSeparator />
 				</DropdownMenuGroup>
 				<DropdownMenuGroup>
 					<DropdownMenuLabel>Goal</DropdownMenuLabel>
+					<DropdownMenuItem asChild>
+						<Link
+							to="/goals/$id"
+							params={{
+								id,
+							}}
+						>
+							<Icon icon="bx:show" />
+							View
+						</Link>
+					</DropdownMenuItem>
 					<DropdownMenuItem onClick={handleOpenUpdateGoalDialog}>
 						<Icon icon="bx:edit" />
 						Update

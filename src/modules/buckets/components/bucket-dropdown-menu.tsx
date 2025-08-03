@@ -5,7 +5,6 @@ import {
 	DropdownMenuGroup,
 	DropdownMenuItem,
 	DropdownMenuLabel,
-	DropdownMenuSeparator,
 	DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useAlert } from "@/hooks/use-alert";
@@ -84,7 +83,6 @@ export function BucketDropdownMenu({ id }: Props) {
 						<Icon icon="bx:plus" />
 						Create
 					</DropdownMenuItem>
-					<DropdownMenuSeparator />
 				</DropdownMenuGroup>
 				<DropdownMenuGroup>
 					<DropdownMenuLabel>Bucket</DropdownMenuLabel>

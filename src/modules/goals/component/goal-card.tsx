@@ -15,8 +15,7 @@ type Props = {
 };
 
 export function GoalCard({ goal }: Props) {
-	const progressRaw = goal.current_amount / goal.target_amount;
-	const progress = progressRaw * 100;
+	const progress = goal.current_amount / goal.target_amount;
 
 	return (
 		<Card className="relative grid grid-rows-subgrid row-span-2">
@@ -26,8 +25,8 @@ export function GoalCard({ goal }: Props) {
 				<CardDescription>{goal.description}</CardDescription>
 			</CardHeader>
 			<CardFooter className="flex flex-col text-sm gap-y-1">
-				<b className="self-end">{formatPercentage(progressRaw)}</b>
-				<Progress value={progress} />
+				<b className="self-end">{formatPercentage(progress)}</b>
+				<Progress value={progress * 100} />
 				<span className="self-end">
 					{formatCurrency(goal.current_amount)} of{" "}
 					<b>{formatCurrency(goal.target_amount)}</b>

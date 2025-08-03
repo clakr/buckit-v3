@@ -1,14 +1,14 @@
 import { Badge } from "@/components/ui/badge";
-import type { BucketTransaction } from "@/integrations/supabase/types";
+import type { GoalTransaction } from "@/integrations/supabase/types";
 import { cn, formatCurrency, formatDateTime } from "@/lib/utils";
 import type { ColumnDef } from "@tanstack/react-table";
 
-export const columns: ColumnDef<BucketTransaction>[] = [
+export const columns: ColumnDef<GoalTransaction>[] = [
 	{
 		accessorKey: "created_at",
 		header: "Date",
 		cell: ({ getValue }) => {
-			const date = getValue<BucketTransaction["created_at"]>();
+			const date = getValue<GoalTransaction["created_at"]>();
 
 			return formatDateTime(date);
 		},
@@ -17,7 +17,7 @@ export const columns: ColumnDef<BucketTransaction>[] = [
 		accessorKey: "type",
 		header: "Type",
 		cell: ({ getValue }) => {
-			const type = getValue<BucketTransaction["type"]>();
+			const type = getValue<GoalTransaction["type"]>();
 
 			return (
 				<Badge
@@ -33,7 +33,7 @@ export const columns: ColumnDef<BucketTransaction>[] = [
 		accessorKey: "description",
 		header: "Description",
 		cell: ({ getValue }) => {
-			const description = getValue<BucketTransaction["description"]>();
+			const description = getValue<GoalTransaction["description"]>();
 
 			return description;
 		},
@@ -60,7 +60,7 @@ export const columns: ColumnDef<BucketTransaction>[] = [
 		accessorKey: "balance_after",
 		header: "Balance",
 		cell: ({ getValue }) => {
-			const balance = getValue<BucketTransaction["balance_after"]>();
+			const balance = getValue<GoalTransaction["balance_after"]>();
 
 			return formatCurrency(balance);
 		},

@@ -19,7 +19,7 @@ import {
 } from "@/components/ui/chart";
 import type { BucketTransaction } from "@/integrations/supabase/types";
 import { formatCurrency, formatDate, formatDateTime } from "@/lib/utils";
-import { transactionColumns } from "@/modules/buckets/columns";
+import { columns } from "@/modules/buckets/columns";
 import { bucketQueryOption } from "@/modules/buckets/query-options";
 import { Icon } from "@iconify/react/dist/iconify.js";
 import { useSuspenseQuery } from "@tanstack/react-query";
@@ -140,7 +140,7 @@ function RouteComponent() {
 		<Container>
 			<Heading heading={bucket.name} description={bucket.description} />
 
-			<div className="grid lg:grid-cols-3 gap-4">
+			<div className="grid lg:grid-cols-3 gap-6">
 				<Card className="gap-y-2">
 					<CardHeader>
 						<CardTitle>Current Balance</CardTitle>
@@ -239,7 +239,7 @@ function RouteComponent() {
 						<StateTemplate
 							state="empty"
 							heading="Not enough data to generate chart"
-							description="Please add more transactions to the bucket to generate a chart"
+							description="Please add more transactions to this bucket to generate a chart"
 						/>
 					)}
 				</CardContent>
@@ -254,10 +254,7 @@ function RouteComponent() {
 					</CardDescription>
 				</CardHeader>
 				<CardContent>
-					<DataTable
-						data={bucket.bucket_transactions}
-						columns={transactionColumns}
-					/>
+					<DataTable data={bucket.bucket_transactions} columns={columns} />
 				</CardContent>
 			</Card>
 		</Container>
