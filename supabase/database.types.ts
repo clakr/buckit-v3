@@ -17,9 +17,9 @@ export type Database = {
     Functions: {
       graphql: {
         Args: {
-          extensions?: Json
-          operationName?: string
           query?: string
+          operationName?: string
+          extensions?: Json
           variables?: Json
         }
         Returns: Json
@@ -191,14 +191,99 @@ export type Database = {
         }
         Relationships: []
       }
+      split_allocations: {
+        Row: {
+          allocation_type: Database["public"]["Enums"]["allocation_type"]
+          amount: number | null
+          created_at: string
+          id: string
+          percentage: number | null
+          split_id: string
+          target_id: string
+          target_type: Database["public"]["Enums"]["target_type"]
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          allocation_type: Database["public"]["Enums"]["allocation_type"]
+          amount?: number | null
+          created_at?: string
+          id?: string
+          percentage?: number | null
+          split_id: string
+          target_id: string
+          target_type: Database["public"]["Enums"]["target_type"]
+          updated_at?: string
+          user_id?: string
+        }
+        Update: {
+          allocation_type?: Database["public"]["Enums"]["allocation_type"]
+          amount?: number | null
+          created_at?: string
+          id?: string
+          percentage?: number | null
+          split_id?: string
+          target_id?: string
+          target_type?: Database["public"]["Enums"]["target_type"]
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "split_allocations_split_id_fkey"
+            columns: ["split_id"]
+            isOneToOne: false
+            referencedRelation: "splits"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      splits: {
+        Row: {
+          base_amount: number
+          created_at: string
+          description: string | null
+          id: string
+          is_active: boolean
+          name: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          base_amount: number
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          name: string
+          updated_at?: string
+          user_id?: string
+        }
+        Update: {
+          base_amount?: number
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          name?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      execute_split: {
+        Args: { p_split_id: string }
+        Returns: Json
+      }
     }
     Enums: {
+      allocation_type: "percentage" | "fixed"
+      target_type: "bucket" | "goal"
       transaction_type: "inbound" | "outbound"
     }
     CompositeTypes: {
@@ -330,6 +415,8 @@ export const Constants = {
   },
   public: {
     Enums: {
+      allocation_type: ["percentage", "fixed"],
+      target_type: ["bucket", "goal"],
       transaction_type: ["inbound", "outbound"],
     },
   },

@@ -72,52 +72,51 @@ function Sidebar({ ...props }: React.ComponentProps<typeof UISidebar>) {
 	);
 }
 
-function SidebarContent() {
-	const links = [
-		{
-			label: "Dashboard",
-			href: "/dashboard",
-			icon: {
-				active: "material-symbols:dashboard-rounded",
-				inactive: "material-symbols:dashboard-outline-rounded",
-			},
+const links = [
+	{
+		label: "Dashboard",
+		href: "/dashboard",
+		icon: {
+			active: "material-symbols:dashboard-rounded",
+			inactive: "material-symbols:dashboard-outline-rounded",
 		},
-		{
-			label: "Buckets",
-			href: "/buckets",
-			icon: {
-				active: "mdi:bucket",
-				inactive: "mdi:bucket-outline",
-			},
+	},
+	{
+		label: "Buckets",
+		href: "/buckets",
+		icon: {
+			active: "mdi:bucket",
+			inactive: "mdi:bucket-outline",
 		},
-		{
-			label: "Goals",
-			href: "/goals",
-			icon: {
-				active: "mage:goals-fill",
-				inactive: "mage:goals",
-			},
+	},
+	{
+		label: "Goals",
+		href: "/goals",
+		icon: {
+			active: "mage:goals-fill",
+			inactive: "mage:goals",
 		},
-		{
-			label: "Distributions",
-			href: "/distributions",
-			icon: {
-				active: "lsicon:integral-distribute-filled",
-				inactive: "lsicon:integral-distribute-outline",
-			},
-			isDisabled: true,
+	},
+	{
+		label: "Splits",
+		href: "/splits",
+		icon: {
+			active: "icon-park-solid:split-turn-down-right",
+			inactive: "icon-park-outline:split-turn-down-right",
 		},
-		{
-			label: "Expenses",
-			href: "/expenses",
-			icon: {
-				active: "icon-park-solid:transaction-order",
-				inactive: "icon-park-outline:transaction-order",
-			},
-			isDisabled: true,
+	},
+	{
+		label: "Expenses",
+		href: "/expenses",
+		icon: {
+			active: "icon-park-solid:transaction-order",
+			inactive: "icon-park-outline:transaction-order",
 		},
-	];
+		isDisabled: true,
+	},
+];
 
+function SidebarContent() {
 	return (
 		<UISidebarContent>
 			<SidebarGroup>
