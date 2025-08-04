@@ -1,4 +1,5 @@
 import { supabase } from "@/integrations/supabase";
+import type { Split } from "@/integrations/supabase/types";
 import { queryOptions } from "@tanstack/react-query";
 
 export const splitsQueryOption = queryOptions({
@@ -15,27 +16,27 @@ export const splitsQueryOption = queryOptions({
 	},
 });
 
-// export function bucketQueryOption(id: Bucket["id"]) {
-// 	return queryOptions({
-// 		queryKey: ["buckets", id],
-// 		queryFn: async () => {
-// 			if (!id) return null;
+export function splitQueryOption(id: Split["id"]) {
+	return queryOptions({
+		queryKey: ["splits", id],
+		queryFn: async () => {
+			if (!id) return null;
 
-// 			const { data } = await supabase
-// 				.from("buckets")
-// 				.select(`
-// 					*,
-// 					bucket_transactions (
-// 						*
-// 					)
-// 				`)
-// 				.eq("id", id)
-// 				.order("created_at", {
-// 					referencedTable: "bucket_transactions",
-// 				})
-// 				.single();
+			const { data } = await supabase
+				.from("splits")
+				.select(`
+					*,
+					split_allocations (
+						*
+					)
+				`)
+				.eq("id", id)
+				.order("created_at", {
+					referencedTable: "split_allocations",
+				})
+				.single();
 
-// 			return data;
-// 		},
-// 	});
-// }
+			return data;
+		},
+	});
+}

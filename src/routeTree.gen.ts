@@ -18,6 +18,7 @@ import { Route as AuthedDashboardRouteImport } from './routes/_authed/dashboard'
 import { Route as AuthedSplitsIndexRouteImport } from './routes/_authed/splits.index'
 import { Route as AuthedGoalsIndexRouteImport } from './routes/_authed/goals.index'
 import { Route as AuthedBucketsIndexRouteImport } from './routes/_authed/buckets.index'
+import { Route as AuthedSplitsIdIndexRouteImport } from './routes/_authed/splits.$id.index'
 import { Route as AuthedGoalsIdIndexRouteImport } from './routes/_authed/goals.$id.index'
 import { Route as AuthedBucketsIdIndexRouteImport } from './routes/_authed/buckets.$id.index'
 
@@ -64,6 +65,11 @@ const AuthedBucketsIndexRoute = AuthedBucketsIndexRouteImport.update({
   path: '/buckets/',
   getParentRoute: () => AuthedRouteRoute,
 } as any)
+const AuthedSplitsIdIndexRoute = AuthedSplitsIdIndexRouteImport.update({
+  id: '/splits/$id/',
+  path: '/splits/$id/',
+  getParentRoute: () => AuthedRouteRoute,
+} as any)
 const AuthedGoalsIdIndexRoute = AuthedGoalsIdIndexRouteImport.update({
   id: '/goals/$id/',
   path: '/goals/$id/',
@@ -85,6 +91,7 @@ export interface FileRoutesByFullPath {
   '/splits': typeof AuthedSplitsIndexRoute
   '/buckets/$id': typeof AuthedBucketsIdIndexRoute
   '/goals/$id': typeof AuthedGoalsIdIndexRoute
+  '/splits/$id': typeof AuthedSplitsIdIndexRoute
 }
 export interface FileRoutesByTo {
   '/dashboard': typeof AuthedDashboardRoute
@@ -96,6 +103,7 @@ export interface FileRoutesByTo {
   '/splits': typeof AuthedSplitsIndexRoute
   '/buckets/$id': typeof AuthedBucketsIdIndexRoute
   '/goals/$id': typeof AuthedGoalsIdIndexRoute
+  '/splits/$id': typeof AuthedSplitsIdIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -110,6 +118,7 @@ export interface FileRoutesById {
   '/_authed/splits/': typeof AuthedSplitsIndexRoute
   '/_authed/buckets/$id/': typeof AuthedBucketsIdIndexRoute
   '/_authed/goals/$id/': typeof AuthedGoalsIdIndexRoute
+  '/_authed/splits/$id/': typeof AuthedSplitsIdIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -123,6 +132,7 @@ export interface FileRouteTypes {
     | '/splits'
     | '/buckets/$id'
     | '/goals/$id'
+    | '/splits/$id'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/dashboard'
@@ -134,6 +144,7 @@ export interface FileRouteTypes {
     | '/splits'
     | '/buckets/$id'
     | '/goals/$id'
+    | '/splits/$id'
   id:
     | '__root__'
     | '/_authed'
@@ -147,6 +158,7 @@ export interface FileRouteTypes {
     | '/_authed/splits/'
     | '/_authed/buckets/$id/'
     | '/_authed/goals/$id/'
+    | '/_authed/splits/$id/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -220,6 +232,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthedBucketsIndexRouteImport
       parentRoute: typeof AuthedRouteRoute
     }
+    '/_authed/splits/$id/': {
+      id: '/_authed/splits/$id/'
+      path: '/splits/$id'
+      fullPath: '/splits/$id'
+      preLoaderRoute: typeof AuthedSplitsIdIndexRouteImport
+      parentRoute: typeof AuthedRouteRoute
+    }
     '/_authed/goals/$id/': {
       id: '/_authed/goals/$id/'
       path: '/goals/$id'
@@ -244,6 +263,7 @@ interface AuthedRouteRouteChildren {
   AuthedSplitsIndexRoute: typeof AuthedSplitsIndexRoute
   AuthedBucketsIdIndexRoute: typeof AuthedBucketsIdIndexRoute
   AuthedGoalsIdIndexRoute: typeof AuthedGoalsIdIndexRoute
+  AuthedSplitsIdIndexRoute: typeof AuthedSplitsIdIndexRoute
 }
 
 const AuthedRouteRouteChildren: AuthedRouteRouteChildren = {
@@ -253,6 +273,7 @@ const AuthedRouteRouteChildren: AuthedRouteRouteChildren = {
   AuthedSplitsIndexRoute: AuthedSplitsIndexRoute,
   AuthedBucketsIdIndexRoute: AuthedBucketsIdIndexRoute,
   AuthedGoalsIdIndexRoute: AuthedGoalsIdIndexRoute,
+  AuthedSplitsIdIndexRoute: AuthedSplitsIdIndexRoute,
 }
 
 const AuthedRouteRouteWithChildren = AuthedRouteRoute._addFileChildren(
