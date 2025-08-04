@@ -64,26 +64,28 @@ function RouteComponent() {
 	const { data: splits } = useSuspenseQuery(splitsQueryOption);
 
 	if (splits.length === 0) {
-		<Container>
-			<Heading heading="Goals">
-				<Button>
-					<Icon icon="bx:plus" />
-					Create Split
-				</Button>
-			</Heading>
-			<StateTemplate
-				state="empty"
-				heading="No splits yet"
-				description="Get started by creating your first split"
-			>
-				<div>
-					<Button variant="secondary">
+		return (
+			<Container>
+				<Heading heading="Splits">
+					<Button>
 						<Icon icon="bx:plus" />
 						Create Split
 					</Button>
-				</div>
-			</StateTemplate>
-		</Container>;
+				</Heading>
+				<StateTemplate
+					state="empty"
+					heading="No splits yet"
+					description="Get started by creating your first split"
+				>
+					<div>
+						<Button variant="secondary">
+							<Icon icon="bx:plus" />
+							Create Split
+						</Button>
+					</div>
+				</StateTemplate>
+			</Container>
+		);
 	}
 
 	return (
