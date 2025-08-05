@@ -1,6 +1,7 @@
 import { Container } from "@/components/container";
 import { Heading } from "@/components/heading";
 import { StateTemplate } from "@/components/states-template";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
 	Card,
@@ -9,10 +10,15 @@ import {
 	CardHeader,
 	CardTitle,
 } from "@/components/ui/card";
-import type { Split, SplitAllocation } from "@/integrations/supabase/types";
+import type {
+	Bucket,
+	Goal,
+	Split,
+	SplitAllocation,
+} from "@/integrations/supabase/types";
 import { cn, formatCurrency, formatDateTime } from "@/lib/utils";
 import { splitQueryOption } from "@/modules/splits/query-options";
-import { useSuspenseQuery } from "@tanstack/react-query";
+import { useQueryClient, useSuspenseQuery } from "@tanstack/react-query";
 import {
 	type ErrorComponentProps,
 	createFileRoute,
@@ -58,9 +64,7 @@ function ErrorComponent({ reset }: ErrorComponentProps) {
 }
 
 function RouteComponent() {
-	/**
-	 * fetching data
-	 */
+	/** */
 	const { id } = Route.useParams();
 	const { data: split } = useSuspenseQuery(splitQueryOption(id));
 
@@ -75,12 +79,23 @@ function RouteComponent() {
 			</Container>
 		);
 
+	/** */
+	const queryClient = useQueryClient();
+	const data = [
+		...(queryClient.getQueryData<Bucket[]>(["buckets"]) ?? []),
+		...(queryClient.getQueryData<Goal[]>(["goals"]) ?? []),
+	];
+
+	function getTargetName(targetId: SplitAllocation["target_id"]) {
+		return data.find((item) => item.id === targetId)?.name ?? targetId;
+	}
+
 	return (
 		<Container>
 			<Heading heading={split.name} />
 
-			<div className="grid gap-4 grid-cols-[minmax(0,1fr)_minmax(300px,500px)]">
-				<Card className="">
+			<div className="grid gap-4 xl:grid-cols-5">
+				<Card className="xl:col-span-3">
 					<CardHeader>
 						<CardTitle>Split Overview</CardTitle>
 						<CardDescription>
@@ -103,7 +118,7 @@ function RouteComponent() {
 					</CardContent>
 				</Card>
 
-				<Card>
+				<Card className="xl:col-span-2">
 					<CardHeader>
 						<CardTitle>Allocations</CardTitle>
 						<CardDescription>
@@ -111,16 +126,26 @@ function RouteComponent() {
 						</CardDescription>
 					</CardHeader>
 					<CardContent>
-						<ul className="grid gap-4">
+						<ul className="grid gap-4 grid-cols-[minmax(0,1fr)_auto]">
 							{split.split_allocations.map((allocation) => (
 								<li
 									key={allocation.id}
-									className="grid grid-cols-subgrid col-span-2 row-span-2 gap-y-0 gap-x-2 "
+									className="grid grid-cols-subgrid col-span-full"
 								>
-									<b className="font-semibold text-sm">
-										{allocation.target_id}
-									</b>
-									<b className="row-span-2 text-end content-center text-lg">
+									<div className="flex flex-wrap gap-x-2 text-sm items-center">
+										<b className="whitespace-nowrap text-ellipsis overflow-clip max-w-3/4">
+											{getTargetName(allocation.target_id)}
+										</b>
+										<Badge className="capitalize">
+											{allocation.target_type}
+										</Badge>
+										<span className="text-muted-foreground basis-full">
+											{allocation.allocation_type === "fixed"
+												? "Fixed Amount"
+												: `Percentage (${allocation.percentage}%)`}
+										</span>
+									</div>
+									<b className="text-lg">
 										{transformAllocationAmount({
 											amount: allocation.amount,
 											allocation_type: allocation.allocation_type,
@@ -128,11 +153,6 @@ function RouteComponent() {
 											base_amount: split.base_amount,
 										})}
 									</b>
-									<span className="text-muted-foreground text-sm capitalize">
-										{allocation.allocation_type === "fixed"
-											? "Fixed Amount"
-											: `Percentage (${allocation.percentage}%)`}
-									</span>
 								</li>
 							))}
 						</ul>
