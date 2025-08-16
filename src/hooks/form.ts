@@ -11,6 +11,7 @@ export const { useAppForm, withForm } = createFormHook({
 		Input: lazy(() => import("@/components/form/input")),
 		Textarea: lazy(() => import("@/components/form/textarea")),
 		Radio: lazy(() => import("@/components/form/radio")),
+		Select: lazy(() => import("@/components/form/select")),
 	},
 	formComponents: {
 		Button: lazy(() => import("@/components/form/button")),

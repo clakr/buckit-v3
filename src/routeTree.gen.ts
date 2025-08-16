@@ -18,6 +18,7 @@ import { Route as AuthedDashboardRouteImport } from './routes/_authed/dashboard'
 import { Route as AuthedSplitsIndexRouteImport } from './routes/_authed/splits.index'
 import { Route as AuthedGoalsIndexRouteImport } from './routes/_authed/goals.index'
 import { Route as AuthedBucketsIndexRouteImport } from './routes/_authed/buckets.index'
+import { Route as AuthedSplitsCreateRouteImport } from './routes/_authed/splits.create'
 import { Route as AuthedSplitsIdIndexRouteImport } from './routes/_authed/splits.$id.index'
 import { Route as AuthedGoalsIdIndexRouteImport } from './routes/_authed/goals.$id.index'
 import { Route as AuthedBucketsIdIndexRouteImport } from './routes/_authed/buckets.$id.index'
@@ -65,6 +66,11 @@ const AuthedBucketsIndexRoute = AuthedBucketsIndexRouteImport.update({
   path: '/buckets/',
   getParentRoute: () => AuthedRouteRoute,
 } as any)
+const AuthedSplitsCreateRoute = AuthedSplitsCreateRouteImport.update({
+  id: '/splits/create',
+  path: '/splits/create',
+  getParentRoute: () => AuthedRouteRoute,
+} as any)
 const AuthedSplitsIdIndexRoute = AuthedSplitsIdIndexRouteImport.update({
   id: '/splits/$id/',
   path: '/splits/$id/',
@@ -86,6 +92,7 @@ export interface FileRoutesByFullPath {
   '/register': typeof GuestRegisterRoute
   '/demo/tanstack-query': typeof DemoTanstackQueryRoute
   '/': typeof GuestIndexRoute
+  '/splits/create': typeof AuthedSplitsCreateRoute
   '/buckets': typeof AuthedBucketsIndexRoute
   '/goals': typeof AuthedGoalsIndexRoute
   '/splits': typeof AuthedSplitsIndexRoute
@@ -98,6 +105,7 @@ export interface FileRoutesByTo {
   '/register': typeof GuestRegisterRoute
   '/demo/tanstack-query': typeof DemoTanstackQueryRoute
   '/': typeof GuestIndexRoute
+  '/splits/create': typeof AuthedSplitsCreateRoute
   '/buckets': typeof AuthedBucketsIndexRoute
   '/goals': typeof AuthedGoalsIndexRoute
   '/splits': typeof AuthedSplitsIndexRoute
@@ -113,6 +121,7 @@ export interface FileRoutesById {
   '/_guest/register': typeof GuestRegisterRoute
   '/demo/tanstack-query': typeof DemoTanstackQueryRoute
   '/_guest/': typeof GuestIndexRoute
+  '/_authed/splits/create': typeof AuthedSplitsCreateRoute
   '/_authed/buckets/': typeof AuthedBucketsIndexRoute
   '/_authed/goals/': typeof AuthedGoalsIndexRoute
   '/_authed/splits/': typeof AuthedSplitsIndexRoute
@@ -127,6 +136,7 @@ export interface FileRouteTypes {
     | '/register'
     | '/demo/tanstack-query'
     | '/'
+    | '/splits/create'
     | '/buckets'
     | '/goals'
     | '/splits'
@@ -139,6 +149,7 @@ export interface FileRouteTypes {
     | '/register'
     | '/demo/tanstack-query'
     | '/'
+    | '/splits/create'
     | '/buckets'
     | '/goals'
     | '/splits'
@@ -153,6 +164,7 @@ export interface FileRouteTypes {
     | '/_guest/register'
     | '/demo/tanstack-query'
     | '/_guest/'
+    | '/_authed/splits/create'
     | '/_authed/buckets/'
     | '/_authed/goals/'
     | '/_authed/splits/'
@@ -232,6 +244,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthedBucketsIndexRouteImport
       parentRoute: typeof AuthedRouteRoute
     }
+    '/_authed/splits/create': {
+      id: '/_authed/splits/create'
+      path: '/splits/create'
+      fullPath: '/splits/create'
+      preLoaderRoute: typeof AuthedSplitsCreateRouteImport
+      parentRoute: typeof AuthedRouteRoute
+    }
     '/_authed/splits/$id/': {
       id: '/_authed/splits/$id/'
       path: '/splits/$id'
@@ -258,6 +277,7 @@ declare module '@tanstack/react-router' {
 
 interface AuthedRouteRouteChildren {
   AuthedDashboardRoute: typeof AuthedDashboardRoute
+  AuthedSplitsCreateRoute: typeof AuthedSplitsCreateRoute
   AuthedBucketsIndexRoute: typeof AuthedBucketsIndexRoute
   AuthedGoalsIndexRoute: typeof AuthedGoalsIndexRoute
   AuthedSplitsIndexRoute: typeof AuthedSplitsIndexRoute
@@ -268,6 +288,7 @@ interface AuthedRouteRouteChildren {
 
 const AuthedRouteRouteChildren: AuthedRouteRouteChildren = {
   AuthedDashboardRoute: AuthedDashboardRoute,
+  AuthedSplitsCreateRoute: AuthedSplitsCreateRoute,
   AuthedBucketsIndexRoute: AuthedBucketsIndexRoute,
   AuthedGoalsIndexRoute: AuthedGoalsIndexRoute,
   AuthedSplitsIndexRoute: AuthedSplitsIndexRoute,

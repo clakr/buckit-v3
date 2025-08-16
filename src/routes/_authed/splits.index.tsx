@@ -2,20 +2,15 @@ import { Container } from "@/components/container";
 import { Heading } from "@/components/heading";
 import { StateTemplate } from "@/components/states-template";
 import { Button } from "@/components/ui/button";
-import {
-	Card,
-	CardDescription,
-	CardFooter,
-	CardHeader,
-	CardTitle,
-} from "@/components/ui/card";
-import { formatCurrency, formatDate } from "@/lib/utils";
+import { Card, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { formatCurrency } from "@/lib/utils";
 import { SplitDropdownMenu } from "@/modules/splits/components/split-dropdown-menu";
 import { splitsQueryOption } from "@/modules/splits/query-options";
 import { Icon } from "@iconify/react/dist/iconify.js";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import {
 	type ErrorComponentProps,
+	Link,
 	createFileRoute,
 } from "@tanstack/react-router";
 
@@ -92,9 +87,11 @@ function RouteComponent() {
 	return (
 		<Container>
 			<Heading heading="Split">
-				<Button>
-					<Icon icon="bx:plus" />
-					Create Split
+				<Button asChild>
+					<Link to="/splits/create">
+						<Icon icon="bx:plus" />
+						Create Split
+					</Link>
 				</Button>
 			</Heading>
 			<section className="grid grid-cols-[repeat(auto-fill,minmax(300px,1fr))] gap-4">
@@ -106,11 +103,6 @@ function RouteComponent() {
 						<SplitDropdownMenu id={split.id} />
 						<CardHeader className="gap-y-1">
 							<CardTitle>{split.name}</CardTitle>
-							<CardDescription className="flex items-center flex-wrap gap-x-1">
-								<Icon icon="bx:calendar" />
-								<b>Created</b>
-								{formatDate(split.created_at)}
-							</CardDescription>
 						</CardHeader>
 						<CardFooter className="flex flex-col items-start">
 							<b className="text-2xl">{formatCurrency(split.base_amount)}</b>
