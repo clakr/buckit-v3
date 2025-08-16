@@ -63,9 +63,11 @@ function RouteComponent() {
 		return (
 			<Container>
 				<Heading heading="Splits">
-					<Button>
-						<Icon icon="bx:plus" />
-						Create Split
+					<Button asChild>
+						<Link to="/splits/create">
+							<Icon icon="bx:plus" />
+							Create Split
+						</Link>
 					</Button>
 				</Heading>
 				<StateTemplate
@@ -74,9 +76,11 @@ function RouteComponent() {
 					description="Get started by creating your first split"
 				>
 					<div>
-						<Button variant="secondary">
-							<Icon icon="bx:plus" />
-							Create Split
+						<Button variant="secondary" asChild>
+							<Link to="/splits/create">
+								<Icon icon="bx:plus" />
+								Create Split
+							</Link>
 						</Button>
 					</div>
 				</StateTemplate>
