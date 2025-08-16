@@ -89,7 +89,17 @@ export const createSplitFormSchema = z
 
 		name: splitBaseSchema.name,
 
-		base_amount: splitBaseSchema.base_amount,
+		base_amount: z.coerce
+			.number({
+				required_error: "Base amount is required",
+				invalid_type_error: "Base amount must be a number",
+			})
+			.positive("Base amount must be greater than 0")
+			.transform((val) => Math.round(val * 100) / 100)
+			.refine(
+				(val) => val > 0 && val <= 999999999.99,
+				"Base amount must be between 0.01 and 999,999,999.99",
+			),
 
 		description: splitBaseSchema.description,
 
@@ -165,7 +175,17 @@ export const updateSplitFormSchema = z.object({
 
 	name: splitBaseSchema.name,
 
-	base_amount: splitBaseSchema.base_amount,
+	base_amount: z.coerce
+		.number({
+			required_error: "Base amount is required",
+			invalid_type_error: "Base amount must be a number",
+		})
+		.positive("Base amount must be greater than 0")
+		.transform((val) => Math.round(val * 100) / 100)
+		.refine(
+			(val) => val > 0 && val <= 999999999.99,
+			"Base amount must be between 0.01 and 999,999,999.99",
+		),
 
 	description: splitBaseSchema.description,
 

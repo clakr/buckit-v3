@@ -75,10 +75,14 @@ function RouteComponent() {
 	}
 
 	function handleTargetIdChange({ value, i }: { value: string; i: number }) {
-		const isIncluded = goals.some((allocation) => allocation.id === value);
-		if (!isIncluded) return;
+		const isIncludedInGoals = goals.some(
+			(allocation) => allocation.id === value,
+		);
 
-		form.setFieldValue(`allocations[${i}].target_type`, "goal");
+		form.setFieldValue(
+			`allocations[${i}].target_type`,
+			isIncludedInGoals ? "goal" : "bucket",
+		);
 	}
 
 	function handleAllocationTypeChange(index: number) {
