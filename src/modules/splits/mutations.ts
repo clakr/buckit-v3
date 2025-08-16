@@ -1,4 +1,5 @@
 import { supabase } from "@/integrations/supabase";
+import type { Split } from "@/integrations/supabase/types";
 import type { createSplitFormSchema } from "@/modules/splits/schemas";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import type z from "zod";
@@ -15,6 +16,25 @@ export function useCreateSplitMutation() {
 		},
 		onSuccess: async () => {
 			await queryClient.invalidateQueries({ queryKey: ["splits"] });
+		},
+	});
+}
+
+export function useDistributeSplitMutation() {
+	const queryClient = useQueryClient();
+
+	return useMutation({
+		mutationFn: async (id: Split["id"]) =>
+			await supabase.rpc("execute_split", {
+				p_split_id: id,
+			}),
+		onSuccess: async () => {
+			await queryClient.invalidateQueries({
+				queryKey: ["buckets"],
+			});
+			await queryClient.invalidateQueries({
+				queryKey: ["goals"],
+			});
 		},
 	});
 }
