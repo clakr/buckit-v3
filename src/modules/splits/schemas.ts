@@ -199,7 +199,7 @@ export function createEmptyAllocation(splitId: string): AllocationData {
 		split_id: splitId,
 		target_type: "bucket",
 		target_id: "",
-		allocation_type: "percentage",
+		allocation_type: "fixed",
 		amount: null,
 		percentage: null,
 	};
