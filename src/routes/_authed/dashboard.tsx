@@ -7,8 +7,10 @@ import { createFileRoute } from "@tanstack/react-router";
 
 export const Route = createFileRoute("/_authed/dashboard")({
 	loader: async ({ context: { queryClient } }) => {
-		await queryClient.ensureQueryData(bucketsQueryOption);
-		await queryClient.ensureQueryData(goalsQueryOption);
+		await Promise.allSettled([
+			queryClient.ensureQueryData(bucketsQueryOption),
+			queryClient.ensureQueryData(goalsQueryOption),
+		]);
 	},
 	component: RouteComponent,
 });
