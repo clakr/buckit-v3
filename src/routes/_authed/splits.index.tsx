@@ -2,9 +2,7 @@ import { Container } from "@/components/container";
 import { Heading } from "@/components/heading";
 import { StateTemplate } from "@/components/states-template";
 import { Button } from "@/components/ui/button";
-import { Card, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { formatCurrency } from "@/lib/utils";
-import { SplitDropdownMenu } from "@/modules/splits/components/split-dropdown-menu";
+import { SplitCard } from "@/modules/splits/components/split-card";
 import { splitsQueryOption } from "@/modules/splits/query-options";
 import { Icon } from "@iconify/react/dist/iconify.js";
 import { useSuspenseQuery } from "@tanstack/react-query";
@@ -16,7 +14,7 @@ import {
 
 export const Route = createFileRoute("/_authed/splits/")({
 	loader: async ({ context: { queryClient } }) => {
-		await queryClient.ensureQueryData(splitsQueryOption);
+		await Promise.allSettled([queryClient.ensureQueryData(splitsQueryOption)]);
 	},
 	pendingComponent: PendingComponent,
 	errorComponent: ErrorComponent,
@@ -100,21 +98,7 @@ function RouteComponent() {
 			</Heading>
 			<section className="grid grid-cols-[repeat(auto-fill,minmax(300px,1fr))] gap-4">
 				{splits.map((split) => (
-					<Card
-						key={split.id}
-						className="relative grid grid-rows-subgrid row-span-2"
-					>
-						<SplitDropdownMenu id={split.id} />
-						<CardHeader className="gap-y-1">
-							<CardTitle>{split.name}</CardTitle>
-						</CardHeader>
-						<CardFooter className="flex flex-col items-start">
-							<b className="text-2xl">{formatCurrency(split.base_amount)}</b>
-							<span className="text-sm text-muted-foreground">
-								{split.description}
-							</span>
-						</CardFooter>
-					</Card>
+					<SplitCard key={split.id} split={split} />
 				))}
 			</section>
 		</Container>

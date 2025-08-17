@@ -7,7 +7,12 @@ export const splitsQueryOption = queryOptions({
 	queryFn: async () => {
 		const { error, data } = await supabase
 			.from("splits")
-			.select("*")
+			.select(`
+				*,
+				split_allocations (
+					*
+				)
+			`)
 			.eq("is_active", true);
 
 		if (error) throw error;
