@@ -61,6 +61,17 @@ export function SplitDropdownMenu({ id }: Props) {
 							View
 						</Link>
 					</DropdownMenuItem>
+					<DropdownMenuItem asChild>
+						<Link
+							to="/splits/$id/edit"
+							params={{
+								id,
+							}}
+						>
+							<Icon icon="bx:edit" />
+							Update
+						</Link>
+					</DropdownMenuItem>
 				</DropdownMenuGroup>
 			</DropdownMenuContent>
 		</DropdownMenu>

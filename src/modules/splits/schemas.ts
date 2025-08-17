@@ -37,6 +37,8 @@ const splitBaseSchema = {
 
 const allocationSchema = z
 	.object({
+		id: z.string().uuid().optional(), // Add this for tracking existing allocations
+
 		split_id: splitBaseSchema.id,
 
 		target_type: targetTypeEnum,
@@ -170,27 +172,93 @@ export const createSplitFormSchema = z
 		},
 	);
 
-export const updateSplitFormSchema = z.object({
-	id: splitBaseSchema.id,
+export const updateSplitFormSchema = z
+	.object({
+		id: splitBaseSchema.id,
 
-	name: splitBaseSchema.name,
+		name: splitBaseSchema.name,
 
-	base_amount: z.coerce
-		.number({
-			required_error: "Base amount is required",
-			invalid_type_error: "Base amount must be a number",
-		})
-		.positive("Base amount must be greater than 0")
-		.transform((val) => Math.round(val * 100) / 100)
-		.refine(
-			(val) => val > 0 && val <= 999999999.99,
-			"Base amount must be between 0.01 and 999,999,999.99",
-		),
+		base_amount: z.coerce
+			.number({
+				required_error: "Base amount is required",
+				invalid_type_error: "Base amount must be a number",
+			})
+			.positive("Base amount must be greater than 0")
+			.transform((val) => Math.round(val * 100) / 100)
+			.refine(
+				(val) => val > 0 && val <= 999999999.99,
+				"Base amount must be between 0.01 and 999,999,999.99",
+			),
 
-	description: splitBaseSchema.description,
+		description: splitBaseSchema.description,
 
-	is_active: splitBaseSchema.is_active,
-});
+		is_active: splitBaseSchema.is_active,
+
+		// Add allocations with optional IDs for existing ones
+		allocations: z
+			.array(allocationSchema)
+			.min(1, "At least one allocation is required")
+			.refine(
+				(allocations) => {
+					const targetKeys = allocations.map(
+						(a) => `${a.target_type}-${a.target_id}`,
+					);
+					return targetKeys.length === new Set(targetKeys).size;
+				},
+				{
+					message: "Each bucket or goal can only be allocated once",
+				},
+			),
+	})
+	.refine(
+		(data) => {
+			return data.allocations.every(
+				(allocation) => allocation.split_id === data.id,
+			);
+		},
+		{
+			message: "All allocations must reference the parent split ID",
+			path: ["allocations"],
+		},
+	)
+	.refine(
+		(data) => {
+			let totalFixed = 0;
+			let totalPercentage = 0;
+
+			for (const allocation of data.allocations) {
+				if (allocation.allocation_type === "fixed" && allocation.amount) {
+					totalFixed += allocation.amount;
+				} else if (
+					allocation.allocation_type === "percentage" &&
+					allocation.percentage
+				) {
+					totalPercentage += allocation.percentage;
+				}
+			}
+
+			const totalCalculated =
+				totalFixed + (data.base_amount * totalPercentage) / 100;
+			return totalCalculated <= data.base_amount;
+		},
+		{
+			message: "Total allocations exceed base amount",
+			path: ["allocations"],
+		},
+	)
+	.refine(
+		(data) => {
+			const totalPercentage = data.allocations
+				.filter((a) => a.allocation_type === "percentage")
+				.reduce((sum, a) => sum + (a.percentage || 0), 0);
+
+			return totalPercentage <= 100;
+		},
+		{
+			message: "Total percentage allocations cannot exceed 100%",
+			path: ["allocations"],
+		},
+	);
 
 export type AllocationData = z.infer<typeof allocationSchema>;
 

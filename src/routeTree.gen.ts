@@ -22,6 +22,7 @@ import { Route as AuthedSplitsCreateRouteImport } from './routes/_authed/splits.
 import { Route as AuthedSplitsIdIndexRouteImport } from './routes/_authed/splits.$id.index'
 import { Route as AuthedGoalsIdIndexRouteImport } from './routes/_authed/goals.$id.index'
 import { Route as AuthedBucketsIdIndexRouteImport } from './routes/_authed/buckets.$id.index'
+import { Route as AuthedSplitsIdEditRouteImport } from './routes/_authed/splits.$id.edit'
 
 const GuestRouteRoute = GuestRouteRouteImport.update({
   id: '/_guest',
@@ -86,6 +87,11 @@ const AuthedBucketsIdIndexRoute = AuthedBucketsIdIndexRouteImport.update({
   path: '/buckets/$id/',
   getParentRoute: () => AuthedRouteRoute,
 } as any)
+const AuthedSplitsIdEditRoute = AuthedSplitsIdEditRouteImport.update({
+  id: '/splits/$id/edit',
+  path: '/splits/$id/edit',
+  getParentRoute: () => AuthedRouteRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/dashboard': typeof AuthedDashboardRoute
@@ -96,6 +102,7 @@ export interface FileRoutesByFullPath {
   '/buckets': typeof AuthedBucketsIndexRoute
   '/goals': typeof AuthedGoalsIndexRoute
   '/splits': typeof AuthedSplitsIndexRoute
+  '/splits/$id/edit': typeof AuthedSplitsIdEditRoute
   '/buckets/$id': typeof AuthedBucketsIdIndexRoute
   '/goals/$id': typeof AuthedGoalsIdIndexRoute
   '/splits/$id': typeof AuthedSplitsIdIndexRoute
@@ -109,6 +116,7 @@ export interface FileRoutesByTo {
   '/buckets': typeof AuthedBucketsIndexRoute
   '/goals': typeof AuthedGoalsIndexRoute
   '/splits': typeof AuthedSplitsIndexRoute
+  '/splits/$id/edit': typeof AuthedSplitsIdEditRoute
   '/buckets/$id': typeof AuthedBucketsIdIndexRoute
   '/goals/$id': typeof AuthedGoalsIdIndexRoute
   '/splits/$id': typeof AuthedSplitsIdIndexRoute
@@ -125,6 +133,7 @@ export interface FileRoutesById {
   '/_authed/buckets/': typeof AuthedBucketsIndexRoute
   '/_authed/goals/': typeof AuthedGoalsIndexRoute
   '/_authed/splits/': typeof AuthedSplitsIndexRoute
+  '/_authed/splits/$id/edit': typeof AuthedSplitsIdEditRoute
   '/_authed/buckets/$id/': typeof AuthedBucketsIdIndexRoute
   '/_authed/goals/$id/': typeof AuthedGoalsIdIndexRoute
   '/_authed/splits/$id/': typeof AuthedSplitsIdIndexRoute
@@ -140,6 +149,7 @@ export interface FileRouteTypes {
     | '/buckets'
     | '/goals'
     | '/splits'
+    | '/splits/$id/edit'
     | '/buckets/$id'
     | '/goals/$id'
     | '/splits/$id'
@@ -153,6 +163,7 @@ export interface FileRouteTypes {
     | '/buckets'
     | '/goals'
     | '/splits'
+    | '/splits/$id/edit'
     | '/buckets/$id'
     | '/goals/$id'
     | '/splits/$id'
@@ -168,6 +179,7 @@ export interface FileRouteTypes {
     | '/_authed/buckets/'
     | '/_authed/goals/'
     | '/_authed/splits/'
+    | '/_authed/splits/$id/edit'
     | '/_authed/buckets/$id/'
     | '/_authed/goals/$id/'
     | '/_authed/splits/$id/'
@@ -272,6 +284,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthedBucketsIdIndexRouteImport
       parentRoute: typeof AuthedRouteRoute
     }
+    '/_authed/splits/$id/edit': {
+      id: '/_authed/splits/$id/edit'
+      path: '/splits/$id/edit'
+      fullPath: '/splits/$id/edit'
+      preLoaderRoute: typeof AuthedSplitsIdEditRouteImport
+      parentRoute: typeof AuthedRouteRoute
+    }
   }
 }
 
@@ -281,6 +300,7 @@ interface AuthedRouteRouteChildren {
   AuthedBucketsIndexRoute: typeof AuthedBucketsIndexRoute
   AuthedGoalsIndexRoute: typeof AuthedGoalsIndexRoute
   AuthedSplitsIndexRoute: typeof AuthedSplitsIndexRoute
+  AuthedSplitsIdEditRoute: typeof AuthedSplitsIdEditRoute
   AuthedBucketsIdIndexRoute: typeof AuthedBucketsIdIndexRoute
   AuthedGoalsIdIndexRoute: typeof AuthedGoalsIdIndexRoute
   AuthedSplitsIdIndexRoute: typeof AuthedSplitsIdIndexRoute
@@ -292,6 +312,7 @@ const AuthedRouteRouteChildren: AuthedRouteRouteChildren = {
   AuthedBucketsIndexRoute: AuthedBucketsIndexRoute,
   AuthedGoalsIndexRoute: AuthedGoalsIndexRoute,
   AuthedSplitsIndexRoute: AuthedSplitsIndexRoute,
+  AuthedSplitsIdEditRoute: AuthedSplitsIdEditRoute,
   AuthedBucketsIdIndexRoute: AuthedBucketsIdIndexRoute,
   AuthedGoalsIdIndexRoute: AuthedGoalsIdIndexRoute,
   AuthedSplitsIdIndexRoute: AuthedSplitsIdIndexRoute,
