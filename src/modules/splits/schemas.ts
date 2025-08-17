@@ -37,7 +37,7 @@ const splitBaseSchema = {
 
 const allocationSchema = z
 	.object({
-		id: z.string().uuid().optional(), // Add this for tracking existing allocations
+		id: z.string().uuid(), 
 
 		split_id: splitBaseSchema.id,
 
@@ -194,7 +194,6 @@ export const updateSplitFormSchema = z
 
 		is_active: splitBaseSchema.is_active,
 
-		// Add allocations with optional IDs for existing ones
 		allocations: z
 			.array(allocationSchema)
 			.min(1, "At least one allocation is required")
@@ -264,6 +263,7 @@ export type AllocationData = z.infer<typeof allocationSchema>;
 
 export function createEmptyAllocation(splitId: string): AllocationData {
 	return {
+		id: crypto.randomUUID(),
 		split_id: splitId,
 		target_type: "bucket",
 		target_id: "",

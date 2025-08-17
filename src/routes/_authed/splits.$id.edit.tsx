@@ -5,8 +5,8 @@ import { Button } from "@/components/ui/button";
 import { useAppForm } from "@/hooks/form";
 import { bucketsQueryOption } from "@/modules/buckets/query-options";
 import { goalsQueryOption } from "@/modules/goals/query-options";
-import { SplitForm } from "@/modules/splits/components/split-form";
-import { useCreateSplitMutation } from "@/modules/splits/mutations";
+import { SplitForm, splitFormOptions } from "@/modules/splits/components/split-form";
+import {  useUpdateSplitMutation } from "@/modules/splits/mutations";
 import { splitQueryOption } from "@/modules/splits/query-options";
 import { updateSplitFormSchema } from "@/modules/splits/schemas";
 import { useSuspenseQuery } from "@tanstack/react-query";
@@ -82,7 +82,7 @@ function RouteComponent() {
 	 */
 	const navigate = Route.useNavigate();
 
-	const mutation = useCreateSplitMutation();
+	const mutation = useUpdateSplitMutation();
 
 	const defaultValues: z.input<typeof updateSplitFormSchema> = {
 		id: split.id,
@@ -93,6 +93,7 @@ function RouteComponent() {
 	};
 
 	const form = useAppForm({
+		...splitFormOptions,
 		defaultValues,
 		validators: {
 			onBlur: updateSplitFormSchema,
@@ -114,7 +115,7 @@ function RouteComponent() {
 		<Container>
 			<Heading heading={split.name} />
 
-			<SplitForm form={form} />
+			<SplitForm form={form} intent="update" />
 		</Container>
 	);
 }
