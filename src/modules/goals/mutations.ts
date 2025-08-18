@@ -5,54 +5,37 @@ import type {
 	createTransactionFormSchema,
 	updateGoalFormSchema,
 } from "@/modules/goals/schemas";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation } from "@tanstack/react-query";
 import type z from "zod";
 
 export function useCreateGoalMutation() {
-	const queryClient = useQueryClient();
-
 	return useMutation({
 		mutationFn: async (payload: z.output<typeof createGoalFormSchema>) =>
-			await supabase
-				.from("goals")
-				.insert({
-					name: payload.name,
-					description: payload.description,
-					current_amount: payload.current_amount,
-					target_amount: payload.target_amount,
-				})
-				.select(),
-		onSuccess: async () => {
-			await queryClient.invalidateQueries({ queryKey: ["goals"] });
+			await supabase.from("goals").insert(payload).select(),
+		meta: {
+			errorTitle: "Failed to create goal",
+			successMessage: "Goal created successfully",
+			invalidatesQuery: ["goals"],
 		},
 	});
 }
 
 export function useUpdateGoalMutation() {
-	const queryClient = useQueryClient();
-
 	return useMutation({
-		mutationFn: async (payload: z.output<typeof updateGoalFormSchema>) =>
-			await supabase
-				.from("goals")
-				.update({
-					name: payload.name,
-					description: payload.description,
-					target_amount: payload.target_amount,
-				})
-				.eq("id", payload.id)
-				.select(),
-		onSuccess: async () => {
-			await queryClient.invalidateQueries({
-				queryKey: ["goals"],
-			});
+		mutationFn: async ({
+			id,
+			...payload
+		}: z.output<typeof updateGoalFormSchema>) =>
+			await supabase.from("goals").update(payload).eq("id", id).select(),
+		meta: {
+			errorTitle: "Failed to update goal",
+			successMessage: "Goal updated successfully",
+			invalidatesQuery: ["goals"],
 		},
 	});
 }
 
 export function useDeleteGoalMutation() {
-	const queryClient = useQueryClient();
-
 	return useMutation({
 		mutationFn: async (id: Goal["id"]) =>
 			await supabase
@@ -61,30 +44,22 @@ export function useDeleteGoalMutation() {
 					is_active: false,
 				})
 				.eq("id", id),
-		onSuccess: async () => {
-			await queryClient.invalidateQueries({ queryKey: ["goals"] });
+		meta: {
+			errorTitle: "Failed to delete goal",
+			successMessage: "Goal deleted successfully",
+			invalidatesQuery: ["goals"],
 		},
 	});
 }
 
 export function useCreateTransactionMutation() {
-	const queryClient = useQueryClient();
-
 	return useMutation({
 		mutationFn: async (payload: z.output<typeof createTransactionFormSchema>) =>
-			await supabase
-				.from("goal_transactions")
-				.insert({
-					goal_id: payload.goal_id,
-					description: payload.description,
-					amount: payload.amount,
-					type: payload.type,
-				})
-				.select(),
-		onSuccess: async () => {
-			await queryClient.invalidateQueries({
-				queryKey: ["goals"],
-			});
+			await supabase.from("goal_transactions").insert(payload).select(),
+		meta: {
+			errorTitle: "Failed to create transaction",
+			successMessage: "Transaction created successfully",
+			invalidatesQuery: ["goals"],
 		},
 	});
 }
