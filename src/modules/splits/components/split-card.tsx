@@ -2,7 +2,6 @@ import {
 	Card,
 	CardContent,
 	CardDescription,
-	CardHeader,
 	CardTitle,
 } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
@@ -32,18 +31,16 @@ export function SplitCard({ split }: Props) {
 	const remainingAmount = split.base_amount - totalAllocationsAccumulatedAmount;
 
 	return (
-		<Card className="relative grid grid-rows-subgrid row-span-2">
+		<Card className="relative grid grid-rows-subgrid row-span-4">
 			<SplitDropdownMenu id={split.id} />
-			<CardHeader className="gap-y-1">
+			<div className="grid-rows-subgrid row-span-3 auto-rows-min px-6 gap-y-0.5 grid">
 				<CardTitle>{split.name}</CardTitle>
-				<CardDescription>
-					<span className="flex items-center gap-x-2">
-						<Icon icon="bx:money" className="size-4" />{" "}
-						{formatCurrency(split.base_amount)}
-					</span>
-					<p>{split.description}</p>
-				</CardDescription>
-			</CardHeader>
+				<span className="text-muted-foreground text-sm flex items-center gap-x-2">
+					<Icon icon="bx:money" className="size-4" />{" "}
+					{formatCurrency(split.base_amount)}
+				</span>
+				<CardDescription>{split.description}</CardDescription>
+			</div>
 			<CardContent className="flex items-center justify-between flex-wrap gap-y-1">
 				<span className="text-muted-foreground text-sm">Allocated</span>
 				<b className="font-semibold text-sm">
