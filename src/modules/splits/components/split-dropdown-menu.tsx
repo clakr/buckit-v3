@@ -9,7 +9,10 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { useAlert } from "@/hooks/use-alert";
 import type { Split } from "@/integrations/supabase/types";
-import { useDistributeSplitMutation } from "@/modules/splits/mutations";
+import {
+	useDeleteSplitMutation,
+	useDistributeSplitMutation,
+} from "@/modules/splits/mutations";
 import { Icon } from "@iconify/react";
 import { Link } from "@tanstack/react-router";
 
@@ -22,7 +25,7 @@ export function SplitDropdownMenu({ id }: Props) {
 	 * execute split
 	 */
 	const { show } = useAlert();
-	const mutation = useDistributeSplitMutation();
+	const distributeMutation = useDistributeSplitMutation();
 
 	function handleDistributeSplit() {
 		show({
@@ -31,7 +34,24 @@ export function SplitDropdownMenu({ id }: Props) {
 				"This will distribute funds according to your split allocations. Transactions will be created for each bucket and goal in this split.",
 			actionText: "Distribute Split",
 			onAction: () => {
-				mutation.mutate(id);
+				distributeMutation.mutate(id);
+			},
+		});
+	}
+
+	/**
+	 * delete split
+	 */
+	const deleteMutation = useDeleteSplitMutation();
+
+	function handleDeleteSplit() {
+		show({
+			title: "Are you absolutely sure?",
+			description:
+				"This action cannot be undone. This will permanently delete your split along with its respective data.",
+			actionText: "Delete Split",
+			onAction: () => {
+				deleteMutation.mutate(id);
 			},
 		});
 	}
@@ -71,6 +91,10 @@ export function SplitDropdownMenu({ id }: Props) {
 							<Icon icon="bx:edit" />
 							Update
 						</Link>
+					</DropdownMenuItem>
+					<DropdownMenuItem onClick={handleDeleteSplit}>
+						<Icon icon="bx:trash" />
+						Delete
 					</DropdownMenuItem>
 				</DropdownMenuGroup>
 			</DropdownMenuContent>

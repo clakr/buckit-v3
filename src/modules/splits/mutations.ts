@@ -81,3 +81,23 @@ export function useUpdateSplitMutation() {
 		},
 	});
 }
+
+export function useDeleteSplitMutation() {
+	return useMutation({
+		mutationFn: async (id: Split["id"]) => {
+			const { error } = await supabase
+				.from("splits")
+				.update({
+					is_active: false,
+				})
+				.eq("id", id);
+
+			if (error) throw error;
+		},
+		meta: {
+			errorTitle: "Failed to delete split",
+			successMessage: "Split deleted successfully",
+			invalidatesQuery: ["splits"],
+		},
+	});
+}
