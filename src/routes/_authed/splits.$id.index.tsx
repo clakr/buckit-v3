@@ -108,8 +108,14 @@ function RouteComponent() {
 							<DescriptionDefinition className="text-2xl font-bold">
 								{formatCurrency(split.base_amount)}
 							</DescriptionDefinition>
-							<DescriptionTerm>Description</DescriptionTerm>
-							<DescriptionDefinition>{split.description}</DescriptionDefinition>
+							{split.description ? (
+								<>
+									<DescriptionTerm>Description</DescriptionTerm>
+									<DescriptionDefinition>
+										{split.description}
+									</DescriptionDefinition>
+								</>
+							) : null}
 							<DescriptionTerm>Created At</DescriptionTerm>
 							<DescriptionDefinition>
 								{formatDateTime(split.created_at)}

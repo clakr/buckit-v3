@@ -12,8 +12,17 @@ export function useCreateSplitMutation() {
 		mutationFn: async (payload: z.output<typeof createSplitFormSchema>) => {
 			const { allocations, ...splitPayload } = payload;
 
-			await supabase.from("splits").insert(splitPayload);
-			await supabase.from("split_allocations").insert(allocations);
+			const { error: splitError } = await supabase
+				.from("splits")
+				.insert(splitPayload);
+
+			if (splitError) throw splitError;
+
+			const { error: allocationError } = await supabase
+				.from("split_allocations")
+				.insert(allocations);
+
+			if (allocationError) throw allocationError;
 		},
 		meta: {
 			errorTitle: "Failed to create split",
@@ -25,10 +34,13 @@ export function useCreateSplitMutation() {
 
 export function useDistributeSplitMutation() {
 	return useMutation({
-		mutationFn: async (id: Split["id"]) =>
-			await supabase.rpc("execute_split", {
+		mutationFn: async (id: Split["id"]) => {
+			const { error } = await supabase.rpc("execute_split", {
 				p_split_id: id,
-			}),
+			});
+
+			if (error) throw error;
+		},
 		meta: {
 			errorTitle: "Failed to distribute split",
 			successMessage: "Split distributed successfully",
@@ -42,13 +54,25 @@ export function useUpdateSplitMutation() {
 		mutationFn: async (payload: z.output<typeof updateSplitFormSchema>) => {
 			const { allocations, ...splitPayload } = payload;
 
-			await supabase.from("splits").update(splitPayload).eq("id", payload.id);
+			const { error: splitError } = await supabase
+				.from("splits")
+				.update(splitPayload)
+				.eq("id", payload.id);
 
-			await supabase
+			if (splitError) throw splitError;
+
+			const { error: deleteAllocationError } = await supabase
 				.from("split_allocations")
 				.delete()
 				.eq("split_id", payload.id);
-			await supabase.from("split_allocations").insert(allocations);
+
+			if (deleteAllocationError) throw deleteAllocationError;
+
+			const { error: insertAllocationError } = await supabase
+				.from("split_allocations")
+				.insert(allocations);
+
+			if (insertAllocationError) throw insertAllocationError;
 		},
 		meta: {
 			errorTitle: "Failed to update split",

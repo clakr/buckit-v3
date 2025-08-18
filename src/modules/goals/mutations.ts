@@ -10,8 +10,11 @@ import type z from "zod";
 
 export function useCreateGoalMutation() {
 	return useMutation({
-		mutationFn: async (payload: z.output<typeof createGoalFormSchema>) =>
-			await supabase.from("goals").insert(payload).select(),
+		mutationFn: async (payload: z.output<typeof createGoalFormSchema>) => {
+			const { error } = await supabase.from("goals").insert(payload);
+
+			if (error) throw error;
+		},
 		meta: {
 			errorTitle: "Failed to create goal",
 			successMessage: "Goal created successfully",
@@ -25,8 +28,14 @@ export function useUpdateGoalMutation() {
 		mutationFn: async ({
 			id,
 			...payload
-		}: z.output<typeof updateGoalFormSchema>) =>
-			await supabase.from("goals").update(payload).eq("id", id).select(),
+		}: z.output<typeof updateGoalFormSchema>) => {
+			const { error } = await supabase
+				.from("goals")
+				.update(payload)
+				.eq("id", id);
+
+			if (error) throw error;
+		},
 		meta: {
 			errorTitle: "Failed to update goal",
 			successMessage: "Goal updated successfully",
@@ -37,13 +46,16 @@ export function useUpdateGoalMutation() {
 
 export function useDeleteGoalMutation() {
 	return useMutation({
-		mutationFn: async (id: Goal["id"]) =>
-			await supabase
+		mutationFn: async (id: Goal["id"]) => {
+			const { error } = await supabase
 				.from("goals")
 				.update({
 					is_active: false,
 				})
-				.eq("id", id),
+				.eq("id", id);
+
+			if (error) throw error;
+		},
 		meta: {
 			errorTitle: "Failed to delete goal",
 			successMessage: "Goal deleted successfully",
@@ -54,8 +66,15 @@ export function useDeleteGoalMutation() {
 
 export function useCreateTransactionMutation() {
 	return useMutation({
-		mutationFn: async (payload: z.output<typeof createTransactionFormSchema>) =>
-			await supabase.from("goal_transactions").insert(payload).select(),
+		mutationFn: async (
+			payload: z.output<typeof createTransactionFormSchema>,
+		) => {
+			const { error } = await supabase
+				.from("goal_transactions")
+				.insert(payload);
+
+			if (error) throw error;
+		},
 		meta: {
 			errorTitle: "Failed to create transaction",
 			successMessage: "Transaction created successfully",

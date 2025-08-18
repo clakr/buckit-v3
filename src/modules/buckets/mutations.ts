@@ -10,8 +10,11 @@ import type z from "zod";
 
 export function useCreateBucketMutation() {
 	return useMutation({
-		mutationFn: async (payload: z.output<typeof createBucketFormSchema>) =>
-			await supabase.from("buckets").insert(payload).select(),
+		mutationFn: async (payload: z.output<typeof createBucketFormSchema>) => {
+			const { error } = await supabase.from("buckets").insert(payload);
+
+			if (error) throw error;
+		},
 		meta: {
 			errorTitle: "Failed to create bucket",
 			successMessage: "Bucket created successfully",
@@ -25,8 +28,14 @@ export function useUpdateBucketMutation() {
 		mutationFn: async ({
 			id,
 			...payload
-		}: z.output<typeof updateBucketFormSchema>) =>
-			await supabase.from("buckets").update(payload).eq("id", id).select(),
+		}: z.output<typeof updateBucketFormSchema>) => {
+			const { error } = await supabase
+				.from("buckets")
+				.update(payload)
+				.eq("id", id);
+
+			if (error) throw error;
+		},
 		meta: {
 			errorTitle: "Failed to update bucket",
 			successMessage: "Bucket updated successfully",
@@ -37,13 +46,16 @@ export function useUpdateBucketMutation() {
 
 export function useDeleteBucketMutation() {
 	return useMutation({
-		mutationFn: async (id: Bucket["id"]) =>
-			await supabase
+		mutationFn: async (id: Bucket["id"]) => {
+			const { error } = await supabase
 				.from("buckets")
 				.update({
 					is_active: false,
 				})
-				.eq("id", id),
+				.eq("id", id);
+
+			if (error) throw error;
+		},
 		meta: {
 			errorTitle: "Failed to delete bucket",
 			successMessage: "Bucket deleted successfully",
@@ -54,8 +66,15 @@ export function useDeleteBucketMutation() {
 
 export function useCreateTransactionMutation() {
 	return useMutation({
-		mutationFn: async (payload: z.output<typeof createTransactionFormSchema>) =>
-			await supabase.from("bucket_transactions").insert(payload).select(),
+		mutationFn: async (
+			payload: z.output<typeof createTransactionFormSchema>,
+		) => {
+			const { error } = await supabase
+				.from("bucket_transactions")
+				.insert(payload);
+
+			if (error) throw error;
+		},
 		meta: {
 			errorTitle: "Failed to create transaction",
 			successMessage: "Transaction created successfully",
