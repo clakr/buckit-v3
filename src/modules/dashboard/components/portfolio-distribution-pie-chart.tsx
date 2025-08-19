@@ -66,10 +66,7 @@ export function PortfolioDistributionPieChart() {
 				</CardDescription>
 			</CardHeader>
 			<CardContent>
-				<ChartContainer
-					config={chartConfig}
-					className="mx-auto aspect-square max-h-[450px]"
-				>
+				<ChartContainer config={chartConfig} className="mx-auto aspect-square">
 					<PieChart>
 						<ChartTooltip
 							cursor={false}
@@ -95,7 +92,7 @@ export function PortfolioDistributionPieChart() {
 												<tspan
 													x={viewBox.cx}
 													y={viewBox.cy}
-													className="fill-foreground text-3xl font-bold"
+													className="fill-foreground text-xl font-bold"
 												>
 													{formatCurrency(totalAccumulated)}
 												</tspan>
