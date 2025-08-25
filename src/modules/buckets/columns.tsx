@@ -1,6 +1,11 @@
 import { Badge } from "@/components/ui/badge";
+import {
+	Tooltip,
+	TooltipContent,
+	TooltipTrigger,
+} from "@/components/ui/tooltip";
 import type { BucketTransaction } from "@/integrations/supabase/types";
-import { cn, formatCurrency, formatDateTime } from "@/lib/utils";
+import { cn, formatCurrency, formatDate, formatDateTime } from "@/lib/utils";
 import type { ColumnDef } from "@tanstack/react-table";
 
 export const columns: ColumnDef<BucketTransaction>[] = [
@@ -10,7 +15,12 @@ export const columns: ColumnDef<BucketTransaction>[] = [
 		cell: ({ getValue }) => {
 			const date = getValue<BucketTransaction["created_at"]>();
 
-			return formatDateTime(date);
+			return (
+				<Tooltip>
+					<TooltipTrigger>{formatDate(date)}</TooltipTrigger>
+					<TooltipContent>{formatDateTime(date)}</TooltipContent>
+				</Tooltip>
+			);
 		},
 	},
 	{
