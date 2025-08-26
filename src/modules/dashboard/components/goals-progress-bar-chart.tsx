@@ -51,7 +51,7 @@ export function GoalsProgressBarChart() {
 				</CardDescription>
 			</CardHeader>
 			<CardContent>
-				<ChartContainer config={chartConfig} className="w-full">
+				<ChartContainer config={chartConfig} className="w-full h-[300px]">
 					<BarChart
 						accessibilityLayer
 						data={chartData}

@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button";
-import { Icon } from "@iconify/react/dist/iconify.js";
+import { Icon } from "@iconify/react";
 import { Link, useLocation } from "@tanstack/react-router";
 
 type Props = React.PropsWithChildren<{

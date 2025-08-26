@@ -13,7 +13,7 @@ import {
 	type createSplitFormSchema,
 	type updateSplitFormSchema,
 } from "@/modules/splits/schemas";
-import { Icon } from "@iconify/react/dist/iconify.js";
+import { Icon } from "@iconify/react";
 import { formOptions, useStore } from "@tanstack/react-form";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import type z from "zod";
@@ -26,12 +26,12 @@ export const splitFormOptions = formOptions({
 		base_amount: 0,
 		allocations: [],
 	} as z.input<typeof createSplitFormSchema | typeof updateSplitFormSchema>,
-})
+});
 
 export const SplitForm = withForm({
 	...splitFormOptions,
 	props: {
-		intent: 'create' as 'create' | 'update',
+		intent: "create" as "create" | "update",
 	},
 	render: ({ form, intent }) => {
 		/**
@@ -303,15 +303,15 @@ export const SplitForm = withForm({
 				</Tabs>
 				<form.AppForm>
 					<form.Button className="self-end" disabled={remainingAmount < 0}>
-									{intent === 'create' ? (
+						{intent === "create" ? (
 							<>
-							<Icon icon="bx:plus" />
-							Create Split
+								<Icon icon="bx:plus" />
+								Create Split
 							</>
 						) : (
 							<>
-						<Icon icon="bx:edit" />
-						Update Split
+								<Icon icon="bx:edit" />
+								Update Split
 							</>
 						)}
 					</form.Button>

@@ -66,7 +66,10 @@ export function PortfolioDistributionPieChart() {
 				</CardDescription>
 			</CardHeader>
 			<CardContent>
-				<ChartContainer config={chartConfig} className="mx-auto aspect-square">
+				<ChartContainer
+					config={chartConfig}
+					className="mx-auto aspect-square h-[300px]"
+				>
 					<PieChart>
 						<ChartTooltip
 							cursor={false}

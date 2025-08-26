@@ -16,7 +16,7 @@ import { useFieldContext } from "@/hooks/form";
 import { cn, formatCurrency, formatPercentage } from "@/lib/utils";
 import { bucketsQueryOption } from "@/modules/buckets/query-options";
 import { goalsQueryOption } from "@/modules/goals/query-options";
-import { Icon } from "@iconify/react/dist/iconify.js";
+import { Icon } from "@iconify/react";
 import { useStore } from "@tanstack/react-form";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { useState } from "react";

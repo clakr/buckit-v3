@@ -122,7 +122,7 @@ function RouteComponent() {
 						className="relative grid grid-rows-subgrid row-span-2 "
 					>
 						<BucketDropdownMenu id={bucket.id} />
-						<CardHeader className="gap-y-1">
+						<CardHeader>
 							<CardTitle>{bucket.name}</CardTitle>
 							<CardDescription>{bucket.description}</CardDescription>
 						</CardHeader>

@@ -5,18 +5,6 @@ export function cn(...inputs: ClassValue[]) {
 	return twMerge(clsx(inputs));
 }
 
-export const segmentLabelMapping: Record<string, string> = {
-	dashboard: "Dashboard",
-	buckets: "Buckets",
-	create: "Create",
-};
-
-export function getSegmentLabel(segment: string) {
-	if (segment in segmentLabelMapping) return segmentLabelMapping[segment];
-
-	return segment;
-}
-
 export function formatCurrency(
 	value: number | null,
 	opts?: Intl.NumberFormatOptions,

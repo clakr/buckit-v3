@@ -26,7 +26,7 @@ import {
 } from "@/lib/utils";
 import { columns } from "@/modules/buckets/columns";
 import { bucketQueryOption } from "@/modules/buckets/query-options";
-import { Icon } from "@iconify/react/dist/iconify.js";
+import { Icon } from "@iconify/react";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import {
 	type ErrorComponentProps,

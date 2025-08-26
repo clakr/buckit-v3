@@ -30,7 +30,7 @@ import {
 } from "@/lib/utils";
 import { columns } from "@/modules/goals/columns";
 import { goalQueryOption } from "@/modules/goals/query-options";
-import { Icon } from "@iconify/react/dist/iconify.js";
+import { Icon } from "@iconify/react";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import {
 	type ErrorComponentProps,
@@ -241,7 +241,7 @@ function RouteComponent() {
 					<CardContent>
 						<ChartContainer
 							config={pieChartConfig}
-							className="mx-auto aspect-square max-h-[300px] w-full [&_.recharts-pie-label-text]:fill-foreground"
+							className="mx-auto aspect-square h-[300px] w-full [&_.recharts-pie-label-text]:fill-foreground"
 						>
 							<PieChart>
 								<ChartTooltip content={<ChartTooltipContent hideLabel />} />

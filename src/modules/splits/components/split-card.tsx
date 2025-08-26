@@ -2,13 +2,14 @@ import {
 	Card,
 	CardContent,
 	CardDescription,
+	CardHeader,
 	CardTitle,
 } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import type { Split, SplitAllocation } from "@/integrations/supabase/types";
 import { formatCurrency, formatPercentage } from "@/lib/utils";
 import { SplitDropdownMenu } from "@/modules/splits/components/split-dropdown-menu";
-import { Icon } from "@iconify/react/dist/iconify.js";
+import { Icon } from "@iconify/react";
 
 type Props = {
 	split: Split & { split_allocations: SplitAllocation[] };
@@ -33,14 +34,14 @@ export function SplitCard({ split }: Props) {
 	return (
 		<Card className="relative grid grid-rows-subgrid row-span-4">
 			<SplitDropdownMenu id={split.id} />
-			<div className="grid-rows-subgrid row-span-3 auto-rows-min px-6 gap-y-0.5 grid">
+			<CardHeader className="grid grid-rows-subgrid row-span-3">
 				<CardTitle>{split.name}</CardTitle>
 				<span className="text-muted-foreground text-sm flex items-center gap-x-2">
 					<Icon icon="bx:money" className="size-4" />{" "}
 					{formatCurrency(split.base_amount)}
 				</span>
 				<CardDescription>{split.description}</CardDescription>
-			</div>
+			</CardHeader>
 			<CardContent className="flex items-center justify-between flex-wrap gap-y-1">
 				<span className="text-muted-foreground text-sm">Allocated</span>
 				<b className="font-semibold text-sm">

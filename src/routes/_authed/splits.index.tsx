@@ -4,7 +4,7 @@ import { StateTemplate } from "@/components/states-template";
 import { Button } from "@/components/ui/button";
 import { SplitCard } from "@/modules/splits/components/split-card";
 import { splitsQueryOption } from "@/modules/splits/query-options";
-import { Icon } from "@iconify/react/dist/iconify.js";
+import { Icon } from "@iconify/react";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import {
 	type ErrorComponentProps,

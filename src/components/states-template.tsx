@@ -1,5 +1,5 @@
 import { cn } from "@/lib/utils";
-import { Icon } from "@iconify/react/dist/iconify.js";
+import { Icon } from "@iconify/react";
 
 type Props = React.PropsWithChildren<{
 	state: "loading" | "error" | "empty";

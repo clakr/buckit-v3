@@ -14,7 +14,7 @@ import {
 	type BaseDialogStore,
 	createDialogStore,
 } from "@/stores/create-dialog-store";
-import { Icon } from "@iconify/react/dist/iconify.js";
+import { Icon } from "@iconify/react";
 import { useQuery } from "@tanstack/react-query";
 import type z from "zod";
 import { useShallow } from "zustand/react/shallow";

@@ -20,7 +20,7 @@ export function GoalCard({ goal }: Props) {
 	return (
 		<Card className="relative grid grid-rows-subgrid row-span-2">
 			<GoalDropdownMenu id={goal.id} />
-			<CardHeader className="gap-y-1">
+			<CardHeader>
 				<CardTitle>{goal.name}</CardTitle>
 				<CardDescription>{goal.description}</CardDescription>
 			</CardHeader>

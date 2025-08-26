@@ -10,7 +10,7 @@ import { CreateTransactionDialog } from "@/modules/goals/component/create-transa
 import { GoalCard } from "@/modules/goals/component/goal-card";
 import { UpdateGoalDialog } from "@/modules/goals/component/update-goal-dialog";
 import { goalsQueryOption } from "@/modules/goals/query-options";
-import { Icon } from "@iconify/react/dist/iconify.js";
+import { Icon } from "@iconify/react";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import {
 	type ErrorComponentProps,

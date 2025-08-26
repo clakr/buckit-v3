@@ -22,7 +22,6 @@ import {
 } from "@/components/ui/sidebar";
 import { supabase } from "@/integrations/supabase";
 import { getErrorMessage } from "@/integrations/supabase/utils";
-import { getSegmentLabel } from "@/lib/utils";
 import { Icon } from "@iconify/react";
 import {
 	Link,
@@ -204,7 +203,7 @@ function Breadcrumbs() {
 		const path = `/${pathSegments.slice(0, index + 1).join("/")}`;
 
 		return {
-			label: getSegmentLabel(segment),
+			label: segment,
 			path,
 		};
 	});
@@ -216,7 +215,7 @@ function Breadcrumbs() {
 			<BreadcrumbList>
 				{breadcrumbs.map((breadcrumb, index) => (
 					<Fragment key={breadcrumb.path}>
-						<BreadcrumbItem>
+						<BreadcrumbItem className="capitalize">
 							{index === breadcrumbs.length - 1 ? (
 								<BreadcrumbPage>{breadcrumb.label}</BreadcrumbPage>
 							) : (
