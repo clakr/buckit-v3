@@ -33,6 +33,7 @@ export function bucketQueryOption(id: Bucket["id"]) {
 				.eq("id", id)
 				.order("created_at", {
 					referencedTable: "bucket_transactions",
+					ascending: false,
 				})
 				.single();
 

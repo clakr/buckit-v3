@@ -72,7 +72,7 @@ export const columns: ColumnDef<GoalTransaction>[] = [
 		cell: ({ getValue }) => {
 			const balance = getValue<GoalTransaction["balance_after"]>();
 
-			return formatCurrency(balance);
+			return <span className="font-medium">{formatCurrency(balance)}</span>;
 		},
 	},
 ];

@@ -150,12 +150,15 @@ function RouteComponent() {
 		return acc;
 	}, {});
 
-	const chartData = Object.entries(transactionsByDay).map(
-		([date, transaction]) => ({
+	const chartData = Object.entries(transactionsByDay)
+		.sort(
+			([dateA], [dateB]) =>
+				new Date(dateA).getTime() - new Date(dateB).getTime(),
+		)
+		.map(([date, transaction]) => ({
 			date: formatDate(date, { month: "short", day: "numeric" }),
 			balance: transaction.balance_after,
-		}),
-	);
+		}));
 
 	const chartConfig = {
 		balance: {

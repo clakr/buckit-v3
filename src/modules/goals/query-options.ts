@@ -33,6 +33,7 @@ export function goalQueryOption(id: Goal["id"]) {
 				.eq("id", id)
 				.order("created_at", {
 					referencedTable: "goal_transactions",
+					ascending: false,
 				})
 				.single();
 

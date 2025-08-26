@@ -72,7 +72,7 @@ export const columns: ColumnDef<BucketTransaction>[] = [
 		cell: ({ getValue }) => {
 			const balance = getValue<BucketTransaction["balance_after"]>();
 
-			return formatCurrency(balance);
+			return <span className="font-medium">{formatCurrency(balance)}</span>;
 		},
 	},
 ];
