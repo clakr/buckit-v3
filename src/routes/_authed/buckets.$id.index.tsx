@@ -18,7 +18,12 @@ import {
 	ChartTooltipContent,
 } from "@/components/ui/chart";
 import type { BucketTransaction } from "@/integrations/supabase/types";
-import { formatCurrency, formatDate, formatDateTime } from "@/lib/utils";
+import {
+	formatCurrency,
+	formatDate,
+	formatDateISO,
+	formatDateTime,
+} from "@/lib/utils";
 import { columns } from "@/modules/buckets/columns";
 import { bucketQueryOption } from "@/modules/buckets/query-options";
 import { Icon } from "@iconify/react/dist/iconify.js";
@@ -113,11 +118,10 @@ function RouteComponent() {
 	const transactionsByDay = bucket.bucket_transactions.reduce<
 		Record<string, BucketTransaction>
 	>((acc, transaction) => {
-		const dateOnly = new Date(transaction.created_at)
-			.toISOString()
-			.split("T")[0];
-
-		acc[dateOnly] = transaction;
+		const dateOnly = formatDateISO(transaction.created_at);
+		if (dateOnly) {
+			acc[dateOnly] = transaction;
+		}
 
 		return acc;
 	}, {});

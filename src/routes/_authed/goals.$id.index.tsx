@@ -24,6 +24,7 @@ import type { GoalTransaction } from "@/integrations/supabase/types";
 import {
 	formatCurrency,
 	formatDate,
+	formatDateISO,
 	formatDateTime,
 	formatPercentage,
 } from "@/lib/utils";
@@ -141,11 +142,10 @@ function RouteComponent() {
 	const transactionsByDay = goal.goal_transactions.reduce<
 		Record<string, GoalTransaction>
 	>((acc, transaction) => {
-		const dateOnly = new Date(transaction.created_at)
-			.toISOString()
-			.split("T")[0];
-
-		acc[dateOnly] = transaction;
+		const dateOnly = formatDateISO(transaction.created_at);
+		if (dateOnly) {
+			acc[dateOnly] = transaction;
+		}
 
 		return acc;
 	}, {});
