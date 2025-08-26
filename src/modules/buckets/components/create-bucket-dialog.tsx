@@ -59,7 +59,7 @@ export function CreateBucketDialog() {
 				<DialogHeader>
 					<DialogTitle>Create Bucket</DialogTitle>
 					<DialogDescription>
-						{/* todo: add create bucket description */}
+						Create a new bucket to organize your finances.
 					</DialogDescription>
 				</DialogHeader>
 				<form

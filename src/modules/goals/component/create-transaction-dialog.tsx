@@ -77,7 +77,7 @@ export function CreateTransactionDialog() {
 				<DialogHeader>
 					<DialogTitle>Create Transaction</DialogTitle>
 					<DialogDescription>
-						{/* todo: add create goal description */}
+						Record a new transaction for this goal.
 					</DialogDescription>
 				</DialogHeader>
 				<form

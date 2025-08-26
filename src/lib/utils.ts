@@ -14,7 +14,6 @@ export function formatCurrency(
 	const formatter = Intl.NumberFormat(navigator.language, {
 		style: "currency",
 		currency: "PHP",
-		minimumFractionDigits: 2,
 		maximumFractionDigits: 2,
 		...opts,
 	});
@@ -79,8 +78,7 @@ export function formatPercentage(
 ) {
 	const formatter = new Intl.NumberFormat(navigator.language, {
 		style: "percent",
-		minimumFractionDigits: 2,
-		maximumFractionDigits: 2,
+		maximumSignificantDigits: 4,
 		...opts,
 	});
 

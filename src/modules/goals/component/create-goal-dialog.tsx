@@ -59,9 +59,7 @@ export function CreateGoalDialog() {
 			<DialogContent>
 				<DialogHeader>
 					<DialogTitle>Create Goal</DialogTitle>
-					<DialogDescription>
-						{/* todo: add create goal description */}
-					</DialogDescription>
+					<DialogDescription>Set up a new financial goal.</DialogDescription>
 				</DialogHeader>
 				<form
 					className="flex flex-col gap-y-4"

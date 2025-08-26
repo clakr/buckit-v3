@@ -43,14 +43,17 @@ export function SplitCard({ split }: Props) {
 				<CardDescription>{split.description}</CardDescription>
 			</CardHeader>
 			<CardContent className="flex items-center justify-between flex-wrap gap-y-1">
-				<span className="text-muted-foreground text-sm">Allocated</span>
 				<b className="font-semibold text-sm">
-					{formatCurrency(totalAllocationsAccumulatedAmount)} (
+					{formatCurrency(totalAllocationsAccumulatedAmount)}
+				</b>
+				<span className="font-semibold text-sm">
 					{formatPercentage(
 						totalAllocationsAccumulatedAmount / split.base_amount,
+						{
+							maximumSignificantDigits: 2,
+						},
 					)}
-					)
-				</b>
+				</span>
 				<Progress
 					value={(totalAllocationsAccumulatedAmount / split.base_amount) * 100}
 				/>

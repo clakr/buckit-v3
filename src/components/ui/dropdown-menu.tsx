@@ -131,7 +131,7 @@ function DropdownMenuRadioItem({
 		>
 			<span className="pointer-events-none absolute left-2 flex size-3.5 items-center justify-center">
 				<DropdownMenuPrimitive.ItemIndicator>
-					<Icon icon="bx:circle" className="size-2 fill-current" />
+					<Icon icon="bxs:circle" className="size-2.5 fill-current" />
 				</DropdownMenuPrimitive.ItemIndicator>
 			</span>
 			{children}

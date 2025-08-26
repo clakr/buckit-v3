@@ -77,7 +77,7 @@ export function CreateTransactionDialog() {
 				<DialogHeader>
 					<DialogTitle>Create Transaction</DialogTitle>
 					<DialogDescription>
-						{/* todo: add create bucket description */}
+						Record a new transaction for this bucket.
 					</DialogDescription>
 				</DialogHeader>
 				<form

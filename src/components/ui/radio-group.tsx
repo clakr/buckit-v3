@@ -33,8 +33,8 @@ function RadioGroupItem({
 				className="relative flex items-center justify-center"
 			>
 				<Icon
-					icon="bx:circle"
-					className="fill-primary absolute top-1/2 left-1/2 size-2 -translate-x-1/2 -translate-y-1/2"
+					icon="bxs:circle"
+					className="fill-primary absolute top-1/2 left-1/2 size-2.5 -translate-x-1/2 -translate-y-1/2"
 				/>
 			</RadioGroupPrimitive.Indicator>
 		</RadioGroupPrimitive.Item>

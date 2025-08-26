@@ -92,7 +92,7 @@ export function UpdateGoalDialog() {
 				<DialogHeader>
 					<DialogTitle>Update Goal</DialogTitle>
 					<DialogDescription>
-						{/* todo: add update goal description */}
+						Update the details of this goal.
 					</DialogDescription>
 				</DialogHeader>
 				<form

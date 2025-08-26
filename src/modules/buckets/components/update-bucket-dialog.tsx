@@ -91,7 +91,7 @@ export function UpdateBucketDialog() {
 				<DialogHeader>
 					<DialogTitle>Update Bucket</DialogTitle>
 					<DialogDescription>
-						{/* todo: add update bucket description */}
+						Update the details of this bucket.
 					</DialogDescription>
 				</DialogHeader>
 				<form

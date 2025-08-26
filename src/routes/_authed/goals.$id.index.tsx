@@ -203,8 +203,7 @@ function RouteComponent() {
 					<CardContent className="flex flex-col">
 						<b className="text-2xl">
 							{formatPercentage(progress, {
-								minimumFractionDigits: 0,
-								maximumFractionDigits: 0,
+								maximumSignificantDigits: 2,
 							})}
 						</b>
 						<Progress value={progress * 100} className="h-3" />

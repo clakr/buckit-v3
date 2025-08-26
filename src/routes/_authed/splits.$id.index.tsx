@@ -116,9 +116,13 @@ function RouteComponent() {
 									</DescriptionDefinition>
 								</>
 							) : null}
-							<DescriptionTerm>Created At</DescriptionTerm>
-							<DescriptionDefinition>
+							<DescriptionTerm>Created</DescriptionTerm>
+							<DescriptionDefinition className="text-sm font-medium">
 								{formatDateTime(split.created_at)}
+							</DescriptionDefinition>
+							<DescriptionTerm>Last Updated</DescriptionTerm>
+							<DescriptionDefinition className="text-sm font-medium">
+								{formatDateTime(split.updated_at)}
 							</DescriptionDefinition>
 						</dl>
 					</CardContent>
