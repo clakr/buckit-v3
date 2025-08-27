@@ -1,23 +1,16 @@
+import {
+	MAXIMUM_CURRENCY_AMOUNT,
+	MINIMUM_CURRENCY_AMOUNT,
+} from "@/lib/constants";
 import { transactionTypeEnum } from "@/lib/schemas";
 import z from "zod";
 
-const bucketBaseSchema = {
+const bucketBaseSchema = z.object({
 	name: z
 		.string()
 		.min(1, "Bucket name is required")
 		.max(100, "Bucket name must be 100 characters or less")
 		.trim(),
-
-	current_amount: z
-		.number({
-			required_error: "Current amount is required",
-			invalid_type_error: "Current amount must be a number",
-		})
-		.transform((val) => Math.round(val * 100) / 100) // Round to 2 decimal places
-		.refine(
-			(val) => val >= -999999999.99 && val <= 999999999.99,
-			"Amount must be between -999,999,999.99 and 999,999,999.99",
-		),
 
 	description: z
 		.string()
@@ -25,34 +18,28 @@ const bucketBaseSchema = {
 		.trim()
 		.optional()
 		.nullable()
-		.transform((val) => (val === "" ? null : val)), // Convert empty string to null
+		.transform((val) => (val === "" ? null : val)),
+});
 
-	is_active: z.boolean().default(true),
-};
-
-export const createBucketFormSchema = z.object({
-	name: bucketBaseSchema.name,
-
-	// Coerce string to number for HTML input[type="number"]
+export const createBucketFormSchema = bucketBaseSchema.extend({
 	current_amount: z.coerce
 		.number({
 			required_error: "Current amount is required",
-			invalid_type_error: "Current amount must be a number",
+			invalid_type_error: "Current amount must be a valid number",
 		})
-		.transform((val) => Math.round(val * 100) / 100)
-		.refine(
-			(val) => val >= -999999999.99 && val <= 999999999.99,
-			"Amount must be between -999,999,999.99 and 999,999,999.99",
-		)
-		.default(0),
-
-	description: bucketBaseSchema.description,
+		.min(MINIMUM_CURRENCY_AMOUNT, {
+			message: `Current amount must be greater than ${MINIMUM_CURRENCY_AMOUNT}`,
+		})
+		.max(MAXIMUM_CURRENCY_AMOUNT, {
+			message: `Current amount must be less than ${MAXIMUM_CURRENCY_AMOUNT}`,
+		})
+		.multipleOf(0.01, {
+			message: "Current amount can only have up to 2 decimal places",
+		}),
 });
 
-export const updateBucketFormSchema = z.object({
+export const updateBucketFormSchema = bucketBaseSchema.extend({
 	id: z.string().uuid("Invalid Bucket ID"),
-	name: bucketBaseSchema.name,
-	description: bucketBaseSchema.description,
 });
 
 export const createTransactionFormSchema = z.object({
@@ -66,14 +53,15 @@ export const createTransactionFormSchema = z.object({
 			invalid_type_error: "Amount must be a valid number",
 		})
 		.positive({ message: "Amount must be greater than 0" })
+		.max(MAXIMUM_CURRENCY_AMOUNT, {
+			message: `Amount cannot exceed ${MAXIMUM_CURRENCY_AMOUNT}`,
+		})
 		.multipleOf(0.01, {
 			message: "Amount can only have up to 2 decimal places",
-		})
-		.max(9999999999.99, { message: "Amount cannot exceed 9,999,999,999.99" }),
+		}),
 
 	description: z
 		.string()
-		.max(500, { message: "Description cannot exceed 500 characters" })
-		.optional()
-		.transform((val) => val?.trim() || undefined),
+		.min(1, "Description is required")
+		.max(500, { message: "Description cannot exceed 500 characters" }),
 });

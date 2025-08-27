@@ -1,3 +1,5 @@
+import { StateTemplate } from "@/components/states-template";
+import { Button } from "@/components/ui/button";
 import {
 	Dialog,
 	DialogContent,
@@ -15,6 +17,7 @@ import {
 	createDialogStore,
 } from "@/stores/create-dialog-store";
 import { Icon } from "@iconify/react";
+import type { DialogProps } from "@radix-ui/react-dialog";
 import { useQuery } from "@tanstack/react-query";
 import type z from "zod";
 import { useShallow } from "zustand/react/shallow";
@@ -42,12 +45,19 @@ export function UpdateBucketDialog() {
 		})),
 	);
 
+	function handleOnOpenChange() {
+		form.reset();
+		handleToggle();
+	}
+
 	/**
 	 * data fetching
 	 */
 	const {
 		isLoading,
 		error,
+		refetch,
+
 		data: bucket,
 	} = useQuery({
 		...bucketQueryOption(bucketId || ""),
@@ -81,12 +91,74 @@ export function UpdateBucketDialog() {
 		},
 	});
 
-	if (isLoading) return <div>Loading...</div>;
-	if (error) return <div>Error: {error.message}</div>;
-	if (!bucket) return null;
+	if (isLoading)
+		return (
+			<DialogContainer open={isOpen} onOpenChange={handleOnOpenChange}>
+				<StateTemplate
+					state="loading"
+					heading="Loading bucket..."
+					description="Please wait while we load your bucket"
+				/>
+			</DialogContainer>
+		);
+	if (error)
+		return (
+			<DialogContainer open={isOpen} onOpenChange={handleOnOpenChange}>
+				<StateTemplate
+					state="error"
+					heading="Failed to load bucket"
+					description="We encountered an error while loading your bucket."
+				>
+					<div>
+						<Button onClick={async () => await refetch()}>Try Again</Button>
+					</div>
+				</StateTemplate>
+			</DialogContainer>
+		);
+	if (!bucket)
+		return (
+			<DialogContainer open={isOpen} onOpenChange={handleOnOpenChange}>
+				<StateTemplate
+					state="empty"
+					heading="We can't find that bucket"
+					description="If you think this is a mistake, please contact us"
+				/>
+			</DialogContainer>
+		);
 
 	return (
-		<Dialog open={isOpen} onOpenChange={handleToggle}>
+		<DialogContainer open={isOpen} onOpenChange={handleOnOpenChange}>
+			<form
+				className="flex flex-col gap-y-4"
+				onSubmit={(event) => {
+					event.preventDefault();
+					event.stopPropagation();
+					form.handleSubmit();
+				}}
+			>
+				<form.AppField name="id" defaultValue={bucket.id}>
+					{(field) => <field.Input label="ID" id="id" type="hidden" />}
+				</form.AppField>
+				<form.AppField name="name" defaultValue={bucket.name}>
+					{(field) => <field.Input label="Name" id="name" type="text" />}
+				</form.AppField>
+				<form.AppField name="description" defaultValue={bucket.description}>
+					{(field) => <field.Textarea label="Description" id="description" />}
+				</form.AppField>
+				<form.AppForm>
+					<form.Button className="self-end">
+						<Icon icon="bx:edit" />
+						Update Bucket
+					</form.Button>
+				</form.AppForm>
+			</form>
+		</DialogContainer>
+	);
+}
+
+function DialogContainer({ children, ...props }: DialogProps) {
+	return (
+		<Dialog {...props}>
 			<DialogContent>
 				<DialogHeader>
 					<DialogTitle>Update Bucket</DialogTitle>
@@ -94,30 +166,7 @@ export function UpdateBucketDialog() {
 						Update the details of this bucket.
 					</DialogDescription>
 				</DialogHeader>
-				<form
-					className="flex flex-col gap-y-4"
-					onSubmit={(event) => {
-						event.preventDefault();
-						event.stopPropagation();
-						form.handleSubmit();
-					}}
-				>
-					<form.AppField name="id" defaultValue={bucket.id}>
-						{(field) => <field.Input label="ID" id="id" type="hidden" />}
-					</form.AppField>
-					<form.AppField name="name" defaultValue={bucket.name}>
-						{(field) => <field.Input label="Name" id="name" type="text" />}
-					</form.AppField>
-					<form.AppField name="description" defaultValue={bucket.description}>
-						{(field) => <field.Textarea label="Description" id="description" />}
-					</form.AppField>
-					<form.AppForm>
-						<form.Button className="self-end">
-							<Icon icon="bx:edit" />
-							Update Bucket
-						</form.Button>
-					</form.AppForm>
-				</form>
+				{children}
 			</DialogContent>
 		</Dialog>
 	);

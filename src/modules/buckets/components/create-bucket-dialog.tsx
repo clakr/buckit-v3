@@ -17,16 +17,6 @@ export const useCreateBucketDialogStore = createDialogStore();
 
 export function CreateBucketDialog() {
 	/**
-	 * dialog state
-	 */
-	const { isOpen, handleToggle } = useCreateBucketDialogStore(
-		useShallow((state) => ({
-			isOpen: state.isOpen,
-			handleToggle: state.handleToggle,
-		})),
-	);
-
-	/**
 	 * form
 	 */
 	const mutation = useCreateBucketMutation();
@@ -53,8 +43,23 @@ export function CreateBucketDialog() {
 		},
 	});
 
+	/**
+	 * dialog state
+	 */
+	const { isOpen, handleToggle } = useCreateBucketDialogStore(
+		useShallow((state) => ({
+			isOpen: state.isOpen,
+			handleToggle: state.handleToggle,
+		})),
+	);
+
+	function handleOnOpenChange() {
+		form.reset();
+		handleToggle();
+	}
+
 	return (
-		<Dialog open={isOpen} onOpenChange={handleToggle}>
+		<Dialog open={isOpen} onOpenChange={handleOnOpenChange}>
 			<DialogContent>
 				<DialogHeader>
 					<DialogTitle>Create Bucket</DialogTitle>
