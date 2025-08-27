@@ -1,3 +1,5 @@
+import { StateTemplate } from "@/components/states-template";
+import { Button } from "@/components/ui/button";
 import {
 	Dialog,
 	DialogContent,
@@ -16,6 +18,7 @@ import {
 } from "@/stores/create-dialog-store";
 import { Icon } from "@iconify/react";
 import { useQuery } from "@tanstack/react-query";
+import type { PropsWithChildren } from "react";
 import type z from "zod";
 import { useShallow } from "zustand/react/shallow";
 
@@ -42,12 +45,18 @@ export function UpdateGoalDialog() {
 		})),
 	);
 
+	function handleOnOpenChange() {
+		form.reset();
+		handleToggle();
+	}
+
 	/**
 	 * data fetching
 	 */
 	const {
 		isLoading,
 		error,
+		refetch,
 		data: goal,
 	} = useQuery({
 		...goalQueryOption(goalId || ""),
@@ -82,53 +91,92 @@ export function UpdateGoalDialog() {
 		},
 	});
 
-	if (isLoading) return <div>Loading...</div>;
-	if (error) return <div>Error: {error.message}</div>;
-	if (!goal) return null;
+	function DialogContainer({ children }: PropsWithChildren) {
+		return (
+			<Dialog open={isOpen} onOpenChange={handleOnOpenChange}>
+				<DialogContent>
+					<DialogHeader>
+						<DialogTitle>Update Goal</DialogTitle>
+						<DialogDescription>
+							Update the details of this goal.
+						</DialogDescription>
+					</DialogHeader>
+					{children}
+				</DialogContent>
+			</Dialog>
+		);
+	}
+
+	if (isLoading)
+		return (
+			<DialogContainer>
+				<StateTemplate
+					state="loading"
+					heading="Loading goal..."
+					description="Please wait while we load your goal"
+				/>
+			</DialogContainer>
+		);
+
+	if (error)
+		return (
+			<StateTemplate
+				state="error"
+				heading="Failed to load goal"
+				description="We encountered an error while loading your goal."
+			>
+				<div>
+					<Button onClick={async () => await refetch()}>Try Again</Button>
+				</div>
+			</StateTemplate>
+		);
+
+	if (!goal)
+		return (
+			<DialogContainer>
+				<StateTemplate
+					state="empty"
+					heading="We can't find that goal"
+					description="If you think this is a mistake, please contact us"
+				/>
+			</DialogContainer>
+		);
 
 	return (
-		<Dialog open={isOpen} onOpenChange={handleToggle}>
-			<DialogContent>
-				<DialogHeader>
-					<DialogTitle>Update Goal</DialogTitle>
-					<DialogDescription>
-						Update the details of this goal.
-					</DialogDescription>
-				</DialogHeader>
-				<form
-					className="flex flex-col gap-y-4"
-					onSubmit={(event) => {
-						event.preventDefault();
-						event.stopPropagation();
-						form.handleSubmit();
-					}}
-				>
-					<form.AppField name="id" defaultValue={goal.id}>
-						{(field) => <field.Input label="ID" id="id" type="hidden" />}
-					</form.AppField>
-					<form.AppField name="name" defaultValue={goal.name}>
-						{(field) => <field.Input label="Name" id="name" type="text" />}
-					</form.AppField>
-					<form.AppField name="description" defaultValue={goal.description}>
-						{(field) => <field.Textarea label="Description" id="description" />}
-					</form.AppField>
-					<form.AppField name="target_amount" defaultValue={goal.target_amount}>
-						{(field) => (
-							<field.Input
-								label="Target Amount"
-								id="target-amount"
-								type="number"
-							/>
-						)}
-					</form.AppField>
-					<form.AppForm>
-						<form.Button className="self-end">
-							<Icon icon="bx:plus" />
-							Update Goal
-						</form.Button>
-					</form.AppForm>
-				</form>
-			</DialogContent>
-		</Dialog>
+		<DialogContainer>
+			<form
+				className="flex flex-col gap-y-4"
+				onSubmit={(event) => {
+					event.preventDefault();
+					event.stopPropagation();
+					form.handleSubmit();
+				}}
+			>
+				<form.AppField name="id" defaultValue={goal.id}>
+					{(field) => <field.Input label="ID" id="id" type="hidden" />}
+				</form.AppField>
+				<form.AppField name="name" defaultValue={goal.name}>
+					{(field) => <field.Input label="Name" id="name" type="text" />}
+				</form.AppField>
+				<form.AppField name="description" defaultValue={goal.description}>
+					{(field) => <field.Textarea label="Description" id="description" />}
+				</form.AppField>
+				<form.AppField name="target_amount" defaultValue={goal.target_amount}>
+					{(field) => (
+						<field.Input
+							label="Target Amount"
+							id="target-amount"
+							type="number"
+						/>
+					)}
+				</form.AppField>
+				<form.AppForm>
+					<form.Button className="self-end">
+						<Icon icon="bx:plus" />
+						Update Goal
+					</form.Button>
+				</form.AppForm>
+			</form>
+		</DialogContainer>
 	);
 }

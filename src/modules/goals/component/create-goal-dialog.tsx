@@ -17,16 +17,6 @@ export const useCreateGoalDialogStore = createDialogStore();
 
 export function CreateGoalDialog() {
 	/**
-	 * dialog state
-	 */
-	const { isOpen, handleToggle } = useCreateGoalDialogStore(
-		useShallow((state) => ({
-			isOpen: state.isOpen,
-			handleToggle: state.handleToggle,
-		})),
-	);
-
-	/**
 	 * form
 	 */
 	const mutation = useCreateGoalMutation();
@@ -54,8 +44,23 @@ export function CreateGoalDialog() {
 		},
 	});
 
+	/**
+	 * dialog state
+	 */
+	const { isOpen, handleToggle } = useCreateGoalDialogStore(
+		useShallow((state) => ({
+			isOpen: state.isOpen,
+			handleToggle: state.handleToggle,
+		})),
+	);
+
+	function handleOnOpenChange() {
+		form.reset();
+		handleToggle();
+	}
+
 	return (
-		<Dialog open={isOpen} onOpenChange={handleToggle}>
+		<Dialog open={isOpen} onOpenChange={handleOnOpenChange}>
 			<DialogContent>
 				<DialogHeader>
 					<DialogTitle>Create Goal</DialogTitle>

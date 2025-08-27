@@ -1,36 +1,16 @@
+import {
+	MAXIMUM_CURRENCY_AMOUNT,
+	MINIMUM_CURRENCY_AMOUNT,
+} from "@/lib/constants";
 import { transactionTypeEnum } from "@/lib/schemas";
 import z from "zod";
 
-// Base schema for goals (similar to bucketBaseSchema)
-const goalBaseSchema = {
+const goalBaseSchema = z.object({
 	name: z
 		.string()
 		.min(1, "Goal name is required")
 		.max(100, "Goal name must be 100 characters or less")
 		.trim(),
-
-	current_amount: z
-		.number({
-			required_error: "Current amount is required",
-			invalid_type_error: "Current amount must be a number",
-		})
-		.transform((val) => Math.round(val * 100) / 100) // Round to 2 decimal places
-		.refine(
-			(val) => val >= 0 && val <= 999999999.99,
-			"Amount must be between 0 and 999,999,999.99",
-		),
-
-	target_amount: z
-		.number({
-			required_error: "Target amount is required",
-			invalid_type_error: "Target amount must be a number",
-		})
-		.positive("Target amount must be greater than 0")
-		.transform((val) => Math.round(val * 100) / 100) // Round to 2 decimal places
-		.refine(
-			(val) => val > 0 && val <= 999999999.99,
-			"Target amount must be between 0.01 and 999,999,999.99",
-		),
 
 	description: z
 		.string()
@@ -38,66 +18,59 @@ const goalBaseSchema = {
 		.trim()
 		.optional()
 		.nullable()
-		.transform((val) => (val === "" ? null : val)), // Convert empty string to null
+		.transform((val) => (val === "" ? null : val)),
+});
 
-	is_active: z.boolean().default(true),
-};
-
-export const createGoalFormSchema = z
-	.object({
-		name: goalBaseSchema.name,
-
-		// Coerce string to number for HTML input[type="number"]
+export const createGoalFormSchema = goalBaseSchema
+	.extend({
 		current_amount: z.coerce
 			.number({
 				required_error: "Current amount is required",
-				invalid_type_error: "Current amount must be a number",
+				invalid_type_error: "Current amount must be a valid number",
 			})
-			.transform((val) => Math.round(val * 100) / 100)
-			.refine(
-				(val) => val >= 0 && val <= 999999999.99,
-				"Amount must be between 0 and 999,999,999.99",
-			)
-			.default(0),
+			.min(MINIMUM_CURRENCY_AMOUNT, {
+				message: `Current amount must be greater than ${MINIMUM_CURRENCY_AMOUNT}`,
+			})
+			.max(MAXIMUM_CURRENCY_AMOUNT, {
+				message: `Current amount must be less than ${MAXIMUM_CURRENCY_AMOUNT}`,
+			})
+			.multipleOf(0.01, {
+				message: "Current amount can only have up to 2 decimal places",
+			}),
 
-		// Coerce string to number for HTML input[type="number"]
 		target_amount: z.coerce
 			.number({
 				required_error: "Target amount is required",
-				invalid_type_error: "Target amount must be a number",
+				invalid_type_error: "Target amount must be a valid number",
 			})
 			.positive("Target amount must be greater than 0")
-			.transform((val) => Math.round(val * 100) / 100)
-			.refine(
-				(val) => val > 0 && val <= 999999999.99,
-				"Target amount must be between 0.01 and 999,999,999.99",
-			),
-
-		description: goalBaseSchema.description,
+			.max(MAXIMUM_CURRENCY_AMOUNT, {
+				message: `Target amount must be less than ${MAXIMUM_CURRENCY_AMOUNT}`,
+			})
+			.multipleOf(0.01, {
+				message: "Target amount can only have up to 2 decimal places",
+			}),
 	})
 	.refine((data) => data.target_amount >= data.current_amount, {
 		message: "Target amount must be greater than or equal to current amount",
 		path: ["target_amount"],
 	});
 
-export const updateGoalFormSchema = z.object({
+export const updateGoalFormSchema = goalBaseSchema.extend({
 	id: z.string().uuid("Invalid Goal ID"),
-
-	name: goalBaseSchema.name,
 
 	target_amount: z.coerce
 		.number({
 			required_error: "Target amount is required",
-			invalid_type_error: "Target amount must be a number",
+			invalid_type_error: "Target amount must be a valid number",
 		})
 		.positive("Target amount must be greater than 0")
-		.transform((val) => Math.round(val * 100) / 100)
-		.refine(
-			(val) => val > 0 && val <= 999999999.99,
-			"Target amount must be between 0.01 and 999,999,999.99",
-		),
-
-	description: goalBaseSchema.description,
+		.max(MAXIMUM_CURRENCY_AMOUNT, {
+			message: `Target amount must be less than ${MAXIMUM_CURRENCY_AMOUNT}`,
+		})
+		.multipleOf(0.01, {
+			message: "Target amount can only have up to 2 decimal places",
+		}),
 });
 
 export const createTransactionFormSchema = z.object({
@@ -111,14 +84,15 @@ export const createTransactionFormSchema = z.object({
 			invalid_type_error: "Amount must be a valid number",
 		})
 		.positive({ message: "Amount must be greater than 0" })
+		.max(MAXIMUM_CURRENCY_AMOUNT, {
+			message: `Amount cannot exceed ${MAXIMUM_CURRENCY_AMOUNT}`,
+		})
 		.multipleOf(0.01, {
 			message: "Amount can only have up to 2 decimal places",
-		})
-		.max(9999999999.99, { message: "Amount cannot exceed 9,999,999,999.99" }),
+		}),
 
 	description: z
 		.string()
-		.max(500, { message: "Description cannot exceed 500 characters" })
-		.optional()
-		.transform((val) => val?.trim() || undefined),
+		.min(1, "Description is required")
+		.max(500, { message: "Description cannot exceed 500 characters" }),
 });

@@ -17,8 +17,8 @@ import {
 	createDialogStore,
 } from "@/stores/create-dialog-store";
 import { Icon } from "@iconify/react";
-import type { DialogProps } from "@radix-ui/react-dialog";
 import { useQuery } from "@tanstack/react-query";
+import type { PropsWithChildren } from "react";
 import type z from "zod";
 import { useShallow } from "zustand/react/shallow";
 
@@ -57,7 +57,6 @@ export function UpdateBucketDialog() {
 		isLoading,
 		error,
 		refetch,
-
 		data: bucket,
 	} = useQuery({
 		...bucketQueryOption(bucketId || ""),
@@ -91,9 +90,25 @@ export function UpdateBucketDialog() {
 		},
 	});
 
+	function DialogContainer({ children }: PropsWithChildren) {
+		return (
+			<Dialog open={isOpen} onOpenChange={handleOnOpenChange}>
+				<DialogContent>
+					<DialogHeader>
+						<DialogTitle>Update Bucket</DialogTitle>
+						<DialogDescription>
+							Update the details of this bucket.
+						</DialogDescription>
+					</DialogHeader>
+					{children}
+				</DialogContent>
+			</Dialog>
+		);
+	}
+
 	if (isLoading)
 		return (
-			<DialogContainer open={isOpen} onOpenChange={handleOnOpenChange}>
+			<DialogContainer>
 				<StateTemplate
 					state="loading"
 					heading="Loading bucket..."
@@ -101,9 +116,10 @@ export function UpdateBucketDialog() {
 				/>
 			</DialogContainer>
 		);
+
 	if (error)
 		return (
-			<DialogContainer open={isOpen} onOpenChange={handleOnOpenChange}>
+			<DialogContainer>
 				<StateTemplate
 					state="error"
 					heading="Failed to load bucket"
@@ -115,9 +131,10 @@ export function UpdateBucketDialog() {
 				</StateTemplate>
 			</DialogContainer>
 		);
+
 	if (!bucket)
 		return (
-			<DialogContainer open={isOpen} onOpenChange={handleOnOpenChange}>
+			<DialogContainer>
 				<StateTemplate
 					state="empty"
 					heading="We can't find that bucket"
@@ -127,7 +144,7 @@ export function UpdateBucketDialog() {
 		);
 
 	return (
-		<DialogContainer open={isOpen} onOpenChange={handleOnOpenChange}>
+		<DialogContainer>
 			<form
 				className="flex flex-col gap-y-4"
 				onSubmit={(event) => {
@@ -153,21 +170,5 @@ export function UpdateBucketDialog() {
 				</form.AppForm>
 			</form>
 		</DialogContainer>
-	);
-}
-
-function DialogContainer({ children, ...props }: DialogProps) {
-	return (
-		<Dialog {...props}>
-			<DialogContent>
-				<DialogHeader>
-					<DialogTitle>Update Bucket</DialogTitle>
-					<DialogDescription>
-						Update the details of this bucket.
-					</DialogDescription>
-				</DialogHeader>
-				{children}
-			</DialogContent>
-		</Dialog>
 	);
 }
