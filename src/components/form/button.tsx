@@ -8,9 +8,15 @@ export default function Button({ children, ...props }: Props) {
 	const form = useFormContext();
 
 	return (
-		<form.Subscribe selector={(state) => state.isSubmitting}>
-			{(isSubmitting) => (
-				<UIButton {...props} disabled={isSubmitting || props.disabled}>
+		<form.Subscribe
+			selector={(state) => [
+				state.canSubmit,
+				state.isSubmitting,
+				state.errors.length > 0,
+			]}
+		>
+			{([canSubmit, isSubmitting, hasErrors]) => (
+				<UIButton {...props} disabled={!canSubmit || isSubmitting || hasErrors}>
 					{isSubmitting ? (
 						<Icon icon="bx:loader-alt" className="animate-spin" />
 					) : (

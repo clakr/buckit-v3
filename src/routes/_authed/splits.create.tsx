@@ -3,7 +3,10 @@ import { Heading } from "@/components/heading";
 import { useAppForm } from "@/hooks/form";
 import { bucketsQueryOption } from "@/modules/buckets/query-options";
 import { goalsQueryOption } from "@/modules/goals/query-options";
-import { SplitForm, splitFormOptions } from "@/modules/splits/components/split-form";
+import {
+	SplitForm,
+	splitFormOptions,
+} from "@/modules/splits/components/split-form";
 import { useCreateSplitMutation } from "@/modules/splits/mutations";
 import { createSplitFormSchema } from "@/modules/splits/schemas";
 import { createFileRoute } from "@tanstack/react-router";
@@ -26,7 +29,7 @@ function RouteComponent() {
 	const form = useAppForm({
 		...splitFormOptions,
 		validators: {
-			onBlur: createSplitFormSchema,
+			onChange: createSplitFormSchema,
 		},
 		onSubmit: async ({ value }) => {
 			const payload = createSplitFormSchema.parse(value);
@@ -40,7 +43,7 @@ function RouteComponent() {
 			});
 		},
 	});
-	
+
 	return (
 		<Container>
 			<Heading heading="Create Split" />

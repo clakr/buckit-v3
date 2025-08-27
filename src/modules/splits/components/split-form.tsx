@@ -1,14 +1,15 @@
 import { StateTemplate } from "@/components/states-template";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { withForm } from "@/hooks/form";
+import { splitAllocationTypeEnum } from "@/lib/schemas";
 import { cn, formatCurrency, formatPercentage } from "@/lib/utils";
 import { bucketsQueryOption } from "@/modules/buckets/query-options";
 import { goalsQueryOption } from "@/modules/goals/query-options";
 import TargetSelect from "@/modules/splits/components/target-select";
 import {
-	allocationTypeEnum,
 	createEmptyAllocation,
 	type createSplitFormSchema,
 	type updateSplitFormSchema,
@@ -54,7 +55,9 @@ export const SplitForm = withForm({
 		function handleAddSplit() {
 			form.pushFieldValue(
 				"allocations",
-				createEmptyAllocation(form.state.values.id),
+				createEmptyAllocation({
+					split_id: form.state.values.id,
+				}),
 			);
 		}
 
@@ -78,9 +81,19 @@ export const SplitForm = withForm({
 			);
 		}
 
-		function handleAllocationTypeChange(index: number) {
-			form.setFieldValue(`allocations[${index}].percentage`, null);
-			form.setFieldValue(`allocations[${index}].amount`, null);
+		function handleAllocationTypeChange({
+			value,
+			i,
+		}: { value: z.infer<typeof splitAllocationTypeEnum>; i: number }) {
+			if (value === "fixed") {
+				form.setFieldValue(`allocations[${i}].percentage`, null);
+				form.setFieldValue(`allocations[${i}].amount`, 0);
+				return;
+			}
+
+			form.setFieldValue(`allocations[${i}].percentage`, 0);
+			form.setFieldValue(`allocations[${i}].amount`, null);
+			return;
 		}
 
 		/**
@@ -139,7 +152,9 @@ export const SplitForm = withForm({
 					<TabsList>
 						<TabsTrigger value="details">Details</TabsTrigger>
 						<TabsTrigger value="allocations">Allocations</TabsTrigger>
-						<TabsTrigger value="summary">Summary</TabsTrigger>
+						<TabsTrigger value="summary" disabled={allocations.length <= 0}>
+							Summary
+						</TabsTrigger>
 					</TabsList>
 					<TabsContent value="details" className="flex flex-col gap-y-4">
 						<form.AppField name="name">
@@ -182,14 +197,15 @@ export const SplitForm = withForm({
 												<form.AppField
 													name={`allocations[${i}].allocation_type`}
 													listeners={{
-														onChange: () => handleAllocationTypeChange(i),
+														onChange: ({ value }) =>
+															handleAllocationTypeChange({ value, i }),
 													}}
 												>
 													{(subField) => (
 														<subField.Select
 															label="Type"
 															id="type"
-															enumSchema={allocationTypeEnum}
+															enumSchema={splitAllocationTypeEnum}
 														/>
 													)}
 												</form.AppField>
@@ -209,7 +225,16 @@ export const SplitForm = withForm({
 																	/>
 																)}
 															</form.AppField>
-														) : (
+														) : null
+													}
+												</form.Subscribe>
+												<form.Subscribe
+													selector={(state) =>
+														state.values.allocations[i].allocation_type
+													}
+												>
+													{(allocationType) =>
+														allocationType === "percentage" ? (
 															<form.AppField
 																name={`allocations[${i}].percentage`}
 															>
@@ -221,7 +246,7 @@ export const SplitForm = withForm({
 																	/>
 																)}
 															</form.AppField>
-														)
+														) : null
 													}
 												</form.Subscribe>
 												<Button
@@ -244,6 +269,23 @@ export const SplitForm = withForm({
 											description="Add an allocation to get started."
 										/>
 									)}
+									<form.Subscribe
+										selector={(state) =>
+											state.fieldMeta.allocations?.errors.at(0)
+										}
+									>
+										{(error) =>
+											error ? (
+												<Alert variant="destructive">
+													<Icon icon="bx:info-circle" />
+													<AlertTitle>Whoops!</AlertTitle>
+													<AlertDescription>
+														{error.message || "There was an error"}
+													</AlertDescription>
+												</Alert>
+											) : null
+										}
+									</form.Subscribe>
 									<Button
 										variant="secondary"
 										type="button"
@@ -302,7 +344,7 @@ export const SplitForm = withForm({
 					</TabsContent>
 				</Tabs>
 				<form.AppForm>
-					<form.Button className="self-end" disabled={remainingAmount < 0}>
+					<form.Button className="self-end">
 						{intent === "create" ? (
 							<>
 								<Icon icon="bx:plus" />
