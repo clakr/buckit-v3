@@ -18,9 +18,9 @@ export type Database = {
       graphql: {
         Args: {
           query?: string
-          operationName?: string
-          extensions?: Json
           variables?: Json
+          extensions?: Json
+          operationName?: string
         }
         Returns: Json
       }
@@ -110,6 +110,44 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      expense_participants: {
+        Row: {
+          created_at: string
+          expense_id: string
+          external_identifier: string | null
+          external_name: string | null
+          id: string
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          expense_id: string
+          external_identifier?: string | null
+          external_name?: string | null
+          id?: string
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          expense_id?: string
+          external_identifier?: string | null
+          external_name?: string | null
+          id?: string
+          updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "expense_participants_expense_id_fkey"
+            columns: ["expense_id"]
+            isOneToOne: false
+            referencedRelation: "expenses"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       expenses: {
         Row: {

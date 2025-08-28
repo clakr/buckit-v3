@@ -9,7 +9,10 @@ function RadioGroup({
 	return (
 		<RadioGroupPrimitive.Root
 			data-slot="radio-group"
-			className={cn("grid gap-3", className)}
+			className={cn(
+				"flex gap-3 data-[orientation=vertical]:flex-col",
+				className,
+			)}
 			{...props}
 		/>
 	);

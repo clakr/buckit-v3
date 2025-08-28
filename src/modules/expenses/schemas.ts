@@ -21,6 +21,20 @@ const expenseBaseSchema = z.object({
 	status: expenseStatusEnum,
 });
 
-export const createExpenseFormSchema = expenseBaseSchema.extend({});
+export const participantBaseSchema = z.discriminatedUnion("type", [
+	z.object({
+		type: z.literal("system"),
+		email: z.string().email(),
+	}),
+	z.object({
+		type: z.literal("external"),
+		external_name: z.string(),
+		external_identifier: z.string().optional(),
+	}),
+]);
+
+export const createExpenseFormSchema = expenseBaseSchema.extend({
+	participants: z.array(participantBaseSchema).min(1),
+});
 
 export const updateExpenseFormSchema = createExpenseFormSchema;

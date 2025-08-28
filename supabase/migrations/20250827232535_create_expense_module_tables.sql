@@ -75,3 +75,94 @@ USING (auth.uid() = user_id);
 
 -- Grant permissions to roles
 GRANT ALL ON TABLE public.expenses TO anon, authenticated, service_role;
+
+-- ========================================
+-- Migration: Create Expense Participants Table
+-- ========================================
+
+-- Create expense participants table (supports both system users and external participants)
+CREATE TABLE public.expense_participants (
+    id uuid NOT NULL DEFAULT gen_random_uuid(),
+    expense_id uuid NOT NULL,
+    user_id uuid,
+    external_name text,
+    external_identifier text,
+    created_at timestamp with time zone NOT NULL DEFAULT now(),
+    updated_at timestamp with time zone NOT NULL DEFAULT now(),
+    CONSTRAINT expense_participants_pkey PRIMARY KEY (id),
+    CONSTRAINT expense_participants_expense_id_fkey FOREIGN KEY (expense_id) REFERENCES expenses(id) ON DELETE CASCADE,
+    CONSTRAINT expense_participants_user_id_fkey FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE,
+    CONSTRAINT participant_type_check CHECK (
+        (user_id IS NOT NULL AND external_name IS NULL AND external_identifier IS NULL) OR
+        (user_id IS NULL AND external_name IS NOT NULL)
+    ),
+    CONSTRAINT check_external_name_length CHECK ((external_name IS NULL) OR (char_length(external_name) <= 100)),
+    CONSTRAINT check_external_identifier_length CHECK ((external_identifier IS NULL) OR (char_length(external_identifier) <= 255)),
+    CONSTRAINT unique_expense_user_participant UNIQUE (expense_id, user_id),
+    CONSTRAINT unique_expense_external_participant UNIQUE (expense_id, external_identifier)
+);
+
+-- Create indexes for better query performance
+CREATE INDEX idx_expense_participants_expense_id ON public.expense_participants(expense_id);
+CREATE INDEX idx_expense_participants_user_id ON public.expense_participants(user_id);
+
+-- Create trigger for updating timestamp
+CREATE TRIGGER update_expense_participants_updated_at
+BEFORE UPDATE ON expense_participants
+FOR EACH ROW
+EXECUTE FUNCTION handle_updated_at();
+
+-- Enable RLS on expense_participants table
+ALTER TABLE public.expense_participants ENABLE ROW LEVEL SECURITY;
+
+-- RLS Policies for expense_participants table
+CREATE POLICY "Users can view participants of own expenses"
+ON public.expense_participants
+FOR SELECT
+TO public
+USING (
+    EXISTS (
+        SELECT 1 FROM expenses
+        WHERE id = expense_participants.expense_id
+        AND user_id = auth.uid()
+    )
+);
+
+CREATE POLICY "Users can add participants to own expenses"
+ON public.expense_participants
+FOR INSERT
+TO public
+WITH CHECK (
+    EXISTS (
+        SELECT 1 FROM expenses
+        WHERE id = expense_participants.expense_id
+        AND user_id = auth.uid()
+    )
+);
+
+CREATE POLICY "Users can update participants of own expenses"
+ON public.expense_participants
+FOR UPDATE
+TO public
+USING (
+    EXISTS (
+        SELECT 1 FROM expenses
+        WHERE id = expense_participants.expense_id
+        AND user_id = auth.uid()
+    )
+);
+
+CREATE POLICY "Users can delete participants from own expenses"
+ON public.expense_participants
+FOR DELETE
+TO public
+USING (
+    EXISTS (
+        SELECT 1 FROM expenses
+        WHERE id = expense_participants.expense_id
+        AND user_id = auth.uid()
+    )
+);
+
+-- Grant permissions to roles
+GRANT ALL ON TABLE public.expense_participants TO anon, authenticated, service_role;
