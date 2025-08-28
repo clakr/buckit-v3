@@ -111,7 +111,6 @@ const links = [
 			active: "icon-park-solid:transaction-order",
 			inactive: "icon-park-outline:transaction-order",
 		},
-		isDisabled: true,
 	},
 ];
 
@@ -129,7 +128,6 @@ function SidebarContent() {
 										activeProps={{
 											"data-active": true,
 										}}
-										disabled={link.isDisabled}
 									>
 										<Icon
 											icon={link.icon.active}

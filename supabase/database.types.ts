@@ -17,10 +17,10 @@ export type Database = {
     Functions: {
       graphql: {
         Args: {
-          query?: string
           operationName?: string
           extensions?: Json
           variables?: Json
+          query?: string
         }
         Returns: Json
       }
@@ -40,7 +40,7 @@ export type Database = {
           balance_after: number | null
           bucket_id: string
           created_at: string
-          description: string | null
+          description: string
           id: string
           type: Database["public"]["Enums"]["transaction_type"]
           updated_at: string
@@ -51,7 +51,7 @@ export type Database = {
           balance_after?: number | null
           bucket_id: string
           created_at?: string
-          description?: string | null
+          description: string
           id?: string
           type: Database["public"]["Enums"]["transaction_type"]
           updated_at?: string
@@ -62,7 +62,7 @@ export type Database = {
           balance_after?: number | null
           bucket_id?: string
           created_at?: string
-          description?: string | null
+          description?: string
           id?: string
           type?: Database["public"]["Enums"]["transaction_type"]
           updated_at?: string
@@ -111,12 +111,45 @@ export type Database = {
         }
         Relationships: []
       }
+      expenses: {
+        Row: {
+          created_at: string
+          description: string | null
+          id: string
+          name: string
+          status: Database["public"]["Enums"]["expense_status"]
+          total_amount: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          name: string
+          status?: Database["public"]["Enums"]["expense_status"]
+          total_amount?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          name?: string
+          status?: Database["public"]["Enums"]["expense_status"]
+          total_amount?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       goal_transactions: {
         Row: {
           amount: number
           balance_after: number | null
           created_at: string
-          description: string | null
+          description: string
           goal_id: string
           id: string
           type: Database["public"]["Enums"]["transaction_type"]
@@ -127,7 +160,7 @@ export type Database = {
           amount: number
           balance_after?: number | null
           created_at?: string
-          description?: string | null
+          description: string
           goal_id: string
           id?: string
           type: Database["public"]["Enums"]["transaction_type"]
@@ -138,7 +171,7 @@ export type Database = {
           amount?: number
           balance_after?: number | null
           created_at?: string
-          description?: string | null
+          description?: string
           goal_id?: string
           id?: string
           type?: Database["public"]["Enums"]["transaction_type"]
@@ -283,6 +316,7 @@ export type Database = {
     }
     Enums: {
       allocation_type: "percentage" | "fixed"
+      expense_status: "draft" | "active" | "settled"
       target_type: "bucket" | "goal"
       transaction_type: "inbound" | "outbound"
     }
@@ -416,6 +450,7 @@ export const Constants = {
   public: {
     Enums: {
       allocation_type: ["percentage", "fixed"],
+      expense_status: ["draft", "active", "settled"],
       target_type: ["bucket", "goal"],
       transaction_type: ["inbound", "outbound"],
     },

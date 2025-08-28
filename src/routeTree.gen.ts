@@ -17,8 +17,10 @@ import { Route as GuestRegisterRouteImport } from './routes/_guest/register'
 import { Route as AuthedDashboardRouteImport } from './routes/_authed/dashboard'
 import { Route as AuthedSplitsIndexRouteImport } from './routes/_authed/splits.index'
 import { Route as AuthedGoalsIndexRouteImport } from './routes/_authed/goals.index'
+import { Route as AuthedExpensesIndexRouteImport } from './routes/_authed/expenses.index'
 import { Route as AuthedBucketsIndexRouteImport } from './routes/_authed/buckets.index'
 import { Route as AuthedSplitsCreateRouteImport } from './routes/_authed/splits.create'
+import { Route as AuthedExpensesCreateRouteImport } from './routes/_authed/expenses.create'
 import { Route as AuthedSplitsIdIndexRouteImport } from './routes/_authed/splits.$id.index'
 import { Route as AuthedGoalsIdIndexRouteImport } from './routes/_authed/goals.$id.index'
 import { Route as AuthedBucketsIdIndexRouteImport } from './routes/_authed/buckets.$id.index'
@@ -62,6 +64,11 @@ const AuthedGoalsIndexRoute = AuthedGoalsIndexRouteImport.update({
   path: '/goals/',
   getParentRoute: () => AuthedRouteRoute,
 } as any)
+const AuthedExpensesIndexRoute = AuthedExpensesIndexRouteImport.update({
+  id: '/expenses/',
+  path: '/expenses/',
+  getParentRoute: () => AuthedRouteRoute,
+} as any)
 const AuthedBucketsIndexRoute = AuthedBucketsIndexRouteImport.update({
   id: '/buckets/',
   path: '/buckets/',
@@ -70,6 +77,11 @@ const AuthedBucketsIndexRoute = AuthedBucketsIndexRouteImport.update({
 const AuthedSplitsCreateRoute = AuthedSplitsCreateRouteImport.update({
   id: '/splits/create',
   path: '/splits/create',
+  getParentRoute: () => AuthedRouteRoute,
+} as any)
+const AuthedExpensesCreateRoute = AuthedExpensesCreateRouteImport.update({
+  id: '/expenses/create',
+  path: '/expenses/create',
   getParentRoute: () => AuthedRouteRoute,
 } as any)
 const AuthedSplitsIdIndexRoute = AuthedSplitsIdIndexRouteImport.update({
@@ -98,8 +110,10 @@ export interface FileRoutesByFullPath {
   '/register': typeof GuestRegisterRoute
   '/demo/tanstack-query': typeof DemoTanstackQueryRoute
   '/': typeof GuestIndexRoute
+  '/expenses/create': typeof AuthedExpensesCreateRoute
   '/splits/create': typeof AuthedSplitsCreateRoute
   '/buckets': typeof AuthedBucketsIndexRoute
+  '/expenses': typeof AuthedExpensesIndexRoute
   '/goals': typeof AuthedGoalsIndexRoute
   '/splits': typeof AuthedSplitsIndexRoute
   '/splits/$id/edit': typeof AuthedSplitsIdEditRoute
@@ -112,8 +126,10 @@ export interface FileRoutesByTo {
   '/register': typeof GuestRegisterRoute
   '/demo/tanstack-query': typeof DemoTanstackQueryRoute
   '/': typeof GuestIndexRoute
+  '/expenses/create': typeof AuthedExpensesCreateRoute
   '/splits/create': typeof AuthedSplitsCreateRoute
   '/buckets': typeof AuthedBucketsIndexRoute
+  '/expenses': typeof AuthedExpensesIndexRoute
   '/goals': typeof AuthedGoalsIndexRoute
   '/splits': typeof AuthedSplitsIndexRoute
   '/splits/$id/edit': typeof AuthedSplitsIdEditRoute
@@ -129,8 +145,10 @@ export interface FileRoutesById {
   '/_guest/register': typeof GuestRegisterRoute
   '/demo/tanstack-query': typeof DemoTanstackQueryRoute
   '/_guest/': typeof GuestIndexRoute
+  '/_authed/expenses/create': typeof AuthedExpensesCreateRoute
   '/_authed/splits/create': typeof AuthedSplitsCreateRoute
   '/_authed/buckets/': typeof AuthedBucketsIndexRoute
+  '/_authed/expenses/': typeof AuthedExpensesIndexRoute
   '/_authed/goals/': typeof AuthedGoalsIndexRoute
   '/_authed/splits/': typeof AuthedSplitsIndexRoute
   '/_authed/splits/$id/edit': typeof AuthedSplitsIdEditRoute
@@ -145,8 +163,10 @@ export interface FileRouteTypes {
     | '/register'
     | '/demo/tanstack-query'
     | '/'
+    | '/expenses/create'
     | '/splits/create'
     | '/buckets'
+    | '/expenses'
     | '/goals'
     | '/splits'
     | '/splits/$id/edit'
@@ -159,8 +179,10 @@ export interface FileRouteTypes {
     | '/register'
     | '/demo/tanstack-query'
     | '/'
+    | '/expenses/create'
     | '/splits/create'
     | '/buckets'
+    | '/expenses'
     | '/goals'
     | '/splits'
     | '/splits/$id/edit'
@@ -175,8 +197,10 @@ export interface FileRouteTypes {
     | '/_guest/register'
     | '/demo/tanstack-query'
     | '/_guest/'
+    | '/_authed/expenses/create'
     | '/_authed/splits/create'
     | '/_authed/buckets/'
+    | '/_authed/expenses/'
     | '/_authed/goals/'
     | '/_authed/splits/'
     | '/_authed/splits/$id/edit'
@@ -249,6 +273,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthedGoalsIndexRouteImport
       parentRoute: typeof AuthedRouteRoute
     }
+    '/_authed/expenses/': {
+      id: '/_authed/expenses/'
+      path: '/expenses'
+      fullPath: '/expenses'
+      preLoaderRoute: typeof AuthedExpensesIndexRouteImport
+      parentRoute: typeof AuthedRouteRoute
+    }
     '/_authed/buckets/': {
       id: '/_authed/buckets/'
       path: '/buckets'
@@ -261,6 +292,13 @@ declare module '@tanstack/react-router' {
       path: '/splits/create'
       fullPath: '/splits/create'
       preLoaderRoute: typeof AuthedSplitsCreateRouteImport
+      parentRoute: typeof AuthedRouteRoute
+    }
+    '/_authed/expenses/create': {
+      id: '/_authed/expenses/create'
+      path: '/expenses/create'
+      fullPath: '/expenses/create'
+      preLoaderRoute: typeof AuthedExpensesCreateRouteImport
       parentRoute: typeof AuthedRouteRoute
     }
     '/_authed/splits/$id/': {
@@ -296,8 +334,10 @@ declare module '@tanstack/react-router' {
 
 interface AuthedRouteRouteChildren {
   AuthedDashboardRoute: typeof AuthedDashboardRoute
+  AuthedExpensesCreateRoute: typeof AuthedExpensesCreateRoute
   AuthedSplitsCreateRoute: typeof AuthedSplitsCreateRoute
   AuthedBucketsIndexRoute: typeof AuthedBucketsIndexRoute
+  AuthedExpensesIndexRoute: typeof AuthedExpensesIndexRoute
   AuthedGoalsIndexRoute: typeof AuthedGoalsIndexRoute
   AuthedSplitsIndexRoute: typeof AuthedSplitsIndexRoute
   AuthedSplitsIdEditRoute: typeof AuthedSplitsIdEditRoute
@@ -308,8 +348,10 @@ interface AuthedRouteRouteChildren {
 
 const AuthedRouteRouteChildren: AuthedRouteRouteChildren = {
   AuthedDashboardRoute: AuthedDashboardRoute,
+  AuthedExpensesCreateRoute: AuthedExpensesCreateRoute,
   AuthedSplitsCreateRoute: AuthedSplitsCreateRoute,
   AuthedBucketsIndexRoute: AuthedBucketsIndexRoute,
+  AuthedExpensesIndexRoute: AuthedExpensesIndexRoute,
   AuthedGoalsIndexRoute: AuthedGoalsIndexRoute,
   AuthedSplitsIndexRoute: AuthedSplitsIndexRoute,
   AuthedSplitsIdEditRoute: AuthedSplitsIdEditRoute,
