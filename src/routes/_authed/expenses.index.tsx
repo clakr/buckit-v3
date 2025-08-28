@@ -3,6 +3,7 @@ import { Heading } from "@/components/heading";
 import { StateTemplate } from "@/components/states-template";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { ExpenseCard } from "@/modules/expenses/components/expense-card";
 import { expensesQueryOption } from "@/modules/expenses/query-options";
 import { Icon } from "@iconify/react";
 import { useSuspenseQuery } from "@tanstack/react-query";
@@ -100,9 +101,7 @@ function RouteComponent() {
 			</Heading>
 			<section className="grid grid-cols-[repeat(auto-fill,minmax(300px,1fr))] gap-4">
 				{expenses.map((expense) => (
-					<Card key={expense.id}>
-						<pre>{JSON.stringify(expense, null, 2)}</pre>
-					</Card>
+					<ExpenseCard key={expense.id} expense={expense} />
 				))}
 			</section>
 		</Container>

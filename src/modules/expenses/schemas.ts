@@ -22,3 +22,5 @@ const expenseBaseSchema = z.object({
 });
 
 export const createExpenseFormSchema = expenseBaseSchema.extend({});
+
+export const updateExpenseFormSchema = createExpenseFormSchema;
