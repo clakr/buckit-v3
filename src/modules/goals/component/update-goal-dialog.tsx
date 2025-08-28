@@ -78,7 +78,7 @@ export function UpdateGoalDialog() {
 	const form = useAppForm({
 		defaultValues,
 		validators: {
-			onBlur: updateGoalFormSchema,
+			onChange: updateGoalFormSchema,
 		},
 		onSubmit: async ({ value }) => {
 			const payload = updateGoalFormSchema.parse(value);

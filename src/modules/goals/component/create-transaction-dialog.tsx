@@ -56,7 +56,7 @@ export function CreateTransactionDialog() {
 	const form = useAppForm({
 		defaultValues,
 		validators: {
-			onBlur: createTransactionFormSchema,
+			onChange: createTransactionFormSchema,
 		},
 		onSubmit: async ({ value }) => {
 			const payload = createTransactionFormSchema.parse(value);

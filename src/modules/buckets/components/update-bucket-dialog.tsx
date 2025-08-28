@@ -77,7 +77,7 @@ export function UpdateBucketDialog() {
 	const form = useAppForm({
 		defaultValues,
 		validators: {
-			onBlur: updateBucketFormSchema,
+			onChange: updateBucketFormSchema,
 		},
 		onSubmit: async ({ value }) => {
 			const payload = updateBucketFormSchema.parse(value);

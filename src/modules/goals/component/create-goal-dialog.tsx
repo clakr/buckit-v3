@@ -31,7 +31,7 @@ export function CreateGoalDialog() {
 	const form = useAppForm({
 		defaultValues,
 		validators: {
-			onBlur: createGoalFormSchema,
+			onChange: createGoalFormSchema,
 		},
 		onSubmit: async ({ value }) => {
 			const payload = createGoalFormSchema.parse(value);

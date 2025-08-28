@@ -100,7 +100,7 @@ function RouteComponent() {
 		...splitFormOptions,
 		defaultValues,
 		validators: {
-			onBlur: updateSplitFormSchema,
+			onChange: updateSplitFormSchema,
 		},
 		onSubmit: async ({ value }) => {
 			const payload = updateSplitFormSchema.parse(value);

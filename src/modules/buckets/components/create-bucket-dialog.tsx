@@ -30,7 +30,7 @@ export function CreateBucketDialog() {
 	const form = useAppForm({
 		defaultValues,
 		validators: {
-			onBlur: createBucketFormSchema,
+			onChange: createBucketFormSchema,
 		},
 		onSubmit: async ({ value }) => {
 			const payload = createBucketFormSchema.parse(value);

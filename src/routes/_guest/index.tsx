@@ -46,7 +46,7 @@ function RouteComponent() {
 			confirmPassword: "",
 		} as z.input<typeof schema>,
 		validators: {
-			onBlur: schema,
+			onChange: schema,
 		},
 		onSubmit: async ({ value }) => {
 			const { error } = await supabase.auth.signInWithPassword({
