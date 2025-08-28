@@ -3,7 +3,7 @@
 -- ========================================
 
 -- Create status enum for expenses
-CREATE TYPE public.expense_status AS ENUM ('draft', 'active', 'settled');
+CREATE TYPE public.expense_status AS ENUM ('draft', 'active', 'settled', 'archived');
 
 -- Create main expenses table
 CREATE TABLE public.expenses (

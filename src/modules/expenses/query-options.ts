@@ -5,7 +5,10 @@ import { queryOptions } from "@tanstack/react-query";
 export const expensesQueryOption = queryOptions({
 	queryKey: ["expenses"],
 	queryFn: async () => {
-		const { error, data } = await supabase.from("expenses").select("*");
+		const { error, data } = await supabase
+			.from("expenses")
+			.select("*")
+			.not("status", "eq", "archived");
 
 		if (error) throw error;
 

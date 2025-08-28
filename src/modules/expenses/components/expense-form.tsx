@@ -9,6 +9,8 @@ import { formOptions } from "@tanstack/react-form";
 import { useState } from "react";
 import type z from "zod";
 
+const validExpenseStatusEnum = expenseStatusEnum.exclude(["archived"]);
+
 export const expenseFormOptions = formOptions({
 	defaultValues: {
 		id: crypto.randomUUID(),
@@ -69,7 +71,7 @@ export const ExpenseForm = withForm({
 									<field.Select
 										label="Status"
 										id="status"
-										enumSchema={expenseStatusEnum}
+										enumSchema={validExpenseStatusEnum}
 									/>
 								)}
 							</form.AppField>

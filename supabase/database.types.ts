@@ -17,10 +17,10 @@ export type Database = {
     Functions: {
       graphql: {
         Args: {
+          query?: string
           operationName?: string
           extensions?: Json
           variables?: Json
-          query?: string
         }
         Returns: Json
       }
@@ -316,7 +316,7 @@ export type Database = {
     }
     Enums: {
       allocation_type: "percentage" | "fixed"
-      expense_status: "draft" | "active" | "settled"
+      expense_status: "draft" | "active" | "settled" | "archived"
       target_type: "bucket" | "goal"
       transaction_type: "inbound" | "outbound"
     }
@@ -450,7 +450,7 @@ export const Constants = {
   public: {
     Enums: {
       allocation_type: ["percentage", "fixed"],
-      expense_status: ["draft", "active", "settled"],
+      expense_status: ["draft", "active", "settled", "archived"],
       target_type: ["bucket", "goal"],
       transaction_type: ["inbound", "outbound"],
     },

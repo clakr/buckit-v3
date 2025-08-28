@@ -1,4 +1,5 @@
 import { supabase } from "@/integrations/supabase";
+import type { Expense } from "@/integrations/supabase/types";
 import type {
 	createExpenseFormSchema,
 	updateExpenseFormSchema,
@@ -36,6 +37,26 @@ export function useUpdateExpenseMutation() {
 		meta: {
 			errorTitle: "Failed to update expense",
 			successMessage: "Expense updated successfully",
+			invalidatesQuery: ["expenses"],
+		},
+	});
+}
+
+export function useDeleteExpenseMutation() {
+	return useMutation({
+		mutationFn: async (id: Expense["id"]) => {
+			const { error } = await supabase
+				.from("expenses")
+				.update({
+					status: "archived",
+				})
+				.eq("id", id);
+
+			if (error) throw error;
+		},
+		meta: {
+			errorTitle: "Failed to delete expense",
+			successMessage: "Expense deleted successfully",
 			invalidatesQuery: ["expenses"],
 		},
 	});
