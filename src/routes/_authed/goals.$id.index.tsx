@@ -95,6 +95,7 @@ function RouteComponent() {
 	if (!goal)
 		return (
 			<Container>
+				<Heading heading="Goal" />
 				<StateTemplate
 					state="empty"
 					heading="We can't find that goal"

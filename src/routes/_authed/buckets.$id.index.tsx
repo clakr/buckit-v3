@@ -83,6 +83,7 @@ function RouteComponent() {
 	if (!bucket)
 		return (
 			<Container>
+				<Heading heading="Bucket" />
 				<StateTemplate
 					state="empty"
 					heading="We can't find that bucket"

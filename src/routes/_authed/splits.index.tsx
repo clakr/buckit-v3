@@ -88,7 +88,7 @@ function RouteComponent() {
 
 	return (
 		<Container>
-			<Heading heading="Split">
+			<Heading heading="Splits">
 				<Button asChild>
 					<Link to="/splits/create">
 						<Icon icon="bx:plus" />

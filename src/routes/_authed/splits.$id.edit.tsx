@@ -5,8 +5,11 @@ import { Button } from "@/components/ui/button";
 import { useAppForm } from "@/hooks/form";
 import { bucketsQueryOption } from "@/modules/buckets/query-options";
 import { goalsQueryOption } from "@/modules/goals/query-options";
-import { SplitForm, splitFormOptions } from "@/modules/splits/components/split-form";
-import {  useUpdateSplitMutation } from "@/modules/splits/mutations";
+import {
+	SplitForm,
+	splitFormOptions,
+} from "@/modules/splits/components/split-form";
+import { useUpdateSplitMutation } from "@/modules/splits/mutations";
 import { splitQueryOption } from "@/modules/splits/query-options";
 import { updateSplitFormSchema } from "@/modules/splits/schemas";
 import { useSuspenseQuery } from "@tanstack/react-query";
@@ -69,6 +72,7 @@ function RouteComponent() {
 	if (!split)
 		return (
 			<Container>
+				<Heading heading="Split" />
 				<StateTemplate
 					state="empty"
 					heading="We can't find that split"

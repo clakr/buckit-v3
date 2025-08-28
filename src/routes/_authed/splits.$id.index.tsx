@@ -71,6 +71,7 @@ function RouteComponent() {
 	if (!split)
 		return (
 			<Container>
+				<Heading heading="Split" />
 				<StateTemplate
 					state="empty"
 					heading="We can't find that split"
