@@ -17,9 +17,9 @@ export type Database = {
     Functions: {
       graphql: {
         Args: {
-          query?: string
-          operationName?: string
           extensions?: Json
+          operationName?: string
+          query?: string
           variables?: Json
         }
         Returns: Json
@@ -40,7 +40,7 @@ export type Database = {
           balance_after: number | null
           bucket_id: string
           created_at: string
-          description: string | null
+          description: string
           id: string
           type: Database["public"]["Enums"]["transaction_type"]
           updated_at: string
@@ -51,7 +51,7 @@ export type Database = {
           balance_after?: number | null
           bucket_id: string
           created_at?: string
-          description?: string | null
+          description: string
           id?: string
           type: Database["public"]["Enums"]["transaction_type"]
           updated_at?: string
@@ -62,7 +62,7 @@ export type Database = {
           balance_after?: number | null
           bucket_id?: string
           created_at?: string
-          description?: string | null
+          description?: string
           id?: string
           type?: Database["public"]["Enums"]["transaction_type"]
           updated_at?: string
@@ -116,7 +116,7 @@ export type Database = {
           amount: number
           balance_after: number | null
           created_at: string
-          description: string | null
+          description: string
           goal_id: string
           id: string
           type: Database["public"]["Enums"]["transaction_type"]
@@ -127,7 +127,7 @@ export type Database = {
           amount: number
           balance_after?: number | null
           created_at?: string
-          description?: string | null
+          description: string
           goal_id: string
           id?: string
           type: Database["public"]["Enums"]["transaction_type"]
@@ -138,7 +138,7 @@ export type Database = {
           amount?: number
           balance_after?: number | null
           created_at?: string
-          description?: string | null
+          description?: string
           goal_id?: string
           id?: string
           type?: Database["public"]["Enums"]["transaction_type"]
@@ -188,6 +188,39 @@ export type Database = {
           target_amount?: number
           updated_at?: string
           user_id?: string
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          avatar_url: string | null
+          created_at: string | null
+          email: string
+          first_name: string | null
+          id: string
+          last_name: string | null
+          updated_at: string | null
+          username: string | null
+        }
+        Insert: {
+          avatar_url?: string | null
+          created_at?: string | null
+          email: string
+          first_name?: string | null
+          id: string
+          last_name?: string | null
+          updated_at?: string | null
+          username?: string | null
+        }
+        Update: {
+          avatar_url?: string | null
+          created_at?: string | null
+          email?: string
+          first_name?: string | null
+          id?: string
+          last_name?: string | null
+          updated_at?: string | null
+          username?: string | null
         }
         Relationships: []
       }
@@ -279,6 +312,18 @@ export type Database = {
       execute_split: {
         Args: { p_split_id: string }
         Returns: Json
+      }
+      get_users_by_ids: {
+        Args: { user_ids: string[] }
+        Returns: {
+          last_name: string
+          first_name: string
+          email: string
+          id: string
+          created_at: string
+          avatar_url: string
+          username: string
+        }[]
       }
     }
     Enums: {

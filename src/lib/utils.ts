@@ -105,3 +105,7 @@ export function formatDateISO(value: string | null) {
 
 	return `${year}-${month}-${day}`;
 }
+
+export function getInitialsAvatar(seed: string) {
+	return `https://api.dicebear.com/9.x/notionists/svg?seed=${seed}`;
+}

@@ -21,7 +21,8 @@ import {
 	SidebarFooter as UISidebarFooter,
 } from "@/components/ui/sidebar";
 import { supabase } from "@/integrations/supabase";
-import { getErrorMessage } from "@/integrations/supabase/utils";
+import { UpdateProfileDialog } from "@/modules/profile/components/update-profile-dialog";
+import { UserDropdownMenu } from "@/modules/profile/components/user-dropdown-menu";
 import { Icon } from "@iconify/react";
 import {
 	Link,
@@ -31,7 +32,6 @@ import {
 	useLocation,
 } from "@tanstack/react-router";
 import { Fragment } from "react/jsx-runtime";
-import { toast } from "sonner";
 
 export const Route = createFileRoute("/_authed")({
 	component: RouteComponent,
@@ -58,6 +58,8 @@ function RouteComponent() {
 				<Header />
 				<Outlet />
 			</SidebarInset>
+
+			<UpdateProfileDialog />
 		</SidebarProvider>
 	);
 }
@@ -154,30 +156,11 @@ function SidebarContent() {
 function SidebarFooter({
 	...props
 }: React.ComponentProps<typeof UISidebarFooter>) {
-	const navigate = Route.useNavigate();
-
-	async function handleLogout() {
-		const { error } = await supabase.auth.signOut();
-
-		if (error) {
-			toast.error(getErrorMessage(error.code));
-			return;
-		}
-
-		navigate({
-			to: "/",
-			replace: true,
-		});
-	}
-
 	return (
 		<UISidebarFooter {...props}>
 			<SidebarMenu>
 				<SidebarMenuItem>
-					<SidebarMenuButton onClick={handleLogout}>
-						<Icon icon="bx:log-out" />
-						Logout
-					</SidebarMenuButton>
+					<UserDropdownMenu />
 				</SidebarMenuItem>
 			</SidebarMenu>
 		</UISidebarFooter>
