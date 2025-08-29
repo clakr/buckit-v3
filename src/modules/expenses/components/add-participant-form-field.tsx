@@ -1,9 +1,25 @@
 import { Button } from "@/components/ui/button";
+import {
+	Command,
+	CommandEmpty,
+	CommandGroup,
+	CommandInput,
+	CommandItem,
+	CommandList as UICommandList,
+} from "@/components/ui/command";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import {
+	Popover,
+	PopoverContent,
+	PopoverTrigger,
+} from "@/components/ui/popover";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { supabase } from "@/integrations/supabase";
 import type { participantBaseSchema } from "@/modules/expenses/schemas";
 import { Icon } from "@iconify/react";
+import { useQuery } from "@tanstack/react-query";
+import { useDebounce } from "@uidotdev/usehooks";
 import { useRef, useState } from "react";
 import z from "zod";
 
@@ -99,16 +115,8 @@ function SystemUserEmailFormField({ handleAddParticipant }: Props) {
 
 	return (
 		<section className="gap-2 grid grid-cols-[minmax(0,1fr)_auto]">
-			<Label htmlFor="system-user-email" className="col-span-full">
-				Email Address
-			</Label>
-			<Input
-				ref={inputRef}
-				type="email"
-				id="system-user-email"
-				placeholder="Enter email address"
-				onChange={handleOnChange}
-			/>
+			<Label className="col-span-full">Email Address</Label>
+			<UserEmailCombobox />
 			<Button
 				type="button"
 				variant="secondary"
@@ -124,6 +132,90 @@ function SystemUserEmailFormField({ handleAddParticipant }: Props) {
 				</span>
 			) : null}
 		</section>
+	);
+}
+
+export function UserEmailCombobox() {
+	const [open, setOpen] = useState(false);
+
+	const [value, setValue] = useState("");
+	const debouncedValue = useDebounce(value, 500);
+
+	const {
+		isLoading,
+		isError,
+		data: users,
+	} = useQuery({
+		queryKey: ["users", { email: debouncedValue }],
+		queryFn: async () => {
+			const { error, data } = await supabase.rpc("search_users_by_email", {
+				query: debouncedValue,
+			});
+
+			if (error) throw error;
+
+			return data;
+		},
+		enabled: !!debouncedValue,
+	});
+
+	function CommandList() {
+		return (
+			<UICommandList>
+				{isLoading && <div className="p-4 text-sm">Searching...</div>}
+
+				{isError && <div className="p-4 text-sm">Something went wrong</div>}
+
+				{users ? (
+					users.length === 0 ? (
+						<CommandEmpty>No users found</CommandEmpty>
+					) : (
+						<CommandGroup>
+							{users.map((user) => (
+								<CommandItem
+									key={user.user_id}
+									value={user.user_id}
+									onSelect={(currentValue) => {
+										alert(`Selected ${user.display_name}`);
+										setOpen(false);
+									}}
+								>
+									{user.display_name}
+								</CommandItem>
+							))}
+						</CommandGroup>
+					)
+				) : null}
+			</UICommandList>
+		);
+	}
+
+	return (
+		<Popover open={open} onOpenChange={setOpen}>
+			<PopoverTrigger asChild>
+				<Button
+					variant="outline"
+					// biome-ignore lint/a11y/useSemanticElements:
+					role="combobox"
+					aria-expanded={open}
+					className="justify-between"
+				>
+					Select user...
+					<Icon icon="bxs:chevron-down" className="opacity-50" />
+				</Button>
+			</PopoverTrigger>
+			<PopoverContent className="p-0">
+				<Command shouldFilter={false}>
+					<CommandInput
+						placeholder="Search user..."
+						className="h-9"
+						value={value}
+						onValueChange={setValue}
+					/>
+					<CommandList />
+				</Command>
+			</PopoverContent>
+		</Popover>
 	);
 }
 

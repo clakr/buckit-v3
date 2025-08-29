@@ -17,10 +17,10 @@ export type Database = {
     Functions: {
       graphql: {
         Args: {
+          operationName?: string
           query?: string
           variables?: Json
           extensions?: Json
-          operationName?: string
         }
         Returns: Json
       }
@@ -350,6 +350,16 @@ export type Database = {
       execute_split: {
         Args: { p_split_id: string }
         Returns: Json
+      }
+      search_users_by_email: {
+        Args: { query: string }
+        Returns: {
+          last_name: string
+          first_name: string
+          email: string
+          user_id: string
+          display_name: string
+        }[]
       }
     }
     Enums: {

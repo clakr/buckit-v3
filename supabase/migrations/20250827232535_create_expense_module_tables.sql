@@ -1,3 +1,39 @@
+-- Create a function to search users by email
+CREATE OR REPLACE FUNCTION public.search_users_by_email(query text)
+RETURNS TABLE (
+    user_id uuid,
+    email text,
+    first_name text,
+    last_name text,
+    display_name text
+) 
+SECURITY DEFINER
+SET search_path = public, auth
+AS $$
+BEGIN
+    RETURN QUERY
+    SELECT 
+        u.id as user_id,
+        u.email::text,
+        u.raw_user_meta_data->>'first_name' as first_name,
+        u.raw_user_meta_data->>'last_name' as last_name,
+        COALESCE(
+            CONCAT(
+                u.raw_user_meta_data->>'first_name', 
+                ' ', 
+                u.raw_user_meta_data->>'last_name'
+            ),
+            u.email::text
+        ) as display_name
+    FROM auth.users u
+    WHERE u.email = query
+    AND u.email_confirmed_at IS NOT NULL; -- Only confirmed users
+END;
+$$ LANGUAGE plpgsql;
+
+-- Grant execute permission
+GRANT EXECUTE ON FUNCTION public.search_users_by_email(text) TO authenticated;
+
 -- ========================================
 -- Migration: Create Expenses Table
 -- ========================================
