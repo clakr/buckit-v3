@@ -42,7 +42,10 @@ export const ExpenseForm = withForm({
 		function handleAddParticipant(
 			payload: z.input<typeof participantBaseSchema>,
 		) {
-			form.pushFieldValue("participants", payload);
+			form.pushFieldValue("participants", {
+				...payload,
+				expense_id: form.state.values.id,
+			});
 		}
 
 		function handleRemoveParticipant(index: number) {

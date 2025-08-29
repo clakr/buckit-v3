@@ -3,7 +3,7 @@ import { splitAllocationTypeEnum, splitTargetTypeEnum } from "@/lib/schemas";
 import z from "zod";
 
 const splitBaseSchema = z.object({
-	id: z.string().uuid("Invalid Split ID"),
+	id: z.string().uuid("Invalid split ID"),
 
 	name: z
 		.string()
@@ -35,7 +35,7 @@ const splitBaseSchema = z.object({
 
 const allocationBaseSchema = z
 	.object({
-		id: z.string().uuid("Invalid Allocation ID"),
+		id: z.string().uuid("Invalid allocation ID"),
 
 		split_id: splitBaseSchema.shape.id,
 

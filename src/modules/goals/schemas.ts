@@ -57,7 +57,7 @@ export const createGoalFormSchema = goalBaseSchema
 	});
 
 export const updateGoalFormSchema = goalBaseSchema.extend({
-	id: z.string().uuid("Invalid Goal ID"),
+	id: z.string().uuid("Invalid goal ID"),
 
 	target_amount: z.coerce
 		.number({
@@ -74,7 +74,7 @@ export const updateGoalFormSchema = goalBaseSchema.extend({
 });
 
 export const createTransactionFormSchema = z.object({
-	goal_id: z.string().uuid({ message: "Invalid goal ID format" }),
+	goal_id: z.string().uuid({ message: "Invalid goal ID" }),
 
 	type: transactionTypeEnum,
 

@@ -16,7 +16,10 @@ import {
 } from "@/components/ui/popover";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { supabase } from "@/integrations/supabase";
-import type { participantBaseSchema } from "@/modules/expenses/schemas";
+import {
+	createEmptyParticipant,
+	type participantBaseSchema,
+} from "@/modules/expenses/schemas";
 import { Icon } from "@iconify/react";
 import { useQuery } from "@tanstack/react-query";
 import { useDebounce } from "@uidotdev/usehooks";
@@ -53,7 +56,10 @@ export function AddParticipantFormField({ handleAddParticipant }: Props) {
 			</RadioGroup>
 
 			{type === "system" ? (
-				<SystemUserEmailFormField handleAddParticipant={handleAddParticipant} />
+				<section className="gap-2 grid grid-cols-[minmax(0,1fr)_auto]">
+					<Label className="col-span-full">Email Address</Label>
+					<UserEmailCombobox handleAddParticipant={handleAddParticipant} />
+				</section>
 			) : (
 				<ExternalUserEmailFormField
 					handleAddParticipant={handleAddParticipant}
@@ -63,79 +69,7 @@ export function AddParticipantFormField({ handleAddParticipant }: Props) {
 	);
 }
 
-function SystemUserEmailFormField({ handleAddParticipant }: Props) {
-	const inputRef = useRef<HTMLInputElement>(null);
-
-	const [field, setField] = useState<
-		| { state: "initial" }
-		| { state: "error"; error: string }
-		| { state: "success"; data: string }
-	>({ state: "initial" });
-
-	function handleOnChange(event: React.ChangeEvent<HTMLInputElement>) {
-		setField({ state: "initial" });
-
-		const value = event.target.value;
-
-		const { success, error, data } = z
-			.string()
-			.email("Please enter a valid email address")
-			.trim()
-			.safeParse(value);
-
-		setField(() => {
-			if (!success && error)
-				return {
-					state: "error",
-					error: error.issues.at(0)?.message || "Unknown error happened",
-				};
-
-			return {
-				state: "success",
-				data,
-			};
-		});
-	}
-
-	function handleOnClick() {
-		if (field.state !== "success") return;
-
-		handleAddParticipant({
-			type: "system",
-			email: field.data,
-		});
-
-		setField({ state: "initial" });
-
-		if (inputRef.current) {
-			inputRef.current.value = "";
-			inputRef.current.focus();
-		}
-	}
-
-	return (
-		<section className="gap-2 grid grid-cols-[minmax(0,1fr)_auto]">
-			<Label className="col-span-full">Email Address</Label>
-			<UserEmailCombobox />
-			<Button
-				type="button"
-				variant="secondary"
-				size="icon"
-				disabled={field.state !== "success"}
-				onClick={handleOnClick}
-			>
-				<Icon icon="bx:plus" />
-			</Button>
-			{field.state === "error" ? (
-				<span className="text-destructive col-span-full text-xs">
-					{field.error}
-				</span>
-			) : null}
-		</section>
-	);
-}
-
-export function UserEmailCombobox() {
+export function UserEmailCombobox({ handleAddParticipant }: Props) {
 	const [open, setOpen] = useState(false);
 
 	const [value, setValue] = useState("");
@@ -143,7 +77,7 @@ export function UserEmailCombobox() {
 
 	const {
 		isLoading,
-		isError,
+		error,
 		data: users,
 	} = useQuery({
 		queryKey: ["users", { email: debouncedValue }],
@@ -159,26 +93,43 @@ export function UserEmailCombobox() {
 		enabled: !!debouncedValue,
 	});
 
+	function handleOnSelect(payload: { user_id: string; email: string }) {
+		handleAddParticipant(
+			createEmptyParticipant({
+				type: "system",
+				user_id: payload.user_id,
+				email: payload.email,
+			}),
+		);
+
+		setOpen(false);
+		setValue("");
+	}
+
 	function CommandList() {
 		return (
 			<UICommandList>
-				{isLoading && <div className="p-4 text-sm">Searching...</div>}
+				{isLoading && (
+					<div className="py-6 grid place-items-center">
+						<Icon icon="bx:loader-alt" className="animate-spin" />
+					</div>
+				)}
 
-				{isError && <div className="p-4 text-sm">Something went wrong</div>}
+				{error && (
+					<div className="py-6 text-sm text-center">{error.message}</div>
+				)}
 
 				{users ? (
 					users.length === 0 ? (
-						<CommandEmpty>No users found</CommandEmpty>
+						<CommandEmpty>No user found</CommandEmpty>
 					) : (
 						<CommandGroup>
 							{users.map((user) => (
 								<CommandItem
 									key={user.user_id}
-									value={user.user_id}
-									onSelect={(currentValue) => {
-										alert(`Selected ${user.display_name}`);
-										setOpen(false);
-									}}
+									onSelect={() =>
+										handleOnSelect({ user_id: user.user_id, email: user.email })
+									}
 								>
 									{user.display_name}
 								</CommandItem>
@@ -305,11 +256,13 @@ function ExternalUserEmailFormField({ handleAddParticipant }: Props) {
 		)
 			return;
 
-		handleAddParticipant({
-			type: "external",
-			external_name: fields.name.data,
-			external_identifier: fields.identifier.data || undefined,
-		});
+		handleAddParticipant(
+			createEmptyParticipant({
+				type: "external",
+				external_name: fields.name.data,
+				external_identifier: fields.identifier.data || undefined,
+			}),
+		);
 
 		setFields({ name: { state: "initial" }, identifier: { state: "initial" } });
 

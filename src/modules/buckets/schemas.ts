@@ -39,11 +39,11 @@ export const createBucketFormSchema = bucketBaseSchema.extend({
 });
 
 export const updateBucketFormSchema = bucketBaseSchema.extend({
-	id: z.string().uuid("Invalid Bucket ID"),
+	id: z.string().uuid("Invalid bucket ID"),
 });
 
 export const createTransactionFormSchema = z.object({
-	bucket_id: z.string().uuid({ message: "Invalid bucket ID format" }),
+	bucket_id: z.string().uuid({ message: "Invalid bucket ID" }),
 
 	type: transactionTypeEnum,
 
