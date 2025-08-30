@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { useAppForm } from "@/hooks/form";
 import { supabase } from "@/integrations/supabase";
 import { getErrorMessage } from "@/integrations/supabase/utils";
+import { loginUserSchema } from "@/modules/authentication/schemas";
 import { Template } from "@/modules/authentication/template";
 import {
 	Link,
@@ -23,36 +24,22 @@ export const Route = createFileRoute("/_guest/")({
 	},
 });
 
-const schema = z.object({
-	email: z
-		.string()
-		.min(1, "Email is required")
-		.email("Please enter a valid email address")
-		.toLowerCase(),
-
-	password: z.string().min(1, "Password is required"),
-});
-
 function RouteComponent() {
 	const navigate = Route.useNavigate();
 	const { redirectTo } = Route.useSearch();
 
+	const defaultValues: z.input<typeof loginUserSchema> = {
+		email: "",
+		password: "",
+	};
+
 	const form = useAppForm({
-		defaultValues: {
-			firstName: "",
-			lastName: "",
-			email: "",
-			password: "",
-			confirmPassword: "",
-		} as z.input<typeof schema>,
+		defaultValues,
 		validators: {
-			onChange: schema,
+			onChange: loginUserSchema,
 		},
-		onSubmit: async ({ value }) => {
-			const { error } = await supabase.auth.signInWithPassword({
-				email: value.email,
-				password: value.password,
-			});
+		onSubmit: async ({ value: payload }) => {
+			const { error } = await supabase.auth.signInWithPassword(payload);
 
 			if (error) {
 				toast.error(getErrorMessage(error.code));
