@@ -17,7 +17,7 @@ import { useUpdateProfileDialogStore } from "@/modules/profile/components/update
 import { profileQueryOption } from "@/modules/profile/query-options";
 import { Icon } from "@iconify/react";
 import { useQuery } from "@tanstack/react-query";
-import { Link, useNavigate } from "@tanstack/react-router";
+import { useNavigate } from "@tanstack/react-router";
 import { useMemo } from "react";
 import { toast } from "sonner";
 import { useShallow } from "zustand/react/shallow";
