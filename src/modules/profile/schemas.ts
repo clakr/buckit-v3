@@ -1,7 +1,7 @@
 import z from "zod";
 
 export const profileBaseSchema = z.object({
-	id: z.string().uuid("Invalid Profile ID"),
+	id: z.uuid("Invalid Profile ID"),
 
 	first_name: z
 		.string()
@@ -40,7 +40,7 @@ export const profileBaseSchema = z.object({
 		.nullable()
 		.optional(),
 
-	avatar_url: z.string().url("Please enter a valid URL").nullable().optional(),
+	avatar_url: z.url("Please enter a valid URL").nullable().optional(),
 });
 
 export const updateProfileFormSchema = profileBaseSchema;

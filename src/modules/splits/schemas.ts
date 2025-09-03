@@ -3,7 +3,7 @@ import { splitAllocationTypeEnum, splitTargetTypeEnum } from "@/lib/schemas";
 import z from "zod";
 
 const splitBaseSchema = z.object({
-	id: z.string().uuid("Invalid Split ID"),
+	id: z.uuid("Invalid Split ID"),
 
 	name: z
 		.string()
@@ -21,53 +21,59 @@ const splitBaseSchema = z.object({
 
 	base_amount: z.coerce
 		.number({
-			required_error: "Base amount is required",
-			invalid_type_error: "Base amount must be a valid number",
+			error: (issue) =>
+				issue.input === undefined
+					? "Base amount is required"
+					: "Base amount must be a valid number",
 		})
-		.positive({ message: "Base amount must be greater than 0" })
+		.positive({ error: "Base amount must be greater than 0" })
 		.max(MAXIMUM_CURRENCY_AMOUNT, {
-			message: `Base amount must be less than ${MAXIMUM_CURRENCY_AMOUNT}`,
+			error: `Base amount must be less than ${MAXIMUM_CURRENCY_AMOUNT}`,
 		})
 		.multipleOf(0.01, {
-			message: "Base amount can only have up to 2 decimal places",
+			error: "Base amount can only have up to 2 decimal places",
 		}),
 });
 
 const allocationBaseSchema = z
 	.object({
-		id: z.string().uuid("Invalid Allocation ID"),
+		id: z.uuid("Invalid Allocation ID"),
 
 		split_id: splitBaseSchema.shape.id,
 
 		target_type: splitTargetTypeEnum,
 
-		target_id: z.string().uuid("Invalid target ID"),
+		target_id: z.uuid("Invalid target ID"),
 
 		allocation_type: splitAllocationTypeEnum,
 
 		amount: z.coerce
 			.number({
-				required_error: "Amount is required",
-				invalid_type_error: "Amount must be a valid number",
+				error: (issue) =>
+					issue.input === undefined
+						? "Amount is required"
+						: "Amount must be a valid number",
 			})
-			.positive({ message: "Amount must be greater than 0" })
+			.positive({ error: "Amount must be greater than 0" })
 			.max(MAXIMUM_CURRENCY_AMOUNT, {
-				message: `Amount cannot exceed ${MAXIMUM_CURRENCY_AMOUNT}`,
+				error: `Amount cannot exceed ${MAXIMUM_CURRENCY_AMOUNT}`,
 			})
 			.multipleOf(0.01, {
-				message: "Amount can only have up to 2 decimal places",
+				error: "Amount can only have up to 2 decimal places",
 			})
 			.nullable(),
 
 		percentage: z.coerce
 			.number({
-				required_error: "Percentage is required",
-				invalid_type_error: "Percentage must be a valid number",
+				error: (issue) =>
+					issue.input === undefined
+						? "Percentage is required"
+						: "Percentage must be a valid number",
 			})
 			.min(0.01, "Percentage must be at least 0.01%")
 			.max(100, "Percentage cannot exceed 100%")
 			.multipleOf(0.01, {
-				message: "Percentage can only have up to 2 decimal places",
+				error: "Percentage can only have up to 2 decimal places",
 			})
 			.nullable(),
 	})
@@ -86,7 +92,7 @@ const allocationBaseSchema = z
 			return isValidFixed || isValidPercentage;
 		},
 		{
-			message:
+			error:
 				"Fixed allocations must have amount, percentage allocations must have percentage",
 		},
 	);
@@ -104,7 +110,7 @@ export const createSplitFormSchema = splitBaseSchema
 					return targetKeys.length === new Set(targetKeys).size;
 				},
 				{
-					message: "Each bucket or goal can only be allocated once",
+					error: "Each bucket or goal can only be allocated once",
 				},
 			),
 	})
@@ -113,7 +119,7 @@ export const createSplitFormSchema = splitBaseSchema
 		(data) =>
 			data.allocations.every((allocation) => allocation.split_id === data.id),
 		{
-			message: "All allocations must reference the parent split ID",
+			error: "All allocations must reference the parent split ID",
 			path: ["allocations"],
 		},
 	)
@@ -134,7 +140,7 @@ export const createSplitFormSchema = splitBaseSchema
 			return totalPercentage <= 100;
 		},
 		{
-			message: "Total percentage allocations cannot exceed 100%",
+			error: "Total percentage allocations cannot exceed 100%",
 			path: ["allocations"],
 		},
 	)
@@ -160,7 +166,7 @@ export const createSplitFormSchema = splitBaseSchema
 			return totalCalculated <= data.base_amount;
 		},
 		{
-			message: "Total allocations exceed base amount",
+			error: "Total allocations exceed base amount",
 			path: ["allocations"],
 		},
 	);

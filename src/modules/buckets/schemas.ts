@@ -24,44 +24,48 @@ const bucketBaseSchema = z.object({
 export const createBucketFormSchema = bucketBaseSchema.extend({
 	current_amount: z.coerce
 		.number({
-			required_error: "Current amount is required",
-			invalid_type_error: "Current amount must be a valid number",
+			error: (issue) =>
+				issue.input === undefined
+					? "Current amount is required"
+					: "Current amount must be a valid number",
 		})
 		.min(MINIMUM_CURRENCY_AMOUNT, {
-			message: `Current amount must be greater than ${MINIMUM_CURRENCY_AMOUNT}`,
+			error: `Current amount must be greater than ${MINIMUM_CURRENCY_AMOUNT}`,
 		})
 		.max(MAXIMUM_CURRENCY_AMOUNT, {
-			message: `Current amount must be less than ${MAXIMUM_CURRENCY_AMOUNT}`,
+			error: `Current amount must be less than ${MAXIMUM_CURRENCY_AMOUNT}`,
 		})
 		.multipleOf(0.01, {
-			message: "Current amount can only have up to 2 decimal places",
+			error: "Current amount can only have up to 2 decimal places",
 		}),
 });
 
 export const updateBucketFormSchema = bucketBaseSchema.extend({
-	id: z.string().uuid("Invalid Bucket ID"),
+	id: z.uuid("Invalid Bucket ID"),
 });
 
 export const createTransactionFormSchema = z.object({
-	bucket_id: z.string().uuid({ message: "Invalid bucket ID format" }),
+	bucket_id: z.uuid({ error: "Invalid bucket ID format" }),
 
 	type: transactionTypeEnum,
 
 	amount: z.coerce
 		.number({
-			required_error: "Amount is required",
-			invalid_type_error: "Amount must be a valid number",
+			error: (issue) =>
+				issue.input === undefined
+					? "Amount is required"
+					: "Amount must be a valid number",
 		})
-		.positive({ message: "Amount must be greater than 0" })
+		.positive({ error: "Amount must be greater than 0" })
 		.max(MAXIMUM_CURRENCY_AMOUNT, {
-			message: `Amount cannot exceed ${MAXIMUM_CURRENCY_AMOUNT}`,
+			error: `Amount cannot exceed ${MAXIMUM_CURRENCY_AMOUNT}`,
 		})
 		.multipleOf(0.01, {
-			message: "Amount can only have up to 2 decimal places",
+			error: "Amount can only have up to 2 decimal places",
 		}),
 
 	description: z
 		.string()
 		.min(1, "Description is required")
-		.max(500, { message: "Description cannot exceed 500 characters" }),
+		.max(500, { error: "Description cannot exceed 500 characters" }),
 });

@@ -3,9 +3,8 @@ import z from "zod";
 export const registerUserSchema = z
 	.object({
 		email: z
-			.string()
-			.min(1, "Email is required")
 			.email("Please enter a valid email address")
+			.min(1, "Email is required")
 			.max(254, "Email must be less than 254 characters") // RFC 5321 specification
 			.toLowerCase(),
 
@@ -31,9 +30,8 @@ export const registerUserSchema = z
 
 export const loginUserSchema = z.object({
 	email: z
-		.string()
-		.min(1, "Email is required")
 		.email("Please enter a valid email address")
+		.min(1, "Email is required")
 		.toLowerCase(),
 
 	password: z.string().min(1, "Password is required"),

@@ -25,74 +25,82 @@ export const createGoalFormSchema = goalBaseSchema
 	.extend({
 		current_amount: z.coerce
 			.number({
-				required_error: "Current amount is required",
-				invalid_type_error: "Current amount must be a valid number",
+				error: (issue) =>
+					issue.input === undefined
+						? "Current amount is required"
+						: "Current amount must be a valid number",
 			})
 			.min(MINIMUM_CURRENCY_AMOUNT, {
-				message: `Current amount must be greater than ${MINIMUM_CURRENCY_AMOUNT}`,
+				error: `Current amount must be greater than ${MINIMUM_CURRENCY_AMOUNT}`,
 			})
 			.max(MAXIMUM_CURRENCY_AMOUNT, {
-				message: `Current amount must be less than ${MAXIMUM_CURRENCY_AMOUNT}`,
+				error: `Current amount must be less than ${MAXIMUM_CURRENCY_AMOUNT}`,
 			})
 			.multipleOf(0.01, {
-				message: "Current amount can only have up to 2 decimal places",
+				error: "Current amount can only have up to 2 decimal places",
 			}),
 
 		target_amount: z.coerce
 			.number({
-				required_error: "Target amount is required",
-				invalid_type_error: "Target amount must be a valid number",
+				error: (issue) =>
+					issue.input === undefined
+						? "Target amount is required"
+						: "Target amount must be a valid number",
 			})
 			.positive("Target amount must be greater than 0")
 			.max(MAXIMUM_CURRENCY_AMOUNT, {
-				message: `Target amount must be less than ${MAXIMUM_CURRENCY_AMOUNT}`,
+				error: `Target amount must be less than ${MAXIMUM_CURRENCY_AMOUNT}`,
 			})
 			.multipleOf(0.01, {
-				message: "Target amount can only have up to 2 decimal places",
+				error: "Target amount can only have up to 2 decimal places",
 			}),
 	})
 	.refine((data) => data.target_amount >= data.current_amount, {
-		message: "Target amount must be greater than or equal to current amount",
+		error: "Target amount must be greater than or equal to current amount",
 		path: ["target_amount"],
 	});
 
 export const updateGoalFormSchema = goalBaseSchema.extend({
-	id: z.string().uuid("Invalid Goal ID"),
+	id: z.uuid("Invalid Goal ID"),
 
 	target_amount: z.coerce
 		.number({
-			required_error: "Target amount is required",
-			invalid_type_error: "Target amount must be a valid number",
+			error: (issue) =>
+				issue.input === undefined
+					? "Target amount is required"
+					: "Target amount must be a valid number",
 		})
 		.positive("Target amount must be greater than 0")
 		.max(MAXIMUM_CURRENCY_AMOUNT, {
-			message: `Target amount must be less than ${MAXIMUM_CURRENCY_AMOUNT}`,
+			error: `Target amount must be less than ${MAXIMUM_CURRENCY_AMOUNT}`,
 		})
 		.multipleOf(0.01, {
-			message: "Target amount can only have up to 2 decimal places",
+			error: "Target amount can only have up to 2 decimal places",
 		}),
 });
 
 export const createTransactionFormSchema = z.object({
-	goal_id: z.string().uuid({ message: "Invalid goal ID format" }),
+	goal_id: z.uuid({ error: "Invalid goal ID format" }),
 
 	type: transactionTypeEnum,
 
 	amount: z.coerce
 		.number({
-			required_error: "Amount is required",
-			invalid_type_error: "Amount must be a valid number",
+			error: (issue) =>
+				issue.input === undefined
+					? "Amount is required"
+					: "Amount must be a valid number",
 		})
-		.positive({ message: "Amount must be greater than 0" })
+		.positive({ error: "Amount must be greater than 0" })
 		.max(MAXIMUM_CURRENCY_AMOUNT, {
-			message: `Amount cannot exceed ${MAXIMUM_CURRENCY_AMOUNT}`,
+			error: `Amount cannot exceed ${MAXIMUM_CURRENCY_AMOUNT}`,
 		})
 		.multipleOf(0.01, {
-			message: "Amount can only have up to 2 decimal places",
+			error: "Amount can only have up to 2 decimal places",
 		}),
 
 	description: z
 		.string()
 		.min(1, "Description is required")
-		.max(500, { message: "Description cannot exceed 500 characters" }),
+		.max(500, { error: "Description cannot exceed 500 characters" }),
 });
