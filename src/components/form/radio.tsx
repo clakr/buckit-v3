@@ -2,23 +2,15 @@ import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { useFieldContext } from "@/hooks/form";
 import { useStore } from "@tanstack/react-form";
-import type { z } from "zod";
 
-type Props<T extends z.ZodEnum<[string, ...string[]]>> = {
+type Props = {
 	label: string;
 	id: string;
-	enumSchema: T;
-	labels?: Record<z.infer<T>, string>;
+	options: Array<string> | Array<{ label: string; value: string }>;
 } & Omit<React.ComponentProps<typeof RadioGroup>, "value" | "onValueChange">;
 
-export default function Radio<T extends z.ZodEnum<[string, ...string[]]>>({
-	label,
-	id,
-	enumSchema,
-	labels,
-	...props
-}: Props<T>) {
-	const field = useFieldContext<z.infer<T>>();
+export default function Radio({ label, id, options, ...props }: Props) {
+	const field = useFieldContext<string>();
 
 	const isError = useStore(
 		field.store,
@@ -27,7 +19,16 @@ export default function Radio<T extends z.ZodEnum<[string, ...string[]]>>({
 	const errors = useStore(field.store, (state) => state.meta.errors);
 
 	const errorElementId = `${id}-error`;
-	const options = enumSchema.options;
+
+	const isObjectOptions = (
+		opts: typeof options,
+	): opts is Array<{ label: string; value: string }> => {
+		return opts.length > 0 && typeof opts[0] === "object" && "label" in opts[0];
+	};
+
+	const radioOptions = isObjectOptions(options)
+		? options
+		: options.map((option) => ({ label: option, value: option }));
 
 	return (
 		<div className="flex flex-col gap-y-3">
@@ -35,17 +36,16 @@ export default function Radio<T extends z.ZodEnum<[string, ...string[]]>>({
 			<RadioGroup
 				{...props}
 				value={field.state.value}
-				onValueChange={(value) => field.handleChange(value as z.infer<T>)}
+				onValueChange={(value) => field.handleChange(value)}
 				aria-invalid={isError}
 				aria-describedby={isError ? errorElementId : undefined}
 			>
-				{options.map((option) => {
-					const optionId = `${id}-${option}`;
-					const optionLabel = labels?.[option as z.infer<T>] || option;
+				{radioOptions.map(({ label: optionLabel, value }) => {
+					const optionId = `${id}-${value}`;
 
 					return (
-						<div key={option} className="flex items-center space-x-1.5">
-							<RadioGroupItem value={option} id={optionId} />
+						<div key={value} className="flex items-center space-x-1.5">
+							<RadioGroupItem value={value} id={optionId} />
 							<Label htmlFor={optionId} className="capitalize">
 								{optionLabel}
 							</Label>

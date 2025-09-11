@@ -7,7 +7,7 @@ import {
 } from "@/components/ui/dialog";
 import { useAppForm } from "@/hooks/form";
 import type { Bucket } from "@/integrations/supabase/types";
-import { transactionTypeEnum } from "@/lib/schemas";
+import { typeOptions } from "@/lib/schemas";
 import { useCreateTransactionMutation } from "@/modules/buckets/mutations";
 import { createTransactionFormSchema } from "@/modules/buckets/schemas";
 import {
@@ -105,11 +105,7 @@ export function CreateTransactionDialog() {
 					</form.AppField>
 					<form.AppField name="type">
 						{(field) => (
-							<field.Radio
-								label="Type"
-								id="type"
-								enumSchema={transactionTypeEnum}
-							/>
+							<field.Radio label="Type" id="type" options={typeOptions} />
 						)}
 					</form.AppField>
 					<form.AppForm>
