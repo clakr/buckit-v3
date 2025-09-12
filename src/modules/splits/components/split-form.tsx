@@ -205,7 +205,7 @@ export const SplitForm = withForm({
 														<subField.Select
 															label="Type"
 															id="type"
-															enumSchema={splitAllocationTypeEnum}
+															options={splitAllocationTypeEnum.options}
 														/>
 													)}
 												</form.AppField>

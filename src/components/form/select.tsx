@@ -8,23 +8,16 @@ import {
 } from "@/components/ui/select";
 import { useFieldContext } from "@/hooks/form";
 import { useStore } from "@tanstack/react-form";
-import type { z } from "zod";
 
-type Props<T extends z.ZodEnum<[string, ...string[]]>> = {
+type Props = {
 	label: string;
 	id: string;
-	enumSchema: T;
+	options: Array<string> | Array<{ label: string; value: string }>;
 	placeholder?: string;
 } & Omit<React.ComponentProps<typeof UISelect>, "value" | "onValueChange">;
 
-export default function Select<T extends z.ZodEnum<[string, ...string[]]>>({
-	label,
-	id,
-	enumSchema,
-	placeholder,
-	...props
-}: Props<T>) {
-	const field = useFieldContext<z.infer<T>>();
+function Select({ label, id, options, placeholder, ...props }: Props) {
+	const field = useFieldContext<string>();
 
 	const isError = useStore(
 		field.store,
@@ -33,7 +26,16 @@ export default function Select<T extends z.ZodEnum<[string, ...string[]]>>({
 	const errors = useStore(field.store, (state) => state.meta.errors);
 
 	const errorElementId = `${id}-error`;
-	const options = enumSchema.options;
+
+	const isObjectOptions = (
+		opts: typeof options,
+	): opts is Array<{ label: string; value: string }> => {
+		return opts.length > 0 && typeof opts[0] === "object" && "label" in opts[0];
+	};
+
+	const selectOptions = isObjectOptions(options)
+		? options
+		: options.map((option) => ({ label: option, value: option }));
 
 	return (
 		<div className="flex flex-col gap-y-2">
@@ -41,20 +43,20 @@ export default function Select<T extends z.ZodEnum<[string, ...string[]]>>({
 			<UISelect
 				{...props}
 				value={field.state.value}
-				onValueChange={(value) => field.handleChange(value as z.infer<T>)}
+				onValueChange={(value) => field.handleChange(value)}
 			>
 				<SelectTrigger
 					id={id}
 					aria-invalid={isError}
 					aria-describedby={isError ? errorElementId : undefined}
-					className="w-full"
+					className="w-full capitalize"
 				>
 					<SelectValue placeholder={placeholder} />
 				</SelectTrigger>
 				<SelectContent>
-					{options.map((option) => (
-						<SelectItem key={option} value={option}>
-							{option.charAt(0).toUpperCase() + option.slice(1)}
+					{selectOptions.map(({ label: optionLabel, value }) => (
+						<SelectItem key={value} value={value} className="capitalize">
+							{optionLabel}
 						</SelectItem>
 					))}
 				</SelectContent>
@@ -67,3 +69,5 @@ export default function Select<T extends z.ZodEnum<[string, ...string[]]>>({
 		</div>
 	);
 }
+
+export default Select;
