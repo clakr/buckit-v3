@@ -106,15 +106,6 @@ const links = [
 			inactive: "icon-park-outline:split-turn-down-right",
 		},
 	},
-	{
-		label: "Expenses",
-		href: "/expenses",
-		icon: {
-			active: "icon-park-solid:transaction-order",
-			inactive: "icon-park-outline:transaction-order",
-		},
-		isDisabled: true,
-	},
 ];
 
 function SidebarContent() {
@@ -131,7 +122,6 @@ function SidebarContent() {
 										activeProps={{
 											"data-active": true,
 										}}
-										disabled={link.isDisabled}
 									>
 										<Icon
 											icon={link.icon.active}
