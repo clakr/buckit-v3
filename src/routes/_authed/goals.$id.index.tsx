@@ -20,11 +20,8 @@ import {
 	ChartTooltipContent,
 } from "@/components/ui/chart";
 import { Progress } from "@/components/ui/progress";
-import type { GoalTransaction } from "@/integrations/supabase/types";
 import {
 	formatCurrency,
-	formatDate,
-	formatDateISO,
 	formatDateTime,
 	formatPercentage,
 	indexMonthMapping,

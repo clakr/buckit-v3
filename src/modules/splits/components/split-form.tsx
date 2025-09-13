@@ -48,6 +48,10 @@ export const SplitForm = withForm({
 			form.store,
 			(state) => state.values.allocations,
 		);
+		const baseAmount = useStore(
+			form.store,
+			(state) => +(state.values.base_amount || 0),
+		);
 
 		/**
 		 * actions
@@ -100,6 +104,8 @@ export const SplitForm = withForm({
 		 * derived
 		 */
 		const allocationsSummary = allocations.map((allocation) => {
+			const percentage = +(allocation.percentage || 0);
+
 			let name = "";
 			let type = "";
 			let amount = 0;
@@ -116,13 +122,12 @@ export const SplitForm = withForm({
 			type =
 				allocation.allocation_type === "fixed"
 					? "Fixed Amount"
-					: `${formatPercentage(allocation.percentage || 0)} of ${formatCurrency(form.state.values.base_amount)}`;
+					: `${formatPercentage(percentage)} of ${formatCurrency(baseAmount)}`;
 
 			amount =
 				allocation.allocation_type === "fixed"
 					? +(allocation.amount || 0)
-					: (form.state.values.base_amount * (allocation.percentage || 0)) /
-						100;
+					: (baseAmount * percentage) / 100;
 
 			return {
 				name,
@@ -136,8 +141,7 @@ export const SplitForm = withForm({
 			0,
 		);
 
-		const remainingAmount =
-			form.state.values.base_amount - totalAccumulatedAmount;
+		const remainingAmount = baseAmount - totalAccumulatedAmount;
 
 		return (
 			<form
