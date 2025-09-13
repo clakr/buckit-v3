@@ -17,10 +17,10 @@ export type Database = {
     Functions: {
       graphql: {
         Args: {
-          extensions?: Json
           operationName?: string
-          query?: string
+          extensions?: Json
           variables?: Json
+          query?: string
         }
         Returns: Json
       }
@@ -316,13 +316,13 @@ export type Database = {
       get_users_by_ids: {
         Args: { user_ids: string[] }
         Returns: {
-          last_name: string
-          first_name: string
           email: string
-          id: string
+          first_name: string
           created_at: string
-          avatar_url: string
           username: string
+          avatar_url: string
+          last_name: string
+          id: string
         }[]
       }
     }
