@@ -18,9 +18,9 @@ export type Database = {
       graphql: {
         Args: {
           operationName?: string
-          extensions?: Json
-          variables?: Json
           query?: string
+          variables?: Json
+          extensions?: Json
         }
         Returns: Json
       }
@@ -316,13 +316,13 @@ export type Database = {
       get_users_by_ids: {
         Args: { user_ids: string[] }
         Returns: {
+          id: string
           email: string
           first_name: string
-          created_at: string
-          username: string
-          avatar_url: string
           last_name: string
-          id: string
+          avatar_url: string
+          username: string
+          created_at: string
         }[]
       }
     }

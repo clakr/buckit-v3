@@ -27,6 +27,7 @@ import {
 	formatDateISO,
 	formatDateTime,
 	formatPercentage,
+	indexMonthMapping,
 } from "@/lib/utils";
 import { columns } from "@/modules/goals/columns";
 import { goalQueryOption } from "@/modules/goals/query-options";
@@ -140,26 +141,22 @@ function RouteComponent() {
 		},
 	} satisfies ChartConfig;
 
-	const transactionsByDay = goal.goal_transactions.reduce<
-		Record<string, GoalTransaction>
+	const transactionsByMonth = goal.goal_transactions.reduce<
+		Record<number, number>
 	>((acc, transaction) => {
-		const dateOnly = formatDateISO(transaction.created_at);
-		if (dateOnly) {
-			acc[dateOnly] = transaction;
-		}
+		const month = new Date(transaction.created_at).getMonth();
+
+		acc[month] = acc[month] || transaction.balance_after || 0;
 
 		return acc;
 	}, {});
 
-	const chartData = Object.entries(transactionsByDay)
-		.sort(
-			([dateA], [dateB]) =>
-				new Date(dateA).getTime() - new Date(dateB).getTime(),
-		)
-		.map(([date, transaction]) => ({
-			date: formatDate(date, { month: "short", day: "numeric" }),
-			balance: transaction.balance_after,
-		}));
+	const chartData = Object.entries(transactionsByMonth).map(
+		([month, balance]) => ({
+			month: indexMonthMapping[+month],
+			balance,
+		}),
+	);
 
 	const chartConfig = {
 		balance: {
@@ -282,7 +279,7 @@ function RouteComponent() {
 										tickFormatter={(value) => formatCurrency(value)}
 									/>
 									<XAxis
-										dataKey="date"
+										dataKey="month"
 										tickMargin={10}
 										tickLine={false}
 										axisLine={false}
