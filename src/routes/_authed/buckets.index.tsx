@@ -9,6 +9,7 @@ import {
 	CardHeader,
 	CardTitle,
 } from "@/components/ui/card";
+import { DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import {
 	Empty,
 	EmptyContent,
@@ -19,12 +20,7 @@ import {
 } from "@/components/ui/empty";
 import { formatCurrency } from "@/lib/utils";
 import { BucketDropdownMenu } from "@/modules/buckets/components/bucket-dropdown-menu";
-import {
-	CreateBucketDialog,
-	useCreateBucketDialogStore,
-} from "@/modules/buckets/components/create-bucket-dialog";
-import { CreateTransactionDialog } from "@/modules/buckets/components/create-transaction-dialog";
-import { UpdateBucketDialog } from "@/modules/buckets/components/update-bucket-dialog";
+import { useCreateBucketDialogStore } from "@/modules/buckets/components/create-bucket-dialog";
 import { bucketsQueryOption } from "@/modules/buckets/query-options";
 import { Icon } from "@iconify/react";
 import { useSuspenseQuery } from "@tanstack/react-query";
@@ -34,9 +30,6 @@ import {
 } from "@tanstack/react-router";
 
 export const Route = createFileRoute("/_authed/buckets/")({
-	loader: async ({ context: { queryClient } }) => {
-		await queryClient.ensureQueryData(bucketsQueryOption);
-	},
 	pendingComponent: PendingComponent,
 	errorComponent: ErrorComponent,
 	component: RouteComponent,
@@ -115,8 +108,6 @@ function RouteComponent() {
 						</Button>
 					</EmptyContent>
 				</Empty>
-
-				<CreateBucketDialog />
 			</Container>
 		);
 	}
@@ -135,7 +126,17 @@ function RouteComponent() {
 						key={bucket.id}
 						className="relative grid grid-rows-subgrid row-span-2 "
 					>
-						<BucketDropdownMenu id={bucket.id} />
+						<BucketDropdownMenu id={bucket.id}>
+							<DropdownMenuTrigger asChild>
+								<Button
+									variant="ghost"
+									size="icon"
+									className="absolute top-2 right-2"
+								>
+									<Icon icon="bx:dots-vertical-rounded" />
+								</Button>
+							</DropdownMenuTrigger>
+						</BucketDropdownMenu>
 						<CardHeader>
 							<CardTitle>{bucket.name}</CardTitle>
 							<CardDescription>{bucket.description}</CardDescription>
@@ -146,10 +147,6 @@ function RouteComponent() {
 					</Card>
 				))}
 			</section>
-
-			<CreateBucketDialog />
-			<UpdateBucketDialog />
-			<CreateTransactionDialog />
 		</Container>
 	);
 }

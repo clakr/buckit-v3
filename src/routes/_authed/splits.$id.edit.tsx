@@ -10,7 +10,6 @@ import {
 	EmptyTitle,
 } from "@/components/ui/empty";
 import { useAppForm } from "@/hooks/form";
-import { bucketsQueryOption } from "@/modules/buckets/query-options";
 import { goalsQueryOption } from "@/modules/goals/query-options";
 import {
 	SplitForm,
@@ -32,7 +31,6 @@ export const Route = createFileRoute("/_authed/splits/$id/edit")({
 		await Promise.allSettled([
 			queryClient.ensureQueryData(splitQueryOption(id)),
 			queryClient.ensureQueryData(goalsQueryOption),
-			queryClient.ensureQueryData(bucketsQueryOption),
 		]);
 	},
 	pendingComponent: PendingComponent,

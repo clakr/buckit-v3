@@ -6,14 +6,17 @@ import {
 	BreadcrumbSeparator,
 	Breadcrumb as UIBreadcrumb,
 } from "@/components/ui/breadcrumb";
+import { DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Separator } from "@/components/ui/separator";
 import {
 	SidebarGroup,
 	SidebarGroupContent,
 	SidebarInset,
 	SidebarMenu,
+	SidebarMenuAction,
 	SidebarMenuButton,
 	SidebarMenuItem,
+	SidebarMenuSub,
 	SidebarProvider,
 	SidebarTrigger,
 	Sidebar as UISidebar,
@@ -21,9 +24,22 @@ import {
 	SidebarFooter as UISidebarFooter,
 } from "@/components/ui/sidebar";
 import { supabase } from "@/integrations/supabase";
+import { BucketDropdownMenu } from "@/modules/buckets/components/bucket-dropdown-menu";
+import {
+	CreateBucketDialog,
+	useCreateBucketDialogStore,
+} from "@/modules/buckets/components/create-bucket-dialog";
+import { CreateTransactionDialog } from "@/modules/buckets/components/create-transaction-dialog";
+import { UpdateBucketDialog } from "@/modules/buckets/components/update-bucket-dialog";
+import { bucketsQueryOption } from "@/modules/buckets/query-options";
+import {
+	CreateGoalDialog,
+	useCreateGoalDialogStore,
+} from "@/modules/goals/component/create-goal-dialog";
 import { UpdateProfileDialog } from "@/modules/profile/components/update-profile-dialog";
 import { UserDropdownMenu } from "@/modules/profile/components/user-dropdown-menu";
 import { Icon } from "@iconify/react";
+import { useSuspenseQuery } from "@tanstack/react-query";
 import {
 	Link,
 	Outlet,
@@ -48,6 +64,9 @@ export const Route = createFileRoute("/_authed")({
 				},
 			});
 	},
+	loader: async ({ context: { queryClient } }) => {
+		await queryClient.ensureQueryData(bucketsQueryOption);
+	},
 });
 
 function RouteComponent() {
@@ -60,6 +79,12 @@ function RouteComponent() {
 			</SidebarInset>
 
 			<UpdateProfileDialog />
+
+			<CreateBucketDialog />
+			<UpdateBucketDialog />
+			<CreateTransactionDialog />
+
+			<CreateGoalDialog />
 		</SidebarProvider>
 	);
 }
@@ -73,69 +98,142 @@ function Sidebar({ ...props }: React.ComponentProps<typeof UISidebar>) {
 	);
 }
 
-const links = [
-	{
-		label: "Dashboard",
-		href: "/dashboard",
-		icon: {
-			active: "material-symbols:dashboard-rounded",
-			inactive: "material-symbols:dashboard-outline-rounded",
-		},
-	},
-	{
-		label: "Buckets",
-		href: "/buckets",
-		icon: {
-			active: "mdi:bucket",
-			inactive: "mdi:bucket-outline",
-		},
-	},
-	{
-		label: "Goals",
-		href: "/goals",
-		icon: {
-			active: "mage:goals-fill",
-			inactive: "mage:goals",
-		},
-	},
-	{
-		label: "Splits",
-		href: "/splits",
-		icon: {
-			active: "icon-park-solid:split-turn-down-right",
-			inactive: "icon-park-outline:split-turn-down-right",
-		},
-	},
-];
-
 function SidebarContent() {
+	const buckets = useSuspenseQuery(bucketsQueryOption);
+
+	// actions
+	const handleOpenCreateBucketDialog = useCreateBucketDialogStore(
+		(state) => state.handleOpen,
+	);
+
+	const handleOpenCreateGoalDialog = useCreateGoalDialogStore(
+		(state) => state.handleOpen,
+	);
+
 	return (
 		<UISidebarContent>
 			<SidebarGroup>
 				<SidebarGroupContent>
 					<SidebarMenu>
-						{links.map((link) => (
-							<SidebarMenuItem key={link.href}>
-								<SidebarMenuButton asChild>
-									<Link
-										to={link.href}
-										activeProps={{
-											"data-active": true,
-										}}
-									>
-										<Icon
-											icon={link.icon.active}
-											className="hidden [[data-active=true]>&]:block"
-										/>
-										<Icon
-											icon={link.icon.inactive}
-											className="hidden [[data-active=false]>&]:block"
-										/>
-										{link.label}
-									</Link>
-								</SidebarMenuButton>
-							</SidebarMenuItem>
-						))}
+						<SidebarMenuItem>
+							<SidebarMenuButton asChild>
+								<Link
+									to="/dashboard"
+									activeProps={{
+										"data-active": true,
+									}}
+								>
+									<Icon
+										icon="material-symbols:dashboard-rounded"
+										className="hidden [[data-active=true]>&]:block"
+									/>
+									<Icon
+										icon="material-symbols:dashboard-outline-rounded"
+										className="hidden [[data-active=false]>&]:block"
+									/>
+									Dashboard
+								</Link>
+							</SidebarMenuButton>
+						</SidebarMenuItem>
+						<SidebarMenuItem>
+							<SidebarMenuButton asChild>
+								<Link
+									to="/buckets"
+									activeProps={{
+										"data-active": true,
+									}}
+								>
+									<Icon
+										icon="mdi:bucket"
+										className="hidden [[data-active=true]>&]:block"
+									/>
+									<Icon
+										icon="mdi:bucket-outline"
+										className="hidden [[data-active=false]>&]:block"
+									/>
+									Buckets
+								</Link>
+							</SidebarMenuButton>
+							<SidebarMenuAction onClick={handleOpenCreateBucketDialog}>
+								<Icon icon="bx:plus" />
+								<span className="sr-only">Add Bucket</span>
+							</SidebarMenuAction>
+							<SidebarMenuSub>
+								{buckets.data.map((bucket) => (
+									<SidebarMenuItem key={bucket.id}>
+										<SidebarMenuButton asChild>
+											<Link
+												to="/buckets/$id"
+												params={{ id: bucket.id }}
+												activeProps={{
+													"data-active": true,
+												}}
+											>
+												{bucket.name}
+											</Link>
+										</SidebarMenuButton>
+										<BucketDropdownMenu id={bucket.id}>
+											<DropdownMenuTrigger asChild>
+												<SidebarMenuAction>
+													<Icon icon="mdi:ellipsis-horizontal" />
+													<span className="sr-only">Bucket Actions</span>
+												</SidebarMenuAction>
+											</DropdownMenuTrigger>
+										</BucketDropdownMenu>
+									</SidebarMenuItem>
+								))}
+							</SidebarMenuSub>
+						</SidebarMenuItem>
+						<SidebarMenuItem>
+							<SidebarMenuButton asChild>
+								<Link
+									to="/goals"
+									activeProps={{
+										"data-active": true,
+									}}
+								>
+									<Icon
+										icon="mage:goals-fill"
+										className="hidden [[data-active=true]>&]:block"
+									/>
+									<Icon
+										icon="mage:goals"
+										className="hidden [[data-active=false]>&]:block"
+									/>
+									Goals
+								</Link>
+							</SidebarMenuButton>
+							<SidebarMenuAction onClick={handleOpenCreateGoalDialog}>
+								<Icon icon="bx:plus" />
+								<span className="sr-only">Add Goal</span>
+							</SidebarMenuAction>
+						</SidebarMenuItem>
+						<SidebarMenuItem>
+							<SidebarMenuButton asChild>
+								<Link
+									to="/splits"
+									activeProps={{
+										"data-active": true,
+									}}
+								>
+									<Icon
+										icon="icon-park-solid:split-turn-down-right"
+										className="hidden [[data-active=true]>&]:block"
+									/>
+									<Icon
+										icon="icon-park-outline:split-turn-down-right"
+										className="hidden [[data-active=false]>&]:block"
+									/>
+									Splits
+								</Link>
+							</SidebarMenuButton>
+							<SidebarMenuAction asChild>
+								<Link to="/splits/create">
+									<Icon icon="bx:plus" />
+									<span className="sr-only">Add Goal</span>
+								</Link>
+							</SidebarMenuAction>
+						</SidebarMenuItem>
 					</SidebarMenu>
 				</SidebarGroupContent>
 			</SidebarGroup>

@@ -10,10 +10,7 @@ import {
 	EmptyMedia,
 	EmptyTitle,
 } from "@/components/ui/empty";
-import {
-	CreateGoalDialog,
-	useCreateGoalDialogStore,
-} from "@/modules/goals/component/create-goal-dialog";
+import { useCreateGoalDialogStore } from "@/modules/goals/component/create-goal-dialog";
 import { CreateTransactionDialog } from "@/modules/goals/component/create-transaction-dialog";
 import { GoalCard } from "@/modules/goals/component/goal-card";
 import { UpdateGoalDialog } from "@/modules/goals/component/update-goal-dialog";
@@ -107,7 +104,6 @@ function RouteComponent() {
 						</Button>
 					</EmptyContent>
 				</Empty>
-				<CreateGoalDialog />
 			</Container>
 		);
 	}
@@ -126,7 +122,6 @@ function RouteComponent() {
 				))}
 			</section>
 
-			<CreateGoalDialog />
 			<UpdateGoalDialog />
 			<CreateTransactionDialog />
 		</Container>
