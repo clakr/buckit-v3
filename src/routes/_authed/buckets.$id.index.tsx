@@ -19,7 +19,6 @@ import {
 } from "@/components/ui/chart";
 import {
 	Empty,
-	EmptyContent,
 	EmptyDescription,
 	EmptyHeader,
 	EmptyMedia,

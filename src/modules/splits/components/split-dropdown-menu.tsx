@@ -13,6 +13,7 @@ import {
 } from "@/modules/splits/mutations";
 import { Icon } from "@iconify/react";
 import { Link } from "@tanstack/react-router";
+import type { PropsWithChildren } from "react";
 
 type Props = PropsWithChildren<{
 	id: Split["id"];

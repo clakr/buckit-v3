@@ -1,4 +1,3 @@
-import { StateTemplate } from "@/components/states-template";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import {
