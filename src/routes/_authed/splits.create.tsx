@@ -1,7 +1,6 @@
 import { Container } from "@/components/container";
 import { Heading } from "@/components/heading";
 import { useAppForm } from "@/hooks/form";
-import { goalsQueryOption } from "@/modules/goals/query-options";
 import {
 	SplitForm,
 	splitFormOptions,
@@ -11,9 +10,6 @@ import { createSplitFormSchema } from "@/modules/splits/schemas";
 import { createFileRoute } from "@tanstack/react-router";
 
 export const Route = createFileRoute("/_authed/splits/create")({
-	loader: async ({ context: { queryClient } }) => {
-		await Promise.allSettled([queryClient.ensureQueryData(goalsQueryOption)]);
-	},
 	component: RouteComponent,
 });
 

@@ -29,13 +29,17 @@ import {
 	CreateBucketDialog,
 	useCreateBucketDialogStore,
 } from "@/modules/buckets/components/create-bucket-dialog";
-import { CreateTransactionDialog } from "@/modules/buckets/components/create-transaction-dialog";
+import { CreateTransactionDialog as CreateBucketTransactionDialog } from "@/modules/buckets/components/create-transaction-dialog";
 import { UpdateBucketDialog } from "@/modules/buckets/components/update-bucket-dialog";
 import { bucketsQueryOption } from "@/modules/buckets/query-options";
 import {
 	CreateGoalDialog,
 	useCreateGoalDialogStore,
 } from "@/modules/goals/component/create-goal-dialog";
+import { CreateTransactionDialog as CreateGoalTransactionDialog } from "@/modules/goals/component/create-transaction-dialog";
+import { GoalDropdownMenu } from "@/modules/goals/component/goal-dropdown-menu";
+import { UpdateGoalDialog } from "@/modules/goals/component/update-goal-dialog";
+import { goalsQueryOption } from "@/modules/goals/query-options";
 import { UpdateProfileDialog } from "@/modules/profile/components/update-profile-dialog";
 import { UserDropdownMenu } from "@/modules/profile/components/user-dropdown-menu";
 import { Icon } from "@iconify/react";
@@ -65,7 +69,10 @@ export const Route = createFileRoute("/_authed")({
 			});
 	},
 	loader: async ({ context: { queryClient } }) => {
-		await queryClient.ensureQueryData(bucketsQueryOption);
+		await Promise.allSettled([
+			queryClient.ensureQueryData(bucketsQueryOption),
+			queryClient.ensureQueryData(goalsQueryOption),
+		]);
 	},
 });
 
@@ -82,9 +89,11 @@ function RouteComponent() {
 
 			<CreateBucketDialog />
 			<UpdateBucketDialog />
-			<CreateTransactionDialog />
+			<CreateBucketTransactionDialog />
 
 			<CreateGoalDialog />
+			<UpdateGoalDialog />
+			<CreateGoalTransactionDialog />
 		</SidebarProvider>
 	);
 }
@@ -100,6 +109,7 @@ function Sidebar({ ...props }: React.ComponentProps<typeof UISidebar>) {
 
 function SidebarContent() {
 	const buckets = useSuspenseQuery(bucketsQueryOption);
+	const goals = useSuspenseQuery(goalsQueryOption);
 
 	// actions
 	const handleOpenCreateBucketDialog = useCreateBucketDialogStore(
@@ -207,6 +217,31 @@ function SidebarContent() {
 								<Icon icon="bx:plus" />
 								<span className="sr-only">Add Goal</span>
 							</SidebarMenuAction>
+							<SidebarMenuSub>
+								{goals.data.map((goal) => (
+									<SidebarMenuItem key={goal.id}>
+										<SidebarMenuButton asChild>
+											<Link
+												to="/goals/$id"
+												params={{ id: goal.id }}
+												activeProps={{
+													"data-active": true,
+												}}
+											>
+												{goal.name}
+											</Link>
+										</SidebarMenuButton>
+										<GoalDropdownMenu id={goal.id}>
+											<DropdownMenuTrigger asChild>
+												<SidebarMenuAction>
+													<Icon icon="mdi:ellipsis-horizontal" />
+													<span className="sr-only">Goal Actions</span>
+												</SidebarMenuAction>
+											</DropdownMenuTrigger>
+										</GoalDropdownMenu>
+									</SidebarMenuItem>
+								))}
+							</SidebarMenuSub>
 						</SidebarMenuItem>
 						<SidebarMenuItem>
 							<SidebarMenuButton asChild>

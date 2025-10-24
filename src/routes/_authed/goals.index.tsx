@@ -11,9 +11,7 @@ import {
 	EmptyTitle,
 } from "@/components/ui/empty";
 import { useCreateGoalDialogStore } from "@/modules/goals/component/create-goal-dialog";
-import { CreateTransactionDialog } from "@/modules/goals/component/create-transaction-dialog";
 import { GoalCard } from "@/modules/goals/component/goal-card";
-import { UpdateGoalDialog } from "@/modules/goals/component/update-goal-dialog";
 import { goalsQueryOption } from "@/modules/goals/query-options";
 import { Icon } from "@iconify/react";
 import { useSuspenseQuery } from "@tanstack/react-query";
@@ -23,9 +21,6 @@ import {
 } from "@tanstack/react-router";
 
 export const Route = createFileRoute("/_authed/goals/")({
-	loader: async ({ context: { queryClient } }) => {
-		await queryClient.ensureQueryData(goalsQueryOption);
-	},
 	pendingComponent: PendingComponent,
 	errorComponent: ErrorComponent,
 	component: RouteComponent,
@@ -121,9 +116,6 @@ function RouteComponent() {
 					<GoalCard key={goal.id} goal={goal} />
 				))}
 			</section>
-
-			<UpdateGoalDialog />
-			<CreateTransactionDialog />
 		</Container>
 	);
 }

@@ -14,13 +14,14 @@ import { useUpdateGoalDialogStore } from "@/modules/goals/component/update-goal-
 import { useDeleteGoalMutation } from "@/modules/goals/mutations";
 import { Icon } from "@iconify/react";
 import { Link } from "@tanstack/react-router";
+import type { PropsWithChildren } from "react";
 import { useShallow } from "zustand/react/shallow";
 
-type Props = {
+type Props = PropsWithChildren<{
 	id: Goal["id"];
-};
+}>;
 
-export function GoalDropdownMenu({ id }: Props) {
+export function GoalDropdownMenu({ id, children }: Props) {
 	/**
 	 * update goal
 	 */
@@ -71,11 +72,12 @@ export function GoalDropdownMenu({ id }: Props) {
 
 	return (
 		<DropdownMenu>
-			<DropdownMenuTrigger asChild>
+			{children}
+			{/* <DropdownMenuTrigger asChild>
 				<Button variant="ghost" size="icon" className="absolute top-2 right-2">
 					<Icon icon="bx:dots-vertical-rounded" />
 				</Button>
-			</DropdownMenuTrigger>
+			</DropdownMenuTrigger> */}
 			<DropdownMenuContent>
 				<DropdownMenuGroup>
 					<DropdownMenuLabel>Transactions</DropdownMenuLabel>
