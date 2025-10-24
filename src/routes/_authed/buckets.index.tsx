@@ -9,6 +9,14 @@ import {
 	CardHeader,
 	CardTitle,
 } from "@/components/ui/card";
+import {
+	Empty,
+	EmptyContent,
+	EmptyDescription,
+	EmptyHeader,
+	EmptyMedia,
+	EmptyTitle,
+} from "@/components/ui/empty";
 import { formatCurrency } from "@/lib/utils";
 import { BucketDropdownMenu } from "@/modules/buckets/components/bucket-dropdown-menu";
 import {
@@ -89,18 +97,24 @@ function RouteComponent() {
 						Create Bucket
 					</Button>
 				</Heading>
-				<StateTemplate
-					state="empty"
-					heading="No buckets yet"
-					description="Get started by creating your first bucket"
-				>
-					<div>
-						<Button variant="secondary" onClick={handleOpenCreateBucketDialog}>
+				<Empty className="border border-dashed">
+					<EmptyHeader>
+						<EmptyMedia variant="icon">
+							<Icon icon="mdi:bucket" />
+						</EmptyMedia>
+						<EmptyTitle>No Buckets Yet</EmptyTitle>
+						<EmptyDescription>
+							You haven&apos;t created any buckets yet. Get started by creating
+							your first bucket.
+						</EmptyDescription>
+					</EmptyHeader>
+					<EmptyContent>
+						<Button onClick={handleOpenCreateBucketDialog}>
 							<Icon icon="bx:plus" />
 							Create Bucket
 						</Button>
-					</div>
-				</StateTemplate>
+					</EmptyContent>
+				</Empty>
 
 				<CreateBucketDialog />
 			</Container>

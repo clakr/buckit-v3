@@ -2,6 +2,13 @@ import { Container } from "@/components/container";
 import { Heading } from "@/components/heading";
 import { StateTemplate } from "@/components/states-template";
 import { Button } from "@/components/ui/button";
+import {
+	Empty,
+	EmptyDescription,
+	EmptyHeader,
+	EmptyMedia,
+	EmptyTitle,
+} from "@/components/ui/empty";
 import { useAppForm } from "@/hooks/form";
 import { bucketsQueryOption } from "@/modules/buckets/query-options";
 import { goalsQueryOption } from "@/modules/goals/query-options";
@@ -12,6 +19,7 @@ import {
 import { useUpdateSplitMutation } from "@/modules/splits/mutations";
 import { splitQueryOption } from "@/modules/splits/query-options";
 import { updateSplitFormSchema } from "@/modules/splits/schemas";
+import { Icon } from "@iconify/react/dist/iconify.js";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import {
 	type ErrorComponentProps,
@@ -73,11 +81,17 @@ function RouteComponent() {
 		return (
 			<Container>
 				<Heading heading="Split" />
-				<StateTemplate
-					state="empty"
-					heading="We can't find that split"
-					description="If you think this is a mistake, please contact us"
-				/>
+				<Empty className="border border-dashed">
+					<EmptyHeader>
+						<EmptyMedia variant="icon">
+							<Icon icon="icon-park-solid:split-turn-down-right" />
+						</EmptyMedia>
+						<EmptyTitle>We can't find that split</EmptyTitle>
+						<EmptyDescription>
+							If you think this is a mistake, please contact us
+						</EmptyDescription>
+					</EmptyHeader>
+				</Empty>
 			</Container>
 		);
 

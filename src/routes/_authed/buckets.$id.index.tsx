@@ -18,6 +18,14 @@ import {
 	ChartTooltipContent,
 } from "@/components/ui/chart";
 import {
+	Empty,
+	EmptyContent,
+	EmptyDescription,
+	EmptyHeader,
+	EmptyMedia,
+	EmptyTitle,
+} from "@/components/ui/empty";
+import {
 	formatCurrency,
 	formatDate,
 	formatDateTime,
@@ -83,11 +91,17 @@ function RouteComponent() {
 		return (
 			<Container>
 				<Heading heading="Bucket" />
-				<StateTemplate
-					state="empty"
-					heading="We can't find that bucket"
-					description="If you think this is a mistake, please contact us"
-				/>
+				<Empty className="border border-dashed">
+					<EmptyHeader>
+						<EmptyMedia variant="icon">
+							<Icon icon="mdi:bucket" />
+						</EmptyMedia>
+						<EmptyTitle>We can't find that bucket</EmptyTitle>
+						<EmptyDescription>
+							If you think this is a mistake, please contact us
+						</EmptyDescription>
+					</EmptyHeader>
+				</Empty>
 			</Container>
 		);
 
@@ -239,11 +253,18 @@ function RouteComponent() {
 							</LineChart>
 						</ChartContainer>
 					) : (
-						<StateTemplate
-							state="empty"
-							heading="Not enough data to generate chart"
-							description="Please add more transactions to this bucket to generate a chart"
-						/>
+						<Empty className="border border-dashed">
+							<EmptyHeader>
+								<EmptyMedia variant="icon">
+									<Icon icon="mdi:chart-line" />
+								</EmptyMedia>
+								<EmptyTitle>Not enough data to generate chart</EmptyTitle>
+								<EmptyDescription>
+									Please add more transactions to this bucket to generate a
+									chart
+								</EmptyDescription>
+							</EmptyHeader>
+						</Empty>
 					)}
 				</CardContent>
 			</Card>

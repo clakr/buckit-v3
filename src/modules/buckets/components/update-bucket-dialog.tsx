@@ -7,6 +7,13 @@ import {
 	DialogHeader,
 	DialogTitle,
 } from "@/components/ui/dialog";
+import {
+	Empty,
+	EmptyDescription,
+	EmptyHeader,
+	EmptyMedia,
+	EmptyTitle,
+} from "@/components/ui/empty";
 import { useAppForm } from "@/hooks/form";
 import type { Bucket } from "@/integrations/supabase/types";
 import { useUpdateBucketMutation } from "@/modules/buckets/mutations";
@@ -135,11 +142,17 @@ export function UpdateBucketDialog() {
 	if (!bucket)
 		return (
 			<DialogContainer>
-				<StateTemplate
-					state="empty"
-					heading="We can't find that bucket"
-					description="If you think this is a mistake, please contact us"
-				/>
+				<Empty className="border border-dashed">
+					<EmptyHeader>
+						<EmptyMedia variant="icon">
+							<Icon icon="mdi:bucket" />
+						</EmptyMedia>
+						<EmptyTitle>We can't find that bucket</EmptyTitle>
+						<EmptyDescription>
+							If you think this is a mistake, please contact us
+						</EmptyDescription>
+					</EmptyHeader>
+				</Empty>
 			</DialogContainer>
 		);
 

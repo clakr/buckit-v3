@@ -3,6 +3,14 @@ import { Heading } from "@/components/heading";
 import { StateTemplate } from "@/components/states-template";
 import { Button } from "@/components/ui/button";
 import {
+	Empty,
+	EmptyContent,
+	EmptyDescription,
+	EmptyHeader,
+	EmptyMedia,
+	EmptyTitle,
+} from "@/components/ui/empty";
+import {
 	CreateGoalDialog,
 	useCreateGoalDialogStore,
 } from "@/modules/goals/component/create-goal-dialog";
@@ -81,19 +89,24 @@ function RouteComponent() {
 						Create Goal
 					</Button>
 				</Heading>
-				<StateTemplate
-					state="empty"
-					heading="No goals yet"
-					description="Get started by creating your first goal"
-				>
-					<div>
-						<Button variant="secondary" onClick={handleOpenCreateGoalDialog}>
+				<Empty className="border border-dashed">
+					<EmptyHeader>
+						<EmptyMedia variant="icon">
+							<Icon icon="mage:goals-fill" />
+						</EmptyMedia>
+						<EmptyTitle>No Goals Yet</EmptyTitle>
+						<EmptyDescription>
+							You haven&apos;t created any goals yet. Get started by creating
+							your first goal.
+						</EmptyDescription>
+					</EmptyHeader>
+					<EmptyContent>
+						<Button onClick={handleOpenCreateGoalDialog}>
 							<Icon icon="bx:plus" />
 							Create Goal
 						</Button>
-					</div>
-				</StateTemplate>
-
+					</EmptyContent>
+				</Empty>
 				<CreateGoalDialog />
 			</Container>
 		);

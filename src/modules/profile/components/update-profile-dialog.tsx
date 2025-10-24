@@ -7,11 +7,19 @@ import {
 	DialogHeader,
 	DialogTitle,
 } from "@/components/ui/dialog";
+import {
+	Empty,
+	EmptyDescription,
+	EmptyHeader,
+	EmptyMedia,
+	EmptyTitle,
+} from "@/components/ui/empty";
 import { useAppForm } from "@/hooks/form";
 import { useUpdateProfileMutation } from "@/modules/profile/mutations";
 import { profileQueryOption } from "@/modules/profile/query-options";
 import { updateProfileFormSchema } from "@/modules/profile/schemas";
 import { createDialogStore } from "@/stores/create-dialog-store";
+import { Icon } from "@iconify/react";
 import { useQuery } from "@tanstack/react-query";
 import type { PropsWithChildren } from "react";
 import type z from "zod";
@@ -116,11 +124,17 @@ export function UpdateProfileDialog() {
 	if (!profile)
 		return (
 			<DialogContainer>
-				<StateTemplate
-					state="empty"
-					heading="We can't find that profile"
-					description="If you think this is a mistake, please contact us"
-				/>
+				<Empty className="border border-dashed">
+					<EmptyHeader>
+						<EmptyMedia variant="icon">
+							<Icon icon="bx:user" />
+						</EmptyMedia>
+						<EmptyTitle>We can't find that profile</EmptyTitle>
+						<EmptyDescription>
+							If you think this is a mistake, please contact us
+						</EmptyDescription>
+					</EmptyHeader>
+				</Empty>
 			</DialogContainer>
 		);
 

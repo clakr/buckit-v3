@@ -1,6 +1,13 @@
 import { StateTemplate } from "@/components/states-template";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
+import {
+	Empty,
+	EmptyDescription,
+	EmptyHeader,
+	EmptyMedia,
+	EmptyTitle,
+} from "@/components/ui/empty";
 import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { withForm } from "@/hooks/form";
@@ -56,7 +63,7 @@ export const SplitForm = withForm({
 		/**
 		 * actions
 		 */
-		function handleAddSplit() {
+		function handleAddAllocation() {
 			form.pushFieldValue(
 				"allocations",
 				createEmptyAllocation({
@@ -267,11 +274,17 @@ export const SplitForm = withForm({
 											</article>
 										))
 									) : (
-										<StateTemplate
-											state="empty"
-											heading="No Allocations"
-											description="Add an allocation to get started."
-										/>
+										<Empty className="border border-dashed">
+											<EmptyHeader>
+												<EmptyMedia variant="icon">
+													<Icon icon="bx:plus" />
+												</EmptyMedia>
+												<EmptyTitle>No Allocations</EmptyTitle>
+												<EmptyDescription>
+													Add an allocation to get started.
+												</EmptyDescription>
+											</EmptyHeader>
+										</Empty>
 									)}
 									<form.Subscribe
 										selector={(state) =>
@@ -294,10 +307,10 @@ export const SplitForm = withForm({
 										variant="secondary"
 										type="button"
 										className="self-start"
-										onClick={handleAddSplit}
+										onClick={handleAddAllocation}
 									>
 										<Icon icon="bx:plus" />
-										Add Split
+										Add Allocation
 									</Button>
 								</>
 							)}

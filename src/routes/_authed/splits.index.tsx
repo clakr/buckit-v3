@@ -2,6 +2,14 @@ import { Container } from "@/components/container";
 import { Heading } from "@/components/heading";
 import { StateTemplate } from "@/components/states-template";
 import { Button } from "@/components/ui/button";
+import {
+	Empty,
+	EmptyContent,
+	EmptyDescription,
+	EmptyHeader,
+	EmptyMedia,
+	EmptyTitle,
+} from "@/components/ui/empty";
 import { SplitCard } from "@/modules/splits/components/split-card";
 import { splitsQueryOption } from "@/modules/splits/query-options";
 import { Icon } from "@iconify/react";
@@ -68,20 +76,26 @@ function RouteComponent() {
 						</Link>
 					</Button>
 				</Heading>
-				<StateTemplate
-					state="empty"
-					heading="No splits yet"
-					description="Get started by creating your first split"
-				>
-					<div>
-						<Button variant="secondary" asChild>
+				<Empty className="border border-dashed">
+					<EmptyHeader>
+						<EmptyMedia variant="icon">
+							<Icon icon="icon-park-solid:split-turn-down-right" />
+						</EmptyMedia>
+						<EmptyTitle>No Splits Yet</EmptyTitle>
+						<EmptyDescription>
+							You haven&apos;t created any splits yet. Get started by creating
+							your first split.
+						</EmptyDescription>
+					</EmptyHeader>
+					<EmptyContent>
+						<Button asChild>
 							<Link to="/splits/create">
 								<Icon icon="bx:plus" />
 								Create Split
 							</Link>
 						</Button>
-					</div>
-				</StateTemplate>
+					</EmptyContent>
+				</Empty>
 			</Container>
 		);
 	}

@@ -7,6 +7,13 @@ import {
 	DialogHeader,
 	DialogTitle,
 } from "@/components/ui/dialog";
+import {
+	Empty,
+	EmptyDescription,
+	EmptyHeader,
+	EmptyMedia,
+	EmptyTitle,
+} from "@/components/ui/empty";
 import { useAppForm } from "@/hooks/form";
 import type { Goal } from "@/integrations/supabase/types";
 import { useUpdateGoalMutation } from "@/modules/goals/mutations";
@@ -134,11 +141,17 @@ export function UpdateGoalDialog() {
 	if (!goal)
 		return (
 			<DialogContainer>
-				<StateTemplate
-					state="empty"
-					heading="We can't find that goal"
-					description="If you think this is a mistake, please contact us"
-				/>
+				<Empty className="border border-dashed">
+					<EmptyHeader>
+						<EmptyMedia variant="icon">
+							<Icon icon="mage:goals-fill" />
+						</EmptyMedia>
+						<EmptyTitle>We can't find that goal</EmptyTitle>
+						<EmptyDescription>
+							If you think this is a mistake, please contact us
+						</EmptyDescription>
+					</EmptyHeader>
+				</Empty>
 			</DialogContainer>
 		);
 

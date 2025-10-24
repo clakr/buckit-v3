@@ -2,7 +2,7 @@ import { cn } from "@/lib/utils";
 import { Icon } from "@iconify/react";
 
 type Props = React.PropsWithChildren<{
-	state: "loading" | "error" | "empty";
+	state: "loading" | "error";
 	heading: string;
 	description: string;
 }>;
@@ -16,7 +16,6 @@ export function StateTemplate({
 	const statesIconMapping: Record<typeof state, string> = {
 		loading: "bx:loader-alt",
 		error: "bxs:info-circle",
-		empty: "bxs:message-rounded-error",
 	};
 
 	return (

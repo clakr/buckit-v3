@@ -10,6 +10,13 @@ import {
 	CardHeader,
 	CardTitle,
 } from "@/components/ui/card";
+import {
+	Empty,
+	EmptyDescription,
+	EmptyHeader,
+	EmptyMedia,
+	EmptyTitle,
+} from "@/components/ui/empty";
 import type {
 	Bucket,
 	Goal,
@@ -18,6 +25,7 @@ import type {
 } from "@/integrations/supabase/types";
 import { cn, formatCurrency, formatDateTime } from "@/lib/utils";
 import { splitQueryOption } from "@/modules/splits/query-options";
+import { Icon } from "@iconify/react/dist/iconify.js";
 import { useQueryClient, useSuspenseQuery } from "@tanstack/react-query";
 import {
 	type ErrorComponentProps,
@@ -72,11 +80,17 @@ function RouteComponent() {
 		return (
 			<Container>
 				<Heading heading="Split" />
-				<StateTemplate
-					state="empty"
-					heading="We can't find that split"
-					description="If you think this is a mistake, please contact us"
-				/>
+				<Empty className="border border-dashed">
+					<EmptyHeader>
+						<EmptyMedia variant="icon">
+							<Icon icon="icon-park-solid:split-turn-down-right" />
+						</EmptyMedia>
+						<EmptyTitle>We can't find that split</EmptyTitle>
+						<EmptyDescription>
+							If you think this is a mistake, please contact us
+						</EmptyDescription>
+					</EmptyHeader>
+				</Empty>
 			</Container>
 		);
 
