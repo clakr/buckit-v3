@@ -21,9 +21,6 @@ import {
 } from "@tanstack/react-router";
 
 export const Route = createFileRoute("/_authed/splits/")({
-	loader: async ({ context: { queryClient } }) => {
-		await Promise.allSettled([queryClient.ensureQueryData(splitsQueryOption)]);
-	},
 	pendingComponent: PendingComponent,
 	errorComponent: ErrorComponent,
 	component: RouteComponent,

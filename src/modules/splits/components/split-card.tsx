@@ -1,3 +1,4 @@
+import { Button } from "@/components/ui/button";
 import {
 	Card,
 	CardContent,
@@ -5,6 +6,7 @@ import {
 	CardHeader,
 	CardTitle,
 } from "@/components/ui/card";
+import { DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Progress } from "@/components/ui/progress";
 import type { Split, SplitAllocation } from "@/integrations/supabase/types";
 import { formatCurrency, formatPercentage } from "@/lib/utils";
@@ -33,7 +35,17 @@ export function SplitCard({ split }: Props) {
 
 	return (
 		<Card className="relative grid grid-rows-subgrid row-span-4">
-			<SplitDropdownMenu id={split.id} />
+			<SplitDropdownMenu id={split.id}>
+				<DropdownMenuTrigger asChild>
+					<Button
+						variant="ghost"
+						size="icon"
+						className="absolute top-2 right-2"
+					>
+						<Icon icon="bx:dots-vertical-rounded" />
+					</Button>
+				</DropdownMenuTrigger>
+			</SplitDropdownMenu>
 			<CardHeader className="grid grid-rows-subgrid row-span-3">
 				<CardTitle>{split.name}</CardTitle>
 				<span className="text-muted-foreground text-sm flex items-center gap-x-2">

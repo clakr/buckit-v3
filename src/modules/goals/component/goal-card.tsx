@@ -1,3 +1,4 @@
+import { Button } from "@/components/ui/button";
 import {
 	Card,
 	CardDescription,
@@ -5,10 +6,12 @@ import {
 	CardHeader,
 	CardTitle,
 } from "@/components/ui/card";
+import { DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Progress } from "@/components/ui/progress";
 import type { Goal } from "@/integrations/supabase/types";
 import { formatCurrency, formatPercentage } from "@/lib/utils";
 import { GoalDropdownMenu } from "@/modules/goals/component/goal-dropdown-menu";
+import { Icon } from "@iconify/react";
 
 type Props = {
 	goal: Goal;
@@ -19,7 +22,17 @@ export function GoalCard({ goal }: Props) {
 
 	return (
 		<Card className="relative grid grid-rows-subgrid row-span-2">
-			<GoalDropdownMenu id={goal.id} />
+			<GoalDropdownMenu id={goal.id}>
+				<DropdownMenuTrigger asChild>
+					<Button
+						variant="ghost"
+						size="icon"
+						className="absolute top-2 right-2"
+					>
+						<Icon icon="bx:dots-vertical-rounded" />
+					</Button>
+				</DropdownMenuTrigger>
+			</GoalDropdownMenu>
 			<CardHeader>
 				<CardTitle>{goal.name}</CardTitle>
 				<CardDescription>{goal.description}</CardDescription>

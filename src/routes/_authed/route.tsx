@@ -42,6 +42,8 @@ import { UpdateGoalDialog } from "@/modules/goals/component/update-goal-dialog";
 import { goalsQueryOption } from "@/modules/goals/query-options";
 import { UpdateProfileDialog } from "@/modules/profile/components/update-profile-dialog";
 import { UserDropdownMenu } from "@/modules/profile/components/user-dropdown-menu";
+import { SplitDropdownMenu } from "@/modules/splits/components/split-dropdown-menu";
+import { splitsQueryOption } from "@/modules/splits/query-options";
 import { Icon } from "@iconify/react";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import {
@@ -72,6 +74,7 @@ export const Route = createFileRoute("/_authed")({
 		await Promise.allSettled([
 			queryClient.ensureQueryData(bucketsQueryOption),
 			queryClient.ensureQueryData(goalsQueryOption),
+			queryClient.ensureQueryData(splitsQueryOption),
 		]);
 	},
 });
@@ -110,6 +113,7 @@ function Sidebar({ ...props }: React.ComponentProps<typeof UISidebar>) {
 function SidebarContent() {
 	const buckets = useSuspenseQuery(bucketsQueryOption);
 	const goals = useSuspenseQuery(goalsQueryOption);
+	const splits = useSuspenseQuery(splitsQueryOption);
 
 	// actions
 	const handleOpenCreateBucketDialog = useCreateBucketDialogStore(
@@ -268,6 +272,31 @@ function SidebarContent() {
 									<span className="sr-only">Add Goal</span>
 								</Link>
 							</SidebarMenuAction>
+							<SidebarMenuSub>
+								{splits.data.map((split) => (
+									<SidebarMenuItem key={split.id}>
+										<SidebarMenuButton asChild>
+											<Link
+												to="/splits/$id"
+												params={{ id: split.id }}
+												activeProps={{
+													"data-active": true,
+												}}
+											>
+												{split.name}
+											</Link>
+										</SidebarMenuButton>
+										<SplitDropdownMenu id={split.id}>
+											<DropdownMenuTrigger asChild>
+												<SidebarMenuAction>
+													<Icon icon="mdi:ellipsis-horizontal" />
+													<span className="sr-only">Split Actions</span>
+												</SidebarMenuAction>
+											</DropdownMenuTrigger>
+										</SplitDropdownMenu>
+									</SidebarMenuItem>
+								))}
+							</SidebarMenuSub>
 						</SidebarMenuItem>
 					</SidebarMenu>
 				</SidebarGroupContent>

@@ -1,11 +1,9 @@
-import { Button } from "@/components/ui/button";
 import {
 	DropdownMenu,
 	DropdownMenuContent,
 	DropdownMenuGroup,
 	DropdownMenuItem,
 	DropdownMenuLabel,
-	DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useAlert } from "@/hooks/use-alert";
 import type { Goal } from "@/integrations/supabase/types";
@@ -73,11 +71,6 @@ export function GoalDropdownMenu({ id, children }: Props) {
 	return (
 		<DropdownMenu>
 			{children}
-			{/* <DropdownMenuTrigger asChild>
-				<Button variant="ghost" size="icon" className="absolute top-2 right-2">
-					<Icon icon="bx:dots-vertical-rounded" />
-				</Button>
-			</DropdownMenuTrigger> */}
 			<DropdownMenuContent>
 				<DropdownMenuGroup>
 					<DropdownMenuLabel>Transactions</DropdownMenuLabel>
