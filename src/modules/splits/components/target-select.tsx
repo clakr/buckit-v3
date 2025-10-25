@@ -5,7 +5,7 @@ import {
 	CommandItem,
 	CommandList,
 } from "@/components/ui/command";
-import { Label } from "@/components/ui/label";
+import { Field, FieldError, FieldLabel } from "@/components/ui/field";
 import {
 	Popover,
 	PopoverContent,
@@ -40,10 +40,11 @@ export default function TargetSelect() {
 	const { data: goals } = useSuspenseQuery(goalsQueryOption);
 
 	return (
-		<div className="flex flex-col gap-y-2">
-			<Label htmlFor={id}>Target</Label>
+		<Field>
+			<FieldLabel htmlFor={id}>Target</FieldLabel>
 			<Popover open={open} onOpenChange={setOpen}>
 				<PopoverTrigger
+					id={id}
 					aria-invalid={isError}
 					aria-describedby={isError ? errorElementId : undefined}
 					asChild
@@ -132,42 +133,7 @@ export default function TargetSelect() {
 					</Command>
 				</PopoverContent>
 			</Popover>
-			{/* 			
-			<Select
-				value={field.state.value}
-				onValueChange={(value) => field.handleChange(value)}
-			>
-				<SelectTrigger
-					aria-invalid={isError}
-					aria-describedby={isError ? errorElementId : undefined}
-					className="w-full"
-				>
-					<SelectValue placeholder="Target" />
-				</SelectTrigger>
-				<SelectContent>
-					<SelectGroup>
-						<SelectLabel>Buckets</SelectLabel>
-						{buckets.map((bucket) => (
-							<SelectItem key={bucket.id} value={bucket.id}>
-								{bucket.name}
-							</SelectItem>
-						))}
-					</SelectGroup>
-					<SelectGroup>
-						<SelectLabel>Goals</SelectLabel>
-						{goals.map((goal) => (
-							<SelectItem key={goal.id} value={goal.id} className="flex">
-								{goal.name}
-							</SelectItem>
-						))}
-					</SelectGroup>
-				</SelectContent>
-			</Select> */}
-			{isError && (
-				<span id={id} className="text-destructive text-xs">
-					{errors.at(0).message}
-				</span>
-			)}
-		</div>
+			<FieldError id={errorElementId} errors={errors} />
+		</Field>
 	);
 }

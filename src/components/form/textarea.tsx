@@ -1,4 +1,4 @@
-import { Label } from "@/components/ui/label";
+import { Field, FieldError, FieldLabel } from "@/components/ui/field";
 import { Textarea as UITextarea } from "@/components/ui/textarea";
 import { useFieldContext } from "@/hooks/form";
 import { useStore } from "@tanstack/react-form";
@@ -17,8 +17,8 @@ export default function Textarea({ label, id, children, ...props }: Props) {
 	const errorElementId = `${id}-error`;
 
 	return (
-		<div className="flex flex-col gap-y-2">
-			<Label htmlFor={id}>{label}</Label>
+		<Field>
+			<FieldLabel htmlFor={id}>{label}</FieldLabel>
 			<UITextarea
 				{...props}
 				id={id}
@@ -28,11 +28,7 @@ export default function Textarea({ label, id, children, ...props }: Props) {
 				aria-invalid={isError}
 				aria-describedby={isError ? errorElementId : undefined}
 			/>
-			{isError && (
-				<span id={errorElementId} className="text-destructive text-xs">
-					{errors.at(0).message}
-				</span>
-			)}
-		</div>
+			<FieldError id={errorElementId} errors={errors} />
+		</Field>
 	);
 }

@@ -1,4 +1,4 @@
-import { Label } from "@/components/ui/label";
+import { Field, FieldError, FieldLabel } from "@/components/ui/field";
 import {
 	SelectContent,
 	SelectItem,
@@ -38,8 +38,8 @@ function Select({ label, id, options, placeholder, ...props }: Props) {
 		: options.map((option) => ({ label: option, value: option }));
 
 	return (
-		<div className="flex flex-col gap-y-2">
-			<Label htmlFor={id}>{label}</Label>
+		<Field>
+			<FieldLabel>{label}</FieldLabel>
 			<UISelect
 				{...props}
 				value={field.state.value}
@@ -61,12 +61,8 @@ function Select({ label, id, options, placeholder, ...props }: Props) {
 					))}
 				</SelectContent>
 			</UISelect>
-			{isError && (
-				<span id={errorElementId} className="text-destructive text-xs">
-					{errors.at(0)?.message}
-				</span>
-			)}
-		</div>
+			<FieldError id={errorElementId} errors={errors} />
+		</Field>
 	);
 }
 

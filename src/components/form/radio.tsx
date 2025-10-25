@@ -1,4 +1,4 @@
-import { Label } from "@/components/ui/label";
+import { Field, FieldError, FieldLabel, FieldSet } from "@/components/ui/field";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { useFieldContext } from "@/hooks/form";
 import { useStore } from "@tanstack/react-form";
@@ -31,8 +31,8 @@ export default function Radio({ label, id, options, ...props }: Props) {
 		: options.map((option) => ({ label: option, value: option }));
 
 	return (
-		<div className="flex flex-col gap-y-3">
-			<Label>{label}</Label>
+		<FieldSet>
+			<FieldLabel>{label}</FieldLabel>
 			<RadioGroup
 				{...props}
 				value={field.state.value}
@@ -44,20 +44,16 @@ export default function Radio({ label, id, options, ...props }: Props) {
 					const optionId = `${id}-${value}`;
 
 					return (
-						<div key={value} className="flex items-center space-x-1.5">
+						<Field orientation="horizontal" key={value}>
 							<RadioGroupItem value={value} id={optionId} />
-							<Label htmlFor={optionId} className="capitalize">
+							<FieldLabel htmlFor={optionId} className="capitalize">
 								{optionLabel}
-							</Label>
-						</div>
+							</FieldLabel>
+						</Field>
 					);
 				})}
 			</RadioGroup>
-			{isError && (
-				<span id={errorElementId} className="text-destructive text-xs">
-					{errors.at(0)?.message}
-				</span>
-			)}
-		</div>
+			<FieldError id={errorElementId} errors={errors} />
+		</FieldSet>
 	);
 }
