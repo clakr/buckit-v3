@@ -24,6 +24,7 @@ import {
 	SidebarFooter as UISidebarFooter,
 } from "@/components/ui/sidebar";
 import { supabase } from "@/integrations/supabase";
+import { formatCurrency } from "@/lib/utils";
 import { BucketDropdownMenu } from "@/modules/buckets/components/bucket-dropdown-menu";
 import {
 	CreateBucketDialog,
@@ -283,7 +284,10 @@ function SidebarContent() {
 													"data-active": true,
 												}}
 											>
-												{split.name}
+												<span className="whitespace-nowrap">{split.name}</span>
+												<span className="text-xs text-muted-foreground">
+													{formatCurrency(split.base_amount)}
+												</span>
 											</Link>
 										</SidebarMenuButton>
 										<SplitDropdownMenu id={split.id}>
