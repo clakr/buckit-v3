@@ -129,21 +129,31 @@ function RouteComponent() {
 	 * chart
 	 */
 	const transactionsByMonth = bucket.bucket_transactions.reduce<
-		Record<number, number>
+		Record<string, { month: number; year: number; balance: number }>
 	>((acc, transaction) => {
-		const month = new Date(transaction.created_at).getMonth();
+		const date = new Date(transaction.created_at);
+		const month = date.getMonth();
+		const year = date.getFullYear();
+		const key = `${year}-${month}`;
 
-		acc[month] = acc[month] || transaction.balance_after || 0;
+		acc[key] = {
+			month,
+			year,
+			balance: transaction.balance_after || 0,
+		};
 
 		return acc;
 	}, {});
 
-	const chartData = Object.entries(transactionsByMonth).map(
-		([month, balance]) => ({
-			month: indexMonthMapping[+month],
+	const chartData = Object.values(transactionsByMonth)
+		.sort((a, b) => {
+			if (a.year !== b.year) return a.year - b.year;
+			return a.month - b.month;
+		})
+		.map(({ month, year, balance }) => ({
+			month: `${indexMonthMapping[month]} ${year}`,
 			balance,
-		}),
-	);
+		}));
 
 	const chartConfig = {
 		balance: {
