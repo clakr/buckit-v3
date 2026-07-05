@@ -93,7 +93,7 @@ function AddressForm() {
             {(field) => <field.TextField label="Street Address" />}
           </form.AppField>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
             <form.AppField
               name="address.city"
               validators={{
