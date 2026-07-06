@@ -15,7 +15,8 @@
     "fmt": "oxfmt",
     "fmt:check": "oxfmt --check",
     "lint": "oxlint",
-    "lint:fix": "oxlint --fix"
+    "lint:fix": "oxlint --fix",
+    "pre": "oxfmt && oxlint"
   },
   "dependencies": {
     "@cloudflare/vite-plugin": "^1.26.0",
