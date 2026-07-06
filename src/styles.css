@@ -135,3 +135,9 @@
     @apply font-sans;
   }
 }
+
+@layer utilities {
+  .debug {
+    @apply outline outline-red-400;
+  }
+}
