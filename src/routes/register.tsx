@@ -1,5 +1,8 @@
+import { IconBrandGoogleFilled } from "@tabler/icons-react";
 import { createFileRoute, Link } from "@tanstack/react-router";
+
 import registerImage from "#/assets/register.webp";
+import { Button } from "#/components/ui/button";
 import {
   Field,
   FieldDescription,
@@ -8,8 +11,6 @@ import {
   FieldSeparator,
 } from "#/components/ui/field";
 import { Input } from "@/components/ui/input";
-import { Button } from "#/components/ui/button";
-import { IconBrandGoogleFilled } from "@tabler/icons-react";
 
 export const Route = createFileRoute("/register")({
   component: RouteComponent,
@@ -21,7 +22,7 @@ function RouteComponent() {
       <section className="flex flex-col items-center justify-center">
         <div className="flex flex-col items-center gap-1 text-center">
           <h1 className="text-2xl font-bold">Create your account</h1>
-          <p className="text-muted-foreground text-sm text-balance">
+          <p className="text-sm text-balance text-muted-foreground">
             Fill in the form below to create your account
           </p>
         </div>

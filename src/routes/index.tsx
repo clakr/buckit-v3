@@ -1,5 +1,8 @@
+import { IconBrandGoogleFilled } from "@tabler/icons-react";
 import { createFileRoute, Link } from "@tanstack/react-router";
+
 import loginImage from "#/assets/login.webp";
+import { Button } from "#/components/ui/button";
 import {
   Field,
   FieldDescription,
@@ -8,8 +11,6 @@ import {
   FieldSeparator,
 } from "#/components/ui/field";
 import { Input } from "@/components/ui/input";
-import { Button } from "#/components/ui/button";
-import { IconBrandGoogleFilled } from "@tabler/icons-react";
 
 export const Route = createFileRoute("/")({ component: RouteComponent });
 
@@ -19,7 +20,7 @@ function RouteComponent() {
       <section className="flex flex-col items-center justify-center">
         <div className="flex flex-col items-center gap-1 text-center">
           <h1 className="text-2xl font-bold">Login to your account</h1>
-          <p className="text-muted-foreground text-sm text-balance">
+          <p className="text-sm text-balance text-muted-foreground">
             Enter your email below to login to your account
           </p>
         </div>
