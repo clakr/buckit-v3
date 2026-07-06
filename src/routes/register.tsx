@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import loginImage from "#/assets/login.webp";
+import registerImage from "#/assets/register.webp";
 import {
   Field,
   FieldDescription,
@@ -11,44 +11,57 @@ import { Input } from "@/components/ui/input";
 import { Button } from "#/components/ui/button";
 import { IconBrandGoogleFilled } from "@tabler/icons-react";
 
-export const Route = createFileRoute("/")({ component: RouteComponent });
+export const Route = createFileRoute("/register")({
+  component: RouteComponent,
+});
 
 function RouteComponent() {
   return (
     <main className="grid h-svh grid-cols-2">
       <section className="flex flex-col items-center justify-center">
         <div className="flex flex-col items-center gap-1 text-center">
-          <h1 className="text-2xl font-bold">Login to your account</h1>
+          <h1 className="text-2xl font-bold">Create your account</h1>
           <p className="text-muted-foreground text-sm text-balance">
-            Enter your email below to login to your account
+            Fill in the form below to create your account
           </p>
         </div>
         <form className="w-full max-w-125 p-6">
           <FieldGroup className="gap-y-6">
+            <div className="flex gap-x-3">
+              <Field>
+                <FieldLabel htmlFor="first-name">First Name</FieldLabel>
+                <Input id="first-name" type="text" placeholder="John" required />
+              </Field>
+              <Field>
+                <FieldLabel htmlFor="last-name">Last Name</FieldLabel>
+                <Input id="last-name" type="text" placeholder="Doe" required />
+              </Field>
+            </div>
             <Field>
               <FieldLabel htmlFor="email">Email</FieldLabel>
               <Input id="email" type="email" placeholder="youremail@example.com" required />
             </Field>
-            <Field>
-              <div className="flex items-center justify-between">
+            <div className="flex gap-x-3">
+              <Field>
                 <FieldLabel htmlFor="password">Password</FieldLabel>
-                <a href="#" className="text-sm">
-                  Forgot your password?
-                </a>
-              </div>
-              <Input id="password" type="password" placeholder="********" required />
-            </Field>
+                <Input id="password" type="password" placeholder="********" required />
+              </Field>
+              <Field>
+                <FieldLabel htmlFor="confirm-password">Confirm Password</FieldLabel>
+                <Input id="confirm-password" type="password" placeholder="********" required />
+              </Field>
+            </div>
             <Field>
-              <Button type="submit">Login</Button>
+              <Button type="submit">Create Account</Button>
             </Field>
             <FieldSeparator>Or continue with</FieldSeparator>
             <Field className="gap-y-3">
               <Button variant="outline" type="button">
                 <IconBrandGoogleFilled />
-                Login with Google
+                Sign up with Google
               </Button>
-              <FieldDescription className="text-center">
-                Don&apos;t have an account? <Link to="/register">Sign Up</Link>
+              <FieldDescription className="px-6 text-center">
+                Already have an account? <Link to="/">Sign In</Link>
               </FieldDescription>
             </Field>
           </FieldGroup>
@@ -56,7 +69,7 @@ function RouteComponent() {
       </section>
       <section className="relative isolate">
         <img
-          src={loginImage}
+          src={registerImage}
           alt=""
           className="absolute inset-2 size-[calc(100%-(--spacing(4)))] rounded-md"
         />
