@@ -4,4 +4,14 @@
   "compatibility_date": "2025-09-02",
   "compatibility_flags": ["nodejs_compat"],
   "main": "@tanstack/react-start/server-entry",
+  "d1_databases": [
+    {
+      "binding": "db",
+      "database_name": "buckit",
+      "database_id": "6f121c66-8e1d-435d-84b4-d5422c12a9b9",
+      "migrations_dir": "migrations",
+      "migrations_pattern": "migrations/*/migration.sql",
+    },
+  ],
 }
+
