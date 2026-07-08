@@ -16,6 +16,7 @@ import { Route as GuestIndexRouteImport } from './routes/_guest/index'
 import { Route as DemoTanstackQueryRouteImport } from './routes/demo/tanstack-query'
 import { Route as DemoTableRouteImport } from './routes/demo/table'
 import { Route as ProtectedDashboardRouteImport } from './routes/_protected/dashboard'
+import { Route as ProtectedBucketsRouteImport } from './routes/_protected/buckets'
 import { Route as GuestRegisterRouteImport } from './routes/_guest/register'
 import { Route as DemoFormSimpleRouteImport } from './routes/demo/form.simple'
 import { Route as DemoFormAddressRouteImport } from './routes/demo/form.address'
@@ -54,6 +55,11 @@ const ProtectedDashboardRoute = ProtectedDashboardRouteImport.update({
   path: '/dashboard',
   getParentRoute: () => ProtectedRoute,
 } as any)
+const ProtectedBucketsRoute = ProtectedBucketsRouteImport.update({
+  id: '/buckets',
+  path: '/buckets',
+  getParentRoute: () => ProtectedRoute,
+} as any)
 const GuestRegisterRoute = GuestRegisterRouteImport.update({
   id: '/register',
   path: '/register',
@@ -79,6 +85,7 @@ export interface FileRoutesByFullPath {
   '/': typeof GuestIndexRoute
   '/about': typeof AboutRoute
   '/register': typeof GuestRegisterRoute
+  '/buckets': typeof ProtectedBucketsRoute
   '/dashboard': typeof ProtectedDashboardRoute
   '/demo/table': typeof DemoTableRoute
   '/demo/tanstack-query': typeof DemoTanstackQueryRoute
@@ -90,6 +97,7 @@ export interface FileRoutesByTo {
   '/': typeof GuestIndexRoute
   '/about': typeof AboutRoute
   '/register': typeof GuestRegisterRoute
+  '/buckets': typeof ProtectedBucketsRoute
   '/dashboard': typeof ProtectedDashboardRoute
   '/demo/table': typeof DemoTableRoute
   '/demo/tanstack-query': typeof DemoTanstackQueryRoute
@@ -103,6 +111,7 @@ export interface FileRoutesById {
   '/_protected': typeof ProtectedRouteWithChildren
   '/about': typeof AboutRoute
   '/_guest/register': typeof GuestRegisterRoute
+  '/_protected/buckets': typeof ProtectedBucketsRoute
   '/_protected/dashboard': typeof ProtectedDashboardRoute
   '/demo/table': typeof DemoTableRoute
   '/demo/tanstack-query': typeof DemoTanstackQueryRoute
@@ -117,6 +126,7 @@ export interface FileRouteTypes {
     | '/'
     | '/about'
     | '/register'
+    | '/buckets'
     | '/dashboard'
     | '/demo/table'
     | '/demo/tanstack-query'
@@ -128,6 +138,7 @@ export interface FileRouteTypes {
     | '/'
     | '/about'
     | '/register'
+    | '/buckets'
     | '/dashboard'
     | '/demo/table'
     | '/demo/tanstack-query'
@@ -140,6 +151,7 @@ export interface FileRouteTypes {
     | '/_protected'
     | '/about'
     | '/_guest/register'
+    | '/_protected/buckets'
     | '/_protected/dashboard'
     | '/demo/table'
     | '/demo/tanstack-query'
@@ -211,6 +223,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ProtectedDashboardRouteImport
       parentRoute: typeof ProtectedRoute
     }
+    '/_protected/buckets': {
+      id: '/_protected/buckets'
+      path: '/buckets'
+      fullPath: '/buckets'
+      preLoaderRoute: typeof ProtectedBucketsRouteImport
+      parentRoute: typeof ProtectedRoute
+    }
     '/_guest/register': {
       id: '/_guest/register'
       path: '/register'
@@ -255,10 +274,12 @@ const GuestRouteChildren: GuestRouteChildren = {
 const GuestRouteWithChildren = GuestRoute._addFileChildren(GuestRouteChildren)
 
 interface ProtectedRouteChildren {
+  ProtectedBucketsRoute: typeof ProtectedBucketsRoute
   ProtectedDashboardRoute: typeof ProtectedDashboardRoute
 }
 
 const ProtectedRouteChildren: ProtectedRouteChildren = {
+  ProtectedBucketsRoute: ProtectedBucketsRoute,
   ProtectedDashboardRoute: ProtectedDashboardRoute,
 }
 

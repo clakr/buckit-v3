@@ -5,9 +5,7 @@ export const users = sqliteTable("users", {
   id: text("id").primaryKey(),
   name: text("name").notNull(),
   email: text("email").notNull().unique(),
-  emailVerified: integer("email_verified", { mode: "boolean" })
-    .default(false)
-    .notNull(),
+  emailVerified: integer("email_verified", { mode: "boolean" }).default(false).notNull(),
   image: text("image"),
   createdAt: integer("created_at", { mode: "timestamp_ms" })
     .default(sql`(cast(unixepoch('subsecond') * 1000 as integer))`)
@@ -87,24 +85,21 @@ export const verifications = sqliteTable(
   (table) => [index("verification_identifier_idx").on(table.identifier)],
 );
 
-export const relations = defineRelations(
-  { users, sessions, accounts, verifications },
-  (r) => ({
-    users: {
-      sessions: r.many.sessions(),
-      accounts: r.many.accounts(),
-    },
-    sessions: {
-      user: r.one.users({
-        from: r.sessions.userId,
-        to: r.users.id,
-      }),
-    },
-    accounts: {
-      user: r.one.users({
-        from: r.accounts.userId,
-        to: r.users.id,
-      }),
-    },
-  }),
-);
+export const relations = defineRelations({ users, sessions, accounts, verifications }, (r) => ({
+  users: {
+    sessions: r.many.sessions(),
+    accounts: r.many.accounts(),
+  },
+  sessions: {
+    user: r.one.users({
+      from: r.sessions.userId,
+      to: r.users.id,
+    }),
+  },
+  accounts: {
+    user: r.one.users({
+      from: r.accounts.userId,
+      to: r.users.id,
+    }),
+  },
+}));
