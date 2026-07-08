@@ -2,10 +2,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { getRequestHeaders } from "@tanstack/react-start/server";
 
 import { auth } from "#/integrations/better-auth";
-import {
-  signUpUserSchema,
-  signInUserSchema,
-} from "#/modules/authentication/schema";
+import { signUpUserSchema, signInUserSchema } from "#/modules/authentication/schema";
 
 export const signUpUser = createServerFn({
   method: "POST",
@@ -41,13 +38,11 @@ export const ensureSession = createServerFn({
   return session;
 });
 
-export const signOutUser = createServerFn({ method: "POST" }).handler(
-  async () => {
-    const headers = getRequestHeaders();
+export const signOutUser = createServerFn({ method: "POST" }).handler(async () => {
+  const headers = getRequestHeaders();
 
-    await auth.api.signOut({ headers });
-  },
-);
+  await auth.api.signOut({ headers });
+});
 
 export const signInUser = createServerFn({ method: "POST" })
   .validator(signInUserSchema)
