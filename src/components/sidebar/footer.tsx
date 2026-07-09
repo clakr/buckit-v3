@@ -1,5 +1,5 @@
 import { IconSelector, IconLogout, IconUserCircle } from "@tabler/icons-react";
-import { getRouteApi, Link } from "@tanstack/react-router";
+import { getRouteApi } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 
 import { signOutUser } from "#/modules/authentication/functions";
@@ -23,7 +23,7 @@ import {
 
 export function SidebarFooter() {
   const Route = getRouteApi("/_protected");
-  const { user } = Route.useRouteContext();
+  const { user, queryClient } = Route.useRouteContext();
 
   const navigate = Route.useNavigate();
 
@@ -33,6 +33,8 @@ export function SidebarFooter() {
 
   async function handleLogout() {
     await logoutUserServerFn();
+
+    queryClient.clear();
 
     navigate({
       to: "/",
