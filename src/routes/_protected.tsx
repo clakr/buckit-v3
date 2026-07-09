@@ -6,6 +6,7 @@ import { Sidebar, SidebarInset, SidebarProvider, SidebarTrigger } from "#/compon
 import { getSession } from "#/modules/authentication/functions";
 
 export const Route = createFileRoute("/_protected")({
+  ssr: "data-only",
   component: RouteComponent,
   beforeLoad: async () => {
     const session = await getSession();

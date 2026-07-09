@@ -1,11 +1,15 @@
 import { defineRelations, sql } from "drizzle-orm";
 import { sqliteTable, text, integer, index } from "drizzle-orm/sqlite-core";
 
+import { currenciesCodes } from "#/lib/constants";
+
 export const users = sqliteTable("users", {
   id: text("id").primaryKey(),
   name: text("name").notNull(),
   email: text("email").notNull().unique(),
-  emailVerified: integer("email_verified", { mode: "boolean" }).default(false).notNull(),
+  emailVerified: integer("email_verified", { mode: "boolean" })
+    .default(false)
+    .notNull(),
   image: text("image"),
   createdAt: integer("created_at", { mode: "timestamp_ms" })
     .default(sql`(cast(unixepoch('subsecond') * 1000 as integer))`)
@@ -85,21 +89,49 @@ export const verifications = sqliteTable(
   (table) => [index("verification_identifier_idx").on(table.identifier)],
 );
 
-export const relations = defineRelations({ users, sessions, accounts, verifications }, (r) => ({
-  users: {
-    sessions: r.many.sessions(),
-    accounts: r.many.accounts(),
-  },
-  sessions: {
-    user: r.one.users({
-      from: r.sessions.userId,
-      to: r.users.id,
-    }),
-  },
-  accounts: {
-    user: r.one.users({
-      from: r.accounts.userId,
-      to: r.users.id,
-    }),
-  },
-}));
+export const bankAccounts = sqliteTable("bank_accounts", {
+  id: text("id").primaryKey(),
+  userId: text("user_id")
+    .notNull()
+    .references(() => users.id, { onDelete: "cascade" }),
+  name: text("name").notNull(),
+  currency: text("currency", { enum: currenciesCodes }).notNull(),
+  startingBalance: integer("starting_balance").default(0).notNull(),
+  createdAt: integer("created_at", { mode: "timestamp_ms" })
+    .default(sql`(cast(unixepoch('subsecond') * 1000 as integer))`)
+    .notNull(),
+});
+
+//
+
+export const relations = defineRelations(
+  { users, sessions, accounts, verifications, bankAccounts },
+  (r) => ({
+    users: {
+      sessions: r.many.sessions(),
+      accounts: r.many.accounts(),
+    },
+    sessions: {
+      user: r.one.users({
+        from: r.sessions.userId,
+        to: r.users.id,
+      }),
+    },
+    accounts: {
+      user: r.one.users({
+        from: r.accounts.userId,
+        to: r.users.id,
+      }),
+    },
+    bankAccounts: {
+      user: r.one.users({
+        from: r.bankAccounts.userId,
+        to: r.users.id,
+      }),
+    },
+  }),
+);
+
+//
+
+export type BankAccount = typeof bankAccounts.$inferSelect;
