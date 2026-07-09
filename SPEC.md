@@ -12,46 +12,50 @@
 ## Data Model
 
 ### Account
-| Field | Type | Notes |
-|-------|------|-------|
-| `id` | string | auto-generated |
-| `userId` | string | FK → Users (ownership boundary) |
-| `name` | string | user-given label |
-| `currency` | string | e.g. QAR, PHP |
-| `startingBalance` | number | base value, stored directly on account (not an entry) |
-| `createdAt` | datetime | |
+
+| Field             | Type     | Notes                                                 |
+| ----------------- | -------- | ----------------------------------------------------- |
+| `id`              | string   | auto-generated                                        |
+| `userId`          | string   | FK → Users (ownership boundary)                       |
+| `name`            | string   | user-given label                                      |
+| `currency`        | string   | e.g. QAR, PHP                                         |
+| `startingBalance` | number   | base value, stored directly on account (not an entry) |
+| `createdAt`       | datetime |                                                       |
 
 ### Bucket
-| Field | Type | Notes |
-|-------|------|-------|
-| `id` | string | auto-generated |
-| `userId` | string | FK → Users (ownership boundary) |
-| `name` | string | user-given label |
-| `createdAt` | datetime | |
+
+| Field       | Type     | Notes                           |
+| ----------- | -------- | ------------------------------- |
+| `id`        | string   | auto-generated                  |
+| `userId`    | string   | FK → Users (ownership boundary) |
+| `name`      | string   | user-given label                |
+| `createdAt` | datetime |                                 |
 
 ### Account Entry
-| Field | Type | Notes |
-|-------|------|-------|
-| `id` | string | auto-generated |
-| `accountId` | string | FK → Account (user derived via account) |
-| `type` | enum | `income` / `expense` |
-| `amount` | number | positive for income, negative for expense |
-| `note` | string? | optional |
-| `date` | datetime | when the money moved |
-| `createdAt` | datetime | |
+
+| Field       | Type     | Notes                                     |
+| ----------- | -------- | ----------------------------------------- |
+| `id`        | string   | auto-generated                            |
+| `accountId` | string   | FK → Account (user derived via account)   |
+| `type`      | enum     | `income` / `expense`                      |
+| `amount`    | number   | positive for income, negative for expense |
+| `note`      | string?  | optional                                  |
+| `date`      | datetime | when the money moved                      |
+| `createdAt` | datetime |                                           |
 
 ### Allocation
-| Field | Type | Notes |
-|-------|------|-------|
-| `id` | string | auto-generated |
-| `accountId` | string | FK → Account (user derived via account) |
-| `bucketId` | string | FK → Bucket |
-| `amount` | number | always positive |
-| `convertedAmount` | number? | present when allocating from an account whose currency differs from the allocation reference |
-| `convertedCurrency` | string? | target currency of the conversion |
-| `note` | string? | optional |
-| `date` | datetime | |
-| `createdAt` | datetime | |
+
+| Field               | Type     | Notes                                                                                        |
+| ------------------- | -------- | -------------------------------------------------------------------------------------------- |
+| `id`                | string   | auto-generated                                                                               |
+| `accountId`         | string   | FK → Account (user derived via account)                                                      |
+| `bucketId`          | string   | FK → Bucket                                                                                  |
+| `amount`            | number   | always positive                                                                              |
+| `convertedAmount`   | number?  | present when allocating from an account whose currency differs from the allocation reference |
+| `convertedCurrency` | string?  | target currency of the conversion                                                            |
+| `note`              | string?  | optional                                                                                     |
+| `date`              | datetime |                                                                                              |
+| `createdAt`         | datetime |                                                                                              |
 
 ## Design Decisions
 
@@ -66,15 +70,15 @@
 
 ## Priorities
 
-| Priority | Feature | Notes |
-|----------|---------|-------|
-| P0 | Add Account | name + currency + starting balance |
-| P0 | Add Bucket | just a name |
-| P0 | Log Account Entry | pick type (income/expense), account, amount |
-| P0 | Log Allocation | pick account, pick bucket, enter amount |
-| P1 | Dashboard | accounts list (name, currency, balance, unallocated) + buckets list with per-currency subtotals and per-account breakdown |
-| P2 | Bucket detail | allocation history grouped by account; a button to convert totals via external API |
-| P3 | Distributions | one entry auto-allocates across multiple buckets |
+| Priority | Feature           | Notes                                                                                                                     |
+| -------- | ----------------- | ------------------------------------------------------------------------------------------------------------------------- |
+| P0       | Add Account       | name + currency + starting balance                                                                                        |
+| P0       | Add Bucket        | just a name                                                                                                               |
+| P0       | Log Account Entry | pick type (income/expense), account, amount                                                                               |
+| P0       | Log Allocation    | pick account, pick bucket, enter amount                                                                                   |
+| P1       | Dashboard         | accounts list (name, currency, balance, unallocated) + buckets list with per-currency subtotals and per-account breakdown |
+| P2       | Bucket detail     | allocation history grouped by account; a button to convert totals via external API                                        |
+| P3       | Distributions     | one entry auto-allocates across multiple buckets                                                                          |
 
 ## Account Entry Types
 
@@ -86,18 +90,21 @@ Transfers between accounts are two entries: expense from source, income to desti
 ## User Flows (in priority order)
 
 ### 1. Add Account
+
 1. User clicks "Add Account"
 2. Enters name (e.g. "QNB Savings"), picks currency (QAR), enters starting balance (e.g. 5000)
 3. App creates the account with the starting balance field (no initial entry created)
 4. Redirect to account detail or dashboard
 
 ### 2. Add Bucket
+
 1. User clicks "Add Bucket"
 2. Enters name (e.g. "Emergency Fund")
 3. App creates the bucket
 4. Redirect to bucket detail or dashboard
 
 ### 3. Log Account Entry
+
 1. User clicks "New Entry"
 2. Selects type: Income / Expense
 3. Picks account from dropdown
@@ -107,6 +114,7 @@ Transfers between accounts are two entries: expense from source, income to desti
 7. Shows success and stays on the log page for quick entry chaining
 
 ### 4. Log Allocation
+
 1. User clicks "Allocate"
 2. Picks account (the source of the money)
 3. Picks bucket from dropdown
@@ -116,6 +124,7 @@ Transfers between accounts are two entries: expense from source, income to desti
 7. Shows success and stays on the allocation page
 
 ### 5. Dashboard
+
 1. User lands on dashboard
 2. Sees two sections:
    - **Accounts** — a list/table with name, currency, computed balance, unallocated amount
@@ -123,6 +132,7 @@ Transfers between accounts are two entries: expense from source, income to desti
 3. (Future) Click a button to convert all bucket totals to a preferred currency via API
 
 ### 6. Bucket Detail
+
 1. User clicks a bucket from the dashboard
 2. Sees allocation history grouped by account (e.g. "QNB: 2000 QAR, BDO: 7800 PHP")
 3. Sees per-currency subtotals at the top
