@@ -3,10 +3,7 @@ import { getRequestHeaders } from "@tanstack/react-start/server";
 
 import { auth } from "#/integrations/better-auth";
 import { authMiddleware } from "#/lib/middlewares";
-import {
-  signUpUserSchema,
-  signInUserSchema,
-} from "#/modules/authentication/schema";
+import { signUpUserSchema, signInUserSchema } from "#/modules/authentication/schema";
 
 export const signUpUser = createServerFn({
   method: "POST",
