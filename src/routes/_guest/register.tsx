@@ -1,8 +1,9 @@
-import { IconBrandGoogleFilled } from "@tabler/icons-react";
+import { IconAlertCircle, IconBrandGoogleFilled } from "@tabler/icons-react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { z } from "zod";
 
 import registerImage from "#/assets/register.webp";
+import { Alert, AlertDescription, AlertTitle } from "#/components/ui/alert";
 import { Button } from "#/components/ui/button";
 import { Field, FieldDescription, FieldGroup, FieldSeparator } from "#/components/ui/field";
 import { useAppForm } from "#/integrations/tanstack-form";
@@ -30,9 +31,20 @@ function RouteComponent() {
       onBlur: signUpUserSchema,
     },
     onSubmit: async ({ value }) => {
-      await signUpUser({
-        data: value,
-      });
+      try {
+        await signUpUser({
+          data: value,
+        });
+      } catch (error) {
+        form.setErrorMap({
+          onSubmit: {
+            fields: {},
+            form: error instanceof Error ? error.message : error,
+          },
+        });
+
+        return;
+      }
 
       navigate({
         to: "/dashboard",
@@ -95,6 +107,17 @@ function RouteComponent() {
                 )}
               </form.AppField>
             </div>
+            <form.Subscribe selector={(state) => state.errorMap}>
+              {(errorMap) =>
+                errorMap.onSubmit ? (
+                  <Alert variant="destructive">
+                    <IconAlertCircle />
+                    <AlertTitle>Oops!</AlertTitle>
+                    <AlertDescription>{errorMap.onSubmit}</AlertDescription>
+                  </Alert>
+                ) : null
+              }
+            </form.Subscribe>
             <Field>
               <form.AppForm>
                 <form.Button>Create Account</form.Button>

@@ -1,8 +1,9 @@
-import { IconBrandGoogleFilled } from "@tabler/icons-react";
+import { IconAlertCircle, IconBrandGoogleFilled } from "@tabler/icons-react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { z } from "zod";
 
 import loginImage from "#/assets/login.webp";
+import { Alert, AlertDescription, AlertTitle } from "#/components/ui/alert";
 import { Button } from "#/components/ui/button";
 import { Field, FieldDescription, FieldGroup, FieldSeparator } from "#/components/ui/field";
 import { useAppForm } from "#/integrations/tanstack-form";
@@ -27,9 +28,20 @@ function RouteComponent() {
       onBlur: signInUserSchema,
     },
     onSubmit: async ({ value }) => {
-      await signInUser({
-        data: value,
-      });
+      try {
+        await signInUser({
+          data: value,
+        });
+      } catch (error) {
+        form.setErrorMap({
+          onSubmit: {
+            fields: {},
+            form: error instanceof Error ? error.message : error,
+          },
+        });
+
+        return;
+      }
 
       navigate({
         to: "/dashboard",
@@ -71,6 +83,17 @@ function RouteComponent() {
                 <field.Input label="Password" type="password" placeholder="********" required />
               )}
             </form.AppField>
+            <form.Subscribe selector={(state) => state.errorMap}>
+              {(errorMap) =>
+                errorMap.onSubmit ? (
+                  <Alert variant="destructive">
+                    <IconAlertCircle />
+                    <AlertTitle>Oops!</AlertTitle>
+                    <AlertDescription>{errorMap.onSubmit}</AlertDescription>
+                  </Alert>
+                ) : null
+              }
+            </form.Subscribe>
             <Field>
               <form.AppForm>
                 <form.Button>Login</form.Button>

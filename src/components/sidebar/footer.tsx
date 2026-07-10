@@ -1,10 +1,12 @@
 import { IconSelector, IconLogout, IconUserCircle } from "@tabler/icons-react";
 import { getRouteApi } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
+import { toast } from "sonner";
 
 import { signOutUser } from "#/modules/authentication/functions";
 
 import { Avatar, AvatarImage, AvatarFallback } from "../ui/avatar";
+import { Button } from "../ui/button";
 import {
   DropdownMenu,
   DropdownMenuTrigger,
@@ -32,7 +34,23 @@ export function SidebarFooter() {
   const logoutUserServerFn = useServerFn(signOutUser);
 
   async function handleLogout() {
-    await logoutUserServerFn();
+    try {
+      await logoutUserServerFn();
+    } catch (error) {
+      let description = "Unknown error";
+
+      if (error instanceof Error) {
+        description = error.message;
+      } else if (typeof error === "string") {
+        description = error;
+      }
+
+      toast.error("Oops!", {
+        description,
+        dismissible: false,
+        action: <Button onClick={handleLogout}>Retry</Button>,
+      });
+    }
 
     queryClient.clear();
 
