@@ -4,6 +4,8 @@ import { TanStackDevtools } from "@tanstack/react-devtools";
 import { HeadContent, Scripts, createRootRouteWithContext } from "@tanstack/react-router";
 import { TanStackRouterDevtoolsPanel } from "@tanstack/react-router-devtools";
 
+import { Toaster } from "#/components/ui/sonner";
+
 import TanStackQueryDevtools from "../integrations/tanstack-query/devtools";
 import appCss from "../styles.css?url";
 
@@ -46,6 +48,13 @@ function RootDocument({ children }: { children: React.ReactNode }) {
       </head>
       <body className="font-sans wrap-anywhere antialiased">
         {children}
+        <Toaster
+          toastOptions={{
+            classNames: {
+              description: "!text-muted-foreground",
+            },
+          }}
+        />
         <TanStackDevtools
           config={{
             position: "bottom-right",
