@@ -3,6 +3,7 @@ import type { PropsWithChildren } from "react";
 import { IconMoodWrrr, IconPlus, IconWallet } from "@tabler/icons-react";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
+import { useShallow } from "zustand/react/shallow";
 
 import { Heading } from "#/components/heading";
 import { Main } from "#/components/main";
@@ -11,6 +12,7 @@ import { DataTable } from "#/components/ui/data-table";
 import { Spinner } from "#/components/ui/spinner";
 import { columns } from "#/modules/accounts/columns";
 import { bankAccountsQueryOptions } from "#/modules/accounts/query-options";
+import { useDialogStore } from "#/stores/use-dialog";
 import {
   Empty,
   EmptyContent,
@@ -61,6 +63,8 @@ function RouteComponent() {
 
   const isEmpty = bankAccounts.length === 0;
 
+  const openDialog = useDialogStore(useShallow((state) => state.openDialog));
+
   return (
     <Template>
       {isEmpty ? (
@@ -73,8 +77,7 @@ function RouteComponent() {
             <EmptyDescription>Add your first bank account to start tracking.</EmptyDescription>
           </EmptyHeader>
           <EmptyContent>
-            {/* @todo: implement */}
-            <Button disabled>
+            <Button onClick={openDialog}>
               <IconPlus />
               Add Account
             </Button>
@@ -88,9 +91,17 @@ function RouteComponent() {
 }
 
 function Template({ children }: PropsWithChildren) {
+  const openDialog = useDialogStore(useShallow((state) => state.openDialog));
+
   return (
     <Main>
-      <Heading>Accounts</Heading>
+      <div className="flex items-center justify-between">
+        <Heading>Accounts</Heading>
+        <Button onClick={openDialog}>
+          <IconPlus />
+          Add Account
+        </Button>
+      </div>
       {children}
     </Main>
   );

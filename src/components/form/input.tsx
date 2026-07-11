@@ -25,6 +25,7 @@ export default function Input({ label, ...rest }: Props) {
         id={id}
         value={field.state.value}
         onChange={(e) => field.handleChange(e.target.value)}
+        onBlur={field.handleBlur}
         aria-invalid={isInvalid ? true : undefined}
         aria-labelledby={isInvalid ? errorId : undefined}
       />

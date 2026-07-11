@@ -67,6 +67,7 @@
 6. **Starting balance** — Stored as a field on Account, not as an Account Entry.
 7. **Transfers between accounts** — Logged as two Account Entries: an expense from Account A and an income to Account B (linked via note).
 8. **User ownership cascade** — `userId` lives only on `Account` and `Bucket`. `Account Entry` and `Allocation` derive the user through `accountId → Account.userId`. This avoids redundant data while keeping a single ownership source of truth. Every query scoped to a user joins through `Account`.
+9. **Inline forms in dialogs** — Small forms (Add Account, Add Bucket, Edit Account, Edit Bucket) open as dialogs over the current page instead of navigating to a separate route. This keeps the list/context visible and reduces friction. Full-page views are reserved for detail-heavy pages (Account Detail, Bucket Detail).
 
 ## Priorities
 
@@ -91,17 +92,17 @@ Transfers between accounts are two entries: expense from source, income to desti
 
 ### 1. Add Account
 
-1. User clicks "Add Account"
+1. User clicks "Add Account". A dialog opens.
 2. Enters name (e.g. "QNB Savings"), picks currency (QAR), enters starting balance (e.g. 5000)
 3. App creates the account with the starting balance field (no initial entry created)
-4. Redirect to account detail or dashboard
+4. Close dialog. Account appears in the list. Show success toast.
 
 ### 2. Add Bucket
 
-1. User clicks "Add Bucket"
+1. User clicks "Add Bucket". A dialog opens.
 2. Enters name (e.g. "Emergency Fund")
 3. App creates the bucket
-4. Redirect to bucket detail or dashboard
+4. Close dialog. Bucket appears in the list. Show success toast.
 
 ### 3. Log Account Entry
 
