@@ -42,12 +42,12 @@ Better Auth errors are returned as thrown exceptions from server functions. The 
 
 ## Data Model
 
-| Table | Purpose | Key Columns |
-|-------|---------|-------------|
-| `users` | User identity | `id` (PK), `name`, `email` (unique), `emailVerified`, `image` |
-| `sessions` | Active sessions | `id` (PK), `token` (unique), `expiresAt`, `userId` (FK → users) |
-| `accounts` | Auth provider accounts | `id` (PK), `accountId`, `providerId` ("email" or "google"), `userId` (FK → users), `password` (hashed, for email provider) |
-| `verifications` | Verification tokens | `id` (PK), `identifier`, `value`, `expiresAt` (used by Better Auth for email verification / password reset) |
+| Table           | Purpose                | Key Columns                                                                                                                |
+| --------------- | ---------------------- | -------------------------------------------------------------------------------------------------------------------------- |
+| `users`         | User identity          | `id` (PK), `name`, `email` (unique), `emailVerified`, `image`                                                              |
+| `sessions`      | Active sessions        | `id` (PK), `token` (unique), `expiresAt`, `userId` (FK → users)                                                            |
+| `accounts`      | Auth provider accounts | `id` (PK), `accountId`, `providerId` ("email" or "google"), `userId` (FK → users), `password` (hashed, for email provider) |
+| `verifications` | Verification tokens    | `id` (PK), `identifier`, `value`, `expiresAt` (used by Better Auth for email verification / password reset)                |
 
 ---
 
@@ -181,24 +181,29 @@ Better Auth errors are returned as thrown exceptions from server functions. The 
 **Trigger:** Occurs automatically on **every** navigation to a guest or protected route.
 
 **Guest Layout** (`_guest.tsx`):
+
 ```
 beforeLoad:
   session = getSession()
   if session exists → redirect to /dashboard
 ```
+
 Applied to: `/`, `/register`
 
 **Protected Layout** (`_protected.tsx`):
+
 ```
 beforeLoad:
   session = getSession()
   if no session → redirect to /
   return { user: session.user }
 ```
+
 Applied to: `/dashboard`, `/accounts/*`, and all other authenticated routes.
 
 **Auth Middleware** (`middlewares.ts`):
 Used by server functions (`signOutUser`, `getBankAccounts`, etc.):
+
 ```
 headers = getRequestHeaders()
 session = auth.api.getSession({ headers })
@@ -234,6 +239,7 @@ if no session → throw "Unauthorized"
 **Current state:** The buttons exist but are **disabled** (`<Button disabled>`). No OAuth provider is configured in Better Auth.
 
 **Form element:**
+
 ```
 [Login with Google]   ← disabled, no onClick handler
 [Sign up with Google] ← disabled, no onClick handler
@@ -263,13 +269,13 @@ if no session → throw "Unauthorized"
 
 ## Suggested Routes
 
-| Route | Page | Layout | Auth Required |
-|-------|------|--------|---------------|
-| `/` | Login page | Guest | No (redirects if yes) |
-| `/register` | Register page | Guest | No (redirects if yes) |
-| `/dashboard` | Dashboard | Protected | Yes |
-| `/accounts/*` | Accounts (and other features) | Protected | Yes |
-| `/api/auth/$` | Better Auth API proxy | Public | Varies by endpoint |
+| Route         | Page                          | Layout    | Auth Required         |
+| ------------- | ----------------------------- | --------- | --------------------- |
+| `/`           | Login page                    | Guest     | No (redirects if yes) |
+| `/register`   | Register page                 | Guest     | No (redirects if yes) |
+| `/dashboard`  | Dashboard                     | Protected | Yes                   |
+| `/accounts/*` | Accounts (and other features) | Protected | Yes                   |
+| `/api/auth/$` | Better Auth API proxy         | Public    | Varies by endpoint    |
 
 ---
 
