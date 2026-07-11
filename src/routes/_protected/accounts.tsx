@@ -4,6 +4,7 @@ import { IconMoodWrrr, IconPlus, IconWallet } from "@tabler/icons-react";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
 
+import { Heading } from "#/components/heading";
 import { Main } from "#/components/main";
 import { Button } from "#/components/ui/button";
 import { DataTable } from "#/components/ui/data-table";
@@ -87,5 +88,10 @@ function RouteComponent() {
 }
 
 function Template({ children }: PropsWithChildren) {
-  return <Main heading="Accounts">{children}</Main>;
+  return (
+    <Main>
+      <Heading>Accounts</Heading>
+      {children}
+    </Main>
+  );
 }
