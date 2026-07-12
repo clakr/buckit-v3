@@ -51,10 +51,10 @@ export function AddAccountDialog() {
   const form = useAppForm({
     defaultValues,
     validators: {
-      onBlur: addAccountSchema,
+      onBlurAsync: addAccountSchema,
     },
-    onSubmit: async ({ value }) => {
-      alert(JSON.stringify(value, null, 2));
+    onSubmit: async ({ value: data }) => {
+      alert(JSON.stringify(data, null, 2));
     },
   });
 
@@ -139,6 +139,7 @@ export function AddAccountDialog() {
                           type="number"
                           placeholder="1,000.00"
                           min={0}
+                          step={0.01}
                           required
                           value={field.state.value as string}
                           onChange={(e) => field.handleChange(e.target.value)}

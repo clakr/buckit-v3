@@ -31,6 +31,10 @@
 3. Close dialog. Updates reflected in the list/detail.
 4. Show success toast.
 
+**Edge cases:**
+
+- User submits without making changes → treat as no-op, show toast "No changes made." and close dialog.
+
 **UI States:**
 
 - **Idle** — form ready to fill, pre-filled with current values.

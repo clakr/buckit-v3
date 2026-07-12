@@ -13,6 +13,11 @@ export function getRouter() {
     scrollRestoration: true,
     defaultPreload: "intent",
     defaultPreloadStaleTime: 0,
+    defaultOnCatch: () => {
+      alert("defaultOnCatch!");
+    },
+    defaultErrorComponent: () => <div>error</div>,
+    defaultPendingComponent: () => <div>loading...</div>,
   });
 
   setupRouterSsrQueryIntegration({ router, queryClient: context.queryClient });

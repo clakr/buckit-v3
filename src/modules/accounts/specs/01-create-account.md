@@ -36,6 +36,13 @@
 3. Close dialog. Account appears in the list.
 4. Show success toast.
 
+**Edge cases:**
+
+- Starting balance is 0 → still creates the account. The account is empty and ready to receive entries.
+- Starting balance has more than 2 decimal places → round down to 2 decimal places on save.
+- Name contains special characters → allowed. No restrictions beyond length and uniqueness.
+- Name exceeds 100 characters → prevent further input or show a character counter on the field.
+
 **UI States:**
 
 - **Idle** — form ready to fill.

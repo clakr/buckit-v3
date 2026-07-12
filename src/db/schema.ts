@@ -1,5 +1,12 @@
-import { defineRelations, sql } from "drizzle-orm";
-import { sqliteTable, text, integer, index } from "drizzle-orm/sqlite-core";
+import { defineRelations, SQL, sql } from "drizzle-orm";
+import {
+  sqliteTable,
+  text,
+  integer,
+  index,
+  unique,
+  type AnySQLiteColumn,
+} from "drizzle-orm/sqlite-core";
 
 import { currenciesCodes } from "#/lib/constants";
 
@@ -7,7 +14,9 @@ export const users = sqliteTable("users", {
   id: text("id").primaryKey(),
   name: text("name").notNull(),
   email: text("email").notNull().unique(),
-  emailVerified: integer("email_verified", { mode: "boolean" }).default(false).notNull(),
+  emailVerified: integer("email_verified", { mode: "boolean" })
+    .default(false)
+    .notNull(),
   image: text("image"),
   createdAt: integer("created_at", { mode: "timestamp_ms" })
     .default(sql`(cast(unixepoch('subsecond') * 1000 as integer))`)
@@ -87,18 +96,22 @@ export const verifications = sqliteTable(
   (table) => [index("verification_identifier_idx").on(table.identifier)],
 );
 
-export const bankAccounts = sqliteTable("bank_accounts", {
-  id: text("id").primaryKey(),
-  userId: text("user_id")
-    .notNull()
-    .references(() => users.id, { onDelete: "cascade" }),
-  name: text("name").notNull(),
-  currency: text("currency", { enum: currenciesCodes }).notNull(),
-  startingBalance: integer("starting_balance").default(0).notNull(),
-  createdAt: integer("created_at", { mode: "timestamp_ms" })
-    .default(sql`(cast(unixepoch('subsecond') * 1000 as integer))`)
-    .notNull(),
-});
+export const bankAccounts = sqliteTable(
+  "bank_accounts",
+  {
+    id: text("id").primaryKey(),
+    userId: text("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    name: text("name").notNull(),
+    currency: text("currency", { enum: currenciesCodes }).notNull(),
+    startingBalance: integer("starting_balance").default(0).notNull(),
+    createdAt: integer("created_at", { mode: "timestamp_ms" })
+      .default(sql`(cast(unixepoch('subsecond') * 1000 as integer))`)
+      .notNull(),
+  },
+  (t) => [unique().on(t.userId, t.name)],
+);
 
 //
 
@@ -133,3 +146,9 @@ export const relations = defineRelations(
 //
 
 export type BankAccount = typeof bankAccounts.$inferSelect;
+
+//
+
+export function lower(email: AnySQLiteColumn): SQL {
+  return sql`lower(${email})`;
+}
