@@ -6,7 +6,9 @@ import type { BankAccount } from "#/db/schema";
 import type { Currency } from "#/lib/types";
 
 import { Badge } from "#/components/ui/badge";
+import { currencyCodec } from "#/lib/codecs";
 import { currencies } from "#/lib/constants";
+import { formatCurrency } from "#/lib/utils";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -50,7 +52,11 @@ export const columns: ColumnDef<BankAccount>[] = [
   {
     accessorKey: "balance",
     header: "Unallocated / Balance",
-    cell: "N/A / N/A", // @todo: revisit once account entries are implemented
+    cell: ({ row }) => {
+      return `N/A / ${formatCurrency(currencyCodec.encode(row.original.startingBalance), {
+        currency: row.original.currency,
+      })}`;
+    }, // @todo: revisit once account entries are implemented
   },
   {
     accessorKey: "lastAccountEntryDate",

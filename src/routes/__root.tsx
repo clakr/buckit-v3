@@ -49,6 +49,7 @@ function RootDocument({ children }: { children: React.ReactNode }) {
       <body className="font-sans wrap-anywhere antialiased">
         {children}
         <Toaster
+          position="top-center"
           toastOptions={{
             classNames: {
               description: "!text-muted-foreground",
