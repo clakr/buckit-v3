@@ -1,4 +1,4 @@
-import type { ComponentProps, PropsWithChildren } from "react";
+import type { ComponentProps } from "react";
 
 import { Button } from "#/components/ui/button";
 import { Spinner } from "#/components/ui/spinner";

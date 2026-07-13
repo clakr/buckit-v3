@@ -1,9 +1,10 @@
-import { IconAlertCircle, IconBrandGoogleFilled } from "@tabler/icons-react";
+import { IconBrandGoogleFilled } from "@tabler/icons-react";
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { Result } from "better-result";
+import { toast } from "sonner";
 import { z } from "zod";
 
 import loginImage from "#/assets/login.webp";
-import { Alert, AlertDescription, AlertTitle } from "#/components/ui/alert";
 import { Button } from "#/components/ui/button";
 import { Field, FieldDescription, FieldGroup, FieldSeparator } from "#/components/ui/field";
 import { useAppForm } from "#/integrations/tanstack-form";
@@ -28,16 +29,33 @@ function RouteComponent() {
       onBlur: signInUserSchema,
     },
     onSubmit: async ({ value }) => {
-      try {
-        await signInUser({
-          data: value,
-        });
-      } catch (error) {
-        form.setErrorMap({
-          onSubmit: {
-            fields: {},
-            form: error instanceof Error ? error.message : error,
+      const networkResult = await Result.tryPromise(
+        {
+          try: () => signInUser({ data: value }),
+          catch: (e) => (e instanceof TypeError ? e.message : e),
+        },
+        {
+          retry: {
+            times: 5,
+            delayMs: 100,
+            backoff: "constant",
           },
+        },
+      );
+
+      if (networkResult.status === "error") {
+        toast.error("Oops!", {
+          description: String(networkResult.error),
+        });
+
+        return;
+      }
+
+      const server = Result.deserialize<void, string>(networkResult.value);
+
+      if (server.status === "error") {
+        toast.error("Oops!", {
+          description: server.error,
         });
 
         return;
@@ -83,17 +101,6 @@ function RouteComponent() {
                 <field.Input label="Password" type="password" placeholder="********" required />
               )}
             </form.AppField>
-            <form.Subscribe selector={(state) => state.errorMap}>
-              {(errorMap) =>
-                errorMap.onSubmit ? (
-                  <Alert variant="destructive">
-                    <IconAlertCircle />
-                    <AlertTitle>Oops!</AlertTitle>
-                    <AlertDescription>{errorMap.onSubmit}</AlertDescription>
-                  </Alert>
-                ) : null
-              }
-            </form.Subscribe>
             <Field>
               <form.AppForm>
                 <form.Button>Login</form.Button>

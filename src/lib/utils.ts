@@ -13,3 +13,7 @@ export function formatCurrency(value: number, opts?: Intl.NumberFormatOptions) {
     ...opts,
   }).format(value);
 }
+
+export function sleep(ms: number) {
+  return new Promise((r) => setTimeout(r, ms));
+}
