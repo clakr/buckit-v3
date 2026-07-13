@@ -1,12 +1,12 @@
 import { IconSelector, IconLogout, IconUserCircle } from "@tabler/icons-react";
 import { getRouteApi } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
+import { Result } from "better-result";
+import { useRef } from "react";
 import { toast } from "sonner";
 
-import { signOutUser } from "#/modules/authentication/functions";
-
-import { Avatar, AvatarImage, AvatarFallback } from "../ui/avatar";
-import { Button } from "../ui/button";
+import { Avatar, AvatarImage, AvatarFallback } from "#/components/ui/avatar";
+import { Button } from "#/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuTrigger,
@@ -14,14 +14,15 @@ import {
   DropdownMenuItem,
   DropdownMenuSeparator,
   DropdownMenuLabel,
-} from "../ui/dropdown-menu";
+} from "#/components/ui/dropdown-menu";
 import {
   SidebarFooter as UISidebarFooter,
   SidebarMenu,
   SidebarMenuItem,
   useSidebar,
   SidebarMenuButton,
-} from "../ui/sidebar";
+} from "#/components/ui/sidebar";
+import { signOutUser } from "#/modules/authentication/functions";
 
 export function SidebarFooter() {
   const Route = getRouteApi("/_protected");
@@ -33,23 +34,63 @@ export function SidebarFooter() {
 
   const logoutUserServerFn = useServerFn(signOutUser);
 
-  async function handleLogout() {
-    try {
-      await logoutUserServerFn();
-    } catch (error) {
-      let description = "Unknown error";
+  const abortControllerRef = useRef<AbortController | null>(null);
 
-      if (error instanceof Error) {
-        description = error.message;
-      } else if (typeof error === "string") {
-        description = error;
+  async function handleLogout() {
+    abortControllerRef.current?.abort();
+    const controller = new AbortController();
+    abortControllerRef.current = controller;
+
+    const networkResult = await Result.tryPromise(
+      {
+        try: () => {
+          controller.signal.throwIfAborted();
+          return logoutUserServerFn({ signal: controller.signal });
+        },
+        catch: (e) => {
+          if (e instanceof DOMException && e.name === "AbortError") return "cancelled";
+          return e instanceof TypeError || e instanceof Error ? e.message : e;
+        },
+      },
+      {
+        retry: {
+          times: 5,
+          delayMs: 100,
+          backoff: "constant",
+          shouldRetry: (error) => error !== "cancelled",
+        },
+      },
+    );
+
+    if (controller.signal.aborted) return;
+
+    if (networkResult.status === "error") {
+      toast.error("Oops!", {
+        description: String(networkResult.error),
+        action:
+          networkResult.error !== "Unauthorized" ? (
+            <Button onClick={handleLogout}>Retry</Button>
+          ) : undefined,
+      });
+
+      if (networkResult.error === "Unauthorized") {
+        navigate({
+          to: "/",
+          replace: true,
+        });
       }
 
+      return;
+    }
+
+    const server = Result.deserialize<void, string>(networkResult.value);
+
+    if (server.status === "error") {
       toast.error("Oops!", {
-        description,
-        dismissible: false,
-        action: <Button onClick={handleLogout}>Retry</Button>,
+        description: server.error,
       });
+
+      return;
     }
 
     queryClient.clear();

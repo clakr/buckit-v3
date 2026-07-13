@@ -4,14 +4,7 @@ import { join } from "node:path";
 
 import { bankAccounts } from "../src/db/schema";
 
-const DB_DIR = join(
-  process.cwd(),
-  ".wrangler",
-  "state",
-  "v3",
-  "d1",
-  "miniflare-D1DatabaseObject",
-);
+const DB_DIR = join(process.cwd(), ".wrangler", "state", "v3", "d1", "miniflare-D1DatabaseObject");
 
 const files = readdirSync(DB_DIR)
   .filter((f) => f.endsWith(".sqlite") && f !== "metadata.sqlite")
@@ -23,9 +16,7 @@ const files = readdirSync(DB_DIR)
   .sort((a, b) => b.mtime - a.mtime);
 
 if (files.length === 0) {
-  console.error(
-    "No D1 SQLite database found. Run the app first (pnpm dev) to create it.",
-  );
+  console.error("No D1 SQLite database found. Run the app first (pnpm dev) to create it.");
   process.exit(1);
 }
 
