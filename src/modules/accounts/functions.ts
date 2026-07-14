@@ -1,4 +1,5 @@
 import { createServerFn } from "@tanstack/react-start";
+import { Result } from "better-result";
 import { env } from "cloudflare:workers";
 import { and, eq } from "drizzle-orm";
 import { z } from "zod";
@@ -14,7 +15,18 @@ export const getBankAccounts = createServerFn({
   .handler(async ({ context }) => {
     const db = getDB(env.db);
 
-    return db.select().from(bankAccounts).where(eq(bankAccounts.userId, context.user.id));
+    const result = await Result.tryPromise({
+      try: () => db.select().from(bankAccounts).where(eq(bankAccounts.userId, context.user.id)),
+      catch: (e) => e,
+    });
+
+    if (result.status === "error") {
+      return Result.serialize(
+        Result.err(result.error instanceof Error ? result.error.message : String(result.error)),
+      );
+    }
+
+    return Result.serialize(Result.ok(result.value));
   });
 
 export const validateBankAccountName = createServerFn({
@@ -24,7 +36,6 @@ export const validateBankAccountName = createServerFn({
   .validator(z.string())
   .handler(async ({ context, data }) => {
     const db = getDB(env.db);
-    console.log(data);
 
     const result = await db
       .select({
