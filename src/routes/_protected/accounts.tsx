@@ -9,10 +9,6 @@ import { Heading } from "#/components/heading";
 import { Main } from "#/components/main";
 import { Button } from "#/components/ui/button";
 import { DataTable } from "#/components/ui/data-table";
-import { Spinner } from "#/components/ui/spinner";
-import { columns } from "#/modules/accounts/columns";
-import { bankAccountsQueryOptions } from "#/modules/accounts/query-options";
-import { useDialogStore } from "#/stores/use-dialog";
 import {
   Empty,
   EmptyContent,
@@ -20,7 +16,11 @@ import {
   EmptyHeader,
   EmptyMedia,
   EmptyTitle,
-} from "@/components/ui/empty";
+} from "#/components/ui/empty";
+import { Spinner } from "#/components/ui/spinner";
+import { columns } from "#/modules/accounts/columns";
+import { bankAccountsQueryOptions } from "#/modules/accounts/query-options";
+import { useDialogStore } from "#/stores/use-dialog";
 
 export const Route = createFileRoute("/_protected/accounts")({
   loader: async ({ context: { queryClient } }) => {
