@@ -32,15 +32,19 @@ import {
   ComboboxValue,
 } from "@/components/ui/combobox";
 
+import { useAddAccountMutation } from "../mutations";
 import { addAccountSchema } from "../schemas";
 
 export function AddAccountDialog() {
-  const { isOpen, toggleDialog } = useDialogStore(
+  const { isOpen, closeDialog, toggleDialog } = useDialogStore(
     useShallow((state) => ({
       isOpen: state.isOpen,
+      closeDialog: state.closeDialog,
       toggleDialog: state.toggleDialog,
     })),
   );
+
+  const mutation = useAddAccountMutation();
 
   const defaultValues: z.input<typeof addAccountSchema> = {
     name: "",
@@ -54,7 +58,10 @@ export function AddAccountDialog() {
       onBlurAsync: addAccountSchema,
     },
     onSubmit: async ({ value: data }) => {
-      alert(JSON.stringify(data, null, 2));
+      mutation.mutate({ data });
+
+      form.reset();
+      closeDialog();
     },
   });
 
