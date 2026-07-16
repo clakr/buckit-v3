@@ -1,10 +1,18 @@
 import { drizzle } from "drizzle-orm/libsql";
+import { sql } from "drizzle-orm";
 import { readdirSync, statSync } from "node:fs";
 import { join } from "node:path";
 
 import { bankAccounts } from "../src/db/schema";
 
-const DB_DIR = join(process.cwd(), ".wrangler", "state", "v3", "d1", "miniflare-D1DatabaseObject");
+const DB_DIR = join(
+  process.cwd(),
+  ".wrangler",
+  "state",
+  "v3",
+  "d1",
+  "miniflare-D1DatabaseObject",
+);
 
 const files = readdirSync(DB_DIR)
   .filter((f) => f.endsWith(".sqlite") && f !== "metadata.sqlite")
@@ -16,7 +24,9 @@ const files = readdirSync(DB_DIR)
   .sort((a, b) => b.mtime - a.mtime);
 
 if (files.length === 0) {
-  console.error("No D1 SQLite database found. Run the app first (pnpm dev) to create it.");
+  console.error(
+    "No D1 SQLite database found. Run the app first (pnpm dev) to create it.",
+  );
   process.exit(1);
 }
 
@@ -71,6 +81,9 @@ const accounts = [
     startingBalance: 7_500_000,
   },
 ];
+
+console.log("Clearing existing bank accounts...");
+db.run(sql`DELETE FROM bank_accounts`);
 
 console.log(`Seeding ${accounts.length} bank accounts...`);
 
