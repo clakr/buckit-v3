@@ -67,19 +67,21 @@ export function SidebarFooter() {
       <SidebarMenu>
         <SidebarMenuItem>
           <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <SidebarMenuButton size="lg">
-                <Avatar className="size-8 rounded-lg">
-                  <AvatarImage src="https://placehold.co/1" alt="" className="rounded-lg" />
-                  <AvatarFallback className="rounded-lg">CN</AvatarFallback>
-                </Avatar>
-                <div className="grid flex-1 text-left text-sm leading-tight">
-                  <span className="truncate font-medium">{user.name}</span>
-                  <span className="truncate text-xs">{user.email}</span>
-                </div>
-                <IconSelector />
-              </SidebarMenuButton>
-            </DropdownMenuTrigger>
+            <DropdownMenuTrigger
+              render={
+                <SidebarMenuButton size="lg">
+                  <Avatar className="size-8 rounded-lg">
+                    <AvatarImage src="https://placehold.co/1" alt="" className="rounded-lg" />
+                    <AvatarFallback className="rounded-lg">CN</AvatarFallback>
+                  </Avatar>
+                  <div className="grid flex-1 text-left text-sm leading-tight">
+                    <span className="truncate font-medium">{user.name}</span>
+                    <span className="truncate text-xs">{user.email}</span>
+                  </div>
+                  <IconSelector />
+                </SidebarMenuButton>
+              }
+            />
             <DropdownMenuContent
               side={isMobile ? "bottom" : "right"}
               align="end"

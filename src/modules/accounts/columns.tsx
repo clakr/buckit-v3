@@ -68,12 +68,14 @@ export const columns: ColumnDef<BankAccount>[] = [
     header: "",
     cell: () => (
       <DropdownMenu>
-        <DropdownMenuTrigger asChild>
-          <Button variant="ghost" size="icon">
-            <IconDots />
-            <span className="sr-only">Open Bank Account Action Menu</span>
-          </Button>
-        </DropdownMenuTrigger>
+        <DropdownMenuTrigger
+          render={
+            <Button variant="ghost" size="icon">
+              <IconDots />
+              <span className="sr-only">Open Bank Account Action Menu</span>
+            </Button>
+          }
+        />
         <DropdownMenuContent>
           <DropdownMenuGroup>
             <DropdownMenuItem disabled>
