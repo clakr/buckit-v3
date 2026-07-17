@@ -5,8 +5,12 @@ import { Result } from "better-result";
 
 import { auth } from "#/integrations/better-auth";
 import { authMiddleware } from "#/lib/middlewares";
-import { signUpUserSchema, signInUserSchema } from "#/modules/authentication/schema";
+import {
+  signUpUserSchema,
+  signInUserSchema,
+} from "#/modules/authentication/schema";
 
+// @todo: use native Error instead
 export const signUpUser = createServerFn({
   method: "POST",
 })
@@ -26,11 +30,17 @@ export const signUpUser = createServerFn({
 
     if (result.status === "error") {
       if (isAPIError(result.error)) {
-        return Result.serialize(Result.err(result.error.body?.message ?? result.error.message));
+        return Result.serialize(
+          Result.err(result.error.body?.message ?? result.error.message),
+        );
       }
 
       return Result.serialize(
-        Result.err(result.error instanceof Error ? result.error.message : String(result.error)),
+        Result.err(
+          result.error instanceof Error
+            ? result.error.message
+            : String(result.error),
+        ),
       );
     }
 
@@ -46,6 +56,7 @@ export const getSession = createServerFn({
   return session;
 });
 
+// @todo: use native Error instead
 export const signOutUser = createServerFn({ method: "POST" })
   .middleware([authMiddleware])
   .handler(async () => {
@@ -58,17 +69,24 @@ export const signOutUser = createServerFn({ method: "POST" })
 
     if (result.status === "error") {
       if (isAPIError(result.error)) {
-        return Result.serialize(Result.err(result.error.body?.message ?? result.error.message));
+        return Result.serialize(
+          Result.err(result.error.body?.message ?? result.error.message),
+        );
       }
 
       return Result.serialize(
-        Result.err(result.error instanceof Error ? result.error.message : String(result.error)),
+        Result.err(
+          result.error instanceof Error
+            ? result.error.message
+            : String(result.error),
+        ),
       );
     }
 
     return Result.serialize(Result.ok());
   });
 
+// @todo: use native Error instead
 export const signInUser = createServerFn({ method: "POST" })
   .validator(signInUserSchema)
   .handler(async ({ data }) => {
@@ -85,11 +103,17 @@ export const signInUser = createServerFn({ method: "POST" })
 
     if (result.status === "error") {
       if (isAPIError(result.error)) {
-        return Result.serialize(Result.err(result.error.body?.message ?? result.error.message));
+        return Result.serialize(
+          Result.err(result.error.body?.message ?? result.error.message),
+        );
       }
 
       return Result.serialize(
-        Result.err(result.error instanceof Error ? result.error.message : String(result.error)),
+        Result.err(
+          result.error instanceof Error
+            ? result.error.message
+            : String(result.error),
+        ),
       );
     }
 
