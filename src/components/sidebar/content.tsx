@@ -15,20 +15,24 @@ export function SidebarContent() {
       <SidebarGroup>
         <SidebarMenu>
           <SidebarMenuItem>
-            <SidebarMenuButton asChild>
-              <Link to="/dashboard" activeProps={{ "data-active": true }}>
-                <IconLayoutDashboard />
-                Dashboard
-              </Link>
-            </SidebarMenuButton>
+            <SidebarMenuButton
+              render={
+                <Link to="/dashboard" activeProps={{ "data-active": true }}>
+                  <IconLayoutDashboard />
+                  Dashboard
+                </Link>
+              }
+            />
           </SidebarMenuItem>
           <SidebarMenuItem>
-            <SidebarMenuButton asChild>
-              <Link to="/accounts" activeProps={{ "data-active": true }}>
-                <IconWallet />
-                Accounts
-              </Link>
-            </SidebarMenuButton>
+            <SidebarMenuButton
+              render={
+                <Link to="/accounts" activeProps={{ "data-active": true }}>
+                  <IconWallet />
+                  Accounts
+                </Link>
+              }
+            />
           </SidebarMenuItem>
         </SidebarMenu>
       </SidebarGroup>
