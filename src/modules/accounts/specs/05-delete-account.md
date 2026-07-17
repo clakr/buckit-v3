@@ -1,22 +1,23 @@
 # Delete Account
 
-**Trigger:** User clicks "Delete" from account detail or accounts list.
+**Trigger:** User clicks "Delete" from the account list or account detail page.
 
-**Gate:** Account must have **zero account entries and zero allocations**. Only a starting balance with no logged activity counts as clear.
+**Behavior:**
 
-**Flow:**
+1. Check if account has any Transactions or Allocations.
+2. If account has zero Transactions and zero Allocations:
+   - Show confirmation dialog: "Delete [account name]? This account has 0 transactions and 0 allocations. This action cannot be undone."
+   - On confirm → delete BankAccount. Toast "Account deleted." Redirect to accounts list.
+3. If account has Transactions or Allocations:
+   - Show blocking dialog: "Cannot delete [account name]. Remove all transactions and allocations first before deleting the account."
+   - User must manually delete all Transactions and Allocations referencing this account before retrying.
 
-1. Show confirmation dialog:
-   ```
-   Delete "QNB Savings"?
-   This account has 0 entries and 0 allocations. This action cannot be undone.
-   [Cancel] [Delete]
-   ```
-2. If account has entries or allocations:
-   ```
-   Cannot delete "QNB Savings"
-   Remove all entries and allocations first before deleting the account.
-   [OK]
-   ```
-3. On confirm → delete Account record. Show toast "Account deleted."
-4. Redirect to accounts list.
+**Design Decisions:**
+
+- Delete is blocked when the account has any data. Cascade delete is intentionally avoided — the user must explicitly clean up first, preventing accidental data loss.
+- Transfers to other accounts mean the account has transactions. The user must delete those transactions (and the paired transfer on the other account) before deleting.
+
+**Edge cases:**
+
+- Starting balance only with no activity → account is deletable (zero transactions, zero allocations).
+- Account still used in allocations → blocked. Allocations must be deleted individually first.
