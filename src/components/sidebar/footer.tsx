@@ -1,7 +1,6 @@
 import { IconSelector, IconLogout, IconUserCircle } from "@tabler/icons-react";
 import { getRouteApi } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
-import { Result } from "better-result";
 import { useRef } from "react";
 import { toast } from "sonner";
 
@@ -41,53 +40,15 @@ export function SidebarFooter() {
     const controller = new AbortController();
     abortControllerRef.current = controller;
 
-    const networkResult = await Result.tryPromise(
-      {
-        try: () => {
-          controller.signal.throwIfAborted();
-          return logoutUserServerFn({ signal: controller.signal });
-        },
-        catch: (e) => {
-          if (e instanceof DOMException && e.name === "AbortError") return "cancelled";
-          return e instanceof TypeError || e instanceof Error ? e.message : e;
-        },
-      },
-      {
-        retry: {
-          times: 5,
-          delayMs: 100,
-          backoff: "constant",
-          shouldRetry: (error) => error !== "cancelled",
-        },
-      },
-    );
+    try {
+      await logoutUserServerFn({ signal: controller.signal });
+    } catch (error) {
+      if (controller.signal.aborted) return;
 
-    if (controller.signal.aborted) return;
-
-    if (networkResult.status === "error") {
-      toast.error("Oops!", {
-        description: String(networkResult.error),
+      toast.error("Oops", {
+        description: error instanceof Error ? error.message : String(error),
         action:
-          networkResult.error !== "Unauthorized" ? (
-            <Button onClick={handleLogout}>Retry</Button>
-          ) : undefined,
-      });
-
-      if (networkResult.error === "Unauthorized") {
-        navigate({
-          to: "/",
-          replace: true,
-        });
-      }
-
-      return;
-    }
-
-    const server = Result.deserialize<void, string>(networkResult.value);
-
-    if (server.status === "error") {
-      toast.error("Oops!", {
-        description: server.error,
+          error instanceof TypeError ? <Button onClick={handleLogout}>Retry</Button> : undefined,
       });
 
       return;

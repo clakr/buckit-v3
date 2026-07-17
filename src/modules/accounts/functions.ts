@@ -1,5 +1,4 @@
 import { createServerFn } from "@tanstack/react-start";
-import { Result } from "better-result";
 import { env } from "cloudflare:workers";
 import { and, eq } from "drizzle-orm";
 import { uuidv7 } from "uuidv7";
@@ -12,7 +11,6 @@ import { authMiddleware } from "#/lib/middlewares";
 
 import { addAccountSchema } from "./schemas";
 
-// @todo: use native Error instead
 export const getBankAccounts = createServerFn({
   method: "GET",
 })
@@ -20,26 +18,7 @@ export const getBankAccounts = createServerFn({
   .handler(async ({ context }) => {
     const db = getDB(env.db);
 
-    const result = await Result.tryPromise({
-      try: () =>
-        db
-          .select()
-          .from(bankAccounts)
-          .where(eq(bankAccounts.userId, context.user.id)),
-      catch: (e) => e,
-    });
-
-    if (result.status === "error") {
-      return Result.serialize(
-        Result.err(
-          result.error instanceof Error
-            ? result.error.message
-            : String(result.error),
-        ),
-      );
-    }
-
-    return Result.serialize(Result.ok(result.value));
+    return db.select().from(bankAccounts).where(eq(bankAccounts.userId, context.user.id));
   });
 
 export const validateBankAccountName = createServerFn({

@@ -13,8 +13,9 @@ export function getRouter() {
     scrollRestoration: true,
     defaultPreload: "intent",
     defaultPreloadStaleTime: 0,
-    defaultOnCatch: () => {
-      alert("defaultOnCatch!");
+    defaultOnCatch: (error) => {
+      alert("defaultoncatch!");
+      console.log(error);
     },
     defaultErrorComponent: () => <div>error</div>,
     defaultPendingComponent: () => <div>loading...</div>,
