@@ -1,6 +1,5 @@
 import { IconBrandGoogleFilled } from "@tabler/icons-react";
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { Result } from "better-result";
 import { toast } from "sonner";
 import { z } from "zod";
 
@@ -28,34 +27,12 @@ function RouteComponent() {
     validators: {
       onBlur: signInUserSchema,
     },
-    onSubmit: async ({ value }) => {
-      const networkResult = await Result.tryPromise(
-        {
-          try: () => signInUser({ data: value }),
-          catch: (e) => (e instanceof TypeError ? e.message : e),
-        },
-        {
-          retry: {
-            times: 5,
-            delayMs: 100,
-            backoff: "constant",
-          },
-        },
-      );
-
-      if (networkResult.status === "error") {
-        toast.error("Oops!", {
-          description: String(networkResult.error),
-        });
-
-        return;
-      }
-
-      const server = Result.deserialize<void, string>(networkResult.value);
-
-      if (server.status === "error") {
-        toast.error("Oops!", {
-          description: server.error,
+    onSubmit: async ({ value: data }) => {
+      try {
+        await signInUser({ data });
+      } catch (error) {
+        toast.error("Oops", {
+          description: error instanceof Error ? error.message : String(error),
         });
 
         return;

@@ -1,3 +1,4 @@
+import { IconCheck, IconExclamationCircle } from "@tabler/icons-react";
 import z from "zod";
 import { useShallow } from "zustand/react/shallow";
 
@@ -18,6 +19,7 @@ import {
   InputGroupButton,
   InputGroupInput,
 } from "#/components/ui/input-group";
+import { Spinner } from "#/components/ui/spinner";
 import { useAppForm } from "#/integrations/tanstack-form";
 import { currencies } from "#/lib/constants";
 import { useDialogStore } from "#/stores/use-dialog";
@@ -32,6 +34,7 @@ import {
   ComboboxValue,
 } from "@/components/ui/combobox";
 
+import { validateBankAccountName } from "../functions";
 import { useAddAccountMutation } from "../mutations";
 import { addAccountSchema } from "../schemas";
 
@@ -55,7 +58,7 @@ export function AddAccountDialog() {
   const form = useAppForm({
     defaultValues,
     validators: {
-      onBlurAsync: addAccountSchema,
+      onBlur: addAccountSchema,
     },
     onSubmit: async ({ value: data }) => {
       mutation.mutate({ data });
@@ -97,15 +100,73 @@ export function AddAccountDialog() {
             }}
           >
             <FieldGroup>
-              {/* @todo: implement inputgroup for validation visual indicators */}
-              <form.AppField name="name">
-                {(field) => <field.Input label="Name" placeholder="Savings Account" required />}
+              <form.AppField
+                name="name"
+                validators={{
+                  onChangeAsyncDebounceMs: 500,
+                  onChangeAsync: z.string().superRefine(async (data, context) => {
+                    try {
+                      const hasNoExistingBankAccounts = await validateBankAccountName({
+                        data,
+                      });
+
+                      if (!hasNoExistingBankAccounts) {
+                        context.addIssue({
+                          code: "custom",
+                          message: "An account with this name already exists",
+                        });
+                      }
+                    } catch (error) {
+                      context.addIssue({
+                        code: "custom",
+                        message: error instanceof Error ? error.message : String(error),
+                      });
+                    }
+                  }),
+                }}
+              >
+                {(field) => {
+                  const isInvalid = field.state.meta.isTouched && !field.state.meta.isValid;
+
+                  const id = field.name;
+                  const errorId = `${id}-error`;
+
+                  return (
+                    <Field data-invalid={isInvalid}>
+                      <FieldLabel htmlFor={id}>Name</FieldLabel>
+
+                      <InputGroup>
+                        <InputGroupInput
+                          type="text"
+                          id={id}
+                          value={field.state.value}
+                          onChange={(e) => field.handleChange(e.target.value)}
+                          onBlur={field.handleBlur}
+                          aria-invalid={isInvalid ? true : undefined}
+                          aria-labelledby={isInvalid ? errorId : undefined}
+                        />
+                        {field.state.meta.isTouched ? (
+                          <InputGroupAddon align="inline-end">
+                            {field.state.meta.isValidating ? (
+                              <Spinner />
+                            ) : field.state.meta.isValid ? (
+                              <IconCheck />
+                            ) : (
+                              <IconExclamationCircle />
+                            )}
+                          </InputGroupAddon>
+                        ) : null}
+                      </InputGroup>
+                      {isInvalid && <FieldError id={errorId} errors={field.state.meta.errors} />}
+                    </Field>
+                  );
+                }}
               </form.AppField>
               <Field>
-                <FieldLabel>Starting Balance</FieldLabel>
+                <FieldLabel htmlFor="startingBalance">Starting Balance</FieldLabel>
 
                 <InputGroup>
-                  <InputGroupAddon align="inline-start">
+                  <InputGroupAddon>
                     <form.AppField name="currency">
                       {(field) => (
                         <Combobox
@@ -145,6 +206,7 @@ export function AddAccountDialog() {
                       return (
                         <InputGroupInput
                           type="number"
+                          id={field.name}
                           placeholder="1,000.00"
                           min={0}
                           step={0.01}
