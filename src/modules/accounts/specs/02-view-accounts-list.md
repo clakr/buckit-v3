@@ -1,27 +1,27 @@
 # View Accounts List
 
-**Trigger:** User navigates to the accounts page or sees the accounts section on the dashboard.
+**Trigger:** User navigates to the accounts page.
 
 **Content:**
 
-- List/table of all accounts scoped to the current user.
-- Each row shows: name, currency (with abbreviation/flag), computed balance (formatted per currency), date of last account entry, unallocated amount.
-- Actions per row: View Detail, Edit, Delete.
+- Table or list of all BankAccounts scoped to the current user.
+- Each row shows: name, currency badge, computed balance (formatted per currency), unallocated amount.
+- Row actions: View Detail, Edit, Delete.
+- Sortable by name (alpha), balance (asc/desc), creation date (newest first). Default: by name.
 
-**Sorting:** By name (alpha), by balance (asc/desc), by creation date (newest first). Default: by name.
+**Design Decisions:**
 
-**Empty State:**
+- Balance is computed client-side from `startingBalance + income − expense`, not stored. The server returns the starting balance and transaction aggregates; the UI does the math.
+- Unallocated is computed as `balance − sum(allocations from this account)`.
+
+**Empty state:**
 
 ```
-┌─────────────────────────────────┐
-│  No accounts yet                │
-│  Add your first bank account    │
-│  to start tracking.             │
-│                                 │
-│  [ + Add Account ]              │
-└─────────────────────────────────┘
+No accounts yet
+Add your first bank account to start tracking.
+[ + Add Account ]
 ```
 
-**Loading State:** 3–4 skeleton rows.
+**Loading state:** 3–4 skeleton rows.
 
-**Error State:** "Could not load accounts. [Retry]" with a retry button.
+**Error state:** "Could not load accounts. [Retry]" with retry button.

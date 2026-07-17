@@ -2,51 +2,34 @@
 
 **Trigger:** User clicks "Add Account" button. A dialog opens.
 
-**Dialog title:** "Add Bank Account"
-**Dialog description:** "Enter the details of your bank account to start tracking."
+**Behavior:**
 
-**Form:**
+1. Dialog opens with title "Add Account" and description "Enter the details of your bank account to start tracking."
+2. User fills in: Name (text), Currency (select dropdown), Starting Balance (number, defaults to 0).
+3. On submit:
+   - Name is trimmed, validated as required (1–100 characters), unique per user.
+   - Currency is required, must be a valid value.
+   - Starting balance is required, minimum 0, max 2 decimal places (rounds down on save).
+   - Creates BankAccount record with `userId` from authenticated session.
+4. Dialog closes. Account appears in list. Success toast shown.
 
-| Field            | Type              | Default | Required |
-| ---------------- | ----------------- | ------- | -------- |
-| Name             | text              | —       | yes      |
-| Currency         | select (dropdown) | —       | yes      |
-| Starting Balance | number            | 0       | yes      |
+**Design Decisions:**
 
-**Validation:**
-
-| Field            | Rule                 | Message                                                  |
-| ---------------- | -------------------- | -------------------------------------------------------- |
-| Name             | required             | "Name is required."                                      |
-| Name             | max length: 100      | "Name must be 100 characters or fewer."                  |
-| Name             | trimmed              | Leading and trailing spaces will be removed on submit.   |
-| Name             | unique per user      | "An account with this name already exists."              |
-| Currency         | required             | "Please select a currency."                              |
-| Currency         | valid value          | "Please select a valid currency."                        |
-| Starting Balance | required             | "Starting balance is required."                          |
-| Starting Balance | minimum: 0           | "Starting balance cannot be negative."                   |
-| Starting Balance | max 2 decimal places | "Starting balance can only have up to 2 decimal places." |
-
-**Submit button:** "Add Account"
-
-**Behavior on submit:**
-
-1. Validate all fields (inline errors for each).
-2. Create Account record in DB with `userId` set from the authenticated user.
-3. Close dialog. Account appears in the list.
-4. Show success toast.
+- Starting balance is stored as a field on the account, not as an initial transaction. This avoids creating a synthetic income entry before any Bucket exists. The balance formula adds it directly: `startingBalance + income − expense`.
+- Starting balance defaults to 0, not required as nonzero. An empty account can still receive transactions.
 
 **Edge cases:**
 
-- Starting balance is 0 → still creates the account. The account is empty and ready to receive entries.
-- Starting balance has more than 2 decimal places → round down to 2 decimal places on save.
-- Name contains special characters → allowed. No restrictions beyond length and uniqueness.
-- Name exceeds 100 characters → prevent further input or show a character counter on the field.
+- Starting balance = 0 → account is empty and ready for transactions. Valid.
+- Name with special characters → allowed. No restriction beyond length and uniqueness.
+- Name exceeds 100 characters → prevented by input maxLength or client validation.
+- Name already exists → inline error: "An account with this name already exists."
+- Starting balance with >2 decimals → rounded down to 2 decimal places on save.
 
 **UI States:**
 
 - **Idle** — form ready to fill.
-- **Submitting** — button shows spinner, fields disabled.
+- **Submitting** — submit button shows spinner, all fields disabled.
 - **Validation error** — inline messages, form stays open.
 - **Server error** — toast: "Failed to create account. Try again."
-- **Success** — toast + close dialog.
+- **Success** — toast + dialog closes.
