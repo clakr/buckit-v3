@@ -12,6 +12,7 @@ import { authMiddleware } from "#/lib/middlewares";
 
 import { addAccountSchema } from "./schemas";
 
+// @todo: use native Error instead
 export const getBankAccounts = createServerFn({
   method: "GET",
 })

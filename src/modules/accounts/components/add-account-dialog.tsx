@@ -97,6 +97,7 @@ export function AddAccountDialog() {
             }}
           >
             <FieldGroup>
+              {/* @todo: implement inputgroup for validation visual indicators */}
               <form.AppField name="name">
                 {(field) => <field.Input label="Name" placeholder="Savings Account" required />}
               </form.AppField>
