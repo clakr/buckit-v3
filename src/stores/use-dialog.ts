@@ -7,9 +7,21 @@ type DialogState = {
   toggleDialog: () => void;
 };
 
-export const useDialogStore = create<DialogState>()((set) => ({
+const createBaseDialogState = (set: any) => ({
   isOpen: false,
   openDialog: () => set({ isOpen: true }),
   closeDialog: () => set({ isOpen: false }),
-  toggleDialog: () => set((state) => ({ isOpen: !state.isOpen })),
-}));
+  toggleDialog: () => set((state: any) => ({ isOpen: !state.isOpen })),
+});
+
+export function createDialogStore<Ext extends Record<string, unknown>>(
+  extend?: (
+    set: Parameters<typeof createBaseDialogState>[0],
+    get: () => DialogState & Ext,
+  ) => Ext,
+) {
+  return create<DialogState & Ext>()((set, get) => ({
+    ...(createBaseDialogState(set) as DialogState),
+    ...extend?.(set, get),
+  }));
+}

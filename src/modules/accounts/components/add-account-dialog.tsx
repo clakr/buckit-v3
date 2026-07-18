@@ -22,7 +22,7 @@ import {
 import { Spinner } from "#/components/ui/spinner";
 import { useAppForm } from "#/integrations/tanstack-form";
 import { currencies } from "#/lib/constants";
-import { useDialogStore } from "#/stores/use-dialog";
+import { createDialogStore } from "#/stores/use-dialog";
 import {
   Combobox,
   ComboboxContent,
@@ -38,8 +38,10 @@ import { validateBankAccountName } from "../functions";
 import { useAddAccountMutation } from "../mutations";
 import { addAccountSchema } from "../schemas";
 
+export const useAddAccountDialogStore = createDialogStore();
+
 export function AddAccountDialog() {
-  const { isOpen, closeDialog, toggleDialog } = useDialogStore(
+  const { isOpen, closeDialog, toggleDialog } = useAddAccountDialogStore(
     useShallow((state) => ({
       isOpen: state.isOpen,
       closeDialog: state.closeDialog,
