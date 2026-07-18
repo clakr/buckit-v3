@@ -61,7 +61,13 @@ export function AddAccountDialog() {
       onBlur: addAccountSchema,
     },
     onSubmit: async ({ value: data }) => {
-      mutation.mutate({ data });
+      try {
+        await mutation.mutateAsync({ data });
+      } catch (error) {
+        console.error(error);
+
+        return;
+      }
 
       form.reset();
       closeDialog();
@@ -76,16 +82,10 @@ export function AddAccountDialog() {
   }
 
   return (
-    <Dialog open={isOpen} onOpenChange={handleOnOpenChange} modal={false}>
-      {isOpen ? (
-        <div
-          data-slot="dialog-overlay"
-          className="fixed inset-0 isolate z-50 bg-black/80 duration-100 supports-backdrop-filter:backdrop-blur-xs data-open:animate-in data-open:fade-in-0 data-closed:animate-out data-closed:fade-out-0"
-        />
-      ) : null}
+    <Dialog open={isOpen} onOpenChange={handleOnOpenChange}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Add Bank Account</DialogTitle>
+          <DialogTitle>Add Account</DialogTitle>
           <DialogDescription>
             Enter the details of your bank account to start tracking.
           </DialogDescription>
@@ -113,7 +113,7 @@ export function AddAccountDialog() {
                       if (!hasNoExistingBankAccounts) {
                         context.addIssue({
                           code: "custom",
-                          message: "An account with this name already exists",
+                          message: "An account with this name already exists.",
                         });
                       }
                     } catch (error) {
@@ -144,6 +144,7 @@ export function AddAccountDialog() {
                           onBlur={field.handleBlur}
                           aria-invalid={isInvalid ? true : undefined}
                           aria-labelledby={isInvalid ? errorId : undefined}
+                          maxLength={100}
                         />
                         {field.state.meta.isTouched ? (
                           <InputGroupAddon align="inline-end">

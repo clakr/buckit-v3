@@ -5,7 +5,7 @@ export const currencyCodec = z.codec(
     .number()
     .refine(
       (val) => Number.isInteger(val * 100),
-      "Input value must have atleast two (2) decimal places",
+      "Input value must have atmost 2 (two) decimal places",
     ),
   z.number().int("Output value must be in cents (whole number)"),
   {

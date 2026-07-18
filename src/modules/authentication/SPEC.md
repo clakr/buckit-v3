@@ -97,7 +97,7 @@ Better Auth errors are returned as thrown exceptions from server functions. The 
 
 - **Idle** — Form ready to fill. All fields empty.
 - **Validating** — Fields show inline errors on blur (not on every keystroke).
-- **Submitting** — "Create Account" button shows a spinner, all fields disabled.
+- **Submitting** — "Create Account" button shows a spinner and is disabled.
 - **Server error** — Toast or inline error from Better Auth (e.g., "User already exists with this email").
 - **Success** — Redirect to `/dashboard`.
 
