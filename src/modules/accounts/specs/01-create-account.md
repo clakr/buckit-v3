@@ -29,7 +29,7 @@
 **UI States:**
 
 - **Idle** — form ready to fill.
-- **Submitting** — submit button shows spinner, all fields disabled.
+- **Submitting** — submit button shows spinner and is disabled.
 - **Validation error** — inline messages, form stays open.
 - **Server error** — toast: "Failed to create account. Try again."
 - **Success** — toast + dialog closes.
