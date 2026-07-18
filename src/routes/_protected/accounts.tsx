@@ -1,23 +1,15 @@
 import type { PropsWithChildren } from "react";
 
-import { IconMoodWrrr, IconPlus, IconWallet } from "@tabler/icons-react";
+import { IconPlus, IconWallet } from "@tabler/icons-react";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
 import { useShallow } from "zustand/react/shallow";
 
 import { Heading } from "#/components/heading";
 import { Main } from "#/components/main";
+import { StateTemplate } from "#/components/state-template";
 import { Button } from "#/components/ui/button";
 import { DataTable } from "#/components/ui/data-table";
-import {
-  Empty,
-  EmptyContent,
-  EmptyDescription,
-  EmptyHeader,
-  EmptyMedia,
-  EmptyTitle,
-} from "#/components/ui/empty";
-import { Spinner } from "#/components/ui/spinner";
 import { columns } from "#/modules/accounts/columns";
 import { bankAccountsQueryOptions } from "#/modules/accounts/query-options";
 import { useDialogStore } from "#/stores/use-dialog";
@@ -28,31 +20,22 @@ export const Route = createFileRoute("/_protected/accounts")({
   },
   pendingComponent: () => (
     <Template>
-      <Empty className="border border-dashed">
-        <EmptyHeader>
-          <EmptyMedia variant="icon">
-            <Spinner />
-          </EmptyMedia>
-          <EmptyTitle>Loading...</EmptyTitle>
-          <EmptyDescription>Please wait while we fetch your data.</EmptyDescription>
-        </EmptyHeader>
-      </Empty>
+      <StateTemplate
+        state="loading"
+        title="Loading accounts..."
+        description="Fetching your bank accounts..."
+      />
     </Template>
   ),
   errorComponent: ({ reset }) => (
     <Template>
-      <Empty className="border border-dashed">
-        <EmptyHeader>
-          <EmptyMedia variant="icon">
-            <IconMoodWrrr />
-          </EmptyMedia>
-          <EmptyTitle>Oops!</EmptyTitle>
-          <EmptyDescription>Could not load accounts.</EmptyDescription>
-        </EmptyHeader>
-        <EmptyContent>
-          <Button onClick={() => reset()}>Retry</Button>
-        </EmptyContent>
-      </Empty>
+      <StateTemplate
+        state="error"
+        title="Could not load accounts."
+        description="We weren't able to retrieve your accounts. Please try again."
+        buttonText="Retry"
+        handleButtonClick={reset}
+      />
     </Template>
   ),
   component: RouteComponent,
@@ -68,21 +51,14 @@ function RouteComponent() {
   return (
     <Template>
       {isEmpty ? (
-        <Empty className="border border-dashed">
-          <EmptyHeader>
-            <EmptyMedia variant="icon">
-              <IconWallet />
-            </EmptyMedia>
-            <EmptyTitle>No Accounts Yet</EmptyTitle>
-            <EmptyDescription>Add your first bank account to start tracking.</EmptyDescription>
-          </EmptyHeader>
-          <EmptyContent>
-            <Button onClick={openDialog}>
-              <IconPlus />
-              Add Account
-            </Button>
-          </EmptyContent>
-        </Empty>
+        <StateTemplate
+          state="empty"
+          title="No accounts yet."
+          description="Add your first bank account to start tracking."
+          icon={<IconWallet />}
+          buttonText="Add Account"
+          handleButtonClick={openDialog}
+        />
       ) : (
         <DataTable columns={columns} data={bankAccounts} />
       )}

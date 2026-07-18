@@ -14,14 +14,16 @@
 - Per-currency subtotals are computed on read by joining Allocations → BankAccounts → currency and grouping by currency. No stored total.
 - If a Bucket has no allocations, subtotals show nothing (or "—").
 
-**Empty state:**
+**Loading State:**
+  - **Title:** Loading buckets
+  - **Description:** Fetching your buckets…
 
-```
-No buckets yet
-Create a bucket to start organizing your money.
-[ + Add Bucket ]
-```
+**Error State:**
+  - **Title:** Could not load buckets
+  - **Description:** We weren't able to retrieve your buckets. Please try again.
+  - **CTA:** "Retry" refetches the list.
 
-**Loading state:** 3–4 skeleton rows.
-
-**Error state:** "Could not load buckets. [Retry]" with retry button.
+**Empty State:**
+  - **Title:** No buckets yet
+  - **Description:** Create a bucket to start organizing your money.
+  - **CTA:** "Add Bucket" opens the create dialog.
