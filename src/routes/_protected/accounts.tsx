@@ -11,8 +11,8 @@ import { StateTemplate } from "#/components/state-template";
 import { Button } from "#/components/ui/button";
 import { DataTable } from "#/components/ui/data-table";
 import { columns } from "#/modules/accounts/columns";
+import { useAddAccountDialogStore } from "#/modules/accounts/components/add-account-dialog";
 import { bankAccountsQueryOptions } from "#/modules/accounts/query-options";
-import { useDialogStore } from "#/stores/use-dialog";
 
 export const Route = createFileRoute("/_protected/accounts")({
   loader: async ({ context: { queryClient } }) => {
@@ -46,7 +46,7 @@ function RouteComponent() {
 
   const isEmpty = bankAccounts.length === 0;
 
-  const openDialog = useDialogStore(useShallow((state) => state.openDialog));
+  const openDialog = useAddAccountDialogStore(useShallow((state) => state.openDialog));
 
   return (
     <Template>
@@ -67,7 +67,7 @@ function RouteComponent() {
 }
 
 function Template({ children }: PropsWithChildren) {
-  const openDialog = useDialogStore(useShallow((state) => state.openDialog));
+  const openDialog = useAddAccountDialogStore(useShallow((state) => state.openDialog));
 
   return (
     <Main>
