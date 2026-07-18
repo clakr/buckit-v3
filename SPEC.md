@@ -11,47 +11,47 @@
 
 ### BankAccount
 
-| Field             | Type     | Notes                                    |
-| ----------------- | -------- | ---------------------------------------- |
-| `id`              | string   | auto-generated                           |
-| `userId`          | string   | FK → Users (ownership boundary)          |
-| `name`            | string   | user-given label, unique per user        |
-| `currency`        | string   | e.g. QAR, PHP                            |
-| `startingBalance` | number   | base value, stored directly on account   |
-| `createdAt`       | datetime |                                          |
+| Field             | Type     | Notes                                  |
+| ----------------- | -------- | -------------------------------------- |
+| `id`              | string   | auto-generated                         |
+| `userId`          | string   | FK → Users (ownership boundary)        |
+| `name`            | string   | user-given label, unique per user      |
+| `currency`        | string   | e.g. QAR, PHP                          |
+| `startingBalance` | number   | base value, stored directly on account |
+| `createdAt`       | datetime |                                        |
 
 ### Bucket
 
-| Field       | Type     | Notes                                    |
-| ----------- | -------- | ---------------------------------------- |
-| `id`        | string   | auto-generated                           |
-| `userId`    | string   | FK → Users (ownership boundary)          |
-| `name`      | string   | user-given label, unique per user        |
-| `createdAt` | datetime |                                          |
+| Field       | Type     | Notes                             |
+| ----------- | -------- | --------------------------------- |
+| `id`        | string   | auto-generated                    |
+| `userId`    | string   | FK → Users (ownership boundary)   |
+| `name`      | string   | user-given label, unique per user |
+| `createdAt` | datetime |                                   |
 
 ### Transaction
 
-| Field       | Type     | Notes                                                |
-| ----------- | -------- | ---------------------------------------------------- |
-| `id`        | string   | auto-generated                                       |
-| `accountId` | string   | FK → BankAccount (user derived via account)          |
-| `type`      | enum     | `income` / `expense`                                 |
-| `amount`    | number   | always positive                                       |
-| `note`      | string?  | optional                                              |
-| `date`      | datetime | when the money moved, user-editable                  |
-| `createdAt` | datetime | system-generated audit trail                         |
+| Field       | Type     | Notes                                       |
+| ----------- | -------- | ------------------------------------------- |
+| `id`        | string   | auto-generated                              |
+| `accountId` | string   | FK → BankAccount (user derived via account) |
+| `type`      | enum     | `income` / `expense`                        |
+| `amount`    | number   | always positive                             |
+| `note`      | string?  | optional                                    |
+| `date`      | datetime | when the money moved, user-editable         |
+| `createdAt` | datetime | system-generated audit trail                |
 
 ### Allocation
 
-| Field       | Type     | Notes                                                |
-| ----------- | -------- | ---------------------------------------------------- |
-| `id`        | string   | auto-generated                                       |
-| `accountId` | string   | FK → BankAccount (user derived via account)          |
-| `bucketId`  | string   | FK → Bucket                                          |
-| `amount`    | number   | always positive, in the source account's currency    |
-| `note`      | string?  | optional                                              |
-| `date`      | datetime | user-editable                                         |
-| `createdAt` | datetime |                                                      |
+| Field       | Type     | Notes                                             |
+| ----------- | -------- | ------------------------------------------------- |
+| `id`        | string   | auto-generated                                    |
+| `accountId` | string   | FK → BankAccount (user derived via account)       |
+| `bucketId`  | string   | FK → Bucket                                       |
+| `amount`    | number   | always positive, in the source account's currency |
+| `note`      | string?  | optional                                          |
+| `date`      | datetime | user-editable                                     |
+| `createdAt` | datetime |                                                   |
 
 ## Design Decisions
 
@@ -69,17 +69,17 @@ No automatic import from banks. The user enters all data manually.
 
 ## Priorities
 
-| Priority | Feature                       | Notes                                                                            |
-| -------- | ----------------------------- | -------------------------------------------------------------------------------- |
-| P0       | Add Account                   | Dialog: name + currency + starting balance                                       |
-| P0       | Add Bucket                    | Dialog: name only                                                                |
-| P0       | Log Transaction               | Dialog: type (income/expense), account, amount, date, note                       |
-| P0       | Log Allocation                | Dialog: source account, bucket, amount, date, note                               |
-| P1       | Edit / Delete Transaction     | Block if would cause negative unallocated                                        |
-| P1       | Edit / Delete Allocation      | Amount increase blocked if negative unallocated; delete always allowed           |
-| P1       | View Accounts List            | Table with name, currency, computed balance, unallocated                         |
-| P1       | View Account Detail           | Transactions tab + Allocations tab + Summary section                             |
-| P1       | View Buckets List             | List with per-currency subtotals                                                 |
-| P1       | View Bucket Detail            | Allocations grouped by account, per-currency subtotals, Convert button (future)  |
-| P2       | Dashboard                     | Accounts section + Buckets section with per-currency subtotals                   |
-| P3       | Distributions                 | One transaction auto-allocates across multiple buckets                           |
+| Priority | Feature                   | Notes                                                                           |
+| -------- | ------------------------- | ------------------------------------------------------------------------------- |
+| P0       | Add Account               | Dialog: name + currency + starting balance                                      |
+| P0       | Add Bucket                | Dialog: name only                                                               |
+| P0       | Log Transaction           | Dialog: type (income/expense), account, amount, date, note                      |
+| P0       | Log Allocation            | Dialog: source account, bucket, amount, date, note                              |
+| P1       | Edit / Delete Transaction | Block if would cause negative unallocated                                       |
+| P1       | Edit / Delete Allocation  | Amount increase blocked if negative unallocated; delete always allowed          |
+| P1       | View Accounts List        | Table with name, currency, computed balance, unallocated                        |
+| P1       | View Account Detail       | Transactions tab + Allocations tab + Summary section                            |
+| P1       | View Buckets List         | List with per-currency subtotals                                                |
+| P1       | View Bucket Detail        | Allocations grouped by account, per-currency subtotals, Convert button (future) |
+| P2       | Dashboard                 | Accounts section + Buckets section with per-currency subtotals                  |
+| P3       | Distributions             | One transaction auto-allocates across multiple buckets                          |

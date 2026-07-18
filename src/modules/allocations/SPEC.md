@@ -8,15 +8,15 @@ An Allocation assigns a portion of a BankAccount's balance to a Bucket. The amou
 
 ### Allocation
 
-| Field       | Type     | Notes                                                |
-| ----------- | -------- | ---------------------------------------------------- |
-| `id`        | string   | auto-generated                                       |
-| `accountId` | string   | FK → BankAccount (currency derived through join)     |
-| `bucketId`  | string   | FK → Bucket                                          |
-| `amount`    | number   | always positive, in the source account's currency    |
-| `note`      | string?  | optional                                              |
-| `date`      | datetime | user-editable                                         |
-| `createdAt` | datetime |                                                      |
+| Field       | Type     | Notes                                             |
+| ----------- | -------- | ------------------------------------------------- |
+| `id`        | string   | auto-generated                                    |
+| `accountId` | string   | FK → BankAccount (currency derived through join)  |
+| `bucketId`  | string   | FK → Bucket                                       |
+| `amount`    | number   | always positive, in the source account's currency |
+| `note`      | string?  | optional                                          |
+| `date`      | datetime | user-editable                                     |
+| `createdAt` | datetime |                                                   |
 
 User ownership is derived through `accountId → BankAccount.userId` or `bucketId → Bucket.userId`. Allocations do not store `userId` directly.
 
@@ -44,8 +44,8 @@ Deleting an allocation frees its amount back to the source account's unallocated
 
 ## Features
 
-| #   | Feature             | File                                                         |
-| --- | ------------------- | ------------------------------------------------------------ |
-| 1   | Log Allocation      | [specs/01-log-allocation.md](specs/01-log-allocation.md)     |
-| 2   | Edit Allocation     | [specs/02-edit-allocation.md](specs/02-edit-allocation.md)   |
-| 3   | Delete Allocation   | [specs/03-delete-allocation.md](specs/03-delete-allocation.md) |
+| #   | Feature           | File                                                           |
+| --- | ----------------- | -------------------------------------------------------------- |
+| 1   | Log Allocation    | [specs/01-log-allocation.md](specs/01-log-allocation.md)       |
+| 2   | Edit Allocation   | [specs/02-edit-allocation.md](specs/02-edit-allocation.md)     |
+| 3   | Delete Allocation | [specs/03-delete-allocation.md](specs/03-delete-allocation.md) |

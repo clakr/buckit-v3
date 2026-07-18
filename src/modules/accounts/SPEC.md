@@ -8,14 +8,14 @@ An Account represents a real-world bank account. It has a single currency and it
 
 ### BankAccount
 
-| Field             | Type     | Notes                                    |
-| ----------------- | -------- | ---------------------------------------- |
-| `id`              | string   | auto-generated                           |
-| `userId`          | string   | FK → Users (ownership boundary)          |
-| `name`            | string   | user-given label, unique per user        |
-| `currency`        | string   | e.g. QAR, PHP                            |
-| `startingBalance` | number   | base value, stored directly on account   |
-| `createdAt`       | datetime |                                          |
+| Field             | Type     | Notes                                  |
+| ----------------- | -------- | -------------------------------------- |
+| `id`              | string   | auto-generated                         |
+| `userId`          | string   | FK → Users (ownership boundary)        |
+| `name`            | string   | user-given label, unique per user      |
+| `currency`        | string   | e.g. QAR, PHP                          |
+| `startingBalance` | number   | base value, stored directly on account |
+| `createdAt`       | datetime |                                        |
 
 ## Design Decisions
 
@@ -53,10 +53,10 @@ Transfers between accounts are logged as two Transactions: an expense from Accou
 
 ## Features
 
-| #   | Feature               | File                                                    |
-| --- | --------------------- | ------------------------------------------------------- |
-| 1   | Create Account        | [specs/01-create-account.md](specs/01-create-account.md) |
-| 2   | View Accounts List    | [specs/02-view-accounts-list.md](specs/02-view-accounts-list.md) |
-| 3   | View Account Detail   | [specs/03-view-account-detail.md](specs/03-view-account-detail.md) |
-| 4   | Edit Account          | [specs/04-edit-account.md](specs/04-edit-account.md)     |
-| 5   | Delete Account        | [specs/05-delete-account.md](specs/05-delete-account.md) |
+| #   | Feature             | File                                                               |
+| --- | ------------------- | ------------------------------------------------------------------ |
+| 1   | Create Account      | [specs/01-create-account.md](specs/01-create-account.md)           |
+| 2   | View Accounts List  | [specs/02-view-accounts-list.md](specs/02-view-accounts-list.md)   |
+| 3   | View Account Detail | [specs/03-view-account-detail.md](specs/03-view-account-detail.md) |
+| 4   | Edit Account        | [specs/04-edit-account.md](specs/04-edit-account.md)               |
+| 5   | Delete Account      | [specs/05-delete-account.md](specs/05-delete-account.md)           |

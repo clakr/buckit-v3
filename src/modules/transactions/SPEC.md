@@ -8,15 +8,15 @@ A Transaction represents money moving in or out of a BankAccount. It is always l
 
 ### Transaction
 
-| Field       | Type     | Notes                                                |
-| ----------- | -------- | ---------------------------------------------------- |
-| `id`        | string   | auto-generated                                       |
-| `accountId` | string   | FK → BankAccount (user derived via account)          |
-| `type`      | enum     | `income` / `expense`                                 |
-| `amount`    | number   | always positive                                       |
-| `note`      | string?  | optional                                              |
-| `date`      | datetime | when the money moved, user-editable                  |
-| `createdAt` | datetime | system-generated audit trail                         |
+| Field       | Type     | Notes                                       |
+| ----------- | -------- | ------------------------------------------- |
+| `id`        | string   | auto-generated                              |
+| `accountId` | string   | FK → BankAccount (user derived via account) |
+| `type`      | enum     | `income` / `expense`                        |
+| `amount`    | number   | always positive                             |
+| `note`      | string?  | optional                                    |
+| `date`      | datetime | when the money moved, user-editable         |
+| `createdAt` | datetime | system-generated audit trail                |
 
 User ownership is derived through `accountId → BankAccount.userId`. Transactions do not store `userId` directly.
 
@@ -36,8 +36,8 @@ Editing a transaction's amount or type changes the account's computed balance. I
 
 ## Features
 
-| #   | Feature             | File                                                         |
-| --- | ------------------- | ------------------------------------------------------------ |
-| 1   | Log Transaction     | [specs/01-log-transaction.md](specs/01-log-transaction.md)   |
-| 2   | Edit Transaction    | [specs/02-edit-transaction.md](specs/02-edit-transaction.md) |
-| 3   | Delete Transaction  | [specs/03-delete-transaction.md](specs/03-delete-transaction.md) |
+| #   | Feature            | File                                                             |
+| --- | ------------------ | ---------------------------------------------------------------- |
+| 1   | Log Transaction    | [specs/01-log-transaction.md](specs/01-log-transaction.md)       |
+| 2   | Edit Transaction   | [specs/02-edit-transaction.md](specs/02-edit-transaction.md)     |
+| 3   | Delete Transaction | [specs/03-delete-transaction.md](specs/03-delete-transaction.md) |
