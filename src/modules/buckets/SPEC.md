@@ -8,12 +8,12 @@ A Bucket is a logical envelope that holds allocated money. It has no currency �
 
 ### Bucket
 
-| Field       | Type     | Notes                                    |
-| ----------- | -------- | ---------------------------------------- |
-| `id`        | string   | auto-generated                           |
-| `userId`    | string   | FK → Users (ownership boundary)          |
-| `name`      | string   | user-given label, unique per user        |
-| `createdAt` | datetime |                                          |
+| Field       | Type     | Notes                             |
+| ----------- | -------- | --------------------------------- |
+| `id`        | string   | auto-generated                    |
+| `userId`    | string   | FK → Users (ownership boundary)   |
+| `name`      | string   | user-given label, unique per user |
+| `createdAt` | datetime |                                   |
 
 ## Design Decisions
 
@@ -37,10 +37,10 @@ Deleting a Bucket cascade-deletes all its Allocations. Money in each allocation 
 
 ## Features
 
-| #   | Feature             | File                                                    |
-| --- | ------------------- | ------------------------------------------------------- |
-| 1   | Create Bucket       | [specs/01-create-bucket.md](specs/01-create-bucket.md)   |
-| 2   | View Buckets List   | [specs/02-view-buckets-list.md](specs/02-view-buckets-list.md) |
-| 3   | View Bucket Detail  | [specs/03-view-bucket-detail.md](specs/03-view-bucket-detail.md) |
-| 4   | Edit Bucket         | [specs/04-edit-bucket.md](specs/04-edit-bucket.md)       |
-| 5   | Delete Bucket       | [specs/05-delete-bucket.md](specs/05-delete-bucket.md)   |
+| #   | Feature            | File                                                             |
+| --- | ------------------ | ---------------------------------------------------------------- |
+| 1   | Create Bucket      | [specs/01-create-bucket.md](specs/01-create-bucket.md)           |
+| 2   | View Buckets List  | [specs/02-view-buckets-list.md](specs/02-view-buckets-list.md)   |
+| 3   | View Bucket Detail | [specs/03-view-bucket-detail.md](specs/03-view-bucket-detail.md) |
+| 4   | Edit Bucket        | [specs/04-edit-bucket.md](specs/04-edit-bucket.md)               |
+| 5   | Delete Bucket      | [specs/05-delete-bucket.md](specs/05-delete-bucket.md)           |

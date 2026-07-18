@@ -12,6 +12,7 @@ The spec is a **decree** — it dictates what the code must build. Never referen
 ### 1. Open the oracles
 
 Read the user's request for the module name. Read only:
+
 - `SPEC.md` (project root)
 - `src/modules/<module>/SPEC.md` (module spec)
 
@@ -19,9 +20,9 @@ Read the user's request for the module name. Read only:
 
 ### 2. Classify the feature
 
-| Class | HTTP | Description |
-|-------|------|-------------|
-| Query | GET | Read-only. Returns data. No state change. |
+| Class    | HTTP              | Description                                       |
+| -------- | ----------------- | ------------------------------------------------- |
+| Query    | GET               | Read-only. Returns data. No state change.         |
 | Mutation | POST, PUT, DELETE | Creates, updates, or deletes data. Changes state. |
 
 **Completion criterion:** Feature classified as Query or Mutation.
