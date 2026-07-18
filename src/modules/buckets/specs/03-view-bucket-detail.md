@@ -12,9 +12,19 @@
 
 - Per-currency subtotals are computed on read. No stored aggregate.
 - Allocations are grouped by account so the user can see which account each portion came from. This is important for multi-currency buckets.
+- If allocations span 3+ currencies, subtotals list each currency on its own line.
 - The Convert button is P2 because it requires external API integration, a currency cache strategy, and a UI for selecting the target currency.
 
-**Edge cases:**
+**Loading State:**
+  - **Title:** Loading bucket
+  - **Description:** Fetching bucket details and allocations…
 
-- Bucket has no allocations → show empty state: "No allocations yet. [Allocate money to this bucket]".
-- Bucket has allocations in 3+ currencies → subtotals list each currency on its own line.
+**Error State:**
+  - **Title:** Could not load bucket
+  - **Description:** We weren't able to retrieve this bucket. It may have been deleted or a network error occurred.
+  - **CTA:** "Retry" refetches. "Go back to buckets" navigates to the buckets list.
+
+**Empty State:**
+  - **Title:** Bucket not found
+  - **Description:** This bucket doesn't exist or may have been deleted.
+  - **CTA:** "Go back to buckets" navigates to the buckets list.

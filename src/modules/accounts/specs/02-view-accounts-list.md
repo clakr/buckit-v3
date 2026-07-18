@@ -14,14 +14,16 @@
 - Balance is computed client-side from `startingBalance + income − expense`, not stored. The server returns the starting balance and transaction aggregates; the UI does the math.
 - Unallocated is computed as `balance − sum(allocations from this account)`.
 
-**Empty state:**
+**Loading State:**
+  - **Title:** Loading accounts
+  - **Description:** Fetching your bank accounts…
 
-```
-No accounts yet
-Add your first bank account to start tracking.
-[ + Add Account ]
-```
+**Error State:**
+  - **Title:** Could not load accounts
+  - **Description:** We weren't able to retrieve your accounts. Please try again.
+  - **CTA:** "Retry" refetches the list.
 
-**Loading state:** 3–4 skeleton rows.
-
-**Error state:** "Could not load accounts. [Retry]" with retry button.
+**Empty State:**
+  - **Title:** No accounts yet
+  - **Description:** Add your first bank account to start tracking.
+  - **CTA:** "Add Account" opens the create dialog.
