@@ -15,15 +15,18 @@
 - If a Bucket has no allocations, subtotals show nothing (or "—").
 
 **Loading State:**
-  - **Title:** Loading buckets
-  - **Description:** Fetching your buckets…
+
+- **Title:** Loading buckets
+- **Description:** Fetching your buckets…
 
 **Error State:**
-  - **Title:** Could not load buckets
-  - **Description:** We weren't able to retrieve your buckets. Please try again.
-  - **CTA:** "Retry" refetches the list.
+
+- **Title:** Could not load buckets
+- **Description:** We weren't able to retrieve your buckets. Please try again.
+- **CTA:** "Retry" refetches the list.
 
 **Empty State:**
-  - **Title:** No buckets yet
-  - **Description:** Create a bucket to start organizing your money.
-  - **CTA:** "Add Bucket" opens the create dialog.
+
+- **Title:** No buckets yet
+- **Description:** Create a bucket to start organizing your money.
+- **CTA:** "Add Bucket" opens the create dialog.

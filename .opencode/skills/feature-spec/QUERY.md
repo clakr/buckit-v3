@@ -4,22 +4,30 @@ For features that return data without changing state (GET).
 
     # <Feature Name>
 
-    **Trigger:** <What user action initiates this?>
+    ## Design Decisions
+    <optional — include only if meaningful tradeoffs or alternatives were considered; present as a bullet list where possible; omit entirely otherwise>
 
-    **Content:** <What data is displayed and how>
+    ## Trigger
+    <What user action initiates this?>
 
-    **Loading State:**
+    ## Content
+    <What data is displayed and how>
+
+    ## States
+
+    ### Loading State
       - **Title:** <Brief heading>
       - **Description:** <Explanatory text (feature-specific, not generic)>
 
-    **Error State:**
+    ### Error State
       - **Title:** <Brief heading>
       - **Description:** <Explanatory text>
       - **CTA:** <Action button text and behavior (e.g. "Retry" that refetches)>
 
-    **Empty State:**
+    ### Empty State
       - **Title:** <Brief heading>
       - **Description:** <Explanatory text>
       - **CTA:** <Action button text and behavior (e.g. "Create first item" navigates to create)>
 
-    **Design Decisions:** <optional — include only if meaningful tradeoffs or alternatives were considered; present as a bullet list where possible; omit this section entirely otherwise>
+    ## Edge Cases
+    <optional — include only if there are meaningful boundary conditions, permission scenarios, or special cases worth documenting; present as a bullet list where possible; omit entirely otherwise>

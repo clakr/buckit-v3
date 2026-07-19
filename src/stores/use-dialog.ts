@@ -15,10 +15,7 @@ const createBaseDialogState = (set: any) => ({
 });
 
 export function createDialogStore<Ext extends Record<string, unknown>>(
-  extend?: (
-    set: Parameters<typeof createBaseDialogState>[0],
-    get: () => DialogState & Ext,
-  ) => Ext,
+  extend?: (set: Parameters<typeof createBaseDialogState>[0], get: () => DialogState & Ext) => Ext,
 ) {
   return create<DialogState & Ext>()((set, get) => ({
     ...(createBaseDialogState(set) as DialogState),

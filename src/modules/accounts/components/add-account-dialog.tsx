@@ -5,6 +5,16 @@ import { useShallow } from "zustand/react/shallow";
 import type { Currency } from "#/lib/types";
 
 import {
+  Combobox,
+  ComboboxContent,
+  ComboboxEmpty,
+  ComboboxInput,
+  ComboboxItem,
+  ComboboxList,
+  ComboboxTrigger,
+  ComboboxValue,
+} from "#/components/ui/combobox";
+import {
   Dialog,
   DialogContent,
   DialogDescription,
@@ -22,21 +32,10 @@ import {
 import { Spinner } from "#/components/ui/spinner";
 import { useAppForm } from "#/integrations/tanstack-form";
 import { currencies } from "#/lib/constants";
+import { validateBankAccountName } from "#/modules/accounts/functions";
+import { useAddAccountMutation } from "#/modules/accounts/mutations";
+import { addAccountSchema } from "#/modules/accounts/schemas";
 import { createDialogStore } from "#/stores/use-dialog";
-import {
-  Combobox,
-  ComboboxContent,
-  ComboboxEmpty,
-  ComboboxInput,
-  ComboboxItem,
-  ComboboxList,
-  ComboboxTrigger,
-  ComboboxValue,
-} from "@/components/ui/combobox";
-
-import { validateBankAccountName } from "../functions";
-import { useAddAccountMutation } from "../mutations";
-import { addAccountSchema } from "../schemas";
 
 export const useAddAccountDialogStore = createDialogStore();
 

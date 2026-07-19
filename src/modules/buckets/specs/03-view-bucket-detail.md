@@ -16,15 +16,18 @@
 - The Convert button is P2 because it requires external API integration, a currency cache strategy, and a UI for selecting the target currency.
 
 **Loading State:**
-  - **Title:** Loading bucket
-  - **Description:** Fetching bucket details and allocations…
+
+- **Title:** Loading bucket
+- **Description:** Fetching bucket details and allocations…
 
 **Error State:**
-  - **Title:** Could not load bucket
-  - **Description:** We weren't able to retrieve this bucket. It may have been deleted or a network error occurred.
-  - **CTA:** "Retry" refetches. "Go back to buckets" navigates to the buckets list.
+
+- **Title:** Could not load bucket
+- **Description:** We weren't able to retrieve this bucket. It may have been deleted or a network error occurred.
+- **CTA:** "Retry" refetches. "Go back to buckets" navigates to the buckets list.
 
 **Empty State:**
-  - **Title:** Bucket not found
-  - **Description:** This bucket doesn't exist or may have been deleted.
-  - **CTA:** "Go back to buckets" navigates to the buckets list.
+
+- **Title:** Bucket not found
+- **Description:** This bucket doesn't exist or may have been deleted.
+- **CTA:** "Go back to buckets" navigates to the buckets list.

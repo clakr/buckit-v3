@@ -1,4 +1,4 @@
-import { IconLayoutDashboard, IconWallet } from "@tabler/icons-react";
+import { IconBucket, IconLayoutDashboard, IconWallet } from "@tabler/icons-react";
 import { Link } from "@tanstack/react-router";
 
 import {
@@ -7,7 +7,7 @@ import {
   SidebarMenu,
   SidebarMenuItem,
   SidebarMenuButton,
-} from "../ui/sidebar";
+} from "#/components/ui/sidebar";
 
 export function SidebarContent() {
   return (
@@ -30,6 +30,16 @@ export function SidebarContent() {
                 <Link to="/accounts" activeProps={{ "data-active": true }}>
                   <IconWallet />
                   Accounts
+                </Link>
+              }
+            />
+          </SidebarMenuItem>
+          <SidebarMenuItem>
+            <SidebarMenuButton
+              render={
+                <Link to="/buckets" activeProps={{ "data-active": true }}>
+                  <IconBucket />
+                  Buckets
                 </Link>
               }
             />

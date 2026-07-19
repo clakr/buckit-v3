@@ -111,10 +111,25 @@ export const bankAccounts = sqliteTable(
   (t) => [unique().on(t.userId, t.name)],
 );
 
+export const buckets = sqliteTable(
+  "buckets",
+  {
+    id: text("id").primaryKey(),
+    userId: text("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    name: text("name").notNull(),
+    createdAt: integer("created_at", { mode: "timestamp_ms" })
+      .default(sql`(cast(unixepoch('subsecond') * 1000 as integer))`)
+      .notNull(),
+  },
+  (t) => [unique().on(t.userId, t.name)],
+);
+
 //
 
 export const relations = defineRelations(
-  { users, sessions, accounts, verifications, bankAccounts },
+  { users, sessions, accounts, verifications, bankAccounts, buckets },
   (r) => ({
     users: {
       sessions: r.many.sessions(),
@@ -138,12 +153,19 @@ export const relations = defineRelations(
         to: r.users.id,
       }),
     },
+    buckets: {
+      user: r.one.users({
+        from: r.buckets.userId,
+        to: r.users.id,
+      }),
+    },
   }),
 );
 
 //
 
 export type BankAccount = typeof bankAccounts.$inferSelect;
+export type Buckets = typeof buckets.$inferSelect;
 
 //
 
