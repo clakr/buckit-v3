@@ -35,6 +35,7 @@ import { currencies } from "#/lib/constants";
 import { validateBankAccountName } from "#/modules/accounts/functions";
 import { useAddAccountMutation } from "#/modules/accounts/mutations";
 import { addAccountSchema } from "#/modules/accounts/schemas";
+import { confirm } from "#/stores/use-confirm";
 import { createDialogStore } from "#/stores/use-dialog";
 
 export const useAddAccountDialogStore = createDialogStore();
@@ -75,8 +76,17 @@ export function AddAccountDialog() {
     },
   });
 
-  /* @todo: add guard when closing when dirty */
-  function handleOnOpenChange() {
+  async function handleOnOpenChange(open: boolean) {
+    if (!open && form.state.isDirty) {
+      const confirmed = await confirm("Discard new account?", {
+        description: "The account details you entered will be lost.",
+        confirmLabel: "Discard",
+        cancelLabel: "Keep editing",
+      });
+
+      if (!confirmed) return;
+    }
+
     form.reset();
 
     toggleDialog();

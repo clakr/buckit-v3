@@ -17,6 +17,7 @@ import { useAppForm } from "#/integrations/tanstack-form";
 import { validateBucketName } from "#/modules/buckets/functions";
 import { useAddBucketMutation } from "#/modules/buckets/mutations";
 import { addBucketSchema } from "#/modules/buckets/schemas";
+import { confirm } from "#/stores/use-confirm";
 import { createDialogStore } from "#/stores/use-dialog";
 
 export const useAddBucketDialogStore = createDialogStore();
@@ -55,8 +56,17 @@ export function AddBucketDialog() {
     },
   });
 
-  /* @todo: add guard when closing when dirty */
-  function handleOnOpenChange() {
+  async function handleOnOpenChange(open: boolean) {
+    if (!open && form.state.isDirty) {
+      const confirmed = await confirm("Discard new bucket?", {
+        description: "The bucket details you entered will be lost.",
+        confirmLabel: "Discard",
+        cancelLabel: "Keep editing",
+      });
+
+      if (!confirmed) return;
+    }
+
     form.reset();
 
     toggleDialog();
