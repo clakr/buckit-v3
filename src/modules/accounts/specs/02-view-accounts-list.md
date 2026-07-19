@@ -15,15 +15,18 @@
 - Unallocated is computed as `balance − sum(allocations from this account)`.
 
 **Loading State:**
-  - **Title:** Loading accounts
-  - **Description:** Fetching your bank accounts…
+
+- **Title:** Loading accounts
+- **Description:** Fetching your bank accounts…
 
 **Error State:**
-  - **Title:** Could not load accounts
-  - **Description:** We weren't able to retrieve your accounts. Please try again.
-  - **CTA:** "Retry" refetches the list.
+
+- **Title:** Could not load accounts
+- **Description:** We weren't able to retrieve your accounts. Please try again.
+- **CTA:** "Retry" refetches the list.
 
 **Empty State:**
-  - **Title:** No accounts yet
-  - **Description:** Add your first bank account to start tracking.
-  - **CTA:** "Add Account" opens the create dialog.
+
+- **Title:** No accounts yet
+- **Description:** Add your first bank account to start tracking.
+- **CTA:** "Add Account" opens the create dialog.

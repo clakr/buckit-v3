@@ -10,9 +10,9 @@ export default function SubmitButton({ children, ...rest }: Props) {
   const form = useFormContext();
 
   return (
-    <form.Subscribe selector={(state) => state.isSubmitting}>
-      {(isSubmitting) => (
-        <Button type="submit" {...rest} disabled={isSubmitting}>
+    <form.Subscribe selector={(state) => [state.isSubmitting, state.canSubmit]}>
+      {([isSubmitting, canSubmit]) => (
+        <Button type="submit" {...rest} disabled={isSubmitting || !canSubmit}>
           {isSubmitting ? (
             <>
               <Spinner />

@@ -4,8 +4,15 @@ import { toast } from "sonner";
 declare module "@tanstack/react-query" {
   interface Register {
     mutationMeta: {
-      "success-message"?: string;
-      "error-message"?: string;
+      success: {
+        title: string;
+        description: string;
+        toReplace: Array<string>;
+      };
+      error: {
+        title: string;
+        description: string;
+      };
     };
   }
 }
@@ -13,17 +20,27 @@ declare module "@tanstack/react-query" {
 export function getContext() {
   const queryClient = new QueryClient({
     mutationCache: new MutationCache({
-      onSuccess: async (_, __, ___, mutation) => {
-        toast.success("Nice!", {
-          description: mutation.meta?.["success-message"] ?? "Action proceeded succesfully",
+      onSuccess: async (_, variables, __, mutation) => {
+        let description = "Action proceeded successfully";
+
+        if (mutation.meta?.success.toReplace) {
+          description = mutation.meta.success.description;
+
+          for (const key of mutation.meta.success.toReplace) {
+            description = description.replaceAll(`[${key}]`, variables.data[key]);
+          }
+        }
+
+        toast.success(mutation.meta?.success.title ?? "Nice!", {
+          description,
         });
 
         await queryClient.invalidateQueries();
       },
       onError: (_, __, ___, mutation) => {
-        toast.error("Oops!", {
+        toast.error(mutation.meta?.error.title ?? "Oops!", {
           description:
-            mutation.meta?.["error-message"] ?? "Action did not proceed. Please try again.",
+            mutation.meta?.error.description ?? "Action did not proceed. Please try again.",
         });
       },
     }),

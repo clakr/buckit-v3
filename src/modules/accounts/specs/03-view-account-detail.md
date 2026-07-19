@@ -14,15 +14,18 @@
 All three sections are fetched in a single request. Each section renders what it has — no per-section empty states.
 
 **Loading State:**
-  - **Title:** Loading account
-  - **Description:** Fetching account details and history…
+
+- **Title:** Loading account
+- **Description:** Fetching account details and history…
 
 **Error State:**
-  - **Title:** Could not load account
-  - **Description:** We weren't able to retrieve this account. It may have been deleted or a network error occurred.
-  - **CTA:** "Retry" refetches. "Go back to accounts" navigates to the accounts list.
+
+- **Title:** Could not load account
+- **Description:** We weren't able to retrieve this account. It may have been deleted or a network error occurred.
+- **CTA:** "Retry" refetches. "Go back to accounts" navigates to the accounts list.
 
 **Empty State:**
-  - **Title:** Account not found
-  - **Description:** This account doesn't exist or may have been deleted.
-  - **CTA:** "Go back to accounts" navigates to the accounts list.
+
+- **Title:** Account not found
+- **Description:** This account doesn't exist or may have been deleted.
+- **CTA:** "Go back to accounts" navigates to the accounts list.
