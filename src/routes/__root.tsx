@@ -4,6 +4,7 @@ import { TanStackDevtools } from "@tanstack/react-devtools";
 import { HeadContent, Scripts, createRootRouteWithContext } from "@tanstack/react-router";
 import { TanStackRouterDevtoolsPanel } from "@tanstack/react-router-devtools";
 
+import { ConfirmDialog } from "#/components/confirm-dialog";
 import { Toaster } from "#/components/ui/sonner";
 
 import TanStackQueryDevtools from "../integrations/tanstack-query/devtools";
@@ -48,6 +49,7 @@ function RootDocument({ children }: { children: React.ReactNode }) {
       </head>
       <body className="font-sans wrap-anywhere antialiased">
         {children}
+
         <Toaster
           position="top-center"
           toastOptions={{
@@ -56,6 +58,9 @@ function RootDocument({ children }: { children: React.ReactNode }) {
             },
           }}
         />
+
+        <ConfirmDialog />
+
         <TanStackDevtools
           config={{
             position: "bottom-right",
