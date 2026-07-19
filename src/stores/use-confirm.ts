@@ -1,20 +1,20 @@
-import { create } from "zustand"
+import { create } from "zustand";
 
 interface ConfirmOptions {
-  description?: string
-  confirmLabel?: string
-  cancelLabel?: string
+  description?: string;
+  confirmLabel?: string;
+  cancelLabel?: string;
 }
 
 interface ConfirmState {
-  isOpen: boolean
-  title: string | null
-  description: string | null
-  confirmLabel: string
-  cancelLabel: string
-  resolve: ((value: boolean) => void) | null
-  confirm: (title: string, options?: ConfirmOptions) => Promise<boolean>
-  reset: () => void
+  isOpen: boolean;
+  title: string | null;
+  description: string | null;
+  confirmLabel: string;
+  cancelLabel: string;
+  resolve: ((value: boolean) => void) | null;
+  confirm: (title: string, options?: ConfirmOptions) => Promise<boolean>;
+  reset: () => void;
 }
 
 export const useConfirmStore = create<ConfirmState>()((set, get) => ({
@@ -27,8 +27,8 @@ export const useConfirmStore = create<ConfirmState>()((set, get) => ({
 
   confirm: (title, options) => {
     return new Promise<boolean>((resolve) => {
-      const state = get()
-      state.resolve?.(false)
+      const state = get();
+      state.resolve?.(false);
 
       set({
         isOpen: true,
@@ -37,8 +37,8 @@ export const useConfirmStore = create<ConfirmState>()((set, get) => ({
         confirmLabel: options?.confirmLabel ?? "Continue",
         cancelLabel: options?.cancelLabel ?? "Cancel",
         resolve,
-      })
-    })
+      });
+    });
   },
 
   reset: () =>
@@ -48,8 +48,8 @@ export const useConfirmStore = create<ConfirmState>()((set, get) => ({
       description: null,
       resolve: null,
     }),
-}))
+}));
 
 export function confirm(title: string, options?: ConfirmOptions) {
-  return useConfirmStore.getState().confirm(title, options)
+  return useConfirmStore.getState().confirm(title, options);
 }

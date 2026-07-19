@@ -14,7 +14,9 @@ export const users = sqliteTable("users", {
   id: text("id").primaryKey(),
   name: text("name").notNull(),
   email: text("email").notNull().unique(),
-  emailVerified: integer("email_verified", { mode: "boolean" }).default(false).notNull(),
+  emailVerified: integer("email_verified", { mode: "boolean" })
+    .default(false)
+    .notNull(),
   image: text("image"),
   createdAt: integer("created_at", { mode: "timestamp_ms" })
     .default(sql`(cast(unixepoch('subsecond') * 1000 as integer))`)
@@ -126,10 +128,34 @@ export const buckets = sqliteTable(
   (t) => [unique().on(t.userId, t.name)],
 );
 
+export const transactions = sqliteTable("transactions", {
+  id: text("id").primaryKey(),
+  bankAccountId: text("bank_account_id")
+    .notNull()
+    .references(() => bankAccounts.id, { onDelete: "cascade" }),
+  type: text("type", { enum: ["income", "expense"] }).notNull(),
+  amount: integer("amount").notNull(),
+  note: text("note"),
+  date: integer("date", { mode: "timestamp" })
+    .default(sql`(cast(unixepoch() as integer))`)
+    .notNull(),
+  createdAt: integer("created_at", { mode: "timestamp_ms" })
+    .default(sql`(cast(unixepoch('subsecond') * 1000 as integer))`)
+    .notNull(),
+});
+
 //
 
 export const relations = defineRelations(
-  { users, sessions, accounts, verifications, bankAccounts, buckets },
+  {
+    users,
+    sessions,
+    accounts,
+    verifications,
+    bankAccounts,
+    buckets,
+    transactions,
+  },
   (r) => ({
     users: {
       sessions: r.many.sessions(),
@@ -157,6 +183,13 @@ export const relations = defineRelations(
       user: r.one.users({
         from: r.buckets.userId,
         to: r.users.id,
+      }),
+      transactions: r.many.transactions(),
+    },
+    transactions: {
+      bucket: r.one.buckets({
+        from: r.transactions.bankAccountId,
+        to: r.buckets.id,
       }),
     },
   }),
