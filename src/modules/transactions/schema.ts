@@ -1,6 +1,5 @@
 import { z } from "zod";
 
-// @todo: improve the validations
 export const transactionTypeEnum = z.enum(["income", "expense"], "Please select a valid type");
 
 export const logTransactionSchema = z.object({

@@ -18,7 +18,18 @@ export const getBankAccounts = createServerFn({
   .handler(async ({ context }) => {
     const db = getDB(env.db);
 
-    return db.select().from(bankAccounts).where(eq(bankAccounts.userId, context.user.id));
+    return db.query.bankAccounts.findMany({
+      where: {
+        userId: context.user.id,
+      },
+      with: {
+        transactions: {
+          orderBy: {
+            createdAt: "desc",
+          },
+        },
+      },
+    });
   });
 
 export const validateBankAccountName = createServerFn({

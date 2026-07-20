@@ -176,18 +176,18 @@ export const relations = defineRelations(
         from: r.bankAccounts.userId,
         to: r.users.id,
       }),
+      transactions: r.many.transactions(),
     },
     buckets: {
       user: r.one.users({
         from: r.buckets.userId,
         to: r.users.id,
       }),
-      transactions: r.many.transactions(),
     },
     transactions: {
-      bucket: r.one.buckets({
+      bankAccount: r.one.bankAccounts({
         from: r.transactions.bankAccountId,
-        to: r.buckets.id,
+        to: r.bankAccounts.id,
       }),
     },
   }),
@@ -197,6 +197,7 @@ export const relations = defineRelations(
 
 export type BankAccount = typeof bankAccounts.$inferSelect;
 export type Buckets = typeof buckets.$inferSelect;
+export type Transaction = typeof transactions.$inferSelect;
 
 //
 
