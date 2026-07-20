@@ -8,38 +8,44 @@
 ## Form Fields
 
 ### Amount
-  - **Type:** number
-  - **Required:** yes
-  - **Label:** Amount
-  - **Placeholder:** [current amount]
 
-  #### Validations
-  | Rule | User Message |
-  |------|-------------|
-  | required | Amount is required. |
-  | greater than 0 | Amount must be greater than 0. |
-  | max 2 decimal places | Amount can only have up to 2 decimal places. |
-  | increase must not exceed account's unallocated balance (decrease always allowed) | Insufficient unallocated balance. Available: [amount]. |
+- **Type:** number
+- **Required:** yes
+- **Label:** Amount
+- **Placeholder:** [current amount]
+
+#### Validations
+
+| Rule                                                                             | User Message                                           |
+| -------------------------------------------------------------------------------- | ------------------------------------------------------ |
+| required                                                                         | Amount is required.                                    |
+| greater than 0                                                                   | Amount must be greater than 0.                         |
+| max 2 decimal places                                                             | Amount can only have up to 2 decimal places.           |
+| increase must not exceed account's unallocated balance (decrease always allowed) | Insufficient unallocated balance. Available: [amount]. |
 
 ### Date
-  - **Type:** date
-  - **Required:** yes
-  - **Label:** Date
-  - **Placeholder:** [current date]
 
-  #### Validations
-  | Rule | User Message |
-  |------|-------------|
-  | required | Date is required. |
+- **Type:** date
+- **Required:** yes
+- **Label:** Date
+- **Placeholder:** [current date]
+
+#### Validations
+
+| Rule     | User Message      |
+| -------- | ----------------- |
+| required | Date is required. |
 
 ### Note
-  - **Type:** text
-  - **Required:** no
-  - **Label:** Note (optional)
-  - **Placeholder:** [current note]
 
-  #### Validations
-  None.
+- **Type:** text
+- **Required:** no
+- **Label:** Note (optional)
+- **Placeholder:** [current note]
+
+#### Validations
+
+None.
 
 ## Trigger
 

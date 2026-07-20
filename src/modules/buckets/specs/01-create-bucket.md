@@ -8,17 +8,19 @@
 ## Form Fields
 
 ### Name
-  - **Type:** text
-  - **Required:** yes
-  - **Label:** Name
-  - **Placeholder:** e.g. Emergency Fund
 
-  #### Validations
-  | Rule | User Message |
-  |------|-------------|
-  | required, trimmed | Name is required. |
-  | max 100 characters | Name must be 100 characters or fewer. |
-  | unique per user | A bucket with this name already exists. |
+- **Type:** text
+- **Required:** yes
+- **Label:** Name
+- **Placeholder:** e.g. Emergency Fund
+
+#### Validations
+
+| Rule               | User Message                            |
+| ------------------ | --------------------------------------- |
+| required, trimmed  | Name is required.                       |
+| max 100 characters | Name must be 100 characters or fewer.   |
+| unique per user    | A bucket with this name already exists. |
 
 ## Trigger
 

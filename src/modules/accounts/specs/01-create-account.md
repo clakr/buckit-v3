@@ -8,42 +8,48 @@
 ## Form Fields
 
 ### Name
-  - **Type:** text
-  - **Required:** yes
-  - **Label:** Name
-  - **Placeholder:** e.g. QNB Savings
 
-  #### Validations
-  | Rule | User Message |
-  |------|-------------|
-  | required, trimmed | Name is required. |
-  | max 100 characters | Name must be 100 characters or fewer. |
-  | unique per user | An account with this name already exists. |
+- **Type:** text
+- **Required:** yes
+- **Label:** Name
+- **Placeholder:** e.g. QNB Savings
+
+#### Validations
+
+| Rule               | User Message                              |
+| ------------------ | ----------------------------------------- |
+| required, trimmed  | Name is required.                         |
+| max 100 characters | Name must be 100 characters or fewer.     |
+| unique per user    | An account with this name already exists. |
 
 ### Currency
-  - **Type:** select
-  - **Required:** yes
-  - **Label:** Currency
-  - **Placeholder:** Select a currency
 
-  #### Validations
-  | Rule | User Message |
-  |------|-------------|
-  | required | Please select a currency. |
-  | valid value | Please select a valid currency. |
+- **Type:** select
+- **Required:** yes
+- **Label:** Currency
+- **Placeholder:** Select a currency
+
+#### Validations
+
+| Rule        | User Message                    |
+| ----------- | ------------------------------- |
+| required    | Please select a currency.       |
+| valid value | Please select a valid currency. |
 
 ### Starting Balance
-  - **Type:** number
-  - **Required:** yes
-  - **Label:** Starting Balance
-  - **Placeholder:** 0
 
-  #### Validations
-  | Rule | User Message |
-  |------|-------------|
-  | required | Starting balance is required. |
-  | minimum 0 | Starting balance cannot be negative. |
-  | max 2 decimal places | Starting balance can only have up to 2 decimal places. |
+- **Type:** number
+- **Required:** yes
+- **Label:** Starting Balance
+- **Placeholder:** 0
+
+#### Validations
+
+| Rule                 | User Message                                           |
+| -------------------- | ------------------------------------------------------ |
+| required             | Starting balance is required.                          |
+| minimum 0            | Starting balance cannot be negative.                   |
+| max 2 decimal places | Starting balance can only have up to 2 decimal places. |
 
 ## Trigger
 

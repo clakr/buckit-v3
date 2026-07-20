@@ -8,17 +8,19 @@
 ## Form Fields
 
 ### Name
-  - **Type:** text
-  - **Required:** yes
-  - **Label:** Name
-  - **Placeholder:** [current name]
 
-  #### Validations
-  | Rule | User Message |
-  |------|-------------|
-  | required, trimmed | Name is required. |
-  | max 100 characters | Name must be 100 characters or fewer. |
-  | unique per user (excluding self) | An account with this name already exists. |
+- **Type:** text
+- **Required:** yes
+- **Label:** Name
+- **Placeholder:** [current name]
+
+#### Validations
+
+| Rule                             | User Message                              |
+| -------------------------------- | ----------------------------------------- |
+| required, trimmed                | Name is required.                         |
+| max 100 characters               | Name must be 100 characters or fewer.     |
+| unique per user (excluding self) | An account with this name already exists. |
 
 ## Trigger
 

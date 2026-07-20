@@ -1,7 +1,5 @@
 import type { ColumnDef } from "@tanstack/react-table";
 
-import { IconDots, IconEdit, IconEye, IconTrash } from "@tabler/icons-react";
-
 import type { BankAccount } from "#/db/schema";
 import type { Currency } from "#/lib/types";
 
@@ -9,14 +7,8 @@ import { Badge } from "#/components/ui/badge";
 import { currencyCodec } from "#/lib/codecs";
 import { currencies } from "#/lib/constants";
 import { formatCurrency } from "#/lib/utils";
-import { Button } from "@/components/ui/button";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuGroup,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+
+import { AccountActionsDropdownMenu } from "./components/account-actions-dropdown-menu";
 
 function isCurrencyCode(code: string): code is Currency["code"] {
   return currencies.some((currency) => currency.code === code);
@@ -66,33 +58,6 @@ export const columns: ColumnDef<BankAccount>[] = [
   {
     accessorKey: "actions",
     header: "",
-    cell: () => (
-      <DropdownMenu>
-        <DropdownMenuTrigger
-          render={
-            <Button variant="ghost" size="icon">
-              <IconDots />
-              <span className="sr-only">Open Bank Account Action Menu</span>
-            </Button>
-          }
-        />
-        <DropdownMenuContent>
-          <DropdownMenuGroup>
-            <DropdownMenuItem disabled>
-              <IconEye />
-              View Detail
-            </DropdownMenuItem>
-            <DropdownMenuItem disabled>
-              <IconEdit />
-              Edit
-            </DropdownMenuItem>
-            <DropdownMenuItem disabled>
-              <IconTrash />
-              Delete
-            </DropdownMenuItem>
-          </DropdownMenuGroup>
-        </DropdownMenuContent>
-      </DropdownMenu>
-    ),
+    cell: ({ row }) => <AccountActionsDropdownMenu accountId={row.original.id} />,
   },
 ];
