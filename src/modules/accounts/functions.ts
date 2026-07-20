@@ -8,8 +8,7 @@ import { getDB } from "#/db";
 import { bankAccounts, lower } from "#/db/schema";
 import { currencyCodec } from "#/lib/codecs";
 import { authMiddleware } from "#/lib/middlewares";
-
-import { addAccountSchema } from "./schemas";
+import { addAccountSchema } from "#/modules/accounts/schemas";
 
 export const getBankAccounts = createServerFn({
   method: "GET",
