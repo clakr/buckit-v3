@@ -1,6 +1,9 @@
 import { IconCheck, IconExclamationCircle } from "@tabler/icons-react";
 import z from "zod";
+import { create } from "zustand";
 import { useShallow } from "zustand/react/shallow";
+
+import type { DialogState } from "#/stores/use-dialog";
 
 import {
   Dialog,
@@ -18,9 +21,13 @@ import { validateBucketName } from "#/modules/buckets/functions";
 import { useAddBucketMutation } from "#/modules/buckets/mutations";
 import { addBucketSchema } from "#/modules/buckets/schemas";
 import { confirm } from "#/stores/use-confirm";
-import { createDialogStore } from "#/stores/use-dialog";
 
-export const useAddBucketDialogStore = createDialogStore();
+export const useAddBucketDialogStore = create<DialogState>()((set) => ({
+  isOpen: false,
+  openDialog: () => set({ isOpen: true }),
+  closeDialog: () => set({ isOpen: false }),
+  toggleDialog: () => set((state) => ({ isOpen: !state.isOpen })),
+}));
 
 export function AddBucketDialog() {
   const { isOpen, closeDialog, toggleDialog } = useAddBucketDialogStore(
