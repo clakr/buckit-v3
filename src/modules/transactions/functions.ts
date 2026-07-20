@@ -4,6 +4,7 @@ import { uuidv7 } from "uuidv7";
 
 import { getDB } from "#/db";
 import { transactions } from "#/db/schema";
+import { currencyCodec } from "#/lib/codecs";
 import { authMiddleware } from "#/lib/middlewares";
 import { logTransactionSchema } from "#/modules/transactions/schema";
 
@@ -54,7 +55,11 @@ export const logTransaction = createServerFn({
       .insert(transactions)
       .values({
         id: uuidv7(),
-        ...data,
+        bankAccountId: data.bankAccountId,
+        type: data.type,
+        amount: currencyCodec.decode(data.amount),
+        date: data.date,
+        note: data.note,
       })
       .returning();
   });

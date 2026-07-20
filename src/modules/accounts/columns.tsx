@@ -1,12 +1,14 @@
 import type { ColumnDef } from "@tanstack/react-table";
 
-import type { BankAccount } from "#/db/schema";
+import { IconCircleDashed } from "@tabler/icons-react";
+
+import type { BankAccount, Transaction } from "#/db/schema";
 import type { Currency } from "#/lib/types";
 
 import { Badge } from "#/components/ui/badge";
 import { currencyCodec } from "#/lib/codecs";
 import { currencies } from "#/lib/constants";
-import { formatCurrency } from "#/lib/utils";
+import { formatCurrency, formatToRelative } from "#/lib/utils";
 
 import { AccountActionsDropdownMenu } from "./components/account-actions-dropdown-menu";
 
@@ -18,7 +20,7 @@ function getCurrencyName(code: Currency["code"]) {
   return currencies.find((currency) => currency.code === code);
 }
 
-export const columns: ColumnDef<BankAccount>[] = [
+export const columns: ColumnDef<BankAccount & { transactions: Transaction[] }>[] = [
   {
     accessorKey: "name",
   },
@@ -45,15 +47,38 @@ export const columns: ColumnDef<BankAccount>[] = [
     accessorKey: "balance",
     header: "Unallocated / Balance",
     cell: ({ row }) => {
-      return `N/A / ${formatCurrency(currencyCodec.encode(row.original.startingBalance), {
+      const balance =
+        row.original.startingBalance +
+        row.original.transactions.reduce(
+          (acc, t) => (t.type === "income" ? acc + t.amount : acc - t.amount),
+          0,
+        );
+
+      const unallocated = balance; // @todo: revisit once allocations are implemented
+
+      return `${formatCurrency(currencyCodec.encode(unallocated), {
+        currency: row.original.currency,
+      })} / ${formatCurrency(currencyCodec.encode(balance), {
         currency: row.original.currency,
       })}`;
-    }, // @todo: revisit once account entries are implemented
+    },
   },
   {
-    accessorKey: "lastAccountEntryDate",
-    header: "Last Account Entry Date",
-    cell: "N/A", // @todo: revisit once account entries are implemented
+    accessorKey: "lastTransactionDate",
+    header: "Last Transaction Date",
+
+    cell: ({ row }) => {
+      const firstTransaction = row.original.transactions.at(0);
+      if (!firstTransaction)
+        return (
+          <Badge variant="secondary" className="uppercase">
+            <IconCircleDashed />
+            No Transactions
+          </Badge>
+        );
+
+      return formatToRelative(firstTransaction.createdAt);
+    },
   },
   {
     accessorKey: "actions",
