@@ -219,7 +219,8 @@ export function AddAccountDialog() {
                         <InputGroupInput
                           type="number"
                           id={field.name}
-                          placeholder="1,000.00"
+                          placeholder="0.
+                            00"
                           min={0}
                           step={0.01}
                           required
