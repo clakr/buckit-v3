@@ -8,48 +8,56 @@
 ## Form Fields
 
 ### Type
-  - **Type:** select (toggle)
-  - **Required:** yes
-  - **Label:** Type
-  - **Placeholder:** —
 
-  #### Validations
-  | Rule | User Message |
-  |------|-------------|
-  | required | Please select a type. |
+- **Type:** select (toggle)
+- **Required:** yes
+- **Label:** Type
+- **Placeholder:** —
+
+#### Validations
+
+| Rule     | User Message          |
+| -------- | --------------------- |
+| required | Please select a type. |
 
 ### Amount
-  - **Type:** number
-  - **Required:** yes
-  - **Label:** Amount
-  - **Placeholder:** [current amount]
 
-  #### Validations
-  | Rule | User Message |
-  |------|-------------|
-  | required | Amount is required. |
-  | greater than 0 | Amount must be greater than 0. |
-  | max 2 decimal places | Amount can only have up to 2 decimal places. |
+- **Type:** number
+- **Required:** yes
+- **Label:** Amount
+- **Placeholder:** [current amount]
+
+#### Validations
+
+| Rule                 | User Message                                 |
+| -------------------- | -------------------------------------------- |
+| required             | Amount is required.                          |
+| greater than 0       | Amount must be greater than 0.               |
+| max 2 decimal places | Amount can only have up to 2 decimal places. |
 
 ### Date
-  - **Type:** date
-  - **Required:** yes
-  - **Label:** Date
-  - **Placeholder:** [current date]
 
-  #### Validations
-  | Rule | User Message |
-  |------|-------------|
-  | required | Date is required. |
+- **Type:** date
+- **Required:** yes
+- **Label:** Date
+- **Placeholder:** [current date]
+
+#### Validations
+
+| Rule     | User Message      |
+| -------- | ----------------- |
+| required | Date is required. |
 
 ### Note
-  - **Type:** text
-  - **Required:** no
-  - **Label:** Note (optional)
-  - **Placeholder:** [current note]
 
-  #### Validations
-  None.
+- **Type:** text
+- **Required:** no
+- **Label:** Note (optional)
+- **Placeholder:** [current note]
+
+#### Validations
+
+None.
 
 ## Trigger
 

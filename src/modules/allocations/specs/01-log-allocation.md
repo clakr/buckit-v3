@@ -8,60 +8,70 @@
 ## Form Fields
 
 ### Source Account
-  - **Type:** select
-  - **Required:** yes
-  - **Label:** Source Account
-  - **Placeholder:** Select account
 
-  #### Validations
-  | Rule | User Message |
-  |------|-------------|
-  | required | Please select a source account. |
+- **Type:** select
+- **Required:** yes
+- **Label:** Source Account
+- **Placeholder:** Select account
+
+#### Validations
+
+| Rule     | User Message                    |
+| -------- | ------------------------------- |
+| required | Please select a source account. |
 
 ### Bucket
-  - **Type:** select
-  - **Required:** yes
-  - **Label:** Bucket
-  - **Placeholder:** Select bucket
 
-  #### Validations
-  | Rule | User Message |
-  |------|-------------|
-  | required | Please select a bucket. |
+- **Type:** select
+- **Required:** yes
+- **Label:** Bucket
+- **Placeholder:** Select bucket
+
+#### Validations
+
+| Rule     | User Message            |
+| -------- | ----------------------- |
+| required | Please select a bucket. |
 
 ### Amount
-  - **Type:** number
-  - **Required:** yes
-  - **Label:** Amount
-  - **Placeholder:** 0
 
-  #### Validations
-  | Rule | User Message |
-  |------|-------------|
-  | required | Amount is required. |
-  | greater than 0 | Amount must be greater than 0. |
-  | max 2 decimal places | Amount can only have up to 2 decimal places. |
-  | must not exceed account's unallocated balance | Insufficient unallocated balance in [account name]. Available: [amount]. |
+- **Type:** number
+- **Required:** yes
+- **Label:** Amount
+- **Placeholder:** 0
+
+#### Validations
+
+| Rule                                          | User Message                                                             |
+| --------------------------------------------- | ------------------------------------------------------------------------ |
+| required                                      | Amount is required.                                                      |
+| greater than 0                                | Amount must be greater than 0.                                           |
+| max 2 decimal places                          | Amount can only have up to 2 decimal places.                             |
+| must not exceed account's unallocated balance | Insufficient unallocated balance in [account name]. Available: [amount]. |
 
 ### Date
-  - **Type:** date
-  - **Required:** yes
-  - **Label:** Date
-  - **Placeholder:** [today]
 
-  #### Validations
-  | Rule | User Message |
-  |------|-------------|
-  | required | Date is required. |
+- **Type:** date
+- **Required:** yes
+- **Label:** Date
+- **Placeholder:** [today]
+
+#### Validations
+
+| Rule     | User Message      |
+| -------- | ----------------- |
+| required | Date is required. |
 
 ### Note
-  - **Type:** text
-  - **Required:** no
-  - **Label:** Note (optional)
-  - **Placeholder:** Add a note…
 
-  #### Validations
-  None.
+- **Type:** text
+- **Required:** no
+- **Label:** Note (optional)
+- **Placeholder:** Add a note…
+
+#### Validations
+
+None.
 
 ## Trigger
 

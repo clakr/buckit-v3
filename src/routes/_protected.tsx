@@ -6,6 +6,7 @@ import { Sidebar, SidebarInset, SidebarProvider, SidebarTrigger } from "#/compon
 import { AddAccountDialog } from "#/modules/accounts/components/add-account-dialog";
 import { getSession } from "#/modules/authentication/functions";
 import { AddBucketDialog } from "#/modules/buckets/components/add-bucket-dialog";
+import { LogTransactionDialog } from "#/modules/transactions/components/log-transaction-dialog";
 
 export const Route = createFileRoute("/_protected")({
   ssr: "data-only",
@@ -39,6 +40,7 @@ function RouteComponent() {
 
       <AddAccountDialog />
       <AddBucketDialog />
+      <LogTransactionDialog />
     </>
   );
 }
