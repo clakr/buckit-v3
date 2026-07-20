@@ -6,9 +6,8 @@ import { TanStackRouterDevtoolsPanel } from "@tanstack/react-router-devtools";
 
 import { ConfirmDialog } from "#/components/confirm-dialog";
 import { Toaster } from "#/components/ui/sonner";
-
-import TanStackQueryDevtools from "../integrations/tanstack-query/devtools";
-import appCss from "../styles.css?url";
+import TanStackQueryDevtools from "#/integrations/tanstack-query/devtools";
+import appCss from "#/styles.css?url";
 
 interface MyRouterContext {
   queryClient: QueryClient;
