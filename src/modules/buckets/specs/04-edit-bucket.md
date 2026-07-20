@@ -4,6 +4,21 @@
 
 - Only `name` is editable. Buckets have no other mutable fields.
 
+## Form Fields
+
+### Name
+  - **Type:** text
+  - **Required:** yes
+  - **Label:** Name
+  - **Placeholder:** [current name]
+
+  #### Validations
+  | Rule | User Message |
+  |------|-------------|
+  | required, trimmed | Name is required. |
+  | max 100 characters | Name must be 100 characters or fewer. |
+  | unique per user (excluding self) | A bucket with this name already exists. |
+
 ## Trigger
 
 User clicks "Edit" on a bucket row or from the bucket detail page. A dialog opens pre-filled with the current name.
@@ -11,11 +26,10 @@ User clicks "Edit" on a bucket row or from the bucket detail page. A dialog open
 ## Behavior
 
 1. Dialog opens with title "Edit Bucket".
-2. Name field is editable (text, pre-filled).
-3. On submit:
-   - Name validated same as create (required, 1–100 chars, trimmed, unique per user excluding the current bucket's own name).
+2. On submit:
+   - Validates Name (rules in Form Fields above).
    - No changes made → no-op, dialog closes.
-4. Dialog closes. List and detail reflect updated name.
+3. Dialog closes. List and detail reflect updated name.
 
 ## Toast
 
