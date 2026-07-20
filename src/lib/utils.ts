@@ -17,3 +17,34 @@ export function formatCurrency(value: number, opts?: Intl.NumberFormatOptions) {
 export function sleep(ms: number) {
   return new Promise((r) => setTimeout(r, ms));
 }
+
+const relativeUnits = [
+  { unit: "year" as const, ms: 31_536_000_000 },
+  { unit: "month" as const, ms: 2_592_000_000 },
+  { unit: "week" as const, ms: 604_800_000 },
+  { unit: "day" as const, ms: 86_400_000 },
+  { unit: "hour" as const, ms: 3_600_000 },
+  { unit: "minute" as const, ms: 60_000 },
+  { unit: "second" as const, ms: 1_000 },
+];
+
+export function formatToRelative(
+  date: Date,
+  options?: { locale?: string; style?: "long" | "short" | "narrow" },
+) {
+  const diffMs = date.getTime() - Date.now();
+  const absDiffMs = Math.abs(diffMs);
+
+  const rtf = new Intl.RelativeTimeFormat(options?.locale, {
+    style: options?.style ?? "long",
+    numeric: "auto",
+  });
+
+  for (const { unit, ms } of relativeUnits) {
+    if (absDiffMs >= ms) {
+      return rtf.format(Math.round(diffMs / ms), unit);
+    }
+  }
+
+  return rtf.format(0, "second");
+}
