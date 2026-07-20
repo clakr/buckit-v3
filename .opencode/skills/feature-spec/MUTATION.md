@@ -7,6 +7,32 @@ For features that create, update, or delete data (POST, PUT, DELETE).
     ## Design Decisions
     <optional — include only if meaningful tradeoffs or alternatives were considered; present as a bullet list where possible; omit entirely otherwise>
 
+    ## Form Fields (optional)
+    <omit if no form — e.g. DELETE mutations>
+
+    ### <Field Name>
+      - **Type:** <text, email, number, select, textarea, etc.>
+      - **Required:** <yes/no>
+      - **Label:** <User-facing label>
+      - **Placeholder:** <Placeholder text>
+
+      #### Validations
+      | Rule | User Message |
+      |------|-------------|
+      | <validation rule> | <user-friendly error message> |
+      | <next rule> | <next message> |
+
+    ### <Next Field Name>
+      - **Type:** <...>
+      - **Required:** <...>
+      - **Label:** <...>
+      - **Placeholder:** <...>
+
+      #### Validations
+      | Rule | User Message |
+      |------|-------------|
+      | <validation rule> | <user-friendly error message> |
+
     ## Trigger
     <What user action initiates this?>
 
