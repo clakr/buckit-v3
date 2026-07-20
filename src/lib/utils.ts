@@ -1,6 +1,10 @@
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
 
+import type { Currency } from "#/lib/types";
+
+import { currencies } from "#/lib/constants";
+
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
@@ -47,4 +51,12 @@ export function formatToRelative(
   }
 
   return rtf.format(0, "second");
+}
+
+export function isCurrencyCode(code: string): code is Currency["code"] {
+  return currencies.some((currency) => currency.code === code);
+}
+
+export function getCurrency(code: Currency["code"]) {
+  return currencies.find((currency) => currency.code === code);
 }

@@ -14,14 +14,14 @@ import {
 import { useLogTransactionDialogStore } from "#/modules/transactions/components/log-transaction-dialog";
 
 type Props = {
-  accountId: BankAccount["id"];
+  account: BankAccount;
 };
 
-export function AccountActionsDropdownMenu({ accountId }: Props) {
+export function AccountActionsDropdownMenu({ account }: Props) {
   function handleOpenLogTransactionDialog() {
     const state = useLogTransactionDialogStore.getState();
 
-    state.setAccountId(accountId);
+    state.setAccount(account);
     state.openDialog();
   }
 

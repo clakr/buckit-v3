@@ -3,22 +3,11 @@ import type { ColumnDef } from "@tanstack/react-table";
 import { IconCircleDashed } from "@tabler/icons-react";
 
 import type { BankAccount, Transaction } from "#/db/schema";
-import type { Currency } from "#/lib/types";
 
 import { Badge } from "#/components/ui/badge";
 import { currencyCodec } from "#/lib/codecs";
-import { currencies } from "#/lib/constants";
-import { formatCurrency, formatToRelative } from "#/lib/utils";
-
-import { AccountActionsDropdownMenu } from "./components/account-actions-dropdown-menu";
-
-function isCurrencyCode(code: string): code is Currency["code"] {
-  return currencies.some((currency) => currency.code === code);
-}
-
-function getCurrencyName(code: Currency["code"]) {
-  return currencies.find((currency) => currency.code === code);
-}
+import { formatCurrency, formatToRelative, getCurrency, isCurrencyCode } from "#/lib/utils";
+import { AccountActionsDropdownMenu } from "#/modules/accounts/components/account-actions-dropdown-menu";
 
 export const columns: ColumnDef<BankAccount & { transactions: Transaction[] }>[] = [
   {
@@ -32,7 +21,7 @@ export const columns: ColumnDef<BankAccount & { transactions: Transaction[] }>[]
       const validated = isCurrencyCode(value);
       if (!validated) return `Unknown Currency`;
 
-      const currency = getCurrencyName(value);
+      const currency = getCurrency(value);
       if (!currency) return `Unknown Currency`;
 
       return (
@@ -83,6 +72,6 @@ export const columns: ColumnDef<BankAccount & { transactions: Transaction[] }>[]
   {
     accessorKey: "actions",
     header: "",
-    cell: ({ row }) => <AccountActionsDropdownMenu accountId={row.original.id} />,
+    cell: ({ row }) => <AccountActionsDropdownMenu account={row.original} />,
   },
 ];

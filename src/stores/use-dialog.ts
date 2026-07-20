@@ -1,6 +1,6 @@
 import { create } from "zustand";
 
-type DialogState = {
+export type DialogState = {
   isOpen: boolean;
   openDialog: () => void;
   closeDialog: () => void;
