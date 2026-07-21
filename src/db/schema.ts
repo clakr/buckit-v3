@@ -14,7 +14,9 @@ export const users = sqliteTable("users", {
   id: text("id").primaryKey(),
   name: text("name").notNull(),
   email: text("email").notNull().unique(),
-  emailVerified: integer("email_verified", { mode: "boolean" }).default(false).notNull(),
+  emailVerified: integer("email_verified", { mode: "boolean" })
+    .default(false)
+    .notNull(),
   image: text("image"),
   createdAt: integer("created_at", { mode: "timestamp_ms" })
     .default(sql`(cast(unixepoch('subsecond') * 1000 as integer))`)
@@ -142,6 +144,24 @@ export const transactions = sqliteTable("transactions", {
     .notNull(),
 });
 
+export const allocations = sqliteTable("allocations", {
+  id: text("id").primaryKey(),
+  bankAccountId: text("bank_account_id")
+    .notNull()
+    .references(() => bankAccounts.id, { onDelete: "cascade" }),
+  bucketId: text("bucket_id")
+    .notNull()
+    .references(() => buckets.id, { onDelete: "cascade" }),
+  amount: integer("amount").notNull(),
+  note: text("note"),
+  date: integer("date", { mode: "timestamp" })
+    .default(sql`(cast(unixepoch() as integer))`)
+    .notNull(),
+  createdAt: integer("created_at", { mode: "timestamp_ms" })
+    .default(sql`(cast(unixepoch('subsecond') * 1000 as integer))`)
+    .notNull(),
+});
+
 //
 
 export const relations = defineRelations(
@@ -153,6 +173,7 @@ export const relations = defineRelations(
     bankAccounts,
     buckets,
     transactions,
+    allocations,
   },
   (r) => ({
     users: {
@@ -190,6 +211,16 @@ export const relations = defineRelations(
         to: r.bankAccounts.id,
       }),
     },
+    allocations: {
+      bankAccount: r.one.bankAccounts({
+        from: r.allocations.bankAccountId,
+        to: r.bankAccounts.id,
+      }),
+      bucket: r.one.buckets({
+        from: r.allocations.bucketId,
+        to: r.buckets.id,
+      }),
+    },
   }),
 );
 
@@ -198,6 +229,7 @@ export const relations = defineRelations(
 export type BankAccount = typeof bankAccounts.$inferSelect;
 export type Buckets = typeof buckets.$inferSelect;
 export type Transaction = typeof transactions.$inferSelect;
+export type Allocation = typeof allocations.$inferSelect;
 
 //
 
