@@ -1,7 +1,5 @@
 import { IconDots, IconEdit, IconEye, IconPlus, IconTrash } from "@tabler/icons-react";
 
-import type { BankAccount } from "#/db/schema";
-
 import { Button } from "#/components/ui/button";
 import {
   DropdownMenu,
@@ -15,8 +13,12 @@ import {
 import { useLogAllocationDialogStore } from "#/modules/allocations/components/log-allocation-dialog";
 import { useLogTransactionDialogStore } from "#/modules/transactions/components/log-transaction-dialog";
 
+import type { getBankAccounts } from "../functions";
+
+import { getAccountUnallocatedBalance } from "../utils";
+
 type Props = {
-  account: BankAccount;
+  account: Awaited<ReturnType<typeof getBankAccounts>>[number];
 };
 
 export function AccountActionsDropdownMenu({ account }: Props) {
@@ -33,6 +35,12 @@ export function AccountActionsDropdownMenu({ account }: Props) {
     state.setAccount(account);
     state.openDialog();
   }
+
+  const { unallocated } = getAccountUnallocatedBalance({
+    startingBalance: account.startingBalance,
+    transactions: account.transactions,
+    allocations: account.allocations,
+  });
 
   return (
     <DropdownMenu>
@@ -67,7 +75,7 @@ export function AccountActionsDropdownMenu({ account }: Props) {
             <IconPlus />
             New Transaction
           </DropdownMenuItem>
-          <DropdownMenuItem onClick={handleOpenLogAllocationDialog}>
+          <DropdownMenuItem onClick={handleOpenLogAllocationDialog} disabled={unallocated <= 0}>
             <IconPlus />
             Allocate
           </DropdownMenuItem>

@@ -172,7 +172,7 @@ export function LogTransactionDialog() {
 
                   return (
                     <Field data-invalid={isInvalid}>
-                      <FieldLabel htmlFor={id}>Type</FieldLabel>
+                      <FieldLabel htmlFor={id}>Amount</FieldLabel>
 
                       <InputGroup>
                         <InputGroupAddon>
