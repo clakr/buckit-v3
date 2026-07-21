@@ -2,9 +2,7 @@
   "version": "7",
   "dialect": "sqlite",
   "id": "8abcac96-d148-4c06-9d95-a08fdec19dfe",
-  "prevIds": [
-    "9f51bdc1-65c8-4163-a240-5f980fcfe25f"
-  ],
+  "prevIds": ["9f51bdc1-65c8-4163-a240-5f980fcfe25f"],
   "ddl": [
     {
       "name": "accounts",
@@ -619,13 +617,9 @@
       "table": "verifications"
     },
     {
-      "columns": [
-        "user_id"
-      ],
+      "columns": ["user_id"],
       "tableTo": "users",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "CASCADE",
       "nameExplicit": false,
@@ -634,13 +628,9 @@
       "table": "accounts"
     },
     {
-      "columns": [
-        "bank_account_id"
-      ],
+      "columns": ["bank_account_id"],
       "tableTo": "bank_accounts",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "CASCADE",
       "nameExplicit": false,
@@ -649,13 +639,9 @@
       "table": "allocations"
     },
     {
-      "columns": [
-        "bucket_id"
-      ],
+      "columns": ["bucket_id"],
       "tableTo": "buckets",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "CASCADE",
       "nameExplicit": false,
@@ -664,13 +650,9 @@
       "table": "allocations"
     },
     {
-      "columns": [
-        "user_id"
-      ],
+      "columns": ["user_id"],
       "tableTo": "users",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "CASCADE",
       "nameExplicit": false,
@@ -679,13 +661,9 @@
       "table": "bank_accounts"
     },
     {
-      "columns": [
-        "user_id"
-      ],
+      "columns": ["user_id"],
       "tableTo": "users",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "CASCADE",
       "nameExplicit": false,
@@ -694,13 +672,9 @@
       "table": "buckets"
     },
     {
-      "columns": [
-        "user_id"
-      ],
+      "columns": ["user_id"],
       "tableTo": "users",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "CASCADE",
       "nameExplicit": false,
@@ -709,13 +683,9 @@
       "table": "sessions"
     },
     {
-      "columns": [
-        "bank_account_id"
-      ],
+      "columns": ["bank_account_id"],
       "tableTo": "bank_accounts",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "CASCADE",
       "nameExplicit": false,
@@ -724,72 +694,56 @@
       "table": "transactions"
     },
     {
-      "columns": [
-        "id"
-      ],
+      "columns": ["id"],
       "nameExplicit": false,
       "name": "accounts_pk",
       "table": "accounts",
       "entityType": "pks"
     },
     {
-      "columns": [
-        "id"
-      ],
+      "columns": ["id"],
       "nameExplicit": false,
       "name": "allocations_pk",
       "table": "allocations",
       "entityType": "pks"
     },
     {
-      "columns": [
-        "id"
-      ],
+      "columns": ["id"],
       "nameExplicit": false,
       "name": "bank_accounts_pk",
       "table": "bank_accounts",
       "entityType": "pks"
     },
     {
-      "columns": [
-        "id"
-      ],
+      "columns": ["id"],
       "nameExplicit": false,
       "name": "buckets_pk",
       "table": "buckets",
       "entityType": "pks"
     },
     {
-      "columns": [
-        "id"
-      ],
+      "columns": ["id"],
       "nameExplicit": false,
       "name": "sessions_pk",
       "table": "sessions",
       "entityType": "pks"
     },
     {
-      "columns": [
-        "id"
-      ],
+      "columns": ["id"],
       "nameExplicit": false,
       "name": "transactions_pk",
       "table": "transactions",
       "entityType": "pks"
     },
     {
-      "columns": [
-        "id"
-      ],
+      "columns": ["id"],
       "nameExplicit": false,
       "name": "users_pk",
       "table": "users",
       "entityType": "pks"
     },
     {
-      "columns": [
-        "id"
-      ],
+      "columns": ["id"],
       "nameExplicit": false,
       "name": "verifications_pk",
       "table": "verifications",
@@ -838,38 +792,28 @@
       "table": "verifications"
     },
     {
-      "columns": [
-        "user_id",
-        "name"
-      ],
+      "columns": ["user_id", "name"],
       "nameExplicit": false,
       "name": "bank_accounts_user_id_name_unique",
       "entityType": "uniques",
       "table": "bank_accounts"
     },
     {
-      "columns": [
-        "user_id",
-        "name"
-      ],
+      "columns": ["user_id", "name"],
       "nameExplicit": false,
       "name": "buckets_user_id_name_unique",
       "entityType": "uniques",
       "table": "buckets"
     },
     {
-      "columns": [
-        "token"
-      ],
+      "columns": ["token"],
       "nameExplicit": false,
       "name": "sessions_token_unique",
       "entityType": "uniques",
       "table": "sessions"
     },
     {
-      "columns": [
-        "email"
-      ],
+      "columns": ["email"],
       "nameExplicit": false,
       "name": "users_email_unique",
       "entityType": "uniques",
