@@ -8,7 +8,7 @@ export function useLogTransactionMutation() {
     meta: {
       success: {
         title: "Transaction logged",
-        description: "[type] of [amount] has been recorded.",
+        description: "[type] of [amount] has been recorded.", // @todo: capitalize first letter
         toReplace: ["type", "amount"],
       },
       error: {

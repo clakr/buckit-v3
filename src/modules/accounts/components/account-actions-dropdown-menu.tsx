@@ -1,4 +1,4 @@
-import { IconDots, IconEdit, IconEye, IconFileDiff, IconTrash } from "@tabler/icons-react";
+import { IconDots, IconEdit, IconEye, IconPlus, IconTrash } from "@tabler/icons-react";
 
 import type { BankAccount } from "#/db/schema";
 
@@ -8,9 +8,11 @@ import {
   DropdownMenuContent,
   DropdownMenuGroup,
   DropdownMenuItem,
+  DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "#/components/ui/dropdown-menu";
+import { useLogAllocationDialogStore } from "#/modules/allocations/components/log-allocation-dialog";
 import { useLogTransactionDialogStore } from "#/modules/transactions/components/log-transaction-dialog";
 
 type Props = {
@@ -20,6 +22,13 @@ type Props = {
 export function AccountActionsDropdownMenu({ account }: Props) {
   function handleOpenLogTransactionDialog() {
     const state = useLogTransactionDialogStore.getState();
+
+    state.setAccount(account);
+    state.openDialog();
+  }
+
+  function handleOpenLogAllocationDialog() {
+    const state = useLogAllocationDialogStore.getState();
 
     state.setAccount(account);
     state.openDialog();
@@ -37,6 +46,7 @@ export function AccountActionsDropdownMenu({ account }: Props) {
       />
       <DropdownMenuContent className="w-fit">
         <DropdownMenuGroup>
+          <DropdownMenuLabel>Accounts</DropdownMenuLabel>
           <DropdownMenuItem disabled>
             <IconEye />
             View Detail
@@ -52,9 +62,14 @@ export function AccountActionsDropdownMenu({ account }: Props) {
         </DropdownMenuGroup>
         <DropdownMenuSeparator />
         <DropdownMenuGroup>
+          <DropdownMenuLabel>Others</DropdownMenuLabel>
           <DropdownMenuItem onClick={handleOpenLogTransactionDialog}>
-            <IconFileDiff />
+            <IconPlus />
             New Transaction
+          </DropdownMenuItem>
+          <DropdownMenuItem onClick={handleOpenLogAllocationDialog}>
+            <IconPlus />
+            Allocate
           </DropdownMenuItem>
         </DropdownMenuGroup>
       </DropdownMenuContent>

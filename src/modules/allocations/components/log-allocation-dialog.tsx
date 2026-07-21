@@ -1,4 +1,5 @@
 import { IconCalendar } from "@tabler/icons-react";
+import { useQuery } from "@tanstack/react-query";
 import { format } from "date-fns";
 import z from "zod";
 import { create } from "zustand";
@@ -23,13 +24,21 @@ import {
   InputGroupInput,
   InputGroupText,
 } from "#/components/ui/input-group";
-import { Label } from "#/components/ui/label";
 import { Popover, PopoverContent, PopoverTrigger } from "#/components/ui/popover";
-import { RadioGroup, RadioGroupItem } from "#/components/ui/radio-group";
+import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "#/components/ui/select";
+import { Spinner } from "#/components/ui/spinner";
 import { useAppForm } from "#/integrations/tanstack-form";
 import { getCurrency, isCurrencyCode } from "#/lib/utils";
-import { useLogTransactionMutation } from "#/modules/transactions/mutations";
-import { logTransactionSchema, transactionTypeEnum } from "#/modules/transactions/schema";
+import { useLogAllocationMutation } from "#/modules/allocations/mutations";
+import { logAllocationSchema } from "#/modules/allocations/schema";
+import { bucketsQueryOptions } from "#/modules/buckets/query-options";
 import { confirm } from "#/stores/use-confirm";
 
 type StoreState = DialogState & {
@@ -37,7 +46,7 @@ type StoreState = DialogState & {
   setAccount: (account: BankAccount) => void;
 };
 
-export const useLogTransactionDialogStore = create<StoreState>()((set) => ({
+export const useLogAllocationDialogStore = create<StoreState>()((set) => ({
   isOpen: false,
   openDialog: () => set({ isOpen: true }),
   closeDialog: () => set({ isOpen: false }),
@@ -47,8 +56,8 @@ export const useLogTransactionDialogStore = create<StoreState>()((set) => ({
   setAccount: (account) => set({ account }),
 }));
 
-export function LogTransactionDialog() {
-  const { isOpen, closeDialog, toggleDialog, account } = useLogTransactionDialogStore(
+export function LogAllocationDialog() {
+  const { isOpen, closeDialog, toggleDialog, account } = useLogAllocationDialogStore(
     useShallow((state) => ({
       isOpen: state.isOpen,
       closeDialog: state.closeDialog,
@@ -58,20 +67,34 @@ export function LogTransactionDialog() {
     })),
   );
 
-  const mutation = useLogTransactionMutation();
+  const mutation = useLogAllocationMutation();
 
-  const defaultValues: z.input<typeof logTransactionSchema> = {
+  const defaultValues: z.input<typeof logAllocationSchema> = {
     bankAccountId: account?.id ?? "",
-    type: "income",
+    bucketId: "",
     amount: 0,
     date: new Date(),
     note: "",
   };
 
+  const {
+    isLoading,
+    isError, // @todo: handle error
+    data: buckets,
+  } = useQuery({
+    ...bucketsQueryOptions,
+    enabled: isOpen,
+    select: (buckets) =>
+      buckets.map((b) => ({
+        value: b.id,
+        label: b.name,
+      })),
+  });
+
   const form = useAppForm({
     defaultValues,
     validators: {
-      onBlur: logTransactionSchema,
+      onBlur: logAllocationSchema,
     },
     onSubmit: async ({ value: data }) => {
       try {
@@ -89,8 +112,8 @@ export function LogTransactionDialog() {
 
   async function handleOnOpenChange(open: boolean) {
     if (!open && form.state.isDirty) {
-      const confirmed = await confirm("Discard new transaction?", {
-        description: "The transaction details you entered will be lost.",
+      const confirmed = await confirm("Discard new allocation?", {
+        description: "The allocation details you entered will be lost.",
         confirmLabel: "Discard",
         cancelLabel: "Keep editing",
       });
@@ -109,7 +132,7 @@ export function LogTransactionDialog() {
     <Dialog open={isOpen} onOpenChange={handleOnOpenChange}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Log Transaction</DialogTitle>
+          <DialogTitle>Allocate Money</DialogTitle>
         </DialogHeader>
         <div>
           <form
@@ -121,7 +144,7 @@ export function LogTransactionDialog() {
             }}
           >
             <FieldGroup>
-              <form.AppField name="type">
+              <form.AppField name="bucketId">
                 {(field) => {
                   const isInvalid = field.state.meta.isTouched && !field.state.meta.isValid;
 
@@ -130,25 +153,33 @@ export function LogTransactionDialog() {
 
                   return (
                     <Field data-invalid={isInvalid}>
-                      <FieldLabel htmlFor={id}>Type</FieldLabel>
+                      <FieldLabel htmlFor={id}>Bucket</FieldLabel>
 
-                      <RadioGroup
-                        id={id}
+                      <Select
+                        items={buckets}
                         value={field.state.value}
-                        onValueChange={field.handleChange}
-                        onBlur={field.handleBlur}
-                        aria-invalid={isInvalid ? true : undefined}
-                        aria-labelledby={isInvalid ? errorId : undefined}
+                        onValueChange={(value) => field.handleChange(value ?? "")}
+                        disabled={isLoading || isError}
                       >
-                        {Object.keys(transactionTypeEnum.enum).map((type) => (
-                          <div key={type} className="flex items-center gap-x-2">
-                            <RadioGroupItem value={type} id={type} />
-                            <Label htmlFor={type} className="capitalize">
-                              {type}
-                            </Label>
-                          </div>
-                        ))}
-                      </RadioGroup>
+                        <SelectTrigger
+                          id={id}
+                          aria-invalid={isInvalid ? true : undefined}
+                          aria-labelledby={isInvalid ? errorId : undefined}
+                          className="w-full"
+                          icon={isLoading ? <Spinner /> : undefined}
+                        >
+                          <SelectValue placeholder="Select bucket" />
+                        </SelectTrigger>
+                        <SelectContent alignItemWithTrigger>
+                          <SelectGroup>
+                            {buckets?.map((b) => (
+                              <SelectItem key={b.value} value={b.value}>
+                                {b.label}
+                              </SelectItem>
+                            ))}
+                          </SelectGroup>
+                        </SelectContent>
+                      </Select>
 
                       {isInvalid && <FieldError id={errorId} errors={field.state.meta.errors} />}
                     </Field>
@@ -253,7 +284,7 @@ export function LogTransactionDialog() {
         </div>
         <DialogFooter>
           <form.AppForm>
-            <form.Button form={form.formId}>Log Transaction</form.Button>
+            <form.Button form={form.formId}>Allocate Money</form.Button>
           </form.AppForm>
         </DialogFooter>
       </DialogContent>
