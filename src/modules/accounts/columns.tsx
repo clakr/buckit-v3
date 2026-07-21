@@ -9,6 +9,8 @@ import { currencyCodec } from "#/lib/codecs";
 import { formatCurrency, formatToRelative, getCurrency, isCurrencyCode } from "#/lib/utils";
 import { AccountActionsDropdownMenu } from "#/modules/accounts/components/account-actions-dropdown-menu";
 
+import { getAccountUnallocatedBalance } from "./utils";
+
 export const columns: ColumnDef<Awaited<ReturnType<typeof getBankAccounts>>[number]>[] = [
   {
     accessorKey: "name",
@@ -36,14 +38,11 @@ export const columns: ColumnDef<Awaited<ReturnType<typeof getBankAccounts>>[numb
     accessorKey: "balance",
     header: "Unallocated / Balance",
     cell: ({ row }) => {
-      const balance =
-        row.original.startingBalance +
-        row.original.transactions.reduce(
-          (acc, t) => (t.type === "income" ? acc + t.amount : acc - t.amount),
-          0,
-        );
-
-      const unallocated = balance - row.original.allocations.reduce((acc, a) => acc + a.amount, 0);
+      const { balance, unallocated } = getAccountUnallocatedBalance({
+        startingBalance: row.original.startingBalance,
+        transactions: row.original.transactions,
+        allocations: row.original.allocations,
+      });
 
       return `${formatCurrency(currencyCodec.encode(unallocated), {
         currency: row.original.currency,

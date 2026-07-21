@@ -5,7 +5,7 @@ export const transactionTypeEnum = z.enum(["income", "expense"], "Please select 
 export const logTransactionSchema = z.object({
   bankAccountId: z.string().min(1, "Please select an account"),
   type: transactionTypeEnum,
-  amount: z.coerce.number().min(0, "Amount must be greater than 0."),
+  amount: z.coerce.number().min(1, "Amount must be greater than 0."),
   date: z.date().min(1, "Date is required."),
   note: z.string(),
 });

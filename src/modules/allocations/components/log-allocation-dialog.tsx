@@ -35,11 +35,14 @@ import {
 } from "#/components/ui/select";
 import { Spinner } from "#/components/ui/spinner";
 import { useAppForm } from "#/integrations/tanstack-form";
-import { getCurrency, isCurrencyCode } from "#/lib/utils";
+import { currencyCodec } from "#/lib/codecs";
+import { formatCurrency, getCurrency, isCurrencyCode } from "#/lib/utils";
 import { useLogAllocationMutation } from "#/modules/allocations/mutations";
 import { logAllocationSchema } from "#/modules/allocations/schema";
 import { bucketsQueryOptions } from "#/modules/buckets/query-options";
 import { confirm } from "#/stores/use-confirm";
+
+import { validateAllocationAmount } from "../functions";
 
 type StoreState = DialogState & {
   account: BankAccount | null;
@@ -186,7 +189,39 @@ export function LogAllocationDialog() {
                   );
                 }}
               </form.AppField>
-              <form.AppField name="amount">
+              <form.AppField
+                name="amount"
+                validators={{
+                  onChangeAsyncDebounceMs: 500,
+                  onChangeAsync: z.coerce.number().superRefine(async (data, context) => {
+                    try {
+                      const { isValid, unallocated } = await validateAllocationAmount({
+                        data: {
+                          bankAccountId: account.id,
+                          amount: currencyCodec.decode(data),
+                        },
+                      });
+
+                      if (!isValid) {
+                        context.addIssue({
+                          code: "custom",
+                          message: `Insufficient unallocated balance in ${account.name}. Available: ${formatCurrency(
+                            currencyCodec.encode(unallocated),
+                            {
+                              currency: account.currency,
+                            },
+                          )}.`,
+                        });
+                      }
+                    } catch (error) {
+                      context.addIssue({
+                        code: "custom",
+                        message: error instanceof Error ? error.message : String(error),
+                      });
+                    }
+                  }),
+                }}
+              >
                 {(field) => {
                   const isInvalid = field.state.meta.isTouched && !field.state.meta.isValid;
 
@@ -203,7 +238,7 @@ export function LogAllocationDialog() {
 
                   return (
                     <Field data-invalid={isInvalid}>
-                      <FieldLabel htmlFor={id}>Type</FieldLabel>
+                      <FieldLabel htmlFor={id}>Amount</FieldLabel>
 
                       <InputGroup>
                         <InputGroupAddon>
@@ -223,7 +258,11 @@ export function LogAllocationDialog() {
                           aria-labelledby={isInvalid ? "startingBalance-error" : undefined}
                         />
                         <InputGroupAddon align="inline-end">
-                          <InputGroupText>{currency.code}</InputGroupText>
+                          {field.state.meta.isValidating ? (
+                            <Spinner />
+                          ) : (
+                            <InputGroupText>{currency.code}</InputGroupText>
+                          )}
                         </InputGroupAddon>
                       </InputGroup>
 
