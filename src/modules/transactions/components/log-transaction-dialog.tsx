@@ -5,6 +5,7 @@ import { create } from "zustand";
 import { useShallow } from "zustand/react/shallow";
 
 import type { BankAccount } from "#/db/schema";
+import type { DialogState } from "#/lib/types";
 
 import { Button } from "#/components/ui/button";
 import { Calendar } from "#/components/ui/calendar";
@@ -30,7 +31,6 @@ import { getCurrency, isCurrencyCode } from "#/lib/utils";
 import { useLogTransactionMutation } from "#/modules/transactions/mutations";
 import { logTransactionSchema, transactionTypeEnum } from "#/modules/transactions/schema";
 import { confirm } from "#/stores/use-confirm";
-import { type DialogState } from "#/stores/use-dialog";
 
 type StoreState = DialogState & {
   account: BankAccount | null;

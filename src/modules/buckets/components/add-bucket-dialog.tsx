@@ -3,7 +3,7 @@ import z from "zod";
 import { create } from "zustand";
 import { useShallow } from "zustand/react/shallow";
 
-import type { DialogState } from "#/stores/use-dialog";
+import type { DialogState } from "#/lib/types";
 
 import {
   Dialog,

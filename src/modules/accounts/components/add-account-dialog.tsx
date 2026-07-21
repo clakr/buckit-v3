@@ -3,8 +3,7 @@ import z from "zod";
 import { create } from "zustand";
 import { useShallow } from "zustand/react/shallow";
 
-import type { Currency } from "#/lib/types";
-import type { DialogState } from "#/stores/use-dialog";
+import type { Currency, DialogState } from "#/lib/types";
 
 import {
   Combobox,
