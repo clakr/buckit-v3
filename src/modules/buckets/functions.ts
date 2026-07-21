@@ -16,7 +16,18 @@ export const getBuckets = createServerFn({
   .handler(async ({ context }) => {
     const db = getDB(env.db);
 
-    return db.select().from(buckets).where(eq(buckets.userId, context.user.id));
+    return db.query.buckets.findMany({
+      where: {
+        userId: context.user.id,
+      },
+      with: {
+        allocations: {
+          orderBy: {
+            createdAt: "desc",
+          },
+        },
+      },
+    });
   });
 
 export const validateBucketName = createServerFn({

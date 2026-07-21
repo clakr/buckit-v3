@@ -2,21 +2,21 @@ import type { ColumnDef } from "@tanstack/react-table";
 
 import { IconCircleDashed } from "@tabler/icons-react";
 
-import type { BankAccount, Transaction } from "#/db/schema";
+import type { getBankAccounts } from "#/modules/accounts/functions";
 
 import { Badge } from "#/components/ui/badge";
 import { currencyCodec } from "#/lib/codecs";
 import { formatCurrency, formatToRelative, getCurrency, isCurrencyCode } from "#/lib/utils";
 import { AccountActionsDropdownMenu } from "#/modules/accounts/components/account-actions-dropdown-menu";
 
-export const columns: ColumnDef<BankAccount & { transactions: Transaction[] }>[] = [
+export const columns: ColumnDef<Awaited<ReturnType<typeof getBankAccounts>>[number]>[] = [
   {
     accessorKey: "name",
   },
   {
     accessorKey: "currency",
-    cell: ({ getValue }) => {
-      const value = getValue<BankAccount["currency"]>();
+    cell: ({ row }) => {
+      const value = row.original.currency;
 
       const validated = isCurrencyCode(value);
       if (!validated) return `Unknown Currency`;
@@ -43,7 +43,7 @@ export const columns: ColumnDef<BankAccount & { transactions: Transaction[] }>[]
           0,
         );
 
-      const unallocated = balance; // @todo: revisit once allocations are implemented
+      const unallocated = balance - row.original.allocations.reduce((acc, a) => acc + a.amount, 0);
 
       return `${formatCurrency(currencyCodec.encode(unallocated), {
         currency: row.original.currency,

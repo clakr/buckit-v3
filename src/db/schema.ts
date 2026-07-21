@@ -192,18 +192,21 @@ export const relations = defineRelations(
         to: r.users.id,
       }),
     },
+    //
     bankAccounts: {
       user: r.one.users({
         from: r.bankAccounts.userId,
         to: r.users.id,
       }),
       transactions: r.many.transactions(),
+      allocations: r.many.allocations(),
     },
     buckets: {
       user: r.one.users({
         from: r.buckets.userId,
         to: r.users.id,
       }),
+      allocations: r.many.allocations(),
     },
     transactions: {
       bankAccount: r.one.bankAccounts({
