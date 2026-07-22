@@ -5,9 +5,9 @@
 **Content:**
 
 - Table or list of all BankAccounts scoped to the current user.
-- Each row shows: name, currency badge, computed balance (formatted per currency), unallocated amount.
+- Columns: Name, Currency, Balance, Unallocated, Last Transaction, Actions.
 - Row actions: View Detail, Edit, Delete.
-- Sortable by name (alpha), balance (asc/desc), creation date (newest first). Default: by name.
+- Sortable by name (alpha), balance (asc/desc), unallocated (asc/desc), last transaction date (newest first). Default: by name.
 
 **Design Decisions:**
 
