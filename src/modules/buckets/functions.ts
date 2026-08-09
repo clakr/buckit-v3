@@ -25,6 +25,13 @@ export const getBuckets = createServerFn({
           orderBy: {
             createdAt: "desc",
           },
+          with: {
+            bankAccount: {
+              orderBy: {
+                createdAt: "desc",
+              },
+            },
+          },
         },
       },
     });
