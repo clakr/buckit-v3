@@ -9,6 +9,8 @@ import { Heading } from "#/components/heading";
 import { Main } from "#/components/main";
 import { StateTemplate } from "#/components/state-template";
 import { Button } from "#/components/ui/button";
+import { DataTable } from "#/components/ui/data-table";
+import { columns } from "#/modules/buckets/columns";
 import { useAddBucketDialogStore } from "#/modules/buckets/components/add-bucket-dialog";
 import { bucketsQueryOptions } from "#/modules/buckets/query-options";
 
@@ -58,13 +60,7 @@ function RouteComponent() {
           handleButtonClick={openDialog}
         />
       ) : (
-        <ul>
-          {buckets.map((b) => (
-            <li>
-              <pre>{JSON.stringify(b, null, 2)}</pre>
-            </li>
-          ))}
-        </ul>
+        <DataTable columns={columns} data={buckets} />
       )}
     </Template>
   );
