@@ -13,7 +13,7 @@ import { Spinner } from "#/components/ui/spinner";
 
 type Props = { title: string; description: string } & (
   | { state: "loading" }
-  | { state: "error"; buttonText: string; handleButtonClick: () => void }
+  | { state: "error"; content: ReactNode }
   | { state: "empty"; icon: ReactNode; buttonText: string; handleButtonClick: () => void }
 );
 
@@ -41,9 +41,7 @@ export function StateTemplate(props: Props) {
           <EmptyTitle>{props.title}</EmptyTitle>
           <EmptyDescription>{props.description}</EmptyDescription>
         </EmptyHeader>
-        <EmptyContent>
-          <Button onClick={props.handleButtonClick}>{props.buttonText}</Button>
-        </EmptyContent>
+        <EmptyContent>{props.content}</EmptyContent>
       </Empty>
     );
 

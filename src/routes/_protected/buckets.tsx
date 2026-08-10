@@ -33,8 +33,7 @@ export const Route = createFileRoute("/_protected/buckets")({
         state="error"
         title="Could not load buckets."
         description="We weren't able to retrieve your buckets. Please try again."
-        buttonText="Retry"
-        handleButtonClick={reset}
+        content={<Button onClick={reset}>Retry</Button>}
       />
     </Template>
   ),
