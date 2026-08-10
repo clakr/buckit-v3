@@ -33,8 +33,7 @@ export const Route = createFileRoute("/_protected/accounts")({
         state="error"
         title="Could not load accounts."
         description="We weren't able to retrieve your accounts. Please try again."
-        buttonText="Retry"
-        handleButtonClick={reset}
+        content={<Button onClick={reset}>Retry</Button>}
       />
     </Template>
   ),
