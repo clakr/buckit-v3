@@ -10,5 +10,5 @@ export const logAllocationSchema = z.object({
 
 export const validateAllocationAmountSchema = z.object({
   bankAccountId: z.string().min(1, "Please select a source account."),
-  amount: z.number().min(1, "Amount must be greater than 0."),
+  amount: z.number(),
 });

@@ -122,16 +122,11 @@ export function AddAccountDialog() {
                   onChangeAsyncDebounceMs: 500,
                   onChangeAsync: z.string().superRefine(async (data, context) => {
                     try {
-                      const hasNoExistingBankAccounts = await validateBankAccountName({
+                      const { isValid, message } = await validateBankAccountName({
                         data,
                       });
 
-                      if (!hasNoExistingBankAccounts) {
-                        context.addIssue({
-                          code: "custom",
-                          message: "An account with this name already exists.",
-                        });
-                      }
+                      if (!isValid) throw new Error(message);
                     } catch (error) {
                       context.addIssue({
                         code: "custom",

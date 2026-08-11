@@ -102,16 +102,11 @@ export function AddBucketDialog() {
                   onChangeAsyncDebounceMs: 500,
                   onChangeAsync: z.string().superRefine(async (data, context) => {
                     try {
-                      const hasNoExistingBuckets = await validateBucketName({
+                      const { isValid, message } = await validateBucketName({
                         data,
                       });
 
-                      if (!hasNoExistingBuckets) {
-                        context.addIssue({
-                          code: "custom",
-                          message: "A bucket with this name already exists.",
-                        });
-                      }
+                      if (!isValid) throw new Error(message);
                     } catch (error) {
                       context.addIssue({
                         code: "custom",
