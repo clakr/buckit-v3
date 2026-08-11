@@ -15,3 +15,14 @@ export const baseTransactionSchema = z.object({
 export const logTransactionSchema = baseTransactionSchema.extend({
   bankAccountId: z.string().min(1, "Please select an account"),
 });
+
+export const editTransactionSchema = baseTransactionSchema.extend({
+  transactionId: z.string().min(1, "Please select an transaction"),
+});
+
+export const validateEditTransactionSchema = z.object({
+  bankAccountId: z.string().min(1, "Please select an account"),
+  transactionId: z.string().min(1, "Please select an transaction"),
+  type: transactionTypeEnum,
+  amount: z.coerce.number().min(1, "Amount must be greater than 0."),
+});

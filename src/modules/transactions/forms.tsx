@@ -32,7 +32,7 @@ export const baseTransactionFields = createFieldMap(baseTransactionDefaultValues
 export const BaseTransactionFieldGroup = withFieldGroup({
   defaultValues: baseTransactionDefaultValues,
   props: {
-    currency: "php",
+    currency: "PHP",
   },
   render: function Render({ group, currency: accountCurrency }) {
     return (

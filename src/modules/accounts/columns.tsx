@@ -181,7 +181,7 @@ export const TRANSACTIONS_COLUMNS: ColumnDef<
   {
     accessorKey: "actions",
     header: "",
-    cell: () => <TransactionActionsDropdownMenu />,
+    cell: ({ row }) => <TransactionActionsDropdownMenu transactionId={row.original.id} />,
   },
 ];
 
