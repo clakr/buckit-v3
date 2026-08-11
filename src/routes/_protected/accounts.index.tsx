@@ -60,8 +60,12 @@ function RouteComponent() {
           title="No accounts yet."
           description="Add your first bank account to start tracking."
           icon={<IconWallet />}
-          buttonText="Add Account"
-          handleButtonClick={openDialog}
+          content={
+            <Button onClick={openDialog}>
+              <IconPlus />
+              Add Account
+            </Button>
+          }
         />
       ) : (
         <DataTable columns={INDEX_COLUMNS} data={bankAccounts} />

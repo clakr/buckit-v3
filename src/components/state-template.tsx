@@ -1,6 +1,5 @@
-import { IconMoodWrrr, IconPlus, type ReactNode } from "@tabler/icons-react";
+import { IconMoodWrrr, type ReactNode } from "@tabler/icons-react";
 
-import { Button } from "#/components/ui/button";
 import {
   Empty,
   EmptyContent,
@@ -13,8 +12,12 @@ import { Spinner } from "#/components/ui/spinner";
 
 type Props = { title: string; description: string } & (
   | { state: "loading" }
-  | { state: "error"; content: ReactNode }
-  | { state: "empty"; icon: ReactNode; buttonText: string; handleButtonClick: () => void }
+  | { state: "error"; content?: ReactNode }
+  | {
+      state: "empty";
+      icon: ReactNode;
+      content?: ReactNode;
+    }
 );
 
 export function StateTemplate(props: Props) {
@@ -52,12 +55,7 @@ export function StateTemplate(props: Props) {
         <EmptyTitle>{props.title}</EmptyTitle>
         <EmptyDescription>{props.description}</EmptyDescription>
       </EmptyHeader>
-      <EmptyContent>
-        <Button onClick={props.handleButtonClick}>
-          <IconPlus />
-          {props.buttonText}
-        </Button>
-      </EmptyContent>
+      <EmptyContent className="flex-row justify-center">{props.content}</EmptyContent>
     </Empty>
   );
 }
