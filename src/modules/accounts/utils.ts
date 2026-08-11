@@ -13,10 +13,13 @@ export function getAccountUnallocatedBalance({
     startingBalance +
     transactions.reduce((acc, t) => (t.type === "income" ? acc + t.amount : acc - t.amount), 0);
 
-  const unallocated = balance - allocations.reduce((acc, a) => acc + a.amount, 0);
+  const totalAllocated = allocations.reduce((acc, a) => acc + a.amount, 0);
+
+  const unallocated = balance - totalAllocated;
 
   return {
     balance,
     unallocated,
+    totalAllocated,
   };
 }

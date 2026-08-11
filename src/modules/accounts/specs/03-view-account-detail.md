@@ -20,12 +20,11 @@ All three sections are fetched in a single request. Each section renders what it
 
 **Error State:**
 
-- **Title:** Could not load account
-- **Description:** We weren't able to retrieve this account. It may have been deleted or a network error occurred.
-- **CTA:** "Retry" refetches. "Go back to accounts" navigates to the accounts list.
-
-**Empty State:**
-
-- **Title:** Account not found
-- **Description:** This account doesn't exist or may have been deleted.
-- **CTA:** "Go back to accounts" navigates to the accounts list.
+- **Not Found (404):**
+  - **Title:** Account not found
+  - **Description:** This account doesn't exist or may have been deleted.
+  - **CTA:** "Go back to accounts" navigates to the accounts list.
+- **Generic Failure:**
+  - **Title:** Could not load account
+  - **Description:** We weren't able to retrieve this account. Please check your connection and try again.
+  - **CTA:** "Retry" refetches.

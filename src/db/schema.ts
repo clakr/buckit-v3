@@ -228,7 +228,7 @@ export const relations = defineRelations(
 //
 
 export type BankAccount = typeof bankAccounts.$inferSelect;
-export type Buckets = typeof buckets.$inferSelect;
+export type Bucket = typeof buckets.$inferSelect;
 export type Transaction = typeof transactions.$inferSelect;
 export type Allocation = typeof allocations.$inferSelect;
 

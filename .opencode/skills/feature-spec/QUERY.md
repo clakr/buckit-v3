@@ -20,11 +20,21 @@ For features that return data without changing state (GET).
       - **Description:** <Explanatory text (feature-specific, not generic)>
 
     ### Error State
+    <For detail views (fetch by ID), split into the two sub-cases below. "Not found" must NOT be duplicated in the Empty State.>
+
+    #### Not Found (404)
+    <Detail views only — omit for collection views.>
+      - **Title:** <Brief heading (feature-specific, e.g. "Account not found")>
+      - **Description:** <Explanatory text (resource doesn't exist or was deleted)>
+      - **CTA:** <Action button text and behavior (e.g. "Go back to accounts" — retrying a 404 is pointless)>
+
+    #### Generic Failure
       - **Title:** <Brief heading>
-      - **Description:** <Explanatory text>
+      - **Description:** <Explanatory text (network or server error)>
       - **CTA:** <Action button text and behavior (e.g. "Retry" that refetches)>
 
     ### Empty State
+    <Collection views only (successful fetch with zero rows). Omit entirely for detail views — "not found" belongs in the Error State, not here.>
       - **Title:** <Brief heading>
       - **Description:** <Explanatory text>
       - **CTA:** <Action button text and behavior (e.g. "Create first item" navigates to create)>

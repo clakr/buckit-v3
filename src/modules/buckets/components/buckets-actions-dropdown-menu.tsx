@@ -10,13 +10,7 @@ import {
   DropdownMenuTrigger,
 } from "#/components/ui/dropdown-menu";
 
-import type { getBuckets } from "../functions";
-
-type Props = {
-  bucket: Awaited<ReturnType<typeof getBuckets>>[number];
-};
-
-export function BucketActionsDropdownMenu({ bucket }: Props) {
+export function BucketActionsDropdownMenu() {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger

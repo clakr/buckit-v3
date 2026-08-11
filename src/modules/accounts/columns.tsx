@@ -2,7 +2,8 @@ import type { ColumnDef } from "@tanstack/react-table";
 
 import { IconCircleDashed } from "@tabler/icons-react";
 
-import type { getBankAccounts } from "#/modules/accounts/functions";
+import type { Bucket, Transaction } from "#/db/schema";
+import type { getBankAccount, getBankAccounts } from "#/modules/accounts/functions";
 
 import { SortableTableHead } from "#/components/table/sortable-table-head";
 import { Badge } from "#/components/ui/badge";
@@ -10,9 +11,11 @@ import { currencyCodec } from "#/lib/codecs";
 import { formatCurrency, formatToRelative, getCurrency, isCurrencyCode } from "#/lib/utils";
 import { AccountActionsDropdownMenu } from "#/modules/accounts/components/account-actions-dropdown-menu";
 
+import { AllocationActionsDropdownMenu } from "./components/allocation-actions-dropdown-menu";
+import { TransactionActionsDropdownMenu } from "./components/transaction-actions-dropdown-menu";
 import { getAccountUnallocatedBalance } from "./utils";
 
-export const columns: ColumnDef<Awaited<ReturnType<typeof getBankAccounts>>[number]>[] = [
+export const INDEX_COLUMNS: ColumnDef<Awaited<ReturnType<typeof getBankAccounts>>[number]>[] = [
   {
     accessorKey: "name",
     header: ({ column }) => <SortableTableHead column={column}>Name</SortableTableHead>,
@@ -136,5 +139,76 @@ export const columns: ColumnDef<Awaited<ReturnType<typeof getBankAccounts>>[numb
     accessorKey: "actions",
     header: "",
     cell: ({ row }) => <AccountActionsDropdownMenu account={row.original} />,
+  },
+];
+
+export const TRANSACTIONS_COLUMNS: ColumnDef<
+  NonNullable<Awaited<ReturnType<typeof getBankAccount>>>["transactions"][number]
+>[] = [
+  {
+    accessorKey: "date",
+    cell: ({ getValue }) => formatToRelative(getValue<Transaction["date"]>()),
+  },
+  {
+    accessorKey: "type",
+    cell: ({ getValue }) => {
+      const type = getValue<Transaction["type"]>();
+
+      return (
+        <Badge variant={type === "income" ? "default" : "secondary"} className="capitalize">
+          {type}
+        </Badge>
+      );
+    },
+  },
+  {
+    accessorKey: "amount",
+    cell: ({ row }) => (
+      <span className="font-medium">
+        {formatCurrency(currencyCodec.encode(row.original.amount), {
+          currency: row.original.bankAccount?.currency,
+        })}
+      </span>
+    ),
+  },
+  {
+    accessorKey: "note",
+  },
+  {
+    accessorKey: "actions",
+    header: "",
+    cell: () => <TransactionActionsDropdownMenu />,
+  },
+];
+
+export const ALLOCATIONS_COLUMNS: ColumnDef<
+  NonNullable<Awaited<ReturnType<typeof getBankAccount>>>["allocations"][number]
+>[] = [
+  {
+    accessorKey: "date",
+    cell: ({ getValue }) => formatToRelative(getValue<Transaction["date"]>()),
+  },
+  {
+    accessorKey: "bucket.name",
+    header: "Bucket",
+    cell: ({ getValue }) => <span className="font-semibold">{getValue<Bucket["name"]>()}</span>,
+  },
+  {
+    accessorKey: "amount",
+    cell: ({ row }) => (
+      <span className="font-medium">
+        {formatCurrency(currencyCodec.encode(row.original.amount), {
+          currency: row.original.bankAccount?.currency,
+        })}
+      </span>
+    ),
+  },
+  {
+    accessorKey: "note",
+  },
+  {
+    accessorKey: "actions",
+    header: "",
+    cell: () => <AllocationActionsDropdownMenu />,
   },
 ];

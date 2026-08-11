@@ -22,12 +22,11 @@
 
 **Error State:**
 
-- **Title:** Could not load bucket
-- **Description:** We weren't able to retrieve this bucket. It may have been deleted or a network error occurred.
-- **CTA:** "Retry" refetches. "Go back to buckets" navigates to the buckets list.
-
-**Empty State:**
-
-- **Title:** Bucket not found
-- **Description:** This bucket doesn't exist or may have been deleted.
-- **CTA:** "Go back to buckets" navigates to the buckets list.
+- **Not Found (404):**
+  - **Title:** Bucket not found
+  - **Description:** This bucket doesn't exist or may have been deleted.
+  - **CTA:** "Go back to buckets" navigates to the buckets list.
+- **Generic Failure:**
+  - **Title:** Could not load bucket
+  - **Description:** We weren't able to retrieve this bucket. Please check your connection and try again.
+  - **CTA:** "Retry" refetches.
