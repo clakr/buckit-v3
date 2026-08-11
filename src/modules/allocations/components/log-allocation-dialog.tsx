@@ -36,7 +36,7 @@ import {
 import { Spinner } from "#/components/ui/spinner";
 import { useAppForm } from "#/integrations/tanstack-form";
 import { currencyCodec } from "#/lib/codecs";
-import { formatCurrency, getCurrency, isCurrencyCode } from "#/lib/utils";
+import { getCurrency, isCurrencyCode } from "#/lib/utils";
 import { useLogAllocationMutation } from "#/modules/allocations/mutations";
 import { logAllocationSchema } from "#/modules/allocations/schema";
 import { bucketsQueryOptions } from "#/modules/buckets/query-options";
@@ -195,24 +195,14 @@ export function LogAllocationDialog() {
                   onChangeAsyncDebounceMs: 500,
                   onChangeAsync: z.coerce.number().superRefine(async (data, context) => {
                     try {
-                      const { isValid, unallocated } = await validateAllocationAmount({
+                      const { isValid, message } = await validateAllocationAmount({
                         data: {
                           bankAccountId: account.id,
                           amount: currencyCodec.decode(data),
                         },
                       });
 
-                      if (!isValid) {
-                        context.addIssue({
-                          code: "custom",
-                          message: `Insufficient unallocated balance in ${account.name}. Available: ${formatCurrency(
-                            currencyCodec.encode(unallocated),
-                            {
-                              currency: account.currency,
-                            },
-                          )}.`,
-                        });
-                      }
+                      if (!isValid) throw new Error(message);
                     } catch (error) {
                       context.addIssue({
                         code: "custom",

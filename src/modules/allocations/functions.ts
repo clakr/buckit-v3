@@ -6,6 +6,7 @@ import { getDB } from "#/db";
 import { allocations } from "#/db/schema";
 import { currencyCodec } from "#/lib/codecs";
 import { authMiddleware } from "#/lib/middlewares";
+import { formatCurrency } from "#/lib/utils";
 import {
   logAllocationSchema,
   validateAllocationAmountSchema,
@@ -45,6 +46,8 @@ export const validateAllocationAmount = createServerFn({
     const bankAccount = await db.query.bankAccounts.findFirst({
       columns: {
         startingBalance: true,
+        name: true,
+        currency: true,
       },
       where: {
         id: data.bankAccountId,
@@ -64,7 +67,12 @@ export const validateAllocationAmount = createServerFn({
       },
     });
 
-    if (!bankAccount) throw new Error("No account found.");
+    if (!bankAccount) {
+      return {
+        isValid: false,
+        message: "No account found.",
+      };
+    }
 
     const { unallocated } = getAccountUnallocatedBalance({
       startingBalance: bankAccount.startingBalance,
@@ -72,12 +80,20 @@ export const validateAllocationAmount = createServerFn({
       allocations: bankAccount.allocations,
     });
 
-    if (unallocated === 0) {
-      return { isValid: false, unallocated };
+    if (data.amount > unallocated) {
+      return {
+        isValid: false,
+        message: `Insufficient unallocated balance in ${bankAccount.name}. Available: ${formatCurrency(
+          currencyCodec.encode(unallocated),
+          {
+            currency: bankAccount.currency,
+          },
+        )}`,
+      };
     }
 
     return {
-      isValid: unallocated >= data.amount,
-      unallocated,
+      isValid: true,
+      message: "ok",
     };
   });

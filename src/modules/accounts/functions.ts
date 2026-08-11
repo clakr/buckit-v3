@@ -58,7 +58,14 @@ export const validateBankAccountName = createServerFn({
       )
       .limit(1);
 
-    return result.length === 0;
+    if (result.length > 0) {
+      return {
+        isValid: false,
+        message: "An account with this name already exists.",
+      };
+    }
+
+    return { isValid: true, message: "ok" };
   });
 
 export const addBankAccount = createServerFn({

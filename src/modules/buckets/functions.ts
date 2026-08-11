@@ -59,7 +59,14 @@ export const validateBucketName = createServerFn({
       )
       .limit(1);
 
-    return result.length === 0;
+    if (result.length > 0) {
+      return {
+        isValid: false,
+        message: "A bucket with this name already exists.",
+      };
+    }
+
+    return { isValid: true, message: "ok" };
   });
 
 export const addBucket = createServerFn({

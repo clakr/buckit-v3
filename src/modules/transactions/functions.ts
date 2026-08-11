@@ -148,5 +148,5 @@ export const validateEditTransaction = createServerFn({
       };
     }
 
-    return { isValid: true, message: "OK" };
+    return { isValid: true, message: "ok" };
   });

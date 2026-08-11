@@ -78,7 +78,7 @@ export function AccountActionsDropdownMenu({ account }: Props) {
             <IconPlus />
             New Transaction
           </DropdownMenuItem>
-          <DropdownMenuItem onClick={handleOpenLogAllocationDialog} disabled={unallocated <= 0}>
+          <DropdownMenuItem onClick={handleOpenLogAllocationDialog}>
             <IconPlus />
             Allocate
           </DropdownMenuItem>
