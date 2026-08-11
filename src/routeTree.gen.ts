@@ -17,11 +17,12 @@ import { Route as DemoTanstackQueryRouteImport } from './routes/demo/tanstack-qu
 import { Route as DemoTableRouteImport } from './routes/demo/table'
 import { Route as ProtectedDashboardRouteImport } from './routes/_protected/dashboard'
 import { Route as ProtectedBucketsRouteImport } from './routes/_protected/buckets'
-import { Route as ProtectedAccountsRouteImport } from './routes/_protected/accounts'
 import { Route as GuestRegisterRouteImport } from './routes/_guest/register'
+import { Route as ProtectedAccountsIndexRouteImport } from './routes/_protected/accounts.index'
 import { Route as DemoFormSimpleRouteImport } from './routes/demo/form.simple'
 import { Route as DemoFormAddressRouteImport } from './routes/demo/form.address'
 import { Route as ApiAuthSplatRouteImport } from './routes/api/auth/$'
+import { Route as ProtectedAccountsAccountIdRouteImport } from './routes/_protected/accounts.$accountId'
 
 const AboutRoute = AboutRouteImport.update({
   id: '/about',
@@ -61,15 +62,15 @@ const ProtectedBucketsRoute = ProtectedBucketsRouteImport.update({
   path: '/buckets',
   getParentRoute: () => ProtectedRoute,
 } as any)
-const ProtectedAccountsRoute = ProtectedAccountsRouteImport.update({
-  id: '/accounts',
-  path: '/accounts',
-  getParentRoute: () => ProtectedRoute,
-} as any)
 const GuestRegisterRoute = GuestRegisterRouteImport.update({
   id: '/register',
   path: '/register',
   getParentRoute: () => GuestRoute,
+} as any)
+const ProtectedAccountsIndexRoute = ProtectedAccountsIndexRouteImport.update({
+  id: '/accounts/',
+  path: '/accounts/',
+  getParentRoute: () => ProtectedRoute,
 } as any)
 const DemoFormSimpleRoute = DemoFormSimpleRouteImport.update({
   id: '/demo/form/simple',
@@ -86,32 +87,40 @@ const ApiAuthSplatRoute = ApiAuthSplatRouteImport.update({
   path: '/api/auth/$',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ProtectedAccountsAccountIdRoute =
+  ProtectedAccountsAccountIdRouteImport.update({
+    id: '/accounts/$accountId',
+    path: '/accounts/$accountId',
+    getParentRoute: () => ProtectedRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof GuestIndexRoute
   '/about': typeof AboutRoute
   '/register': typeof GuestRegisterRoute
-  '/accounts': typeof ProtectedAccountsRoute
   '/buckets': typeof ProtectedBucketsRoute
   '/dashboard': typeof ProtectedDashboardRoute
   '/demo/table': typeof DemoTableRoute
   '/demo/tanstack-query': typeof DemoTanstackQueryRoute
+  '/accounts/$accountId': typeof ProtectedAccountsAccountIdRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/demo/form/address': typeof DemoFormAddressRoute
   '/demo/form/simple': typeof DemoFormSimpleRoute
+  '/accounts/': typeof ProtectedAccountsIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof GuestIndexRoute
   '/about': typeof AboutRoute
   '/register': typeof GuestRegisterRoute
-  '/accounts': typeof ProtectedAccountsRoute
   '/buckets': typeof ProtectedBucketsRoute
   '/dashboard': typeof ProtectedDashboardRoute
   '/demo/table': typeof DemoTableRoute
   '/demo/tanstack-query': typeof DemoTanstackQueryRoute
+  '/accounts/$accountId': typeof ProtectedAccountsAccountIdRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/demo/form/address': typeof DemoFormAddressRoute
   '/demo/form/simple': typeof DemoFormSimpleRoute
+  '/accounts': typeof ProtectedAccountsIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -119,15 +128,16 @@ export interface FileRoutesById {
   '/_protected': typeof ProtectedRouteWithChildren
   '/about': typeof AboutRoute
   '/_guest/register': typeof GuestRegisterRoute
-  '/_protected/accounts': typeof ProtectedAccountsRoute
   '/_protected/buckets': typeof ProtectedBucketsRoute
   '/_protected/dashboard': typeof ProtectedDashboardRoute
   '/demo/table': typeof DemoTableRoute
   '/demo/tanstack-query': typeof DemoTanstackQueryRoute
   '/_guest/': typeof GuestIndexRoute
+  '/_protected/accounts/$accountId': typeof ProtectedAccountsAccountIdRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/demo/form/address': typeof DemoFormAddressRoute
   '/demo/form/simple': typeof DemoFormSimpleRoute
+  '/_protected/accounts/': typeof ProtectedAccountsIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -135,42 +145,45 @@ export interface FileRouteTypes {
     | '/'
     | '/about'
     | '/register'
-    | '/accounts'
     | '/buckets'
     | '/dashboard'
     | '/demo/table'
     | '/demo/tanstack-query'
+    | '/accounts/$accountId'
     | '/api/auth/$'
     | '/demo/form/address'
     | '/demo/form/simple'
+    | '/accounts/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
     | '/about'
     | '/register'
-    | '/accounts'
     | '/buckets'
     | '/dashboard'
     | '/demo/table'
     | '/demo/tanstack-query'
+    | '/accounts/$accountId'
     | '/api/auth/$'
     | '/demo/form/address'
     | '/demo/form/simple'
+    | '/accounts'
   id:
     | '__root__'
     | '/_guest'
     | '/_protected'
     | '/about'
     | '/_guest/register'
-    | '/_protected/accounts'
     | '/_protected/buckets'
     | '/_protected/dashboard'
     | '/demo/table'
     | '/demo/tanstack-query'
     | '/_guest/'
+    | '/_protected/accounts/$accountId'
     | '/api/auth/$'
     | '/demo/form/address'
     | '/demo/form/simple'
+    | '/_protected/accounts/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -242,19 +255,19 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ProtectedBucketsRouteImport
       parentRoute: typeof ProtectedRoute
     }
-    '/_protected/accounts': {
-      id: '/_protected/accounts'
-      path: '/accounts'
-      fullPath: '/accounts'
-      preLoaderRoute: typeof ProtectedAccountsRouteImport
-      parentRoute: typeof ProtectedRoute
-    }
     '/_guest/register': {
       id: '/_guest/register'
       path: '/register'
       fullPath: '/register'
       preLoaderRoute: typeof GuestRegisterRouteImport
       parentRoute: typeof GuestRoute
+    }
+    '/_protected/accounts/': {
+      id: '/_protected/accounts/'
+      path: '/accounts'
+      fullPath: '/accounts/'
+      preLoaderRoute: typeof ProtectedAccountsIndexRouteImport
+      parentRoute: typeof ProtectedRoute
     }
     '/demo/form/simple': {
       id: '/demo/form/simple'
@@ -277,6 +290,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiAuthSplatRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_protected/accounts/$accountId': {
+      id: '/_protected/accounts/$accountId'
+      path: '/accounts/$accountId'
+      fullPath: '/accounts/$accountId'
+      preLoaderRoute: typeof ProtectedAccountsAccountIdRouteImport
+      parentRoute: typeof ProtectedRoute
+    }
   }
 }
 
@@ -293,15 +313,17 @@ const GuestRouteChildren: GuestRouteChildren = {
 const GuestRouteWithChildren = GuestRoute._addFileChildren(GuestRouteChildren)
 
 interface ProtectedRouteChildren {
-  ProtectedAccountsRoute: typeof ProtectedAccountsRoute
   ProtectedBucketsRoute: typeof ProtectedBucketsRoute
   ProtectedDashboardRoute: typeof ProtectedDashboardRoute
+  ProtectedAccountsAccountIdRoute: typeof ProtectedAccountsAccountIdRoute
+  ProtectedAccountsIndexRoute: typeof ProtectedAccountsIndexRoute
 }
 
 const ProtectedRouteChildren: ProtectedRouteChildren = {
-  ProtectedAccountsRoute: ProtectedAccountsRoute,
   ProtectedBucketsRoute: ProtectedBucketsRoute,
   ProtectedDashboardRoute: ProtectedDashboardRoute,
+  ProtectedAccountsAccountIdRoute: ProtectedAccountsAccountIdRoute,
+  ProtectedAccountsIndexRoute: ProtectedAccountsIndexRoute,
 }
 
 const ProtectedRouteWithChildren = ProtectedRoute._addFileChildren(

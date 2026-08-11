@@ -1,4 +1,4 @@
-import { IconDots, IconEdit, IconEye, IconTrash } from "@tabler/icons-react";
+import { IconDots, IconEdit, IconTrash } from "@tabler/icons-react";
 
 import { Button } from "#/components/ui/button";
 import {
@@ -10,24 +10,20 @@ import {
   DropdownMenuTrigger,
 } from "#/components/ui/dropdown-menu";
 
-export function BucketActionsDropdownMenu() {
+export function AllocationActionsDropdownMenu() {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger
         render={
           <Button variant="ghost" size="icon">
             <IconDots />
-            <span className="sr-only">Open Bucket Action Menu</span>
+            <span className="sr-only">Open Allocation Action Menu</span>
           </Button>
         }
       />
       <DropdownMenuContent className="w-fit">
         <DropdownMenuGroup>
-          <DropdownMenuLabel>Buckets</DropdownMenuLabel>
-          <DropdownMenuItem disabled>
-            <IconEye />
-            View Detail
-          </DropdownMenuItem>
+          <DropdownMenuLabel>Allocation</DropdownMenuLabel>
           <DropdownMenuItem disabled>
             <IconEdit />
             Edit

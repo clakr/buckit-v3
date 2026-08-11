@@ -80,3 +80,49 @@ export const addBankAccount = createServerFn({
       })
       .returning();
   });
+
+export const getBankAccount = createServerFn({
+  method: "GET",
+})
+  .middleware([authMiddleware])
+  .validator(z.string())
+  .handler(async ({ data: bankAccountId }) => {
+    const db = getDB(env.db);
+
+    return db.query.bankAccounts.findFirst({
+      where: {
+        id: bankAccountId,
+      },
+      with: {
+        transactions: {
+          with: {
+            bankAccount: {
+              columns: {
+                currency: true,
+              },
+            },
+          },
+          orderBy: {
+            date: "desc",
+          },
+        },
+        allocations: {
+          with: {
+            bucket: {
+              columns: {
+                name: true,
+              },
+            },
+            bankAccount: {
+              columns: {
+                currency: true,
+              },
+            },
+          },
+          orderBy: {
+            date: "desc",
+          },
+        },
+      },
+    });
+  });

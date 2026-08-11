@@ -2,7 +2,7 @@ import type { PropsWithChildren } from "react";
 
 import { IconPlus, IconWallet } from "@tabler/icons-react";
 import { useSuspenseQuery } from "@tanstack/react-query";
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useShallow } from "zustand/react/shallow";
 
 import { Heading } from "#/components/heading";
@@ -10,13 +10,13 @@ import { Main } from "#/components/main";
 import { StateTemplate } from "#/components/state-template";
 import { Button } from "#/components/ui/button";
 import { DataTable } from "#/components/ui/data-table";
-import { columns } from "#/modules/accounts/columns";
+import { INDEX_COLUMNS } from "#/modules/accounts/columns";
 import { useAddAccountDialogStore } from "#/modules/accounts/components/add-account-dialog";
-import { bankAccountsQueryOptions } from "#/modules/accounts/query-options";
+import { bankAccountsQueryOption } from "#/modules/accounts/query-options";
 
-export const Route = createFileRoute("/_protected/accounts")({
+export const Route = createFileRoute("/_protected/accounts/")({
   loader: async ({ context: { queryClient } }) => {
-    queryClient.prefetchQuery(bankAccountsQueryOptions);
+    queryClient.prefetchQuery(bankAccountsQueryOption);
   },
   pendingComponent: () => (
     <Template>
@@ -33,7 +33,12 @@ export const Route = createFileRoute("/_protected/accounts")({
         state="error"
         title="Could not load accounts."
         description="We weren't able to retrieve your accounts. Please try again."
-        content={<Button onClick={reset}>Retry</Button>}
+        content={
+          <>
+            <Button onClick={reset}>Retry</Button>
+            <Button render={<Link to="/accounts" />}>Go back to accounts</Button>
+          </>
+        }
       />
     </Template>
   ),
@@ -41,7 +46,7 @@ export const Route = createFileRoute("/_protected/accounts")({
 });
 
 function RouteComponent() {
-  const { data: bankAccounts } = useSuspenseQuery(bankAccountsQueryOptions);
+  const { data: bankAccounts } = useSuspenseQuery(bankAccountsQueryOption);
 
   const isEmpty = bankAccounts.length === 0;
 
@@ -59,7 +64,7 @@ function RouteComponent() {
           handleButtonClick={openDialog}
         />
       ) : (
-        <DataTable columns={columns} data={bankAccounts} />
+        <DataTable columns={INDEX_COLUMNS} data={bankAccounts} />
       )}
     </Template>
   );

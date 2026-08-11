@@ -41,7 +41,7 @@ export function StateTemplate(props: Props) {
           <EmptyTitle>{props.title}</EmptyTitle>
           <EmptyDescription>{props.description}</EmptyDescription>
         </EmptyHeader>
-        <EmptyContent>{props.content}</EmptyContent>
+        <EmptyContent className="flex-row justify-center">{props.content}</EmptyContent>
       </Empty>
     );
 

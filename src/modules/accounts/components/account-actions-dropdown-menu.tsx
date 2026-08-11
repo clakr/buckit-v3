@@ -1,4 +1,5 @@
 import { IconDots, IconEdit, IconEye, IconPlus, IconTrash } from "@tabler/icons-react";
+import { Link } from "@tanstack/react-router";
 
 import { Button } from "#/components/ui/button";
 import {
@@ -55,7 +56,9 @@ export function AccountActionsDropdownMenu({ account }: Props) {
       <DropdownMenuContent className="w-fit">
         <DropdownMenuGroup>
           <DropdownMenuLabel>Accounts</DropdownMenuLabel>
-          <DropdownMenuItem disabled>
+          <DropdownMenuItem
+            render={<Link to="/accounts/$accountId" params={{ accountId: account.id }} />}
+          >
             <IconEye />
             View Detail
           </DropdownMenuItem>

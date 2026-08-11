@@ -52,6 +52,6 @@ export const columns: ColumnDef<Awaited<ReturnType<typeof getBuckets>>[number]>[
   {
     accessorKey: "actions",
     header: "",
-    cell: ({ row }) => <BucketActionsDropdownMenu bucket={row.original} />,
+    cell: () => <BucketActionsDropdownMenu />,
   },
 ];
