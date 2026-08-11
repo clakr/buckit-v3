@@ -55,8 +55,12 @@ function RouteComponent() {
           title="No buckets yet."
           description="Create a bucket to start organizing your money."
           icon={<IconBucket />}
-          buttonText="Add Bucket"
-          handleButtonClick={openDialog}
+          content={
+            <Button onClick={openDialog}>
+              <IconPlus />
+              Add Bucket
+            </Button>
+          }
         />
       ) : (
         <DataTable columns={columns} data={buckets} />
