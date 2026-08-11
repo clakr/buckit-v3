@@ -8,7 +8,7 @@ const Textarea = lazy(() => import("#/components/form/textarea"));
 export const { fieldContext, formContext, useFieldContext, useFormContext } =
   createFormHookContexts();
 
-export const { useAppForm } = createFormHook({
+export const { useAppForm, withFieldGroup } = createFormHook({
   fieldContext,
   formContext,
   fieldComponents: { Input, Textarea },
