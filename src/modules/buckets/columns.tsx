@@ -41,7 +41,7 @@ export const columns: ColumnDef<Awaited<ReturnType<typeof getBuckets>>[number]>[
 
       if (!subtotals) return "-";
 
-      return subtotals;
+      return <span className="font-medium">{subtotals}</span>;
     },
   },
   {
