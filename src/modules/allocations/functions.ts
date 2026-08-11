@@ -6,7 +6,10 @@ import { getDB } from "#/db";
 import { allocations } from "#/db/schema";
 import { currencyCodec } from "#/lib/codecs";
 import { authMiddleware } from "#/lib/middlewares";
-import { logAllocationSchema, validateAllocationAmountSchema } from "#/modules/allocations/schema";
+import {
+  logAllocationSchema,
+  validateAllocationAmountSchema,
+} from "#/modules/allocations/schema";
 
 import { getAccountUnallocatedBalance } from "../accounts/utils";
 
@@ -61,7 +64,7 @@ export const validateAllocationAmount = createServerFn({
       },
     });
 
-    if (!bankAccount) throw new Error("No Account found.");
+    if (!bankAccount) throw new Error("No account found.");
 
     const { unallocated } = getAccountUnallocatedBalance({
       startingBalance: bankAccount.startingBalance,
@@ -70,7 +73,7 @@ export const validateAllocationAmount = createServerFn({
     });
 
     if (unallocated === 0) {
-      return { isValid: false, unallocated: 0 };
+      return { isValid: false, unallocated };
     }
 
     return {

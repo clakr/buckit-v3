@@ -7,6 +7,7 @@ import { AddAccountDialog } from "#/modules/accounts/components/add-account-dial
 import { LogAllocationDialog } from "#/modules/allocations/components/log-allocation-dialog";
 import { getSession } from "#/modules/authentication/functions";
 import { AddBucketDialog } from "#/modules/buckets/components/add-bucket-dialog";
+import { EditTransactionDialog } from "#/modules/transactions/components/edit-transaction-dialog";
 import { LogTransactionDialog } from "#/modules/transactions/components/log-transaction-dialog";
 
 export const Route = createFileRoute("/_protected")({
@@ -43,6 +44,7 @@ function RouteComponent() {
       <AddBucketDialog />
       <LogTransactionDialog />
       <LogAllocationDialog />
+      <EditTransactionDialog />
     </>
   );
 }

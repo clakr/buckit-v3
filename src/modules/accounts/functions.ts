@@ -89,7 +89,7 @@ export const getBankAccount = createServerFn({
   .handler(async ({ data: bankAccountId }) => {
     const db = getDB(env.db);
 
-    return db.query.bankAccounts.findFirst({
+    const bankAccount = await db.query.bankAccounts.findFirst({
       where: {
         id: bankAccountId,
       },
@@ -125,4 +125,6 @@ export const getBankAccount = createServerFn({
         },
       },
     });
+
+    return bankAccount ?? null;
   });

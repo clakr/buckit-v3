@@ -1,5 +1,7 @@
 import { IconDots, IconEdit, IconTrash } from "@tabler/icons-react";
 
+import type { Transaction } from "#/db/schema";
+
 import { Button } from "#/components/ui/button";
 import {
   DropdownMenu,
@@ -9,8 +11,20 @@ import {
   DropdownMenuLabel,
   DropdownMenuTrigger,
 } from "#/components/ui/dropdown-menu";
+import { useEditTransactionDialogStore } from "#/modules/transactions/components/edit-transaction-dialog";
 
-export function TransactionActionsDropdownMenu() {
+type Props = {
+  transactionId: Transaction["id"];
+};
+
+export function TransactionActionsDropdownMenu({ transactionId }: Props) {
+  function handleOpenEditTransactionDialog() {
+    const state = useEditTransactionDialogStore.getState();
+
+    state.setTransactionId(transactionId);
+    state.openDialog();
+  }
+
   return (
     <DropdownMenu>
       <DropdownMenuTrigger
@@ -24,7 +38,7 @@ export function TransactionActionsDropdownMenu() {
       <DropdownMenuContent className="w-fit">
         <DropdownMenuGroup>
           <DropdownMenuLabel>Transaction</DropdownMenuLabel>
-          <DropdownMenuItem disabled>
+          <DropdownMenuItem onClick={handleOpenEditTransactionDialog}>
             <IconEdit />
             Edit
           </DropdownMenuItem>
