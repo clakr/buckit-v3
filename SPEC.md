@@ -78,7 +78,7 @@ No automatic import from banks. The user enters all data manually.
 | P1       | [ ]  | Edit / Delete Transaction | Block if would cause negative unallocated                                       |
 | P1       | [ ]  | Edit / Delete Allocation  | Amount increase blocked if negative unallocated; delete always allowed          |
 | P1       | [x]  | View Accounts List        | Table with badge, currency, computed balance, unallocated                       |
-| P1       | [ ]  | View Account Detail       | Transactions tab + Allocations tab + Summary section                            |
+| P1       | [x]  | View Account Detail       | Transactions tab + Allocations tab + Summary section                            |
 | P1       | [x]  | View Buckets List         | List with per-currency subtotals                                                |
 | P1       | [ ]  | View Bucket Detail        | Allocations grouped by account, per-currency subtotals, Convert button (future) |
 | P2       | [ ]  | Dashboard                 | Accounts section + Buckets section with per-currency subtotals                  |

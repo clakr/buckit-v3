@@ -66,9 +66,11 @@ export const INDEX_COLUMNS: ColumnDef<Awaited<ReturnType<typeof getBankAccounts>
         allocations: row.original.allocations,
       });
 
-      return formatCurrency(currencyCodec.encode(balance), {
+      const value = formatCurrency(currencyCodec.encode(balance), {
         currency: row.original.currency,
       });
+
+      return <span className="font-medium">{value}</span>;
     },
   },
   {
@@ -98,9 +100,11 @@ export const INDEX_COLUMNS: ColumnDef<Awaited<ReturnType<typeof getBankAccounts>
         allocations: row.original.allocations,
       });
 
-      return formatCurrency(currencyCodec.encode(unallocated), {
+      const value = formatCurrency(currencyCodec.encode(unallocated), {
         currency: row.original.currency,
       });
+
+      return <span className="font-medium">{value}</span>;
     },
   },
   {
