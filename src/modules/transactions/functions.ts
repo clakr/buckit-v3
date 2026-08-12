@@ -8,13 +8,12 @@ import { getDB } from "#/db";
 import { transactions } from "#/db/schema";
 import { currencyCodec } from "#/lib/codecs";
 import { authMiddleware } from "#/lib/middlewares";
+import { getAccountUnallocatedBalance } from "#/modules/accounts/utils";
 import {
   editTransactionSchema,
   logTransactionSchema,
   validateEditTransactionSchema,
 } from "#/modules/transactions/schema";
-
-import { getAccountUnallocatedBalance } from "../accounts/utils";
 
 export const logTransaction = createServerFn({
   method: "POST",
@@ -119,9 +118,7 @@ export const validateEditTransaction = createServerFn({
       };
     }
 
-    const transactionsMap = new Map(
-      bankAccount.transactions.map((t) => [t.id, t]),
-    );
+    const transactionsMap = new Map(bankAccount.transactions.map((t) => [t.id, t]));
     const targetTransaction = transactionsMap.get(data.transactionId);
 
     if (!targetTransaction) {

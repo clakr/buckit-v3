@@ -75,7 +75,7 @@ No automatic import from banks. The user enters all data manually.
 | P0       | [x]  | Add Bucket                | Dialog: name only                                                               |
 | P0       | [x]  | Log Transaction           | Dialog: type (income/expense), account, amount, date, note                      |
 | P0       | [x]  | Log Allocation            | Dialog: source account, bucket, amount, date, note                              |
-| P1       | [ ]  | Edit / Delete Transaction | Block if would cause negative unallocated                                       |
+| P1       | [x]  | Edit / Delete Transaction | Block if would cause negative unallocated                                       |
 | P1       | [ ]  | Edit / Delete Allocation  | Amount increase blocked if negative unallocated; delete always allowed          |
 | P1       | [x]  | View Accounts List        | Table with badge, currency, computed balance, unallocated                       |
 | P1       | [x]  | View Account Detail       | Transactions tab + Allocations tab + Summary section                            |

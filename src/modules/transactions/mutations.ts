@@ -1,9 +1,6 @@
 import { useMutation } from "@tanstack/react-query";
 
-import {
-  logTransaction,
-  editTransaction,
-} from "#/modules/transactions/functions";
+import { logTransaction, editTransaction } from "#/modules/transactions/functions";
 
 export function useLogTransactionMutation() {
   return useMutation({

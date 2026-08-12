@@ -10,10 +10,9 @@ import { Badge } from "#/components/ui/badge";
 import { currencyCodec } from "#/lib/codecs";
 import { formatCurrency, formatToRelative, getCurrency, isCurrencyCode } from "#/lib/utils";
 import { AccountActionsDropdownMenu } from "#/modules/accounts/components/account-actions-dropdown-menu";
-
-import { AllocationActionsDropdownMenu } from "./components/allocation-actions-dropdown-menu";
-import { TransactionActionsDropdownMenu } from "./components/transaction-actions-dropdown-menu";
-import { getAccountUnallocatedBalance } from "./utils";
+import { AllocationActionsDropdownMenu } from "#/modules/accounts/components/allocation-actions-dropdown-menu";
+import { TransactionActionsDropdownMenu } from "#/modules/accounts/components/transaction-actions-dropdown-menu";
+import { getAccountUnallocatedBalance } from "#/modules/accounts/utils";
 
 export const INDEX_COLUMNS: ColumnDef<Awaited<ReturnType<typeof getBankAccounts>>[number]>[] = [
   {

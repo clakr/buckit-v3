@@ -19,17 +19,16 @@ import {
 } from "#/components/ui/dialog";
 import { useAppForm } from "#/integrations/tanstack-form";
 import { currencyCodec } from "#/lib/codecs";
-import { useEditTransactionMutation } from "#/modules/transactions/mutations";
-import { editTransactionSchema } from "#/modules/transactions/schema";
-import { confirm } from "#/stores/use-confirm";
-
 import {
   baseTransactionDefaultValues,
   BaseTransactionFieldGroup,
   baseTransactionFields,
-} from "../forms";
-import { validateEditTransaction } from "../functions";
-import { transactionQueryOption } from "../query-options";
+} from "#/modules/transactions/forms";
+import { validateEditTransaction } from "#/modules/transactions/functions";
+import { useEditTransactionMutation } from "#/modules/transactions/mutations";
+import { transactionQueryOption } from "#/modules/transactions/query-options";
+import { editTransactionSchema } from "#/modules/transactions/schema";
+import { confirm } from "#/stores/use-confirm";
 
 type StoreState = DialogState & {
   transactionId: Transaction["id"] | null;
