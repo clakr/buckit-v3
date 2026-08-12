@@ -5,72 +5,36 @@ import { z } from "zod";
 
 import { Button } from "#/components/ui/button";
 import { Calendar } from "#/components/ui/calendar";
-import { Field, FieldError, FieldGroup, FieldLabel } from "#/components/ui/field";
+import { Field, FieldError, FieldLabel } from "#/components/ui/field";
 import {
   InputGroup,
   InputGroupAddon,
   InputGroupInput,
   InputGroupText,
 } from "#/components/ui/input-group";
-import { Label } from "#/components/ui/label";
 import { Popover, PopoverContent, PopoverTrigger } from "#/components/ui/popover";
-import { RadioGroup, RadioGroupItem } from "#/components/ui/radio-group";
+import { Spinner } from "#/components/ui/spinner";
 import { withFieldGroup } from "#/integrations/tanstack-form";
 import { getCurrency, isCurrencyCode } from "#/lib/utils";
 
-import { baseTransactionSchema, transactionTypeEnum } from "./schema";
+import type { baseAllocationSchema } from "./schema";
 
-export const baseTransactionDefaultValues: z.input<typeof baseTransactionSchema> = {
-  type: "income",
+export const baseAllocationDefaultValues: z.input<typeof baseAllocationSchema> = {
   amount: 0,
   date: new Date(),
   note: "",
 };
 
-export const baseTransactionFields = createFieldMap(baseTransactionDefaultValues);
+export const baseAllocationFields = createFieldMap(baseAllocationDefaultValues);
 
-export const BaseTransactionFieldGroup = withFieldGroup({
-  defaultValues: baseTransactionDefaultValues,
+export const BaseAllocationFieldGroup = withFieldGroup({
+  defaultValues: baseAllocationDefaultValues,
   props: {
     currency: "PHP",
   },
   render: function Render({ group, currency: accountCurrency }) {
     return (
-      <FieldGroup>
-        <group.AppField name="type">
-          {(field) => {
-            const isInvalid = field.state.meta.isTouched && !field.state.meta.isValid;
-
-            const id = field.name;
-            const errorId = `${id}-error`;
-
-            return (
-              <Field data-invalid={isInvalid}>
-                <FieldLabel htmlFor={id}>Type</FieldLabel>
-
-                <RadioGroup
-                  id={id}
-                  value={field.state.value}
-                  onValueChange={field.handleChange}
-                  onBlur={field.handleBlur}
-                  aria-invalid={isInvalid ? true : undefined}
-                  aria-labelledby={isInvalid ? errorId : undefined}
-                >
-                  {Object.keys(transactionTypeEnum.enum).map((type) => (
-                    <div key={type} className="flex items-center gap-x-2">
-                      <RadioGroupItem value={type} id={type} />
-                      <Label htmlFor={type} className="capitalize">
-                        {type}
-                      </Label>
-                    </div>
-                  ))}
-                </RadioGroup>
-
-                {isInvalid && <FieldError id={errorId} errors={field.state.meta.errors} />}
-              </Field>
-            );
-          }}
-        </group.AppField>
+      <>
         <group.AppField name="amount">
           {(field) => {
             const isInvalid = field.state.meta.isTouched && !field.state.meta.isValid;
@@ -106,7 +70,11 @@ export const BaseTransactionFieldGroup = withFieldGroup({
                     aria-labelledby={isInvalid ? "startingBalance-error" : undefined}
                   />
                   <InputGroupAddon align="inline-end">
-                    <InputGroupText>{currency.code}</InputGroupText>
+                    {field.state.meta.isValidating ? (
+                      <Spinner />
+                    ) : (
+                      <InputGroupText>{currency.code}</InputGroupText>
+                    )}
                   </InputGroupAddon>
                 </InputGroup>
 
@@ -162,7 +130,7 @@ export const BaseTransactionFieldGroup = withFieldGroup({
         <group.AppField name="note">
           {(field) => <field.Textarea label="Note (optional)" placeholder="Add a note..." />}
         </group.AppField>
-      </FieldGroup>
+      </>
     );
   },
 });

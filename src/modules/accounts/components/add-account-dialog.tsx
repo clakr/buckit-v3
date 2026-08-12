@@ -85,11 +85,11 @@ export function AddAccountDialog() {
     if (!open && form.state.isDirty) {
       const confirmed = await confirm("Discard new account?", {
         description: "The account details you entered will be lost.",
-        confirmLabel: "Discard",
-        cancelLabel: "Keep editing",
+        confirmLabel: "Keep Editing",
+        cancelLabel: "Discard",
       });
 
-      if (!confirmed) return;
+      if (confirmed) return;
     }
 
     form.reset();
