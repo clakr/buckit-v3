@@ -6,21 +6,12 @@ import { z } from "zod";
 import { Button } from "#/components/ui/button";
 import { Calendar } from "#/components/ui/calendar";
 import { Field, FieldError, FieldLabel } from "#/components/ui/field";
-import {
-  InputGroup,
-  InputGroupAddon,
-  InputGroupInput,
-  InputGroupText,
-} from "#/components/ui/input-group";
 import { Popover, PopoverContent, PopoverTrigger } from "#/components/ui/popover";
-import { Spinner } from "#/components/ui/spinner";
 import { withFieldGroup } from "#/integrations/tanstack-form";
-import { getCurrency, isCurrencyCode } from "#/lib/utils";
 
 import type { baseAllocationSchema } from "./schema";
 
 export const baseAllocationDefaultValues: z.input<typeof baseAllocationSchema> = {
-  amount: 0,
   date: new Date(),
   note: "",
 };
@@ -29,60 +20,9 @@ export const baseAllocationFields = createFieldMap(baseAllocationDefaultValues);
 
 export const BaseAllocationFieldGroup = withFieldGroup({
   defaultValues: baseAllocationDefaultValues,
-  props: {
-    currency: "PHP",
-  },
-  render: function Render({ group, currency: accountCurrency }) {
+  render: function Render({ group }) {
     return (
       <>
-        <group.AppField name="amount">
-          {(field) => {
-            const isInvalid = field.state.meta.isTouched && !field.state.meta.isValid;
-
-            const id = field.name;
-            const errorId = `${id}-error`;
-
-            const validated = isCurrencyCode(accountCurrency);
-            if (!validated) return null;
-
-            const currency = getCurrency(accountCurrency);
-            if (!currency) return null;
-
-            return (
-              <Field data-invalid={isInvalid}>
-                <FieldLabel htmlFor={id}>Amount</FieldLabel>
-
-                <InputGroup>
-                  <InputGroupAddon>
-                    <InputGroupText>{currency.symbol}</InputGroupText>
-                  </InputGroupAddon>
-                  <InputGroupInput
-                    type="number"
-                    id={field.name}
-                    placeholder="0.00"
-                    min={0}
-                    step={0.01}
-                    required
-                    value={field.state.value as string}
-                    onChange={(e) => field.handleChange(e.target.value)}
-                    onBlur={field.handleBlur}
-                    aria-invalid={isInvalid ? true : undefined}
-                    aria-labelledby={isInvalid ? "startingBalance-error" : undefined}
-                  />
-                  <InputGroupAddon align="inline-end">
-                    {field.state.meta.isValidating ? (
-                      <Spinner />
-                    ) : (
-                      <InputGroupText>{currency.code}</InputGroupText>
-                    )}
-                  </InputGroupAddon>
-                </InputGroup>
-
-                {isInvalid && <FieldError id={errorId} errors={field.state.meta.errors} />}
-              </Field>
-            );
-          }}
-        </group.AppField>
         <group.AppField name="date">
           {(field) => {
             const date = field.state.value;

@@ -1,9 +1,6 @@
 import { z } from "zod";
 
-export const transactionTypeEnum = z.enum(
-  ["income", "expense"],
-  "Please select a valid type",
-);
+export const transactionTypeEnum = z.enum(["income", "expense"], "Please select a valid type");
 
 export const baseTransactionSchema = z.object({
   type: transactionTypeEnum,

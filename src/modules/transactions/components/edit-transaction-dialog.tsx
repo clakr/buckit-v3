@@ -32,7 +32,7 @@ import { confirm } from "#/stores/use-confirm";
 
 type StoreState = DialogState & {
   transactionId: Transaction["id"] | null;
-  setTransactionId: (transaction: Transaction["id"]) => void;
+  setTransactionId: (transactionId: Transaction["id"]) => void;
 };
 
 export const useEditTransactionDialogStore = create<StoreState>()((set) => ({

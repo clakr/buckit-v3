@@ -4,6 +4,7 @@ import { SidebarContent } from "#/components/sidebar/content";
 import { SidebarFooter } from "#/components/sidebar/footer";
 import { Sidebar, SidebarInset, SidebarProvider, SidebarTrigger } from "#/components/ui/sidebar";
 import { AddAccountDialog } from "#/modules/accounts/components/add-account-dialog";
+import { EditAllocationDialog } from "#/modules/allocations/components/edit-allocation-dialog";
 import { LogAllocationDialog } from "#/modules/allocations/components/log-allocation-dialog";
 import { getSession } from "#/modules/authentication/functions";
 import { AddBucketDialog } from "#/modules/buckets/components/add-bucket-dialog";
@@ -45,6 +46,7 @@ function RouteComponent() {
       <LogTransactionDialog />
       <LogAllocationDialog />
       <EditTransactionDialog />
+      <EditAllocationDialog />
     </>
   );
 }

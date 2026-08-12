@@ -6,7 +6,7 @@ import { getTransaction } from "#/modules/transactions/functions";
 
 export function transactionQueryOption(transactionId: Transaction["id"]) {
   return queryOptions({
-    queryKey: ["transaction", transactionId],
+    queryKey: ["transactions", transactionId],
     queryFn: () => getTransaction({ data: transactionId }),
   });
 }

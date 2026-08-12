@@ -212,6 +212,6 @@ export const ALLOCATIONS_COLUMNS: ColumnDef<
   {
     accessorKey: "actions",
     header: "",
-    cell: () => <AllocationActionsDropdownMenu />,
+    cell: ({ row }) => <AllocationActionsDropdownMenu allocationId={row.original.id} />,
   },
 ];

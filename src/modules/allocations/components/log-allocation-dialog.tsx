@@ -15,6 +15,12 @@ import {
 } from "#/components/ui/dialog";
 import { Field, FieldError, FieldGroup, FieldLabel } from "#/components/ui/field";
 import {
+  InputGroup,
+  InputGroupAddon,
+  InputGroupInput,
+  InputGroupText,
+} from "#/components/ui/input-group";
+import {
   Select,
   SelectContent,
   SelectGroup,
@@ -24,12 +30,19 @@ import {
 } from "#/components/ui/select";
 import { Spinner } from "#/components/ui/spinner";
 import { useAppForm } from "#/integrations/tanstack-form";
+import { currencyCodec } from "#/lib/codecs";
+import { getCurrency, isCurrencyCode } from "#/lib/utils";
 import { useLogAllocationMutation } from "#/modules/allocations/mutations";
 import { logAllocationSchema } from "#/modules/allocations/schema";
 import { bucketsQueryOptions } from "#/modules/buckets/query-options";
 import { confirm } from "#/stores/use-confirm";
 
-import { BaseAllocationFieldGroup, baseAllocationFields } from "../forms";
+import {
+  baseAllocationDefaultValues,
+  BaseAllocationFieldGroup,
+  baseAllocationFields,
+} from "../forms";
+import { validateLogAllocationAmount } from "../functions";
 
 type StoreState = DialogState & {
   account: BankAccount | null;
@@ -60,11 +73,10 @@ export function LogAllocationDialog() {
   const mutation = useLogAllocationMutation();
 
   const defaultValues: z.input<typeof logAllocationSchema> = {
+    ...baseAllocationDefaultValues,
     bankAccountId: account?.id ?? "",
     bucketId: "",
     amount: 0,
-    date: new Date(),
-    note: "",
   };
 
   const {
@@ -176,11 +188,79 @@ export function LogAllocationDialog() {
                   );
                 }}
               </form.AppField>
-              <BaseAllocationFieldGroup
-                form={form}
-                fields={baseAllocationFields}
-                currency={account.currency}
-              />
+              <form.AppField
+                name="amount"
+                validators={{
+                  onChangeAsyncDebounceMs: 500,
+                  onChangeAsync: z.string().superRefine(async (data, context) => {
+                    try {
+                      const { isValid, message } = await validateLogAllocationAmount({
+                        data: {
+                          bankAccountId: account.id,
+                          amount: currencyCodec.decode(Number(data)),
+                        },
+                      });
+
+                      if (!isValid) throw new Error(message);
+                    } catch (error) {
+                      context.addIssue({
+                        code: "custom",
+                        message: error instanceof Error ? error.message : String(error),
+                      });
+                    }
+                  }),
+                }}
+              >
+                {(field) => {
+                  const isInvalid = field.state.meta.isTouched && !field.state.meta.isValid;
+
+                  const id = field.name;
+                  const errorId = `${id}-error`;
+
+                  const accountCurrency = account.currency;
+
+                  const validated = isCurrencyCode(accountCurrency);
+                  if (!validated) return null;
+
+                  const currency = getCurrency(accountCurrency);
+                  if (!currency) return null;
+
+                  return (
+                    <Field data-invalid={isInvalid}>
+                      <FieldLabel htmlFor={id}>Amount</FieldLabel>
+
+                      <InputGroup>
+                        <InputGroupAddon>
+                          <InputGroupText>{currency.symbol}</InputGroupText>
+                        </InputGroupAddon>
+                        <InputGroupInput
+                          type="number"
+                          id={field.name}
+                          placeholder="0.00"
+                          min={0}
+                          step={0.01}
+                          required
+                          value={field.state.value as string}
+                          onChange={(e) => field.handleChange(e.target.value)}
+                          onBlur={field.handleBlur}
+                          aria-invalid={isInvalid ? true : undefined}
+                          aria-labelledby={isInvalid ? "startingBalance-error" : undefined}
+                        />
+                        <InputGroupAddon align="inline-end">
+                          {field.state.meta.isValidating ? (
+                            <Spinner />
+                          ) : (
+                            <InputGroupText>{currency.code}</InputGroupText>
+                          )}
+                        </InputGroupAddon>
+                      </InputGroup>
+
+                      {isInvalid && <FieldError id={errorId} errors={field.state.meta.errors} />}
+                    </Field>
+                  );
+                }}
+              </form.AppField>
+              <BaseAllocationFieldGroup form={form} fields={baseAllocationFields} />
             </FieldGroup>
           </form>
         </div>
