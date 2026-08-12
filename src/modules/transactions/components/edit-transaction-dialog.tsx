@@ -111,7 +111,7 @@ export function EditTransactionDialog() {
 
   async function handleOnOpenChange(open: boolean) {
     if (!open && form.state.isDirty) {
-      const confirmed = await confirm("Discard new transaction?", {
+      const confirmed = await confirm("Discard editing transaction?", {
         description: "The transaction details you entered will be lost.",
         confirmLabel: "Keep Editing",
         cancelLabel: "Discard",

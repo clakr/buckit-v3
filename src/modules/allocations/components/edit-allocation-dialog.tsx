@@ -101,10 +101,9 @@ export function EditAllocationDialog() {
     },
   });
 
-  // @todo: edit this
   async function handleOnOpenChange(open: boolean) {
     if (!open && form.state.isDirty) {
-      const confirmed = await confirm("Discard new allocation?", {
+      const confirmed = await confirm("Discard editing allocation?", {
         description: "The allocation details you entered will be lost.",
         confirmLabel: "Keep Editing",
         cancelLabel: "Discard",
