@@ -7,7 +7,7 @@ declare module "@tanstack/react-query" {
       success: {
         title: string;
         description: string;
-        toReplace: Array<string>;
+        toReplace?: Array<string>;
       };
       error: {
         title: string;

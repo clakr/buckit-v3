@@ -1,11 +1,15 @@
+import { IconAlertCircle, IconFileDescription } from "@tabler/icons-react";
 import { useQuery } from "@tanstack/react-query";
 import z from "zod";
 import { create } from "zustand";
 import { useShallow } from "zustand/react/shallow";
 
-import type { BankAccount } from "#/db/schema";
+import type { Allocation } from "#/db/schema";
 import type { DialogState } from "#/lib/types";
 
+import { StateTemplate } from "#/components/state-template";
+import { Alert, AlertDescription, AlertTitle } from "#/components/ui/alert";
+import { Button } from "#/components/ui/button";
 import {
   Dialog,
   DialogContent,
@@ -13,90 +17,75 @@ import {
   DialogHeader,
   DialogTitle,
 } from "#/components/ui/dialog";
-import { Field, FieldError, FieldGroup, FieldLabel } from "#/components/ui/field";
+import { Field, FieldError, FieldLabel } from "#/components/ui/field";
 import {
   InputGroup,
   InputGroupAddon,
   InputGroupInput,
   InputGroupText,
 } from "#/components/ui/input-group";
-import {
-  Select,
-  SelectContent,
-  SelectGroup,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "#/components/ui/select";
 import { Spinner } from "#/components/ui/spinner";
 import { useAppForm } from "#/integrations/tanstack-form";
 import { currencyCodec } from "#/lib/codecs";
 import { getCurrency, isCurrencyCode } from "#/lib/utils";
-import { useLogAllocationMutation } from "#/modules/allocations/mutations";
-import { logAllocationSchema } from "#/modules/allocations/schema";
-import { bucketsQueryOptions } from "#/modules/buckets/query-options";
+import { baseTransactionDefaultValues } from "#/modules/transactions/forms";
 import { confirm } from "#/stores/use-confirm";
 
-import {
-  baseAllocationDefaultValues,
-  BaseAllocationFieldGroup,
-  baseAllocationFields,
-} from "../forms";
-import { validateLogAllocationAmount } from "../functions";
+import { BaseAllocationFieldGroup, baseAllocationFields } from "../forms";
+import { validateEditAllocationAmount } from "../functions";
+import { useEditAllocationMutation } from "../mutations";
+import { allocationQueryOption } from "../query-options";
+import { editAllocationSchema } from "../schema";
 
 type StoreState = DialogState & {
-  account: BankAccount | null;
-  setAccount: (account: BankAccount) => void;
+  allocationId: Allocation["id"] | null;
+  setAllocationId: (allocationId: Allocation["id"]) => void;
 };
 
-export const useLogAllocationDialogStore = create<StoreState>()((set) => ({
+export const useEditAllocationDialogStore = create<StoreState>()((set) => ({
   isOpen: false,
   openDialog: () => set({ isOpen: true }),
   closeDialog: () => set({ isOpen: false }),
   toggleDialog: () => set((state) => ({ isOpen: !state.isOpen })),
 
-  account: null,
-  setAccount: (account) => set({ account }),
+  allocationId: null,
+  setAllocationId: (allocationId) => set({ allocationId }),
 }));
 
-export function LogAllocationDialog() {
-  const { isOpen, closeDialog, toggleDialog, account } = useLogAllocationDialogStore(
+export function EditAllocationDialog() {
+  const { isOpen, closeDialog, toggleDialog, allocationId } = useEditAllocationDialogStore(
     useShallow((state) => ({
       isOpen: state.isOpen,
       closeDialog: state.closeDialog,
       toggleDialog: state.toggleDialog,
 
-      account: state.account,
+      allocationId: state.allocationId,
     })),
   );
 
-  const mutation = useLogAllocationMutation();
-
-  const defaultValues: z.input<typeof logAllocationSchema> = {
-    ...baseAllocationDefaultValues,
-    bankAccountId: account?.id ?? "",
-    bucketId: "",
-    amount: 0,
-  };
-
   const {
     isLoading,
-    isError, // @todo: handle error
-    data: buckets,
+    isError,
+    refetch,
+    data: allocation,
   } = useQuery({
-    ...bucketsQueryOptions,
+    ...allocationQueryOption(allocationId ?? ""),
     enabled: isOpen,
-    select: (buckets) =>
-      buckets.map((b) => ({
-        value: b.id,
-        label: b.name,
-      })),
   });
+
+  const mutation = useEditAllocationMutation();
+
+  const defaultValues: z.input<typeof editAllocationSchema> = {
+    allocationId: allocationId ?? "",
+    amount: currencyCodec.encode(allocation?.amount ?? 0),
+    date: allocation?.date ?? baseTransactionDefaultValues.date,
+    note: allocation?.note ?? baseTransactionDefaultValues.note,
+  };
 
   const form = useAppForm({
     defaultValues,
     validators: {
-      onBlur: logAllocationSchema,
+      onBlur: editAllocationSchema,
     },
     onSubmit: async ({ value: data }) => {
       try {
@@ -112,6 +101,7 @@ export function LogAllocationDialog() {
     },
   });
 
+  // @todo: edit this
   async function handleOnOpenChange(open: boolean) {
     if (!open && form.state.isDirty) {
       const confirmed = await confirm("Discard new allocation?", {
@@ -128,75 +118,48 @@ export function LogAllocationDialog() {
     toggleDialog();
   }
 
-  if (!account) return null;
-
   return (
     <Dialog open={isOpen} onOpenChange={handleOnOpenChange}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Allocate Money</DialogTitle>
+          <DialogTitle>Edit Allocation</DialogTitle>
         </DialogHeader>
         <div>
-          <form
-            id={form.formId}
-            onSubmit={(e) => {
-              e.preventDefault();
-              e.stopPropagation();
-              form.handleSubmit();
-            }}
-          >
-            <FieldGroup>
-              <form.AppField name="bucketId">
-                {(field) => {
-                  const isInvalid = field.state.meta.isTouched && !field.state.meta.isValid;
-
-                  const id = field.name;
-                  const errorId = `${id}-error`;
-
-                  return (
-                    <Field data-invalid={isInvalid}>
-                      <FieldLabel htmlFor={id}>Bucket</FieldLabel>
-
-                      <Select
-                        items={buckets}
-                        value={field.state.value}
-                        onValueChange={(value) => field.handleChange(value ?? "")}
-                        disabled={isLoading || isError}
-                      >
-                        <SelectTrigger
-                          id={id}
-                          aria-invalid={isInvalid ? true : undefined}
-                          aria-labelledby={isInvalid ? errorId : undefined}
-                          className="w-full"
-                          icon={isLoading ? <Spinner /> : undefined}
-                        >
-                          <SelectValue placeholder="Select bucket" />
-                        </SelectTrigger>
-                        <SelectContent alignItemWithTrigger>
-                          <SelectGroup>
-                            {buckets?.map((b) => (
-                              <SelectItem key={b.value} value={b.value}>
-                                {b.label}
-                              </SelectItem>
-                            ))}
-                          </SelectGroup>
-                        </SelectContent>
-                      </Select>
-
-                      {isInvalid && <FieldError id={errorId} errors={field.state.meta.errors} />}
-                    </Field>
-                  );
-                }}
-              </form.AppField>
+          {isLoading ? (
+            <StateTemplate
+              state="loading"
+              title="Loading allocation"
+              description="Fetching allocation details..."
+            />
+          ) : null}
+          {isError ? (
+            <StateTemplate
+              state="error"
+              title="Could not load allocation"
+              description="We weren't able to retrieve this allocation. Please check your connection and try again."
+              content={<Button onClick={() => refetch()}>Retry</Button>}
+            />
+          ) : null}
+          {allocation ? (
+            <form
+              id={form.formId}
+              onSubmit={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                form.handleSubmit();
+              }}
+              className="flex flex-col gap-y-4"
+            >
               <form.AppField
                 name="amount"
                 validators={{
                   onChangeAsyncDebounceMs: 500,
                   onChangeAsync: z.string().superRefine(async (data, context) => {
                     try {
-                      const { isValid, message } = await validateLogAllocationAmount({
+                      const { isValid, message } = await validateEditAllocationAmount({
                         data: {
-                          bankAccountId: account.id,
+                          allocationId: allocation.id,
+                          bankAccountId: allocation.bankAccountId,
                           amount: currencyCodec.decode(Number(data)),
                         },
                       });
@@ -217,7 +180,7 @@ export function LogAllocationDialog() {
                   const id = field.name;
                   const errorId = `${id}-error`;
 
-                  const accountCurrency = account.currency;
+                  const accountCurrency = allocation.bankAccount?.currency ?? "PHP";
 
                   const validated = isCurrencyCode(accountCurrency);
                   if (!validated) return null;
@@ -261,12 +224,30 @@ export function LogAllocationDialog() {
                 }}
               </form.AppField>
               <BaseAllocationFieldGroup form={form} fields={baseAllocationFields} />
-            </FieldGroup>
-          </form>
+              <form.Subscribe selector={(state) => state.errorMap.onSubmit}>
+                {(error) =>
+                  error ? (
+                    <Alert variant="destructive" className="max-w-md">
+                      <IconAlertCircle />
+                      <AlertTitle>Edit Allocation failed</AlertTitle>
+                      <AlertDescription>{error}</AlertDescription>
+                    </Alert>
+                  ) : null
+                }
+              </form.Subscribe>
+            </form>
+          ) : (
+            <StateTemplate
+              state="empty"
+              title="Allocation not found"
+              description="This allocation doesn't exist or may have been deleted."
+              icon={<IconFileDescription />}
+            />
+          )}
         </div>
         <DialogFooter>
           <form.AppForm>
-            <form.Button form={form.formId}>Allocate Money</form.Button>
+            <form.Button form={form.formId}>Edit Allocation</form.Button>
           </form.AppForm>
         </DialogFooter>
       </DialogContent>
