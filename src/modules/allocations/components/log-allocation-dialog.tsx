@@ -1,6 +1,4 @@
-import { IconCalendar } from "@tabler/icons-react";
 import { useQuery } from "@tanstack/react-query";
-import { format } from "date-fns";
 import z from "zod";
 import { create } from "zustand";
 import { useShallow } from "zustand/react/shallow";
@@ -8,8 +6,6 @@ import { useShallow } from "zustand/react/shallow";
 import type { BankAccount } from "#/db/schema";
 import type { DialogState } from "#/lib/types";
 
-import { Button } from "#/components/ui/button";
-import { Calendar } from "#/components/ui/calendar";
 import {
   Dialog,
   DialogContent,
@@ -18,13 +14,6 @@ import {
   DialogTitle,
 } from "#/components/ui/dialog";
 import { Field, FieldError, FieldGroup, FieldLabel } from "#/components/ui/field";
-import {
-  InputGroup,
-  InputGroupAddon,
-  InputGroupInput,
-  InputGroupText,
-} from "#/components/ui/input-group";
-import { Popover, PopoverContent, PopoverTrigger } from "#/components/ui/popover";
 import {
   Select,
   SelectContent,
@@ -35,13 +24,12 @@ import {
 } from "#/components/ui/select";
 import { Spinner } from "#/components/ui/spinner";
 import { useAppForm } from "#/integrations/tanstack-form";
-import { currencyCodec } from "#/lib/codecs";
-import { getCurrency, isCurrencyCode } from "#/lib/utils";
-import { validateAllocationAmount } from "#/modules/allocations/functions";
 import { useLogAllocationMutation } from "#/modules/allocations/mutations";
 import { logAllocationSchema } from "#/modules/allocations/schema";
 import { bucketsQueryOptions } from "#/modules/buckets/query-options";
 import { confirm } from "#/stores/use-confirm";
+
+import { BaseAllocationFieldGroup, baseAllocationFields } from "../forms";
 
 type StoreState = DialogState & {
   account: BankAccount | null;
@@ -116,11 +104,11 @@ export function LogAllocationDialog() {
     if (!open && form.state.isDirty) {
       const confirmed = await confirm("Discard new allocation?", {
         description: "The allocation details you entered will be lost.",
-        confirmLabel: "Discard",
-        cancelLabel: "Keep editing",
+        confirmLabel: "Keep Editing",
+        cancelLabel: "Discard",
       });
 
-      if (!confirmed) return;
+      if (confirmed) return;
     }
 
     form.reset();
@@ -188,125 +176,11 @@ export function LogAllocationDialog() {
                   );
                 }}
               </form.AppField>
-              <form.AppField
-                name="amount"
-                validators={{
-                  onChangeAsyncDebounceMs: 500,
-                  onChangeAsync: z.coerce.number().superRefine(async (data, context) => {
-                    try {
-                      const { isValid, message } = await validateAllocationAmount({
-                        data: {
-                          bankAccountId: account.id,
-                          amount: currencyCodec.decode(data),
-                        },
-                      });
-
-                      if (!isValid) throw new Error(message);
-                    } catch (error) {
-                      context.addIssue({
-                        code: "custom",
-                        message: error instanceof Error ? error.message : String(error),
-                      });
-                    }
-                  }),
-                }}
-              >
-                {(field) => {
-                  const isInvalid = field.state.meta.isTouched && !field.state.meta.isValid;
-
-                  const id = field.name;
-                  const errorId = `${id}-error`;
-
-                  const accountCurrency = account.currency;
-
-                  const validated = isCurrencyCode(accountCurrency);
-                  if (!validated) return null;
-
-                  const currency = getCurrency(accountCurrency);
-                  if (!currency) return null;
-
-                  return (
-                    <Field data-invalid={isInvalid}>
-                      <FieldLabel htmlFor={id}>Amount</FieldLabel>
-
-                      <InputGroup>
-                        <InputGroupAddon>
-                          <InputGroupText>{currency.symbol}</InputGroupText>
-                        </InputGroupAddon>
-                        <InputGroupInput
-                          type="number"
-                          id={field.name}
-                          placeholder="0.00"
-                          min={0}
-                          step={0.01}
-                          required
-                          value={field.state.value as string}
-                          onChange={(e) => field.handleChange(e.target.value)}
-                          onBlur={field.handleBlur}
-                          aria-invalid={isInvalid ? true : undefined}
-                          aria-labelledby={isInvalid ? "startingBalance-error" : undefined}
-                        />
-                        <InputGroupAddon align="inline-end">
-                          {field.state.meta.isValidating ? (
-                            <Spinner />
-                          ) : (
-                            <InputGroupText>{currency.code}</InputGroupText>
-                          )}
-                        </InputGroupAddon>
-                      </InputGroup>
-
-                      {isInvalid && <FieldError id={errorId} errors={field.state.meta.errors} />}
-                    </Field>
-                  );
-                }}
-              </form.AppField>
-              <form.AppField name="date">
-                {(field) => {
-                  const date = field.state.value;
-
-                  const isInvalid = field.state.meta.isTouched && !field.state.meta.isValid;
-
-                  const id = field.name;
-                  const errorId = `${id}-error`;
-
-                  return (
-                    <Field data-invalid={isInvalid}>
-                      <FieldLabel htmlFor={id}>Date</FieldLabel>
-
-                      <Popover>
-                        <PopoverTrigger
-                          render={
-                            <Button
-                              id={id}
-                              variant="outline"
-                              data-empty={!date}
-                              className="justify-start text-left font-normal data-[empty=true]:text-muted-foreground"
-                              aria-invalid={isInvalid ? true : undefined}
-                              aria-labelledby={isInvalid ? errorId : undefined}
-                            />
-                          }
-                        >
-                          <IconCalendar />
-                          {date ? format(date, "PPP") : <span>Pick a date</span>}
-                        </PopoverTrigger>
-                        <PopoverContent className="w-auto p-0">
-                          <Calendar
-                            mode="single"
-                            selected={date}
-                            onSelect={(value) => field.handleChange(value ?? new Date())}
-                            onDayBlur={field.handleBlur}
-                          />
-                        </PopoverContent>
-                      </Popover>
-
-                      {isInvalid && <FieldError errors={field.state.meta.errors} />}
-                    </Field>
-                  );
-                }}
-              </form.AppField>
-              <form.AppField name="note">
-                {(field) => <field.Textarea label="Note (optional)" placeholder="Add a note..." />}
-              </form.AppField>
+              <BaseAllocationFieldGroup
+                form={form}
+                fields={baseAllocationFields}
+                currency={account.currency}
+              />
             </FieldGroup>
           </form>
         </div>

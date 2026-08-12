@@ -1,6 +1,9 @@
 import { z } from "zod";
 
-export const transactionTypeEnum = z.enum(["income", "expense"], "Please select a valid type");
+export const transactionTypeEnum = z.enum(
+  ["income", "expense"],
+  "Please select a valid type",
+);
 
 export const baseTransactionSchema = z.object({
   type: transactionTypeEnum,
@@ -18,8 +21,8 @@ export const editTransactionSchema = baseTransactionSchema.extend({
 });
 
 export const validateEditTransactionSchema = z.object({
-  bankAccountId: z.string().min(1, "Please select an account"),
-  transactionId: z.string().min(1, "Please select an transaction"),
+  bankAccountId: z.string().min(1, "There's no account"),
+  transactionId: z.string().min(1, "There's no transaction"),
   type: transactionTypeEnum,
   amount: z.coerce.number().min(1, "Amount must be greater than 0."),
 });
