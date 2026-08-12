@@ -1,12 +1,11 @@
 import type { ColumnDef } from "@tanstack/react-table";
 
+import type { getBuckets } from "#/modules/buckets/functions";
+
 import { SortableTableHead } from "#/components/table/sortable-table-head";
 import { currencyCodec } from "#/lib/codecs";
 import { formatCurrency, formatToRelative } from "#/lib/utils";
-
-import type { getBuckets } from "./functions";
-
-import { BucketActionsDropdownMenu } from "./components/buckets-actions-dropdown-menu";
+import { BucketActionsDropdownMenu } from "#/modules/buckets/components/buckets-actions-dropdown-menu";
 
 export const columns: ColumnDef<Awaited<ReturnType<typeof getBuckets>>[number]>[] = [
   {

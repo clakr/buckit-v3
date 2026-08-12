@@ -1,6 +1,8 @@
 import { IconDots, IconEdit, IconEye, IconPlus, IconTrash } from "@tabler/icons-react";
 import { Link } from "@tanstack/react-router";
 
+import type { getBankAccounts } from "#/modules/accounts/functions";
+
 import { Button } from "#/components/ui/button";
 import {
   DropdownMenu,
@@ -11,12 +13,9 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "#/components/ui/dropdown-menu";
+import { getAccountUnallocatedBalance } from "#/modules/accounts/utils";
 import { useLogAllocationDialogStore } from "#/modules/allocations/components/log-allocation-dialog";
 import { useLogTransactionDialogStore } from "#/modules/transactions/components/log-transaction-dialog";
-
-import type { getBankAccounts } from "../functions";
-
-import { getAccountUnallocatedBalance } from "../utils";
 
 type Props = {
   account: Awaited<ReturnType<typeof getBankAccounts>>[number];

@@ -17,7 +17,8 @@ import { Popover, PopoverContent, PopoverTrigger } from "#/components/ui/popover
 import { RadioGroup, RadioGroupItem } from "#/components/ui/radio-group";
 import { withFieldGroup } from "#/integrations/tanstack-form";
 import { getCurrency, isCurrencyCode } from "#/lib/utils";
-import { baseTransactionSchema, transactionTypeEnum } from "#/modules/transactions/schema";
+
+import { baseTransactionSchema, transactionTypeEnum } from "./schema";
 
 export const baseTransactionDefaultValues: z.input<typeof baseTransactionSchema> = {
   type: "income",

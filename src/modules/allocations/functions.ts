@@ -7,12 +7,8 @@ import { allocations } from "#/db/schema";
 import { currencyCodec } from "#/lib/codecs";
 import { authMiddleware } from "#/lib/middlewares";
 import { formatCurrency } from "#/lib/utils";
-import {
-  logAllocationSchema,
-  validateAllocationAmountSchema,
-} from "#/modules/allocations/schema";
-
-import { getAccountUnallocatedBalance } from "../accounts/utils";
+import { getAccountUnallocatedBalance } from "#/modules/accounts/utils";
+import { logAllocationSchema, validateAllocationAmountSchema } from "#/modules/allocations/schema";
 
 export const logAllocation = createServerFn({
   method: "POST",
