@@ -3,13 +3,13 @@ import { createFieldMap } from "@tanstack/react-form";
 import { format } from "date-fns";
 import { z } from "zod";
 
+import type { baseAllocationSchema } from "#/modules/allocations/schema";
+
 import { Button } from "#/components/ui/button";
 import { Calendar } from "#/components/ui/calendar";
 import { Field, FieldError, FieldLabel } from "#/components/ui/field";
 import { Popover, PopoverContent, PopoverTrigger } from "#/components/ui/popover";
 import { withFieldGroup } from "#/integrations/tanstack-form";
-
-import type { baseAllocationSchema } from "./schema";
 
 export const baseAllocationDefaultValues: z.input<typeof baseAllocationSchema> = {
   date: new Date(),

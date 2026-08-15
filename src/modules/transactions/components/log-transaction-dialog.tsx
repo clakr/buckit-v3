@@ -1,3 +1,4 @@
+import { IconAlertCircle } from "@tabler/icons-react";
 import z from "zod";
 import { create } from "zustand";
 import { useShallow } from "zustand/react/shallow";
@@ -5,6 +6,7 @@ import { useShallow } from "zustand/react/shallow";
 import type { BankAccount } from "#/db/schema";
 import type { DialogState } from "#/lib/types";
 
+import { Alert, AlertDescription, AlertTitle } from "#/components/ui/alert";
 import {
   Dialog,
   DialogContent,
@@ -13,11 +15,13 @@ import {
   DialogTitle,
 } from "#/components/ui/dialog";
 import { useAppForm } from "#/integrations/tanstack-form";
+import { currencyCodec } from "#/lib/codecs";
 import {
   baseTransactionDefaultValues,
   BaseTransactionFieldGroup,
   baseTransactionFields,
 } from "#/modules/transactions/forms";
+import { validateLogTransaction } from "#/modules/transactions/functions";
 import { useLogTransactionMutation } from "#/modules/transactions/mutations";
 import { logTransactionSchema } from "#/modules/transactions/schema";
 import { confirm } from "#/stores/use-confirm";
@@ -59,6 +63,18 @@ export function LogTransactionDialog() {
     defaultValues,
     validators: {
       onBlur: logTransactionSchema,
+      onSubmitAsync: async ({ value }) => {
+        const { isValid, message } = await validateLogTransaction({
+          data: {
+            ...value,
+            amount: currencyCodec.decode(Number(value.amount)),
+          },
+        });
+
+        if (!isValid) return message;
+
+        return undefined;
+      },
     },
     onSubmit: async ({ value: data }) => {
       try {
@@ -106,12 +122,24 @@ export function LogTransactionDialog() {
               e.stopPropagation();
               form.handleSubmit();
             }}
+            className="flex flex-col gap-y-4"
           >
             <BaseTransactionFieldGroup
               form={form}
               currency={account.currency}
               fields={baseTransactionFields}
             />
+            <form.Subscribe selector={(state) => state.errorMap.onSubmit}>
+              {(error) =>
+                error ? (
+                  <Alert variant="destructive" className="max-w-md">
+                    <IconAlertCircle />
+                    <AlertTitle>Log Transaction failed</AlertTitle>
+                    <AlertDescription>{error}</AlertDescription>
+                  </Alert>
+                ) : null
+              }
+            </form.Subscribe>
           </form>
         </div>
         <DialogFooter>
