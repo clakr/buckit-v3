@@ -28,14 +28,13 @@ import { Spinner } from "#/components/ui/spinner";
 import { useAppForm } from "#/integrations/tanstack-form";
 import { currencyCodec } from "#/lib/codecs";
 import { getCurrency, isCurrencyCode } from "#/lib/utils";
+import { BaseAllocationFieldGroup, baseAllocationFields } from "#/modules/allocations/forms";
+import { validateEditAllocationAmount } from "#/modules/allocations/functions";
+import { useEditAllocationMutation } from "#/modules/allocations/mutations";
+import { allocationQueryOption } from "#/modules/allocations/query-options";
+import { editAllocationSchema } from "#/modules/allocations/schema";
 import { baseTransactionDefaultValues } from "#/modules/transactions/forms";
 import { confirm } from "#/stores/use-confirm";
-
-import { BaseAllocationFieldGroup, baseAllocationFields } from "../forms";
-import { validateEditAllocationAmount } from "../functions";
-import { useEditAllocationMutation } from "../mutations";
-import { allocationQueryOption } from "../query-options";
-import { editAllocationSchema } from "../schema";
 
 type StoreState = DialogState & {
   allocationId: Allocation["id"] | null;

@@ -15,6 +15,61 @@ import {
   validateEditTransactionSchema,
 } from "#/modules/transactions/schema";
 
+export const validateLogTransaction = createServerFn({
+  method: "GET",
+})
+  .middleware([authMiddleware])
+  .validator(logTransactionSchema)
+  .handler(async ({ data }) => {
+    const db = getDB(env.db);
+
+    const bankAccount = await db.query.bankAccounts.findFirst({
+      columns: {
+        startingBalance: true,
+      },
+      where: {
+        id: data.bankAccountId,
+      },
+      with: {
+        transactions: {
+          columns: {
+            id: true,
+            type: true,
+            amount: true,
+          },
+        },
+        allocations: {
+          columns: {
+            amount: true,
+          },
+        },
+      },
+    });
+
+    if (!bankAccount) {
+      return {
+        isValid: false,
+        message: "No account found.",
+      };
+    }
+
+    const { unallocated } = getAccountUnallocatedBalance({
+      startingBalance: bankAccount.startingBalance,
+      transactions: bankAccount.transactions,
+      allocations: bankAccount.allocations,
+    });
+
+    if (data.type === "expense" && unallocated - data.amount < 0) {
+      return {
+        isValid: false,
+        message:
+          "This change would result in a negative unallocated balance. Adjust the amount or add more income first.",
+      };
+    }
+
+    return { isValid: true, message: "ok" };
+  });
+
 export const logTransaction = createServerFn({
   method: "POST",
 })
