@@ -158,7 +158,7 @@ export function EditAllocationDialog() {
                         data: {
                           allocationId: allocation.id,
                           bankAccountId: allocation.bankAccountId,
-                          amount: currencyCodec.decode(Number(data)),
+                          amount: data,
                         },
                       });
 

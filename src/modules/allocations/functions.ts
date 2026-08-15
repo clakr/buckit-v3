@@ -85,7 +85,7 @@ export const validateLogAllocationAmount = createServerFn({
       allocations: bankAccount.allocations,
     });
 
-    if (data.amount > unallocated) {
+    if (currencyCodec.decode(data.amount) > unallocated) {
       return {
         isValid: false,
         message: `Insufficient unallocated balance in ${bankAccount.name}. Available: ${formatCurrency(
@@ -110,6 +110,15 @@ export const logAllocation = createServerFn({
   .validator(logAllocationSchema)
   .handler(async ({ data }) => {
     const db = getDB(env.db);
+
+    const { isValid, message } = await validateLogAllocationAmount({
+      data: {
+        bankAccountId: data.bankAccountId,
+        amount: data.amount,
+      },
+    });
+
+    if (!isValid) throw new Error(message);
 
     return db
       .insert(allocations)
@@ -180,7 +189,7 @@ export const validateEditAllocationAmount = createServerFn({
       };
     }
 
-    targetAllocation.amount = data.amount;
+    targetAllocation.amount = currencyCodec.decode(data.amount);
 
     const { unallocated } = getAccountUnallocatedBalance({
       startingBalance: allocation.bankAccount.startingBalance,
@@ -208,6 +217,15 @@ export const editAllocation = createServerFn({
   .validator(editAllocationSchema)
   .handler(async ({ data }) => {
     const db = getDB(env.db);
+
+    const { isValid, message } = await validateEditAllocationAmount({
+      data: {
+        allocationId: data.allocationId,
+        amount: data.amount,
+      },
+    });
+
+    if (!isValid) throw new Error(message);
 
     return db
       .update(allocations)

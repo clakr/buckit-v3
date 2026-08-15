@@ -3,7 +3,10 @@ import { getRequestHeaders } from "@tanstack/react-start/server";
 
 import { auth } from "#/integrations/better-auth";
 import { authMiddleware } from "#/lib/middlewares";
-import { signUpUserSchema, signInUserSchema } from "#/modules/authentication/schema";
+import {
+  signUpUserSchema,
+  signInUserSchema,
+} from "#/modules/authentication/schemas";
 
 export const signUpUser = createServerFn({
   method: "POST",
@@ -30,7 +33,9 @@ export const getSession = createServerFn({
 
 export const signOutUser = createServerFn({ method: "POST" })
   .middleware([authMiddleware])
-  .handler(async () => await auth.api.signOut({ headers: getRequestHeaders() }));
+  .handler(
+    async () => await auth.api.signOut({ headers: getRequestHeaders() }),
+  );
 
 export const signInUser = createServerFn({ method: "POST" })
   .validator(signInUserSchema)

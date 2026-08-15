@@ -86,7 +86,7 @@ export function EditTransactionDialog() {
         const { isValid, message } = await validateEditTransaction({
           data: {
             ...value,
-            amount: currencyCodec.decode(Number(value.amount)),
+            amount: value.amount,
           },
         });
 

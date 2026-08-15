@@ -8,7 +8,7 @@ import { Button } from "#/components/ui/button";
 import { Field, FieldDescription, FieldGroup, FieldSeparator } from "#/components/ui/field";
 import { useAppForm } from "#/integrations/tanstack-form";
 import { signUpUser } from "#/modules/authentication/functions";
-import { signUpUserSchema } from "#/modules/authentication/schema";
+import { signUpUserSchema } from "#/modules/authentication/schemas";
 
 export const Route = createFileRoute("/_guest/register")({
   component: RouteComponent,
