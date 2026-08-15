@@ -15,7 +15,6 @@ import {
   DialogTitle,
 } from "#/components/ui/dialog";
 import { useAppForm } from "#/integrations/tanstack-form";
-import { currencyCodec } from "#/lib/codecs";
 import {
   baseTransactionDefaultValues,
   BaseTransactionFieldGroup,
@@ -67,7 +66,7 @@ export function LogTransactionDialog() {
         const { isValid, message } = await validateLogTransaction({
           data: {
             ...value,
-            amount: currencyCodec.decode(Number(value.amount)),
+            amount: value.amount,
           },
         });
 

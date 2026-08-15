@@ -30,7 +30,6 @@ import {
 } from "#/components/ui/select";
 import { Spinner } from "#/components/ui/spinner";
 import { useAppForm } from "#/integrations/tanstack-form";
-import { currencyCodec } from "#/lib/codecs";
 import { getCurrency, isCurrencyCode } from "#/lib/utils";
 import {
   baseAllocationDefaultValues,
@@ -196,7 +195,7 @@ export function LogAllocationDialog() {
                       const { isValid, message } = await validateLogAllocationAmount({
                         data: {
                           bankAccountId: account.id,
-                          amount: currencyCodec.decode(Number(data)),
+                          amount: data,
                         },
                       });
 

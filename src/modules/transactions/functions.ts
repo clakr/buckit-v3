@@ -78,7 +78,7 @@ export const validateLogTransaction = createServerFn({
       allocations: bankAccount.allocations,
     });
 
-    if (data.type === "expense" && unallocated - data.amount < 0) {
+    if (data.type === "expense" && unallocated - currencyCodec.decode(data.amount) < 0) {
       return {
         isValid: false,
         message:
@@ -96,6 +96,12 @@ export const logTransaction = createServerFn({
   .validator(logTransactionSchema)
   .handler(async ({ data }) => {
     const db = getDB(env.db);
+
+    const { isValid, message } = await validateLogTransaction({
+      data,
+    });
+
+    if (!isValid) throw new Error(message);
 
     return db
       .insert(transactions)
@@ -166,7 +172,7 @@ export const validateEditTransaction = createServerFn({
       };
     }
 
-    targetTransaction.amount = data.amount;
+    targetTransaction.amount = currencyCodec.decode(data.amount);
     targetTransaction.type = data.type;
 
     const { unallocated } = getAccountUnallocatedBalance({
@@ -193,6 +199,12 @@ export const editTransaction = createServerFn({
   .validator(editTransactionSchema)
   .handler(async ({ data }) => {
     const db = getDB(env.db);
+
+    const { isValid, message } = await validateEditTransaction({
+      data,
+    });
+
+    if (!isValid) throw new Error(message);
 
     return db
       .update(transactions)
