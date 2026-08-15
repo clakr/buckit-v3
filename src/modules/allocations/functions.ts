@@ -2,46 +2,48 @@ import { createServerFn } from "@tanstack/react-start";
 import { env } from "cloudflare:workers";
 import { eq } from "drizzle-orm";
 import { uuidv7 } from "uuidv7";
-import { z } from "zod";
 
 import { getDB } from "#/db";
 import { allocations } from "#/db/schema";
 import { currencyCodec } from "#/lib/codecs";
-import { authMiddleware } from "#/lib/middlewares";
 import { formatCurrency } from "#/lib/utils";
+import { verifyUserBankAccountMiddleware } from "#/modules/accounts/middlewares";
 import { getAccountUnallocatedBalance } from "#/modules/accounts/utils";
+import { verifyUserAllocationMiddleware } from "#/modules/allocations/middlewares";
 import {
   editAllocationSchema,
   logAllocationSchema,
-  validateLogAllocationAmountSchema,
   validateEditAllocationAmountSchema,
-} from "#/modules/allocations/schema";
+  validateLogAllocationAmountSchema,
+} from "#/modules/allocations/schemas";
 
-export const logAllocation = createServerFn({
-  method: "POST",
+export const getAllocation = createServerFn({
+  method: "GET",
 })
-  .middleware([authMiddleware])
-  .validator(logAllocationSchema)
+  .middleware([verifyUserAllocationMiddleware])
   .handler(async ({ data }) => {
     const db = getDB(env.db);
 
-    return db
-      .insert(allocations)
-      .values({
-        id: uuidv7(),
-        bankAccountId: data.bankAccountId,
-        bucketId: data.bucketId,
-        amount: currencyCodec.decode(data.amount),
-        date: data.date,
-        note: data.note,
-      })
-      .returning();
+    const allocation = await db.query.allocations.findFirst({
+      where: {
+        id: data.allocationId,
+      },
+      with: {
+        bankAccount: {
+          columns: {
+            currency: true,
+          },
+        },
+      },
+    });
+
+    return allocation ?? null;
   });
 
 export const validateLogAllocationAmount = createServerFn({
   method: "GET",
 })
-  .middleware([authMiddleware])
+  .middleware([verifyUserBankAccountMiddleware])
   .validator(validateLogAllocationAmountSchema)
   .handler(async ({ data }) => {
     const db = getDB(env.db);
@@ -101,90 +103,74 @@ export const validateLogAllocationAmount = createServerFn({
     };
   });
 
-export const getAllocation = createServerFn({
-  method: "GET",
-})
-  .middleware([authMiddleware])
-  .validator(z.string())
-  .handler(async ({ data: allocationId }) => {
-    const db = getDB(env.db);
-
-    const allocation = await db.query.allocations.findFirst({
-      where: {
-        id: allocationId,
-      },
-      with: {
-        bankAccount: {
-          columns: {
-            currency: true,
-          },
-        },
-      },
-    });
-
-    return allocation ?? null;
-  });
-
-export const editAllocation = createServerFn({
+export const logAllocation = createServerFn({
   method: "POST",
 })
-  .middleware([authMiddleware])
-  .validator(editAllocationSchema)
+  .middleware([verifyUserBankAccountMiddleware])
+  .validator(logAllocationSchema)
   .handler(async ({ data }) => {
     const db = getDB(env.db);
 
     return db
-      .update(allocations)
-      .set({
+      .insert(allocations)
+      .values({
+        id: uuidv7(),
+        bankAccountId: data.bankAccountId,
+        bucketId: data.bucketId,
         amount: currencyCodec.decode(data.amount),
         date: data.date,
         note: data.note,
       })
-      .where(eq(allocations.id, data.allocationId))
       .returning();
   });
 
 export const validateEditAllocationAmount = createServerFn({
   method: "GET",
 })
-  .middleware([authMiddleware])
+  .middleware([verifyUserAllocationMiddleware])
   .validator(validateEditAllocationAmountSchema)
   .handler(async ({ data }) => {
     const db = getDB(env.db);
 
-    const bankAccount = await db.query.bankAccounts.findFirst({
-      columns: {
-        startingBalance: true,
-        name: true,
-        currency: true,
-      },
+    const allocation = await db.query.allocations.findFirst({
       where: {
-        id: data.bankAccountId,
+        id: data.allocationId,
       },
       with: {
-        transactions: {
-          columns: {
-            type: true,
-            amount: true,
-          },
-        },
-        allocations: {
-          columns: {
-            id: true,
-            amount: true,
+        bankAccount: {
+          with: {
+            transactions: {
+              columns: {
+                type: true,
+                amount: true,
+              },
+            },
+            allocations: {
+              columns: {
+                id: true,
+                amount: true,
+              },
+            },
           },
         },
       },
     });
 
-    if (!bankAccount) {
+    if (!allocation) {
+      return {
+        isValid: false,
+        message: "No allocation found.",
+      };
+    }
+
+    if (!allocation.bankAccount) {
       return {
         isValid: false,
         message: "No account found.",
       };
     }
 
-    const allocationsMap = new Map(bankAccount.allocations.map((a) => [a.id, a]));
+    const allocationsMap = new Map(allocation.bankAccount.allocations.map((a) => [a.id, a]));
     const targetAllocation = allocationsMap.get(data.allocationId);
 
     if (!targetAllocation) {
@@ -197,8 +183,8 @@ export const validateEditAllocationAmount = createServerFn({
     targetAllocation.amount = data.amount;
 
     const { unallocated } = getAccountUnallocatedBalance({
-      startingBalance: bankAccount.startingBalance,
-      transactions: bankAccount.transactions,
+      startingBalance: allocation.bankAccount.startingBalance,
+      transactions: allocation.bankAccount.transactions,
       allocations: Array.from(allocationsMap.values()),
     });
 
@@ -213,4 +199,23 @@ export const validateEditAllocationAmount = createServerFn({
       isValid: true,
       message: "ok",
     };
+  });
+
+export const editAllocation = createServerFn({
+  method: "POST",
+})
+  .middleware([verifyUserAllocationMiddleware])
+  .validator(editAllocationSchema)
+  .handler(async ({ data }) => {
+    const db = getDB(env.db);
+
+    return db
+      .update(allocations)
+      .set({
+        amount: currencyCodec.decode(data.amount),
+        date: data.date,
+        note: data.note,
+      })
+      .where(eq(allocations.id, data.allocationId))
+      .returning();
   });

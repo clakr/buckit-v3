@@ -23,7 +23,7 @@ import {
 } from "#/modules/transactions/forms";
 import { validateLogTransaction } from "#/modules/transactions/functions";
 import { useLogTransactionMutation } from "#/modules/transactions/mutations";
-import { logTransactionSchema } from "#/modules/transactions/schema";
+import { logTransactionSchema } from "#/modules/transactions/schemas";
 import { confirm } from "#/stores/use-confirm";
 
 type StoreState = DialogState & {

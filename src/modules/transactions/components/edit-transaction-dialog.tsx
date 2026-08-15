@@ -27,7 +27,7 @@ import {
 import { validateEditTransaction } from "#/modules/transactions/functions";
 import { useEditTransactionMutation } from "#/modules/transactions/mutations";
 import { transactionQueryOption } from "#/modules/transactions/query-options";
-import { editTransactionSchema } from "#/modules/transactions/schema";
+import { editTransactionSchema } from "#/modules/transactions/schemas";
 import { confirm } from "#/stores/use-confirm";
 
 type StoreState = DialogState & {
@@ -69,9 +69,11 @@ export function EditTransactionDialog() {
   const mutation = useEditTransactionMutation();
 
   const defaultValues: z.input<typeof editTransactionSchema> = {
-    transactionId: transactionId ?? "",
+    transactionId: transaction?.id ?? "",
     type: transaction?.type ?? baseTransactionDefaultValues.type,
-    amount: currencyCodec.encode(transaction?.amount ?? 0),
+    amount: currencyCodec.encode(
+      transaction?.amount ?? Number(baseTransactionDefaultValues.amount),
+    ),
     date: transaction?.date ?? baseTransactionDefaultValues.date,
     note: transaction?.note ?? baseTransactionDefaultValues.note,
   };
@@ -83,9 +85,7 @@ export function EditTransactionDialog() {
       onSubmitAsync: async ({ value }) => {
         const { isValid, message } = await validateEditTransaction({
           data: {
-            bankAccountId: transaction?.bankAccountId ?? "",
-            transactionId: transaction?.id ?? "",
-            type: value.type,
+            ...value,
             amount: currencyCodec.decode(Number(value.amount)),
           },
         });

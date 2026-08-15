@@ -32,7 +32,7 @@ import { BaseAllocationFieldGroup, baseAllocationFields } from "#/modules/alloca
 import { validateEditAllocationAmount } from "#/modules/allocations/functions";
 import { useEditAllocationMutation } from "#/modules/allocations/mutations";
 import { allocationQueryOption } from "#/modules/allocations/query-options";
-import { editAllocationSchema } from "#/modules/allocations/schema";
+import { editAllocationSchema } from "#/modules/allocations/schemas";
 import { baseTransactionDefaultValues } from "#/modules/transactions/forms";
 import { confirm } from "#/stores/use-confirm";
 
