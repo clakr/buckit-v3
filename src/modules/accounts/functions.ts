@@ -8,6 +8,7 @@ import { getDB } from "#/db";
 import { bankAccounts, lower } from "#/db/schema";
 import { currencyCodec } from "#/lib/codecs";
 import { authMiddleware } from "#/lib/middlewares";
+import { verifyUserBankAccountMiddleware } from "#/modules/accounts/middlewares";
 import { addAccountSchema } from "#/modules/accounts/schemas";
 
 export const getBankAccounts = createServerFn({
@@ -34,6 +35,53 @@ export const getBankAccounts = createServerFn({
         },
       },
     });
+  });
+
+export const getBankAccount = createServerFn({
+  method: "GET",
+})
+  .middleware([verifyUserBankAccountMiddleware])
+  .handler(async ({ data }) => {
+    const db = getDB(env.db);
+
+    const bankAccount = await db.query.bankAccounts.findFirst({
+      where: {
+        id: data.bankAccountId,
+      },
+      with: {
+        transactions: {
+          with: {
+            bankAccount: {
+              columns: {
+                currency: true,
+              },
+            },
+          },
+          orderBy: {
+            date: "desc",
+          },
+        },
+        allocations: {
+          with: {
+            bucket: {
+              columns: {
+                name: true,
+              },
+            },
+            bankAccount: {
+              columns: {
+                currency: true,
+              },
+            },
+          },
+          orderBy: {
+            date: "desc",
+          },
+        },
+      },
+    });
+
+    return bankAccount ?? null;
   });
 
 export const validateBankAccountName = createServerFn({
@@ -86,52 +134,4 @@ export const addBankAccount = createServerFn({
         startingBalance: currencyCodec.decode(data.startingBalance),
       })
       .returning();
-  });
-
-export const getBankAccount = createServerFn({
-  method: "GET",
-})
-  .middleware([authMiddleware])
-  .validator(z.string())
-  .handler(async ({ data: bankAccountId }) => {
-    const db = getDB(env.db);
-
-    const bankAccount = await db.query.bankAccounts.findFirst({
-      where: {
-        id: bankAccountId,
-      },
-      with: {
-        transactions: {
-          with: {
-            bankAccount: {
-              columns: {
-                currency: true,
-              },
-            },
-          },
-          orderBy: {
-            date: "desc",
-          },
-        },
-        allocations: {
-          with: {
-            bucket: {
-              columns: {
-                name: true,
-              },
-            },
-            bankAccount: {
-              columns: {
-                currency: true,
-              },
-            },
-          },
-          orderBy: {
-            date: "desc",
-          },
-        },
-      },
-    });
-
-    return bankAccount ?? null;
   });

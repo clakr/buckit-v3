@@ -5,7 +5,7 @@ import { uuidv7 } from "uuidv7";
 import { z } from "zod";
 
 import { getDB } from "#/db";
-import { buckets, lower } from "#/db/schema";
+import { buckets, lower } from "#/db/schemas";
 import { authMiddleware } from "#/lib/middlewares";
 import { addBucketSchema } from "#/modules/buckets/schemas";
 

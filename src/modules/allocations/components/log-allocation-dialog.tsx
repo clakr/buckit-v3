@@ -39,7 +39,7 @@ import {
 } from "#/modules/allocations/forms";
 import { validateLogAllocationAmount } from "#/modules/allocations/functions";
 import { useLogAllocationMutation } from "#/modules/allocations/mutations";
-import { logAllocationSchema } from "#/modules/allocations/schema";
+import { logAllocationSchema } from "#/modules/allocations/schemas";
 import { bucketsQueryOptions } from "#/modules/buckets/query-options";
 import { confirm } from "#/stores/use-confirm";
 

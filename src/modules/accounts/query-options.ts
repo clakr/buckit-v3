@@ -12,6 +12,11 @@ export const bankAccountsQueryOption = queryOptions({
 export function bankAccountQueryOption(bankAccountId: BankAccount["id"]) {
   return queryOptions({
     queryKey: ["bank-accounts", bankAccountId],
-    queryFn: () => getBankAccount({ data: bankAccountId }),
+    queryFn: () =>
+      getBankAccount({
+        data: {
+          bankAccountId,
+        },
+      }),
   });
 }

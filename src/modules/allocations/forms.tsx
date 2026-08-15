@@ -3,7 +3,7 @@ import { createFieldMap } from "@tanstack/react-form";
 import { format } from "date-fns";
 import { z } from "zod";
 
-import type { baseAllocationSchema } from "#/modules/allocations/schema";
+import type { baseAllocationSchema } from "#/modules/allocations/schemas";
 
 import { Button } from "#/components/ui/button";
 import { Calendar } from "#/components/ui/calendar";

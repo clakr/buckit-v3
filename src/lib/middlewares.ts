@@ -7,7 +7,7 @@ export const authMiddleware = createMiddleware({ type: "function" }).server(asyn
   const headers = getRequestHeaders();
   const session = await auth.api.getSession({ headers });
 
-  if (!session) throw new Error("Unauthorized");
+  if (!session) throw new Error("UNAUTHORIZED");
 
   return next({
     context: session,

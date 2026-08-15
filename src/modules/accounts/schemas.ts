@@ -2,6 +2,10 @@ import { z } from "zod";
 
 import { currenciesCodes } from "#/lib/constants";
 
+export const verifyUserBankAccountMiddlewareSchema = z.looseObject({
+  bankAccountId: z.string().min(1, "No bank account ID provided"),
+});
+
 export const addAccountSchema = z.object({
   name: z
     .string()
