@@ -41,7 +41,7 @@ export const validateBucketName = createServerFn({
   method: "GET",
 })
   .middleware([authMiddleware])
-  .validator(z.string())
+  .validator(z.string().trim())
   .handler(async ({ context, data }) => {
     const db = getDB(env.db);
 
