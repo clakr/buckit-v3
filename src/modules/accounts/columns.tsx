@@ -17,9 +17,9 @@ import {
   isCurrencyCode,
 } from "#/lib/utils";
 import { AccountActionsDropdownMenu } from "#/modules/accounts/components/account-actions-dropdown-menu";
-import { AllocationActionsDropdownMenu } from "#/modules/accounts/components/allocation-actions-dropdown-menu";
-import { TransactionActionsDropdownMenu } from "#/modules/accounts/components/transaction-actions-dropdown-menu";
 import { getAccountUnallocatedBalance } from "#/modules/accounts/utils";
+import { AllocationActionsDropdownMenu } from "#/modules/allocations/components/allocation-actions-dropdown-menu";
+import { TransactionActionsDropdownMenu } from "#/modules/transactions/components/transaction-actions-dropdown-menu";
 
 export const INDEX_COLUMNS: ColumnDef<Awaited<ReturnType<typeof getBankAccounts>>[number]>[] = [
   {
