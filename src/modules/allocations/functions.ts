@@ -148,6 +148,9 @@ export const validateEditAllocationAmount = createServerFn({
       },
       with: {
         bankAccount: {
+          columns: {
+            startingBalance: true,
+          },
           with: {
             transactions: {
               columns: {
