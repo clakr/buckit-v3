@@ -33,9 +33,7 @@ export const getSession = createServerFn({
 
 export const signOutUser = createServerFn({ method: "POST" })
   .middleware([authMiddleware])
-  .handler(
-    async () => await auth.api.signOut({ headers: getRequestHeaders() }),
-  );
+  .handler(() => auth.api.signOut({ headers: getRequestHeaders() }));
 
 export const signInUser = createServerFn({ method: "POST" })
   .validator(signInUserSchema)

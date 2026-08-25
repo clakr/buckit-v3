@@ -10,11 +10,11 @@ import { Main } from "#/components/main";
 import { StateTemplate } from "#/components/state-template";
 import { Button } from "#/components/ui/button";
 import { DataTable } from "#/components/ui/data-table";
-import { columns } from "#/modules/buckets/columns";
+import { INDEX_COLUMNS } from "#/modules/buckets/columns";
 import { useAddBucketDialogStore } from "#/modules/buckets/components/add-bucket-dialog";
 import { bucketsQueryOptions } from "#/modules/buckets/query-options";
 
-export const Route = createFileRoute("/_protected/buckets")({
+export const Route = createFileRoute("/_protected/buckets/")({
   loader: async ({ context: { queryClient } }) => {
     queryClient.prefetchQuery(bucketsQueryOptions);
   },
@@ -63,7 +63,7 @@ function RouteComponent() {
           }
         />
       ) : (
-        <DataTable columns={columns} data={buckets} />
+        <DataTable columns={INDEX_COLUMNS} data={buckets} />
       )}
     </Template>
   );

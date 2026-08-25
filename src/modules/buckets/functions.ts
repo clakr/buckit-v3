@@ -7,6 +7,7 @@ import { z } from "zod";
 import { getDB } from "#/db";
 import { buckets, lower } from "#/db/schema";
 import { authMiddleware } from "#/lib/middlewares";
+import { verifyUserBucketMiddleware } from "#/modules/buckets/middlewares";
 import { addBucketSchema } from "#/modules/buckets/schemas";
 
 export const getBuckets = createServerFn({
@@ -26,15 +27,42 @@ export const getBuckets = createServerFn({
             createdAt: "desc",
           },
           with: {
+            bankAccount: true,
+          },
+        },
+      },
+    });
+  });
+
+export const getBucket = createServerFn({
+  method: "GET",
+})
+  .middleware([verifyUserBucketMiddleware])
+  .handler(async ({ data }) => {
+    const db = getDB(env.db);
+
+    const bucket = await db.query.buckets.findFirst({
+      where: {
+        id: data.bucketId,
+      },
+      with: {
+        allocations: {
+          orderBy: {
+            date: "desc",
+          },
+          with: {
             bankAccount: {
-              orderBy: {
-                createdAt: "desc",
+              columns: {
+                name: true,
+                currency: true,
               },
             },
           },
         },
       },
     });
+
+    return bucket ?? null;
   });
 
 export const validateBucketName = createServerFn({

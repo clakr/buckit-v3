@@ -2,7 +2,7 @@ import type { ColumnDef } from "@tanstack/react-table";
 
 import { IconCircleDashed } from "@tabler/icons-react";
 
-import type { Bucket, Transaction } from "#/db/schema";
+import type { Allocation, Bucket, Transaction } from "#/db/schema";
 import type { getBankAccount, getBankAccounts } from "#/modules/accounts/functions";
 
 import { SortableTableHead } from "#/components/table/sortable-table-head";
@@ -189,7 +189,7 @@ export const ALLOCATIONS_COLUMNS: ColumnDef<
 >[] = [
   {
     accessorKey: "date",
-    cell: ({ getValue }) => formatToRelative(getValue<Transaction["date"]>()),
+    cell: ({ getValue }) => formatToRelative(getValue<Allocation["date"]>()),
   },
   {
     accessorKey: "bucket.name",

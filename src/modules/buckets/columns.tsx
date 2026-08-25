@@ -1,13 +1,16 @@
 import type { ColumnDef } from "@tanstack/react-table";
 
-import type { getBuckets } from "#/modules/buckets/functions";
+import type { Allocation, BankAccount } from "#/db/schema";
+import type { getBucket, getBuckets } from "#/modules/buckets/functions";
 
 import { SortableTableHead } from "#/components/table/sortable-table-head";
+import { Badge } from "#/components/ui/badge";
 import { currencyCodec } from "#/lib/codecs";
 import { formatCurrency, formatToRelative } from "#/lib/utils";
+import { AllocationActionsDropdownMenu } from "#/modules/accounts/components/allocation-actions-dropdown-menu";
 import { BucketActionsDropdownMenu } from "#/modules/buckets/components/buckets-actions-dropdown-menu";
 
-export const columns: ColumnDef<Awaited<ReturnType<typeof getBuckets>>[number]>[] = [
+export const INDEX_COLUMNS: ColumnDef<Awaited<ReturnType<typeof getBuckets>>[number]>[] = [
   {
     accessorKey: "name",
     header: ({ column }) => <SortableTableHead column={column}>Name</SortableTableHead>,
@@ -51,6 +54,43 @@ export const columns: ColumnDef<Awaited<ReturnType<typeof getBuckets>>[number]>[
   {
     accessorKey: "actions",
     header: "",
-    cell: () => <BucketActionsDropdownMenu />,
+    cell: ({ row }) => <BucketActionsDropdownMenu bucketId={row.original.id} />,
+  },
+];
+
+export const ALLOCATIONS_COLUMNS: ColumnDef<
+  NonNullable<Awaited<ReturnType<typeof getBucket>>>["allocations"][number]
+>[] = [
+  {
+    accessorKey: "date",
+    cell: ({ getValue }) => formatToRelative(getValue<Allocation["date"]>()),
+  },
+  {
+    accessorKey: "bankAccount.name",
+    header: "Bank Account",
+    cell: ({ row }) => (
+      <span className="flex items-center gap-x-2 font-semibold">
+        {row.original.bankAccount?.name}
+        <Badge>{row.original.bankAccount?.currency}</Badge>
+      </span>
+    ),
+  },
+  {
+    accessorKey: "amount",
+    cell: ({ row }) => (
+      <span className="font-medium">
+        {formatCurrency(currencyCodec.encode(row.original.amount), {
+          currency: row.original.bankAccount?.currency,
+        })}
+      </span>
+    ),
+  },
+  {
+    accessorKey: "note",
+  },
+  {
+    accessorKey: "actions",
+    header: "",
+    cell: ({ row }) => <AllocationActionsDropdownMenu allocationId={row.original.id} />,
   },
 ];
