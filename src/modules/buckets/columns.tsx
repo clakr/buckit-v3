@@ -10,7 +10,7 @@ import { Badge } from "#/components/ui/badge";
 import { Tooltip, TooltipContent, TooltipTrigger } from "#/components/ui/tooltip";
 import { currencyCodec } from "#/lib/codecs";
 import { formatCurrency, formatDate, formatToRelative } from "#/lib/utils";
-import { AllocationActionsDropdownMenu } from "#/modules/accounts/components/allocation-actions-dropdown-menu";
+import { AllocationActionsDropdownMenu } from "#/modules/allocations/components/allocation-actions-dropdown-menu";
 import { BucketActionsDropdownMenu } from "#/modules/buckets/components/buckets-actions-dropdown-menu";
 
 export const INDEX_COLUMNS: ColumnDef<Awaited<ReturnType<typeof getBuckets>>[number]>[] = [
