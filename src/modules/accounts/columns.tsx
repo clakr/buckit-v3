@@ -1,14 +1,21 @@
 import type { ColumnDef } from "@tanstack/react-table";
 
-import { IconCircleDashed } from "@tabler/icons-react";
+import { IconCircleDashed, IconCircleDottedLetterH } from "@tabler/icons-react";
 
 import type { Allocation, Bucket, Transaction } from "#/db/schema";
 import type { getBankAccount, getBankAccounts } from "#/modules/accounts/functions";
 
 import { SortableTableHead } from "#/components/table/sortable-table-head";
 import { Badge } from "#/components/ui/badge";
+import { Tooltip, TooltipContent, TooltipTrigger } from "#/components/ui/tooltip";
 import { currencyCodec } from "#/lib/codecs";
-import { formatCurrency, formatToRelative, getCurrency, isCurrencyCode } from "#/lib/utils";
+import {
+  formatCurrency,
+  formatDate,
+  formatToRelative,
+  getCurrency,
+  isCurrencyCode,
+} from "#/lib/utils";
 import { AccountActionsDropdownMenu } from "#/modules/accounts/components/account-actions-dropdown-menu";
 import { AllocationActionsDropdownMenu } from "#/modules/accounts/components/allocation-actions-dropdown-menu";
 import { TransactionActionsDropdownMenu } from "#/modules/accounts/components/transaction-actions-dropdown-menu";
@@ -112,18 +119,14 @@ export const INDEX_COLUMNS: ColumnDef<Awaited<ReturnType<typeof getBankAccounts>
       <SortableTableHead column={column}>Last Transaction Date</SortableTableHead>
     ),
     sortingFn: (rowA, rowB) => {
-      const dateA = rowA.original.transactions.at(0)?.createdAt;
-      const dateB = rowB.original.transactions.at(0)?.createdAt;
+      const dateA = rowA.original.transactions.at(0)?.date;
+      const dateB = rowB.original.transactions.at(0)?.date;
 
-      // no transactions on either → equal
-      if (!dateA && !dateB) return 0;
-      // only rowA has no transactions → rowA goes after rowB
-      if (!dateA) return 1;
-      // only rowB has no transactions → rowA goes before rowB
-      if (!dateB) return -1;
+      // no transactions → treat as oldest possible, so it always sorts last when descending
+      const timeA = dateA ? dateA.getTime() : Number.NEGATIVE_INFINITY;
+      const timeB = dateB ? dateB.getTime() : Number.NEGATIVE_INFINITY;
 
-      // ascending: older timestamp first (negative = dateA is older = comes first)
-      return dateA.getTime() - dateB.getTime();
+      return timeA - timeB;
     },
     cell: ({ row }) => {
       const firstTransaction = row.original.transactions.at(0);
@@ -135,7 +138,15 @@ export const INDEX_COLUMNS: ColumnDef<Awaited<ReturnType<typeof getBankAccounts>
           </Badge>
         );
 
-      return formatToRelative(firstTransaction.createdAt);
+      return (
+        <Tooltip>
+          <TooltipTrigger render={<Badge variant="secondary" className="capitalize" />}>
+            <IconCircleDottedLetterH />
+            {formatToRelative(firstTransaction.date)}
+          </TooltipTrigger>
+          <TooltipContent>{formatDate(firstTransaction.date)}</TooltipContent>
+        </Tooltip>
+      );
     },
   },
   {
@@ -150,7 +161,20 @@ export const TRANSACTIONS_COLUMNS: ColumnDef<
 >[] = [
   {
     accessorKey: "date",
-    cell: ({ getValue }) => formatToRelative(getValue<Transaction["date"]>()),
+    header: ({ column }) => <SortableTableHead column={column}>Date</SortableTableHead>,
+    cell: ({ getValue }) => {
+      const date = getValue<Transaction["date"]>();
+
+      return (
+        <Tooltip>
+          <TooltipTrigger render={<Badge variant="secondary" className="capitalize" />}>
+            <IconCircleDottedLetterH />
+            {formatToRelative(date)}
+          </TooltipTrigger>
+          <TooltipContent>{formatDate(date)}</TooltipContent>
+        </Tooltip>
+      );
+    },
   },
   {
     accessorKey: "type",
@@ -189,7 +213,20 @@ export const ALLOCATIONS_COLUMNS: ColumnDef<
 >[] = [
   {
     accessorKey: "date",
-    cell: ({ getValue }) => formatToRelative(getValue<Allocation["date"]>()),
+    header: ({ column }) => <SortableTableHead column={column}>Date</SortableTableHead>,
+    cell: ({ getValue }) => {
+      const date = getValue<Allocation["date"]>();
+
+      return (
+        <Tooltip>
+          <TooltipTrigger render={<Badge variant="secondary" className="capitalize" />}>
+            <IconCircleDottedLetterH />
+            {formatToRelative(date)}
+          </TooltipTrigger>
+          <TooltipContent>{formatDate(date)}</TooltipContent>
+        </Tooltip>
+      );
+    },
   },
   {
     accessorKey: "bucket.name",

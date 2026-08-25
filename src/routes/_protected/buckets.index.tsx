@@ -63,7 +63,11 @@ function RouteComponent() {
           }
         />
       ) : (
-        <DataTable columns={INDEX_COLUMNS} data={buckets} />
+        <DataTable
+          columns={INDEX_COLUMNS}
+          data={buckets}
+          initialSorting={[{ id: "createdAt", desc: true }]}
+        />
       )}
     </Template>
   );

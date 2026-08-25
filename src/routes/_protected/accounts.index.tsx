@@ -68,7 +68,11 @@ function RouteComponent() {
           }
         />
       ) : (
-        <DataTable columns={INDEX_COLUMNS} data={bankAccounts} />
+        <DataTable
+          columns={INDEX_COLUMNS}
+          data={bankAccounts}
+          initialSorting={[{ id: "lastTransactionDate", desc: true }]}
+        />
       )}
     </Template>
   );

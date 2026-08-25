@@ -23,9 +23,6 @@ export const getBuckets = createServerFn({
       },
       with: {
         allocations: {
-          orderBy: {
-            createdAt: "desc",
-          },
           with: {
             bankAccount: true,
           },
@@ -47,9 +44,6 @@ export const getBucket = createServerFn({
       },
       with: {
         allocations: {
-          orderBy: {
-            date: "desc",
-          },
           with: {
             bankAccount: {
               columns: {
