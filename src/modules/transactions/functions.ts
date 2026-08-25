@@ -130,6 +130,9 @@ export const validateEditTransaction = createServerFn({
       },
       with: {
         bankAccount: {
+          columns: {
+            startingBalance: true,
+          },
           with: {
             transactions: {
               columns: {

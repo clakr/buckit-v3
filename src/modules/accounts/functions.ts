@@ -27,8 +27,17 @@ export const getBankAccounts = createServerFn({
           orderBy: {
             date: "desc",
           },
+          columns: {
+            date: true,
+            type: true,
+            amount: true,
+          },
         },
-        allocations: true,
+        allocations: {
+          columns: {
+            amount: true,
+          },
+        },
       },
     });
   });

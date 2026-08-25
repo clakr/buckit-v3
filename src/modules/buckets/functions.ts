@@ -24,7 +24,11 @@ export const getBuckets = createServerFn({
       with: {
         allocations: {
           with: {
-            bankAccount: true,
+            bankAccount: {
+              columns: {
+                currency: true,
+              },
+            },
           },
         },
       },
