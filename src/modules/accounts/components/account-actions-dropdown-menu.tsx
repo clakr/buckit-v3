@@ -13,7 +13,6 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "#/components/ui/dropdown-menu";
-import { getAccountUnallocatedBalance } from "#/modules/accounts/utils";
 import { useLogAllocationDialogStore } from "#/modules/allocations/components/log-allocation-dialog";
 import { useLogTransactionDialogStore } from "#/modules/transactions/components/log-transaction-dialog";
 
@@ -35,12 +34,6 @@ export function AccountActionsDropdownMenu({ account }: Props) {
     state.setAccount(account);
     state.openDialog();
   }
-
-  const { unallocated } = getAccountUnallocatedBalance({
-    startingBalance: account.startingBalance,
-    transactions: account.transactions,
-    allocations: account.allocations,
-  });
 
   return (
     <DropdownMenu>

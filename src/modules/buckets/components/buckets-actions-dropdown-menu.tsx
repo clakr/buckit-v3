@@ -1,4 +1,7 @@
 import { IconDots, IconEdit, IconEye, IconTrash } from "@tabler/icons-react";
+import { Link } from "@tanstack/react-router";
+
+import type { Bucket } from "#/db/schema";
 
 import { Button } from "#/components/ui/button";
 import {
@@ -10,7 +13,11 @@ import {
   DropdownMenuTrigger,
 } from "#/components/ui/dropdown-menu";
 
-export function BucketActionsDropdownMenu() {
+type Props = {
+  bucketId: Bucket["id"];
+};
+
+export function BucketActionsDropdownMenu({ bucketId }: Props) {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger
@@ -24,7 +31,7 @@ export function BucketActionsDropdownMenu() {
       <DropdownMenuContent className="w-fit">
         <DropdownMenuGroup>
           <DropdownMenuLabel>Buckets</DropdownMenuLabel>
-          <DropdownMenuItem disabled>
+          <DropdownMenuItem render={<Link to="/buckets/$bucketId" params={{ bucketId }} />}>
             <IconEye />
             View Detail
           </DropdownMenuItem>
