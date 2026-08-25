@@ -69,7 +69,11 @@ function RouteComponent() {
 
   return (
     <Template heading={bucket.name}>
-      <DataTable columns={ALLOCATIONS_COLUMNS} data={bucket.allocations} />
+      <DataTable
+        columns={ALLOCATIONS_COLUMNS}
+        data={bucket.allocations}
+        initialSorting={[{ id: "date", desc: true }]}
+      />
     </Template>
   );
 }

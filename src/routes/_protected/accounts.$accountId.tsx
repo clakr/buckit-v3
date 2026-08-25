@@ -90,10 +90,18 @@ function RouteComponent() {
         </TabsList>
         <div className="grid grid-cols-[minmax(0,1fr)_20rem] items-start gap-x-4">
           <TabsContent value="transactions">
-            <DataTable columns={TRANSACTIONS_COLUMNS} data={bankAccount.transactions} />
+            <DataTable
+              columns={TRANSACTIONS_COLUMNS}
+              data={bankAccount.transactions}
+              initialSorting={[{ id: "date", desc: true }]}
+            />
           </TabsContent>
           <TabsContent value="allocations">
-            <DataTable columns={ALLOCATIONS_COLUMNS} data={bankAccount.allocations} />
+            <DataTable
+              columns={ALLOCATIONS_COLUMNS}
+              data={bankAccount.allocations}
+              initialSorting={[{ id: "date", desc: true }]}
+            />
           </TabsContent>
           <Card>
             <CardHeader>

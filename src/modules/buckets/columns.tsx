@@ -1,12 +1,15 @@
 import type { ColumnDef } from "@tanstack/react-table";
 
-import type { Allocation, BankAccount } from "#/db/schema";
+import { IconCircleDottedLetterH } from "@tabler/icons-react";
+
+import type { Allocation } from "#/db/schema";
 import type { getBucket, getBuckets } from "#/modules/buckets/functions";
 
 import { SortableTableHead } from "#/components/table/sortable-table-head";
 import { Badge } from "#/components/ui/badge";
+import { Tooltip, TooltipContent, TooltipTrigger } from "#/components/ui/tooltip";
 import { currencyCodec } from "#/lib/codecs";
-import { formatCurrency, formatToRelative } from "#/lib/utils";
+import { formatCurrency, formatDate, formatToRelative } from "#/lib/utils";
 import { AllocationActionsDropdownMenu } from "#/modules/accounts/components/allocation-actions-dropdown-menu";
 import { BucketActionsDropdownMenu } from "#/modules/buckets/components/buckets-actions-dropdown-menu";
 
@@ -49,7 +52,15 @@ export const INDEX_COLUMNS: ColumnDef<Awaited<ReturnType<typeof getBuckets>>[num
   {
     accessorKey: "createdAt",
     header: ({ column }) => <SortableTableHead column={column}>Created Date</SortableTableHead>,
-    cell: ({ row }) => formatToRelative(row.original.createdAt),
+    cell: ({ row }) => (
+      <Tooltip>
+        <TooltipTrigger render={<Badge variant="secondary" className="capitalize" />}>
+          <IconCircleDottedLetterH />
+          {formatToRelative(row.original.createdAt)}
+        </TooltipTrigger>
+        <TooltipContent>{formatDate(row.original.createdAt)}</TooltipContent>
+      </Tooltip>
+    ),
   },
   {
     accessorKey: "actions",
@@ -63,7 +74,20 @@ export const ALLOCATIONS_COLUMNS: ColumnDef<
 >[] = [
   {
     accessorKey: "date",
-    cell: ({ getValue }) => formatToRelative(getValue<Allocation["date"]>()),
+    header: ({ column }) => <SortableTableHead column={column}>Date</SortableTableHead>,
+    cell: ({ getValue }) => {
+      const date = getValue<Allocation["date"]>();
+
+      return (
+        <Tooltip>
+          <TooltipTrigger render={<Badge variant="secondary" className="capitalize" />}>
+            <IconCircleDottedLetterH />
+            {formatToRelative(date)}
+          </TooltipTrigger>
+          <TooltipContent>{formatDate(date)}</TooltipContent>
+        </Tooltip>
+      );
+    },
   },
   {
     accessorKey: "bankAccount.name",

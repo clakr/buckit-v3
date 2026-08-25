@@ -60,3 +60,14 @@ export function isCurrencyCode(code: string): code is Currency["code"] {
 export function getCurrency(code: Currency["code"]) {
   return currencies.find((currency) => currency.code === code);
 }
+
+export function formatDate(value: Date, opts?: Intl.DateTimeFormat) {
+  return Intl.DateTimeFormat(undefined, {
+    month: "long",
+    day: "2-digit",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+    ...opts,
+  }).format(value);
+}

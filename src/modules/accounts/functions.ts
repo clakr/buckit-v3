@@ -25,14 +25,10 @@ export const getBankAccounts = createServerFn({
       with: {
         transactions: {
           orderBy: {
-            createdAt: "desc",
+            date: "desc",
           },
         },
-        allocations: {
-          orderBy: {
-            createdAt: "desc",
-          },
-        },
+        allocations: true,
       },
     });
   });
@@ -57,9 +53,6 @@ export const getBankAccount = createServerFn({
               },
             },
           },
-          orderBy: {
-            date: "desc",
-          },
         },
         allocations: {
           with: {
@@ -73,9 +66,6 @@ export const getBankAccount = createServerFn({
                 currency: true,
               },
             },
-          },
-          orderBy: {
-            date: "desc",
           },
         },
       },
