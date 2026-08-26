@@ -7,7 +7,6 @@ declare module "@tanstack/react-query" {
       success: {
         title: string;
         description: string;
-        toReplace?: Array<string>;
       };
       error: {
         title: string;
@@ -20,19 +19,9 @@ declare module "@tanstack/react-query" {
 export function getContext() {
   const queryClient = new QueryClient({
     mutationCache: new MutationCache({
-      onSuccess: async (_, variables, __, mutation) => {
-        let description = "Action proceeded successfully";
-
-        if (mutation.meta?.success.toReplace) {
-          description = mutation.meta.success.description;
-
-          for (const key of mutation.meta.success.toReplace) {
-            description = description.replaceAll(`[${key}]`, variables.data[key]);
-          }
-        }
-
+      onSuccess: async (_, __, ___, mutation) => {
         toast.success(mutation.meta?.success.title ?? "Nice!", {
-          description,
+          description: mutation.meta?.success.description ?? "Action proceeded successfully",
         });
 
         await queryClient.invalidateQueries();

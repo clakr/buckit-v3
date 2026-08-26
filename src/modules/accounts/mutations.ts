@@ -7,12 +7,11 @@ export function useAddAccountMutation() {
     mutationFn: addBankAccount,
     meta: {
       success: {
-        title: "Account created",
-        description: "[name] has been added.",
-        toReplace: ["name"],
+        title: "Account Created",
+        description: "Your account has been added.",
       },
       error: {
-        title: "Failed to create account",
+        title: "Failed to Create Account",
         description: "Please try again.",
       },
     },

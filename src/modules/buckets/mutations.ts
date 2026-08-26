@@ -7,12 +7,11 @@ export function useAddBucketMutation() {
     mutationFn: addBucket,
     meta: {
       success: {
-        title: "Bucket created",
-        description: "[name] has been created.",
-        toReplace: ["name"],
+        title: "Bucket Created",
+        description: "Your bucket has been created.",
       },
       error: {
-        title: "Failed to create bucket",
+        title: "Failed to Create Bucket",
         description: "Please try again.",
       },
     },
