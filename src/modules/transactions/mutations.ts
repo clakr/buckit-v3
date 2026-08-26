@@ -1,6 +1,10 @@
 import { useMutation } from "@tanstack/react-query";
 
-import { logTransaction, editTransaction } from "#/modules/transactions/functions";
+import {
+  logTransaction,
+  editTransaction,
+  deleteTransaction,
+} from "#/modules/transactions/functions";
 
 export function useLogTransactionMutation() {
   return useMutation({
@@ -30,6 +34,23 @@ export function useEditTransactionMutation() {
       },
       error: {
         title: "Failed to update transaction",
+        description: "Please try again.",
+      },
+    },
+  });
+}
+
+export function useDeleteTransactionMutation() {
+  return useMutation({
+    mutationFn: deleteTransaction,
+    meta: {
+      // @todo: have this returned to claude
+      success: {
+        title: "Transaction Deleted",
+        description: "Transaction Deleted",
+      },
+      error: {
+        title: "Failed to Delete Transaction",
         description: "Please try again.",
       },
     },

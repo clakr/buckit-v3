@@ -6,7 +6,10 @@ export const verifyUserTransactionMiddlewareSchema = z.looseObject({
   transactionId: z.string().min(1, "No transaction ID provided"),
 });
 
-export const transactionTypeEnum = z.enum(["income", "expense"], "Please select a valid type");
+export const transactionTypeEnum = z.enum(
+  ["income", "expense"],
+  "Please select a valid type",
+);
 
 export const baseTransactionSchema = z.object({
   type: transactionTypeEnum,
@@ -23,4 +26,8 @@ export const logTransactionSchema = z.strictObject({
 export const editTransactionSchema = z.strictObject({
   ...verifyUserTransactionMiddlewareSchema.shape,
   ...baseTransactionSchema.shape,
+});
+
+export const deleteTransactionSchema = z.strictObject({
+  ...verifyUserTransactionMiddlewareSchema.shape,
 });
