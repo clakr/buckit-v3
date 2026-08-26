@@ -1,6 +1,10 @@
 import { useMutation } from "@tanstack/react-query";
 
-import { editAllocation, logAllocation } from "#/modules/allocations/functions";
+import {
+  deleteAllocation,
+  editAllocation,
+  logAllocation,
+} from "#/modules/allocations/functions";
 
 export function useLogAllocationMutation() {
   return useMutation({
@@ -28,6 +32,22 @@ export function useEditAllocationMutation() {
       },
       error: {
         title: "Failed to Update Allocation",
+        description: "Please try again.",
+      },
+    },
+  });
+}
+
+export function useDeleteAllocationMutation() {
+  return useMutation({
+    mutationFn: deleteAllocation,
+    meta: {
+      success: {
+        title: "Allocation Deleted",
+        description: "The allocation has been removed.",
+      },
+      error: {
+        title: "Failed to Delete Allocation",
         description: "Please try again.",
       },
     },

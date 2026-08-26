@@ -12,6 +12,9 @@ import {
   DropdownMenuTrigger,
 } from "#/components/ui/dropdown-menu";
 import { useEditAllocationDialogStore } from "#/modules/allocations/components/edit-allocation-dialog";
+import { confirm } from "#/stores/use-confirm";
+
+import { useDeleteAllocationMutation } from "../mutations";
 
 type Props = {
   allocationId: Allocation["id"];
@@ -23,6 +26,27 @@ export function AllocationActionsDropdownMenu({ allocationId }: Props) {
 
     state.setAllocationId(allocationId);
     state.openDialog();
+  }
+
+  const mutation = useDeleteAllocationMutation();
+
+  async function handleDeleteAllocation() {
+    const confirmed = await confirm("Delete Allocation?", {
+      description:
+        "Delete this allocation? The money will return to the account's unallocated pool.",
+      confirmLabel: "Delete Allocation",
+      cancelLabel: "Cancel",
+    });
+
+    if (!confirmed) return;
+
+    try {
+      await mutation.mutateAsync({ data: { allocationId } });
+    } catch (error) {
+      console.error(error);
+
+      return;
+    }
   }
 
   return (
@@ -42,7 +66,7 @@ export function AllocationActionsDropdownMenu({ allocationId }: Props) {
             <IconEdit />
             Edit
           </DropdownMenuItem>
-          <DropdownMenuItem disabled>
+          <DropdownMenuItem onClick={handleDeleteAllocation}>
             <IconTrash />
             Delete
           </DropdownMenuItem>
