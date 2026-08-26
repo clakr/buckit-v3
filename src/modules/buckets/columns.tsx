@@ -9,7 +9,7 @@ import { SortableTableHead } from "#/components/table/sortable-table-head";
 import { Badge } from "#/components/ui/badge";
 import { Tooltip, TooltipContent, TooltipTrigger } from "#/components/ui/tooltip";
 import { currencyCodec } from "#/lib/codecs";
-import { formatCurrency, formatDate, formatToRelative } from "#/lib/utils";
+import { formatCurrency, formatDateTime, formatToRelative } from "#/lib/utils";
 import { AllocationActionsDropdownMenu } from "#/modules/allocations/components/allocation-actions-dropdown-menu";
 import { BucketActionsDropdownMenu } from "#/modules/buckets/components/buckets-actions-dropdown-menu";
 
@@ -58,7 +58,7 @@ export const INDEX_COLUMNS: ColumnDef<Awaited<ReturnType<typeof getBuckets>>[num
           <IconCircleDottedLetterH />
           {formatToRelative(row.original.createdAt)}
         </TooltipTrigger>
-        <TooltipContent>{formatDate(row.original.createdAt)}</TooltipContent>
+        <TooltipContent>{formatDateTime(row.original.createdAt)}</TooltipContent>
       </Tooltip>
     ),
   },
@@ -84,7 +84,7 @@ export const ALLOCATIONS_COLUMNS: ColumnDef<
             <IconCircleDottedLetterH />
             {formatToRelative(date)}
           </TooltipTrigger>
-          <TooltipContent>{formatDate(date)}</TooltipContent>
+          <TooltipContent>{formatDateTime(date)}</TooltipContent>
         </Tooltip>
       );
     },
