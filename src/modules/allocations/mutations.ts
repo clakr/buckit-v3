@@ -1,10 +1,6 @@
 import { useMutation } from "@tanstack/react-query";
 
-import {
-  deleteAllocation,
-  editAllocation,
-  logAllocation,
-} from "#/modules/allocations/functions";
+import { deleteAllocation, editAllocation, logAllocation } from "#/modules/allocations/functions";
 
 export function useLogAllocationMutation() {
   return useMutation({

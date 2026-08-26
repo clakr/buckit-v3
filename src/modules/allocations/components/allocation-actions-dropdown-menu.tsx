@@ -12,9 +12,8 @@ import {
   DropdownMenuTrigger,
 } from "#/components/ui/dropdown-menu";
 import { useEditAllocationDialogStore } from "#/modules/allocations/components/edit-allocation-dialog";
+import { useDeleteAllocationMutation } from "#/modules/allocations/mutations";
 import { confirm } from "#/stores/use-confirm";
-
-import { useDeleteAllocationMutation } from "../mutations";
 
 type Props = {
   allocationId: Allocation["id"];

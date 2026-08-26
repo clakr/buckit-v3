@@ -24,7 +24,3 @@ export const editTransactionSchema = z.strictObject({
   ...verifyUserTransactionMiddlewareSchema.shape,
   ...baseTransactionSchema.shape,
 });
-
-export const deleteTransactionSchema = z.strictObject({
-  ...verifyUserTransactionMiddlewareSchema.shape,
-});
