@@ -11,7 +11,7 @@ import { Tooltip, TooltipContent, TooltipTrigger } from "#/components/ui/tooltip
 import { currencyCodec } from "#/lib/codecs";
 import {
   formatCurrency,
-  formatDate,
+  formatDateTime,
   formatToRelative,
   getCurrency,
   isCurrencyCode,
@@ -144,7 +144,7 @@ export const INDEX_COLUMNS: ColumnDef<Awaited<ReturnType<typeof getBankAccounts>
             <IconCircleDottedLetterH />
             {formatToRelative(firstTransaction.date)}
           </TooltipTrigger>
-          <TooltipContent>{formatDate(firstTransaction.date)}</TooltipContent>
+          <TooltipContent>{formatDateTime(firstTransaction.date)}</TooltipContent>
         </Tooltip>
       );
     },
@@ -171,7 +171,7 @@ export const TRANSACTIONS_COLUMNS: ColumnDef<
             <IconCircleDottedLetterH />
             {formatToRelative(date)}
           </TooltipTrigger>
-          <TooltipContent>{formatDate(date)}</TooltipContent>
+          <TooltipContent>{formatDateTime(date)}</TooltipContent>
         </Tooltip>
       );
     },
@@ -223,7 +223,7 @@ export const ALLOCATIONS_COLUMNS: ColumnDef<
             <IconCircleDottedLetterH />
             {formatToRelative(date)}
           </TooltipTrigger>
-          <TooltipContent>{formatDate(date)}</TooltipContent>
+          <TooltipContent>{formatDateTime(date)}</TooltipContent>
         </Tooltip>
       );
     },
