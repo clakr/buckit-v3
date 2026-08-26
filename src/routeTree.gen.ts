@@ -8,336 +8,334 @@
 // You should NOT make any changes in this file as it will be overwritten.
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
-import { Route as rootRouteImport } from './routes/__root'
-import { Route as GuestRouteImport } from './routes/_guest'
-import { Route as ProtectedRouteImport } from './routes/_protected'
-import { Route as AboutRouteImport } from './routes/about'
-import { Route as GuestIndexRouteImport } from './routes/_guest/index'
-import { Route as GuestRegisterRouteImport } from './routes/_guest/register'
-import { Route as ProtectedDashboardRouteImport } from './routes/_protected/dashboard'
-import { Route as DemoTableRouteImport } from './routes/demo/table'
-import { Route as DemoTanstackQueryRouteImport } from './routes/demo/tanstack-query'
-import { Route as ProtectedAccountsIndexRouteImport } from './routes/_protected/accounts.index'
-import { Route as ProtectedAccountsAccountIdRouteImport } from './routes/_protected/accounts.$accountId'
-import { Route as ProtectedBucketsIndexRouteImport } from './routes/_protected/buckets.index'
-import { Route as ProtectedBucketsBucketIdRouteImport } from './routes/_protected/buckets.$bucketId'
-import { Route as ApiAuthSplatRouteImport } from './routes/api/auth/$'
-import { Route as DemoFormAddressRouteImport } from './routes/demo/form.address'
-import { Route as DemoFormSimpleRouteImport } from './routes/demo/form.simple'
+import { Route as rootRouteImport } from "./routes/__root";
+import { Route as GuestRouteImport } from "./routes/_guest";
+import { Route as GuestIndexRouteImport } from "./routes/_guest/index";
+import { Route as GuestRegisterRouteImport } from "./routes/_guest/register";
+import { Route as ProtectedRouteImport } from "./routes/_protected";
+import { Route as ProtectedAccountsAccountIdRouteImport } from "./routes/_protected/accounts.$accountId";
+import { Route as ProtectedAccountsIndexRouteImport } from "./routes/_protected/accounts.index";
+import { Route as ProtectedBucketsBucketIdRouteImport } from "./routes/_protected/buckets.$bucketId";
+import { Route as ProtectedBucketsIndexRouteImport } from "./routes/_protected/buckets.index";
+import { Route as ProtectedDashboardRouteImport } from "./routes/_protected/dashboard";
+import { Route as AboutRouteImport } from "./routes/about";
+import { Route as ApiAuthSplatRouteImport } from "./routes/api/auth/$";
+import { Route as DemoFormAddressRouteImport } from "./routes/demo/form.address";
+import { Route as DemoFormSimpleRouteImport } from "./routes/demo/form.simple";
+import { Route as DemoTableRouteImport } from "./routes/demo/table";
+import { Route as DemoTanstackQueryRouteImport } from "./routes/demo/tanstack-query";
 
 const GuestRoute = GuestRouteImport.update({
-  id: '/_guest',
+  id: "/_guest",
   getParentRoute: () => rootRouteImport,
-} as any)
+} as any);
 const ProtectedRoute = ProtectedRouteImport.update({
-  id: '/_protected',
+  id: "/_protected",
   getParentRoute: () => rootRouteImport,
-} as any)
+} as any);
 const AboutRoute = AboutRouteImport.update({
-  id: '/about',
-  path: '/about',
+  id: "/about",
+  path: "/about",
   getParentRoute: () => rootRouteImport,
-} as any)
+} as any);
 const GuestIndexRoute = GuestIndexRouteImport.update({
-  id: '/',
-  path: '/',
+  id: "/",
+  path: "/",
   getParentRoute: () => GuestRoute,
-} as any)
+} as any);
 const GuestRegisterRoute = GuestRegisterRouteImport.update({
-  id: '/register',
-  path: '/register',
+  id: "/register",
+  path: "/register",
   getParentRoute: () => GuestRoute,
-} as any)
+} as any);
 const ProtectedDashboardRoute = ProtectedDashboardRouteImport.update({
-  id: '/dashboard',
-  path: '/dashboard',
+  id: "/dashboard",
+  path: "/dashboard",
   getParentRoute: () => ProtectedRoute,
-} as any)
+} as any);
 const DemoTableRoute = DemoTableRouteImport.update({
-  id: '/demo/table',
-  path: '/demo/table',
+  id: "/demo/table",
+  path: "/demo/table",
   getParentRoute: () => rootRouteImport,
-} as any)
+} as any);
 const DemoTanstackQueryRoute = DemoTanstackQueryRouteImport.update({
-  id: '/demo/tanstack-query',
-  path: '/demo/tanstack-query',
+  id: "/demo/tanstack-query",
+  path: "/demo/tanstack-query",
   getParentRoute: () => rootRouteImport,
-} as any)
+} as any);
 const ProtectedAccountsIndexRoute = ProtectedAccountsIndexRouteImport.update({
-  id: '/accounts/',
-  path: '/accounts/',
+  id: "/accounts/",
+  path: "/accounts/",
   getParentRoute: () => ProtectedRoute,
-} as any)
-const ProtectedAccountsAccountIdRoute =
-  ProtectedAccountsAccountIdRouteImport.update({
-    id: '/accounts/$accountId',
-    path: '/accounts/$accountId',
-    getParentRoute: () => ProtectedRoute,
-  } as any)
+} as any);
+const ProtectedAccountsAccountIdRoute = ProtectedAccountsAccountIdRouteImport.update({
+  id: "/accounts/$accountId",
+  path: "/accounts/$accountId",
+  getParentRoute: () => ProtectedRoute,
+} as any);
 const ProtectedBucketsIndexRoute = ProtectedBucketsIndexRouteImport.update({
-  id: '/buckets/',
-  path: '/buckets/',
+  id: "/buckets/",
+  path: "/buckets/",
   getParentRoute: () => ProtectedRoute,
-} as any)
-const ProtectedBucketsBucketIdRoute =
-  ProtectedBucketsBucketIdRouteImport.update({
-    id: '/buckets/$bucketId',
-    path: '/buckets/$bucketId',
-    getParentRoute: () => ProtectedRoute,
-  } as any)
+} as any);
+const ProtectedBucketsBucketIdRoute = ProtectedBucketsBucketIdRouteImport.update({
+  id: "/buckets/$bucketId",
+  path: "/buckets/$bucketId",
+  getParentRoute: () => ProtectedRoute,
+} as any);
 const ApiAuthSplatRoute = ApiAuthSplatRouteImport.update({
-  id: '/api/auth/$',
-  path: '/api/auth/$',
+  id: "/api/auth/$",
+  path: "/api/auth/$",
   getParentRoute: () => rootRouteImport,
-} as any)
+} as any);
 const DemoFormAddressRoute = DemoFormAddressRouteImport.update({
-  id: '/demo/form/address',
-  path: '/demo/form/address',
+  id: "/demo/form/address",
+  path: "/demo/form/address",
   getParentRoute: () => rootRouteImport,
-} as any)
+} as any);
 const DemoFormSimpleRoute = DemoFormSimpleRouteImport.update({
-  id: '/demo/form/simple',
-  path: '/demo/form/simple',
+  id: "/demo/form/simple",
+  path: "/demo/form/simple",
   getParentRoute: () => rootRouteImport,
-} as any)
+} as any);
 
 export interface FileRoutesByFullPath {
-  '/': typeof GuestIndexRoute
-  '/about': typeof AboutRoute
-  '/register': typeof GuestRegisterRoute
-  '/dashboard': typeof ProtectedDashboardRoute
-  '/demo/table': typeof DemoTableRoute
-  '/demo/tanstack-query': typeof DemoTanstackQueryRoute
-  '/accounts/$accountId': typeof ProtectedAccountsAccountIdRoute
-  '/buckets/$bucketId': typeof ProtectedBucketsBucketIdRoute
-  '/api/auth/$': typeof ApiAuthSplatRoute
-  '/demo/form/address': typeof DemoFormAddressRoute
-  '/demo/form/simple': typeof DemoFormSimpleRoute
-  '/accounts/': typeof ProtectedAccountsIndexRoute
-  '/buckets/': typeof ProtectedBucketsIndexRoute
+  "/": typeof GuestIndexRoute;
+  "/about": typeof AboutRoute;
+  "/register": typeof GuestRegisterRoute;
+  "/dashboard": typeof ProtectedDashboardRoute;
+  "/demo/table": typeof DemoTableRoute;
+  "/demo/tanstack-query": typeof DemoTanstackQueryRoute;
+  "/accounts/$accountId": typeof ProtectedAccountsAccountIdRoute;
+  "/buckets/$bucketId": typeof ProtectedBucketsBucketIdRoute;
+  "/api/auth/$": typeof ApiAuthSplatRoute;
+  "/demo/form/address": typeof DemoFormAddressRoute;
+  "/demo/form/simple": typeof DemoFormSimpleRoute;
+  "/accounts/": typeof ProtectedAccountsIndexRoute;
+  "/buckets/": typeof ProtectedBucketsIndexRoute;
 }
 export interface FileRoutesByTo {
-  '/': typeof GuestIndexRoute
-  '/about': typeof AboutRoute
-  '/register': typeof GuestRegisterRoute
-  '/dashboard': typeof ProtectedDashboardRoute
-  '/demo/table': typeof DemoTableRoute
-  '/demo/tanstack-query': typeof DemoTanstackQueryRoute
-  '/accounts/$accountId': typeof ProtectedAccountsAccountIdRoute
-  '/buckets/$bucketId': typeof ProtectedBucketsBucketIdRoute
-  '/api/auth/$': typeof ApiAuthSplatRoute
-  '/demo/form/address': typeof DemoFormAddressRoute
-  '/demo/form/simple': typeof DemoFormSimpleRoute
-  '/accounts': typeof ProtectedAccountsIndexRoute
-  '/buckets': typeof ProtectedBucketsIndexRoute
+  "/": typeof GuestIndexRoute;
+  "/about": typeof AboutRoute;
+  "/register": typeof GuestRegisterRoute;
+  "/dashboard": typeof ProtectedDashboardRoute;
+  "/demo/table": typeof DemoTableRoute;
+  "/demo/tanstack-query": typeof DemoTanstackQueryRoute;
+  "/accounts/$accountId": typeof ProtectedAccountsAccountIdRoute;
+  "/buckets/$bucketId": typeof ProtectedBucketsBucketIdRoute;
+  "/api/auth/$": typeof ApiAuthSplatRoute;
+  "/demo/form/address": typeof DemoFormAddressRoute;
+  "/demo/form/simple": typeof DemoFormSimpleRoute;
+  "/accounts": typeof ProtectedAccountsIndexRoute;
+  "/buckets": typeof ProtectedBucketsIndexRoute;
 }
 export interface FileRoutesById {
-  __root__: typeof rootRouteImport
-  '/_guest': typeof GuestRouteWithChildren
-  '/_protected': typeof ProtectedRouteWithChildren
-  '/about': typeof AboutRoute
-  '/_guest/register': typeof GuestRegisterRoute
-  '/_protected/dashboard': typeof ProtectedDashboardRoute
-  '/demo/table': typeof DemoTableRoute
-  '/demo/tanstack-query': typeof DemoTanstackQueryRoute
-  '/_guest/': typeof GuestIndexRoute
-  '/_protected/accounts/$accountId': typeof ProtectedAccountsAccountIdRoute
-  '/_protected/buckets/$bucketId': typeof ProtectedBucketsBucketIdRoute
-  '/api/auth/$': typeof ApiAuthSplatRoute
-  '/demo/form/address': typeof DemoFormAddressRoute
-  '/demo/form/simple': typeof DemoFormSimpleRoute
-  '/_protected/accounts/': typeof ProtectedAccountsIndexRoute
-  '/_protected/buckets/': typeof ProtectedBucketsIndexRoute
+  __root__: typeof rootRouteImport;
+  "/_guest": typeof GuestRouteWithChildren;
+  "/_protected": typeof ProtectedRouteWithChildren;
+  "/about": typeof AboutRoute;
+  "/_guest/register": typeof GuestRegisterRoute;
+  "/_protected/dashboard": typeof ProtectedDashboardRoute;
+  "/demo/table": typeof DemoTableRoute;
+  "/demo/tanstack-query": typeof DemoTanstackQueryRoute;
+  "/_guest/": typeof GuestIndexRoute;
+  "/_protected/accounts/$accountId": typeof ProtectedAccountsAccountIdRoute;
+  "/_protected/buckets/$bucketId": typeof ProtectedBucketsBucketIdRoute;
+  "/api/auth/$": typeof ApiAuthSplatRoute;
+  "/demo/form/address": typeof DemoFormAddressRoute;
+  "/demo/form/simple": typeof DemoFormSimpleRoute;
+  "/_protected/accounts/": typeof ProtectedAccountsIndexRoute;
+  "/_protected/buckets/": typeof ProtectedBucketsIndexRoute;
 }
 export interface FileRouteTypes {
-  fileRoutesByFullPath: FileRoutesByFullPath
+  fileRoutesByFullPath: FileRoutesByFullPath;
   fullPaths:
-    | '/'
-    | '/about'
-    | '/register'
-    | '/dashboard'
-    | '/demo/table'
-    | '/demo/tanstack-query'
-    | '/accounts/$accountId'
-    | '/buckets/$bucketId'
-    | '/api/auth/$'
-    | '/demo/form/address'
-    | '/demo/form/simple'
-    | '/accounts/'
-    | '/buckets/'
-  fileRoutesByTo: FileRoutesByTo
+    | "/"
+    | "/about"
+    | "/register"
+    | "/dashboard"
+    | "/demo/table"
+    | "/demo/tanstack-query"
+    | "/accounts/$accountId"
+    | "/buckets/$bucketId"
+    | "/api/auth/$"
+    | "/demo/form/address"
+    | "/demo/form/simple"
+    | "/accounts/"
+    | "/buckets/";
+  fileRoutesByTo: FileRoutesByTo;
   to:
-    | '/'
-    | '/about'
-    | '/register'
-    | '/dashboard'
-    | '/demo/table'
-    | '/demo/tanstack-query'
-    | '/accounts/$accountId'
-    | '/buckets/$bucketId'
-    | '/api/auth/$'
-    | '/demo/form/address'
-    | '/demo/form/simple'
-    | '/accounts'
-    | '/buckets'
+    | "/"
+    | "/about"
+    | "/register"
+    | "/dashboard"
+    | "/demo/table"
+    | "/demo/tanstack-query"
+    | "/accounts/$accountId"
+    | "/buckets/$bucketId"
+    | "/api/auth/$"
+    | "/demo/form/address"
+    | "/demo/form/simple"
+    | "/accounts"
+    | "/buckets";
   id:
-    | '__root__'
-    | '/_guest'
-    | '/_protected'
-    | '/about'
-    | '/_guest/register'
-    | '/_protected/dashboard'
-    | '/demo/table'
-    | '/demo/tanstack-query'
-    | '/_guest/'
-    | '/_protected/accounts/$accountId'
-    | '/_protected/buckets/$bucketId'
-    | '/api/auth/$'
-    | '/demo/form/address'
-    | '/demo/form/simple'
-    | '/_protected/accounts/'
-    | '/_protected/buckets/'
-  fileRoutesById: FileRoutesById
+    | "__root__"
+    | "/_guest"
+    | "/_protected"
+    | "/about"
+    | "/_guest/register"
+    | "/_protected/dashboard"
+    | "/demo/table"
+    | "/demo/tanstack-query"
+    | "/_guest/"
+    | "/_protected/accounts/$accountId"
+    | "/_protected/buckets/$bucketId"
+    | "/api/auth/$"
+    | "/demo/form/address"
+    | "/demo/form/simple"
+    | "/_protected/accounts/"
+    | "/_protected/buckets/";
+  fileRoutesById: FileRoutesById;
 }
 export interface RootRouteChildren {
-  GuestRoute: typeof GuestRouteWithChildren
-  ProtectedRoute: typeof ProtectedRouteWithChildren
-  AboutRoute: typeof AboutRoute
-  DemoTableRoute: typeof DemoTableRoute
-  DemoTanstackQueryRoute: typeof DemoTanstackQueryRoute
-  ApiAuthSplatRoute: typeof ApiAuthSplatRoute
-  DemoFormAddressRoute: typeof DemoFormAddressRoute
-  DemoFormSimpleRoute: typeof DemoFormSimpleRoute
+  GuestRoute: typeof GuestRouteWithChildren;
+  ProtectedRoute: typeof ProtectedRouteWithChildren;
+  AboutRoute: typeof AboutRoute;
+  DemoTableRoute: typeof DemoTableRoute;
+  DemoTanstackQueryRoute: typeof DemoTanstackQueryRoute;
+  ApiAuthSplatRoute: typeof ApiAuthSplatRoute;
+  DemoFormAddressRoute: typeof DemoFormAddressRoute;
+  DemoFormSimpleRoute: typeof DemoFormSimpleRoute;
 }
 
-declare module '@tanstack/react-router' {
+declare module "@tanstack/react-router" {
   interface FileRoutesByPath {
-    '/_guest': {
-      id: '/_guest'
-      path: ''
-      fullPath: '/'
-      preLoaderRoute: typeof GuestRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/_protected': {
-      id: '/_protected'
-      path: ''
-      fullPath: '/'
-      preLoaderRoute: typeof ProtectedRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/about': {
-      id: '/about'
-      path: '/about'
-      fullPath: '/about'
-      preLoaderRoute: typeof AboutRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/_guest/': {
-      id: '/_guest/'
-      path: '/'
-      fullPath: '/'
-      preLoaderRoute: typeof GuestIndexRouteImport
-      parentRoute: typeof GuestRoute
-    }
-    '/_guest/register': {
-      id: '/_guest/register'
-      path: '/register'
-      fullPath: '/register'
-      preLoaderRoute: typeof GuestRegisterRouteImport
-      parentRoute: typeof GuestRoute
-    }
-    '/_protected/dashboard': {
-      id: '/_protected/dashboard'
-      path: '/dashboard'
-      fullPath: '/dashboard'
-      preLoaderRoute: typeof ProtectedDashboardRouteImport
-      parentRoute: typeof ProtectedRoute
-    }
-    '/demo/table': {
-      id: '/demo/table'
-      path: '/demo/table'
-      fullPath: '/demo/table'
-      preLoaderRoute: typeof DemoTableRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/demo/tanstack-query': {
-      id: '/demo/tanstack-query'
-      path: '/demo/tanstack-query'
-      fullPath: '/demo/tanstack-query'
-      preLoaderRoute: typeof DemoTanstackQueryRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/_protected/accounts/': {
-      id: '/_protected/accounts/'
-      path: '/accounts'
-      fullPath: '/accounts/'
-      preLoaderRoute: typeof ProtectedAccountsIndexRouteImport
-      parentRoute: typeof ProtectedRoute
-    }
-    '/_protected/accounts/$accountId': {
-      id: '/_protected/accounts/$accountId'
-      path: '/accounts/$accountId'
-      fullPath: '/accounts/$accountId'
-      preLoaderRoute: typeof ProtectedAccountsAccountIdRouteImport
-      parentRoute: typeof ProtectedRoute
-    }
-    '/_protected/buckets/': {
-      id: '/_protected/buckets/'
-      path: '/buckets'
-      fullPath: '/buckets/'
-      preLoaderRoute: typeof ProtectedBucketsIndexRouteImport
-      parentRoute: typeof ProtectedRoute
-    }
-    '/_protected/buckets/$bucketId': {
-      id: '/_protected/buckets/$bucketId'
-      path: '/buckets/$bucketId'
-      fullPath: '/buckets/$bucketId'
-      preLoaderRoute: typeof ProtectedBucketsBucketIdRouteImport
-      parentRoute: typeof ProtectedRoute
-    }
-    '/api/auth/$': {
-      id: '/api/auth/$'
-      path: '/api/auth/$'
-      fullPath: '/api/auth/$'
-      preLoaderRoute: typeof ApiAuthSplatRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/demo/form/address': {
-      id: '/demo/form/address'
-      path: '/demo/form/address'
-      fullPath: '/demo/form/address'
-      preLoaderRoute: typeof DemoFormAddressRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/demo/form/simple': {
-      id: '/demo/form/simple'
-      path: '/demo/form/simple'
-      fullPath: '/demo/form/simple'
-      preLoaderRoute: typeof DemoFormSimpleRouteImport
-      parentRoute: typeof rootRouteImport
-    }
+    "/_guest": {
+      id: "/_guest";
+      path: "";
+      fullPath: "/";
+      preLoaderRoute: typeof GuestRouteImport;
+      parentRoute: typeof rootRouteImport;
+    };
+    "/_protected": {
+      id: "/_protected";
+      path: "";
+      fullPath: "/";
+      preLoaderRoute: typeof ProtectedRouteImport;
+      parentRoute: typeof rootRouteImport;
+    };
+    "/about": {
+      id: "/about";
+      path: "/about";
+      fullPath: "/about";
+      preLoaderRoute: typeof AboutRouteImport;
+      parentRoute: typeof rootRouteImport;
+    };
+    "/_guest/": {
+      id: "/_guest/";
+      path: "/";
+      fullPath: "/";
+      preLoaderRoute: typeof GuestIndexRouteImport;
+      parentRoute: typeof GuestRoute;
+    };
+    "/_guest/register": {
+      id: "/_guest/register";
+      path: "/register";
+      fullPath: "/register";
+      preLoaderRoute: typeof GuestRegisterRouteImport;
+      parentRoute: typeof GuestRoute;
+    };
+    "/_protected/dashboard": {
+      id: "/_protected/dashboard";
+      path: "/dashboard";
+      fullPath: "/dashboard";
+      preLoaderRoute: typeof ProtectedDashboardRouteImport;
+      parentRoute: typeof ProtectedRoute;
+    };
+    "/demo/table": {
+      id: "/demo/table";
+      path: "/demo/table";
+      fullPath: "/demo/table";
+      preLoaderRoute: typeof DemoTableRouteImport;
+      parentRoute: typeof rootRouteImport;
+    };
+    "/demo/tanstack-query": {
+      id: "/demo/tanstack-query";
+      path: "/demo/tanstack-query";
+      fullPath: "/demo/tanstack-query";
+      preLoaderRoute: typeof DemoTanstackQueryRouteImport;
+      parentRoute: typeof rootRouteImport;
+    };
+    "/_protected/accounts/": {
+      id: "/_protected/accounts/";
+      path: "/accounts";
+      fullPath: "/accounts/";
+      preLoaderRoute: typeof ProtectedAccountsIndexRouteImport;
+      parentRoute: typeof ProtectedRoute;
+    };
+    "/_protected/accounts/$accountId": {
+      id: "/_protected/accounts/$accountId";
+      path: "/accounts/$accountId";
+      fullPath: "/accounts/$accountId";
+      preLoaderRoute: typeof ProtectedAccountsAccountIdRouteImport;
+      parentRoute: typeof ProtectedRoute;
+    };
+    "/_protected/buckets/": {
+      id: "/_protected/buckets/";
+      path: "/buckets";
+      fullPath: "/buckets/";
+      preLoaderRoute: typeof ProtectedBucketsIndexRouteImport;
+      parentRoute: typeof ProtectedRoute;
+    };
+    "/_protected/buckets/$bucketId": {
+      id: "/_protected/buckets/$bucketId";
+      path: "/buckets/$bucketId";
+      fullPath: "/buckets/$bucketId";
+      preLoaderRoute: typeof ProtectedBucketsBucketIdRouteImport;
+      parentRoute: typeof ProtectedRoute;
+    };
+    "/api/auth/$": {
+      id: "/api/auth/$";
+      path: "/api/auth/$";
+      fullPath: "/api/auth/$";
+      preLoaderRoute: typeof ApiAuthSplatRouteImport;
+      parentRoute: typeof rootRouteImport;
+    };
+    "/demo/form/address": {
+      id: "/demo/form/address";
+      path: "/demo/form/address";
+      fullPath: "/demo/form/address";
+      preLoaderRoute: typeof DemoFormAddressRouteImport;
+      parentRoute: typeof rootRouteImport;
+    };
+    "/demo/form/simple": {
+      id: "/demo/form/simple";
+      path: "/demo/form/simple";
+      fullPath: "/demo/form/simple";
+      preLoaderRoute: typeof DemoFormSimpleRouteImport;
+      parentRoute: typeof rootRouteImport;
+    };
   }
 }
 
 interface GuestRouteChildren {
-  GuestRegisterRoute: typeof GuestRegisterRoute
-  GuestIndexRoute: typeof GuestIndexRoute
+  GuestRegisterRoute: typeof GuestRegisterRoute;
+  GuestIndexRoute: typeof GuestIndexRoute;
 }
 
 const GuestRouteChildren: GuestRouteChildren = {
   GuestRegisterRoute: GuestRegisterRoute,
   GuestIndexRoute: GuestIndexRoute,
-}
+};
 
-const GuestRouteWithChildren = GuestRoute._addFileChildren(GuestRouteChildren)
+const GuestRouteWithChildren = GuestRoute._addFileChildren(GuestRouteChildren);
 
 interface ProtectedRouteChildren {
-  ProtectedDashboardRoute: typeof ProtectedDashboardRoute
-  ProtectedAccountsAccountIdRoute: typeof ProtectedAccountsAccountIdRoute
-  ProtectedBucketsBucketIdRoute: typeof ProtectedBucketsBucketIdRoute
-  ProtectedAccountsIndexRoute: typeof ProtectedAccountsIndexRoute
-  ProtectedBucketsIndexRoute: typeof ProtectedBucketsIndexRoute
+  ProtectedDashboardRoute: typeof ProtectedDashboardRoute;
+  ProtectedAccountsAccountIdRoute: typeof ProtectedAccountsAccountIdRoute;
+  ProtectedBucketsBucketIdRoute: typeof ProtectedBucketsBucketIdRoute;
+  ProtectedAccountsIndexRoute: typeof ProtectedAccountsIndexRoute;
+  ProtectedBucketsIndexRoute: typeof ProtectedBucketsIndexRoute;
 }
 
 const ProtectedRouteChildren: ProtectedRouteChildren = {
@@ -346,11 +344,9 @@ const ProtectedRouteChildren: ProtectedRouteChildren = {
   ProtectedBucketsBucketIdRoute: ProtectedBucketsBucketIdRoute,
   ProtectedAccountsIndexRoute: ProtectedAccountsIndexRoute,
   ProtectedBucketsIndexRoute: ProtectedBucketsIndexRoute,
-}
+};
 
-const ProtectedRouteWithChildren = ProtectedRoute._addFileChildren(
-  ProtectedRouteChildren,
-)
+const ProtectedRouteWithChildren = ProtectedRoute._addFileChildren(ProtectedRouteChildren);
 
 const rootRouteChildren: RootRouteChildren = {
   GuestRoute: GuestRouteWithChildren,
@@ -361,16 +357,17 @@ const rootRouteChildren: RootRouteChildren = {
   ApiAuthSplatRoute: ApiAuthSplatRoute,
   DemoFormAddressRoute: DemoFormAddressRoute,
   DemoFormSimpleRoute: DemoFormSimpleRoute,
-}
+};
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
-  ._addFileTypes<FileRouteTypes>()
+  ._addFileTypes<FileRouteTypes>();
 
-import type { getRouter } from './router.tsx'
-import type { createStart } from '@tanstack/react-start'
-declare module '@tanstack/react-start' {
+import type { createStart } from "@tanstack/react-start";
+
+import type { getRouter } from "./router.tsx";
+declare module "@tanstack/react-start" {
   interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
+    ssr: true;
+    router: Awaited<ReturnType<typeof getRouter>>;
   }
 }
