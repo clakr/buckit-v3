@@ -95,6 +95,7 @@ export function LogTransactionDialog() {
         description: "The transaction details you entered will be lost.",
         confirmLabel: "Keep Editing",
         cancelLabel: "Discard",
+        dismissValue: true,
       });
 
       if (confirmed) return;
