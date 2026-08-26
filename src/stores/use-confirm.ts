@@ -11,7 +11,7 @@ interface ConfirmState {
   title: string | null;
   description: string | null;
   confirmLabel: string;
-  cancelLabel: string;
+  cancelLabel: string | null;
   resolve: ((value: boolean) => void) | null;
   confirm: (title: string, options?: ConfirmOptions) => Promise<boolean>;
   reset: () => void;
@@ -22,7 +22,7 @@ export const useConfirmStore = create<ConfirmState>()((set, get) => ({
   title: null,
   description: null,
   confirmLabel: "Continue",
-  cancelLabel: "Cancel",
+  cancelLabel: null,
   resolve: null,
 
   confirm: (title, options) => {
@@ -35,7 +35,7 @@ export const useConfirmStore = create<ConfirmState>()((set, get) => ({
         title,
         description: options?.description ?? null,
         confirmLabel: options?.confirmLabel ?? "Continue",
-        cancelLabel: options?.cancelLabel ?? "Cancel",
+        cancelLabel: options?.cancelLabel,
         resolve,
       });
     });

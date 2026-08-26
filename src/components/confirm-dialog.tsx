@@ -43,14 +43,16 @@ export function ConfirmDialog() {
           {description && <AlertDialogDescription>{description}</AlertDialogDescription>}
         </AlertDialogHeader>
         <AlertDialogFooter>
-          <AlertDialogCancel
-            onClick={() => {
-              resolve?.(false);
-              reset();
-            }}
-          >
-            {cancelLabel}
-          </AlertDialogCancel>
+          {cancelLabel ? (
+            <AlertDialogCancel
+              onClick={() => {
+                resolve?.(false);
+                reset();
+              }}
+            >
+              {cancelLabel}
+            </AlertDialogCancel>
+          ) : null}
           <AlertDialogAction
             onClick={() => {
               resolve?.(true);
