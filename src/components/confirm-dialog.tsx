@@ -13,17 +13,19 @@ import {
 import { useConfirmStore } from "#/stores/use-confirm";
 
 export function ConfirmDialog() {
-  const { isOpen, title, description, confirmLabel, cancelLabel, resolve, reset } = useConfirmStore(
-    useShallow((state) => ({
-      isOpen: state.isOpen,
-      title: state.title,
-      description: state.description,
-      confirmLabel: state.confirmLabel,
-      cancelLabel: state.cancelLabel,
-      resolve: state.resolve,
-      reset: state.reset,
-    })),
-  );
+  const { isOpen, title, description, confirmLabel, cancelLabel, dismissValue, resolve, reset } =
+    useConfirmStore(
+      useShallow((state) => ({
+        isOpen: state.isOpen,
+        title: state.title,
+        description: state.description,
+        confirmLabel: state.confirmLabel,
+        cancelLabel: state.cancelLabel,
+        dismissValue: state.dismissValue,
+        resolve: state.resolve,
+        reset: state.reset,
+      })),
+    );
 
   if (!isOpen) return null;
 
@@ -32,7 +34,7 @@ export function ConfirmDialog() {
       open={isOpen}
       onOpenChange={(open) => {
         if (!open) {
-          resolve?.(false);
+          resolve?.(dismissValue);
           reset();
         }
       }}
