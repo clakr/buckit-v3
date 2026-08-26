@@ -7,12 +7,11 @@ export function useLogAllocationMutation() {
     mutationFn: logAllocation,
     meta: {
       success: {
-        title: "Allocation logged",
-        description: "[amount] allocated to [bucket.name].",
-        toReplace: ["amount", "bucket.name"],
+        title: "Allocation Logged",
+        description: "Your allocation has been recorded.",
       },
       error: {
-        title: "Failed to log allocation",
+        title: "Failed to Log Allocation",
         description: "Please try again.",
       },
     },
@@ -24,11 +23,11 @@ export function useEditAllocationMutation() {
     mutationFn: editAllocation,
     meta: {
       success: {
-        title: "Allocation updated",
+        title: "Allocation Updated",
         description: "The allocation has been saved.",
       },
       error: {
-        title: "Failed to update allocation",
+        title: "Failed to Update Allocation",
         description: "Please try again.",
       },
     },

@@ -11,12 +11,11 @@ export function useLogTransactionMutation() {
     mutationFn: logTransaction,
     meta: {
       success: {
-        title: "Transaction logged",
-        description: "[type] of [amount] has been recorded.", // @todo: capitalize first letter
-        toReplace: ["type", "amount"],
+        title: "Transaction Logged",
+        description: "Your transaction has been recorded.",
       },
       error: {
-        title: "Failed to log transaction",
+        title: "Failed to Log Transaction",
         description: "Please try again.",
       },
     },
@@ -28,12 +27,11 @@ export function useEditTransactionMutation() {
     mutationFn: editTransaction,
     meta: {
       success: {
-        title: "Transaction updated",
-        description: "The [type] of [amount] has been updated.", // @todo: capitalize first letter
-        toReplace: ["type", "amount"],
+        title: "Transaction Updated",
+        description: "Your changes have been saved.",
       },
       error: {
-        title: "Failed to update transaction",
+        title: "Failed to Update Transaction",
         description: "Please try again.",
       },
     },
@@ -44,10 +42,9 @@ export function useDeleteTransactionMutation() {
   return useMutation({
     mutationFn: deleteTransaction,
     meta: {
-      // @todo: have this returned to claude
       success: {
         title: "Transaction Deleted",
-        description: "Transaction Deleted",
+        description: "The transaction has been removed.",
       },
       error: {
         title: "Failed to Delete Transaction",
