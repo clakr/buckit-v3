@@ -12,10 +12,9 @@ import {
   DropdownMenuTrigger,
 } from "#/components/ui/dropdown-menu";
 import { useEditTransactionDialogStore } from "#/modules/transactions/components/edit-transaction-dialog";
+import { validateDeleteTransaction } from "#/modules/transactions/functions";
+import { useDeleteTransactionMutation } from "#/modules/transactions/mutations";
 import { confirm } from "#/stores/use-confirm";
-
-import { validateDeleteTransaction } from "../functions";
-import { useDeleteTransactionMutation } from "../mutations";
 
 type Props = {
   transactionId: Transaction["id"];
