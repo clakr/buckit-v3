@@ -10,7 +10,7 @@ export const transactionTypeEnum = z.enum(["income", "expense"], "Please select 
 
 export const baseTransactionSchema = z.object({
   type: transactionTypeEnum,
-  amount: z.coerce.number().min(1, "Amount must be greater than 0."),
+  amount: z.coerce.number().min(0.01, "Amount must be greater than 0."),
   date: z.date(),
   note: z.string(),
 });
