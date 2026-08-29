@@ -1,6 +1,11 @@
-Status: ready-for-agent
+---
+status: ready-for-agent
+module: authentication
+---
 
-# Forgot / Reset Password
+# Spec: Forgot / Reset Password
+
+No issue tracker is used for this project. This file is the actionable checklist — its `status: ready-for-agent` frontmatter stands in for the triage label a tracker would normally carry. Update the status (e.g. `in-progress`, `done`) as work proceeds.
 
 ## Problem Statement
 
@@ -26,7 +31,7 @@ Let a signed-out User request a password-reset email from the sign-in page, foll
 
 ## Implementation Decisions
 
-- **New shared seam — `sendEmail`.** A single function, e.g. `sendEmail({ to, subject, html }): Promise<void>`, is the one new integration point both this spec and the Email Verification spec (`.scratch/email-verification/spec.md`) build on. Nothing in this codebase sends email today (no Resend/SMTP/nodemailer dependency exists). Whichever of the two specs is implemented first creates this seam; the other imports it. **Which provider it wraps is an explicit open decision, not made in this spec — see Further Notes.**
+- **New shared seam — `sendEmail`.** A single function, e.g. `sendEmail({ to, subject, html }): Promise<void>`, is the one new integration point both this spec and the Email Verification spec (`docs/specs/email-verification.md`) build on. Nothing in this codebase sends email today (no Resend/SMTP/nodemailer dependency exists). Whichever of the two specs is implemented first creates this seam; the other imports it. **Which provider it wraps is an explicit open decision, not made in this spec — see Further Notes.**
 - **`integrations/better-auth/index.ts`**: add `emailAndPassword.sendResetPassword: async ({ user, url }) => sendEmail({ to: user.email, subject: "Reset your password", html: <link to `url`> })`, and `emailAndPassword.revokeSessionsOnPasswordReset: true` (a real Better-Auth option — confirmed in `node_modules/better-auth/dist/api/routes/password.mjs`; deletes all of the User's Sessions once the reset succeeds). Token expiry stays on Better-Auth's own default (`resetPasswordTokenExpiresIn`, 1 hour) unless a reason to change it comes up.
 - **`modules/authentication/schemas.ts`**: add `requestPasswordResetSchema` (email only, same `z.email().toLowerCase().trim()` shape as `signInUserSchema`), and `resetPasswordSchema` (password + confirmPassword, same 8–128-char + refine-match shape as `signUpUserSchema`). The token itself is a URL param, not a form field.
 - **`modules/authentication/functions.ts`**: add `requestPasswordReset` (wraps `auth.api.requestPasswordReset({ body: { email, redirectTo: "/reset-password" } })`) and `resetPassword` (wraps `auth.api.resetPassword({ body: { newPassword, token } })`). Neither needs `authMiddleware` — both are for signed-out Users by definition.
@@ -46,7 +51,7 @@ Let a signed-out User request a password-reset email from the sign-in page, foll
 
 - Choosing and wiring a concrete email provider (Resend, Postmark, SES, etc.) — open decision, not resolved here (see Further Notes).
 - Rate-limiting reset requests specifically — falls under this app's existing, separately-flagged, unaudited rate-limiting gap (`authentication/SPEC.md` → Future Considerations → Rate Limiting), not re-solved by this spec.
-- Email verification — separate spec (`.scratch/email-verification/spec.md`).
+- Email verification — separate spec (`docs/specs/email-verification.md`).
 - Account-lockout or suspicious-activity notifications beyond revoking Sessions on a successful reset.
 - Any redesign of `/` or `/register` beyond adding the one "Forgot password?" link.
 

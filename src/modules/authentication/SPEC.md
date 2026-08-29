@@ -89,8 +89,8 @@ Better-Auth's built-in rate limiter defaults to **enabled only in production**, 
 | 4   | Session retrieval / route guarding | **Implemented and correct.** `_guest`/`_protected` layouts both correctly gate on `getSession()`.               |
 | 5   | Multi-device Sessions              | **Implemented and correct** (no extra work needed — schema already supports it).                                |
 | —   | Google OAuth Sign-In               | **Not implemented.** UI button exists on both auth pages but is `disabled`; no provider configured server-side. Intentional placeholder for planned future work — see Future Considerations. |
-| —   | Email Verification                 | **Not implemented.** `emailVerified` column exists and is permanently `false`; no `requireEmailVerification`, no verification-email sending configured. Planned, not yet built — see Future Considerations. |
-| —   | Forgot / Reset Password            | **Not implemented.** No reset-password route, no `sendResetPassword` configured. Flagged gap — see Future Considerations. |
+| —   | Email Verification                 | **Not implemented.** `emailVerified` column exists and is permanently `false`; no `requireEmailVerification`, no verification-email sending configured. Spec'd, not yet built — see Future Considerations. |
+| —   | Forgot / Reset Password            | **Not implemented.** No reset-password route, no `sendResetPassword` configured. Spec'd, not yet built — see Future Considerations. |
 | —   | Account Settings Page              | **Not implemented.** "Account" item in the sidebar user menu exists but is `disabled`.                          |
 | —   | Session Management (view/revoke)   | **Not implemented, not yet planned.** A User has no way to see or revoke other active Sessions, despite multi-device Sessions already working under the hood. |
 
@@ -108,17 +108,17 @@ While confirming multi-user is a deliberate product goal (not incidental plumbin
 
 The disabled button on `/` and `/register` is an intentional placeholder — not dead UI to remove. Wiring it up requires registering an OAuth app with Google, configuring `socialProviders.google` in `integrations/better-auth/index.ts`, and handling the callback route. Undesigned beyond that; not scoped this session.
 
-### Email Verification (Planned, Undesigned)
+### Email Verification (Spec'd, not yet built)
 
-`users.emailVerified` exists but nothing sets it. Candidate future use cases, not yet decided between:
+`users.emailVerified` exists but nothing sets it. See [`docs/specs/email-verification.md`](../../../docs/specs/email-verification.md) for the full spec (auto-send on sign-up, manual resend, `verify-email` route). Candidate *further* future use cases, deliberately left undecided even by that spec (see its Out of Scope):
 
 - Gate self-service password reset behind a verified email (depends on Forgot/Reset Password existing first).
 - Show a "please verify" banner/nag without blocking app usage.
 - Require verification before allowing a change to the account's email address.
 
-### Forgot / Reset Password (Gap, Undesigned)
+### Forgot / Reset Password (Spec'd, not yet built)
 
-No self-service recovery path exists today for a User who forgets their password. Worth designing given the app is intended for other people to use as a real alternative to paid budgeting tools, not just its original author.
+No self-service recovery path exists today for a User who forgets their password. See [`docs/specs/forgot-password.md`](../../../docs/specs/forgot-password.md) for the full spec (request-reset email, time-limited reset link, session revocation on success). Worth building given the app is intended for other people to use as a real alternative to paid budgeting tools, not just its original author.
 
 ### Rate Limiting / Brute-Force Protection (Unaudited)
 
