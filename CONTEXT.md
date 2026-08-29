@@ -19,10 +19,13 @@ A Bank Account's current holdings: `startingBalance + Σ income transactions −
 The portion of a Bank Account's Balance not yet earmarked to any Bucket: `Balance − Σ allocation amounts`. Must never go negative; enforced on every Transaction and Allocation mutation (log, edit, delete).
 
 **Bucket**:
-A user-defined savings/spending category that receives money via Allocations from one or more Bank Accounts. Has no currency of its own — displays subtotals grouped per source currency.
+A user-defined savings category that receives money via Allocations from one or more Bank Accounts. Has no currency of its own — displays subtotals grouped per source currency. Money only ever enters a Bucket (via Allocation) or leaves it (by editing/deleting an Allocation) — a Bucket is never spent from directly. Transactions always attach to a Bank Account, never to a Bucket; this is a permanent boundary, not a gap. See the planned `Goal` entity below for target/progress tracking.
 
 **Allocation**:
 Money earmarked from a Bank Account toward a Bucket. Does not leave the Bank Account's Balance, but reduces its Unallocated amount.
 
 **Debt** (planned, not yet implemented):
 A future entity for tracking money owed to or by other people. Deliberately separate from Bank Account: a Bank Account's Balance can never go negative, so credit/liability/IOU tracking belongs in Debt instead.
+
+**Goal** (planned, not yet implemented):
+A future entity for target/progress tracking on top of savings (e.g. "$5,000 toward a trip"). Undesigned beyond one open fork: whether it ends up as a column added directly to `buckets` (e.g. a nullable `targetAmount`) or as a wholly separate model/table referencing one or more Buckets. Do not assume either shape until this is actually designed.
