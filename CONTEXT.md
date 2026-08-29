@@ -8,6 +8,9 @@ A personal finance tracker: money sits in Bank Accounts, gets earmarked to Bucke
 A money-holding container owned by a user. Has a currency (fixed at creation) and a starting balance, and accrues Transactions (income/expense) and Allocations (money earmarked to Buckets). Its Balance may never go negative — it models liquid assets only (cash, checking, savings), not credit or liabilities. In code, always `BankAccount` / `bankAccounts`. In user-facing UI copy, the shorter "Account" is used instead — intentional, not an inconsistency, since there is currently no user-facing surface for Auth Account (below). Revisit this if that ever changes.
 _Avoid_: Wallet, Ledger
 
+**Transaction**:
+A record of money moving into (`income`) or out of (`expense`) a Bank Account. Always attaches to a Bank Account — never to a Bucket, and never split across Buckets. Its amount is stored in the owning Bank Account's currency; a Transaction has no currency of its own. Contributes to Balance: income adds, expense subtracts.
+
 **Auth Account**:
 A Better-Auth implementation detail (the `accounts` DB table): links a User to a credential or OAuth provider (issuer, tokens, provider id). Has no user-facing UI today. Unrelated to Bank Account — do not conflate the two despite the shared "account" name.
 _Avoid_: Account (too ambiguous with Bank Account to use unqualified in code or docs)
@@ -29,3 +32,6 @@ A future entity for tracking money owed to or by other people. Deliberately sepa
 
 **Goal** (planned, not yet implemented):
 A future entity for target/progress tracking on top of savings (e.g. "$5,000 toward a trip"). Undesigned beyond one open fork: whether it ends up as a column added directly to `buckets` (e.g. a nullable `targetAmount`) or as a wholly separate model/table referencing one or more Buckets. Do not assume either shape until this is actually designed.
+
+**Distribution** (planned, not yet implemented):
+A future entity for a saved, reusable, manually-triggered preset: a fixed Bank Account plus a fixed amount (e.g. "Payday — ₱15,000") which, when triggered, logs one `income` Transaction on that account and then splits the amount via Allocations across one or more Buckets (and, once they exist, Goals/Debts). Trigger is always manual — salary can land early or late, so no scheduled/automatic recurrence is part of this. Undesigned beyond this shape: the split plan's structure, and how it interacts with Goal/Debt once those exist, are open.
