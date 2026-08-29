@@ -10,9 +10,9 @@ import { Main } from "#/components/main";
 import { StateTemplate } from "#/components/state-template";
 import { Button } from "#/components/ui/button";
 import { DataTable } from "#/components/ui/data-table";
-import { INDEX_COLUMNS } from "#/modules/accounts/columns";
-import { useAddAccountDialogStore } from "#/modules/accounts/components/add-account-dialog";
-import { bankAccountsQueryOption } from "#/modules/accounts/query-options";
+import { INDEX_COLUMNS } from "#/modules/bank-accounts/columns";
+import { useAddBankAccountDialogStore } from "#/modules/bank-accounts/components/add-bank-account-dialog";
+import { bankAccountsQueryOption } from "#/modules/bank-accounts/query-options";
 
 export const Route = createFileRoute("/_protected/accounts/")({
   loader: async ({ context: { queryClient } }) => {
@@ -50,7 +50,7 @@ function RouteComponent() {
 
   const isEmpty = bankAccounts.length === 0;
 
-  const openDialog = useAddAccountDialogStore(useShallow((state) => state.openDialog));
+  const openDialog = useAddBankAccountDialogStore(useShallow((state) => state.openDialog));
 
   return (
     <Template>
@@ -79,7 +79,7 @@ function RouteComponent() {
 }
 
 function Template({ children }: PropsWithChildren) {
-  const openDialog = useAddAccountDialogStore(useShallow((state) => state.openDialog));
+  const openDialog = useAddBankAccountDialogStore(useShallow((state) => state.openDialog));
 
   return (
     <Main>

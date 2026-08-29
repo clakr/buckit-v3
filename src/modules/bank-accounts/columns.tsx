@@ -3,7 +3,7 @@ import type { ColumnDef } from "@tanstack/react-table";
 import { IconCircleDashed, IconCircleDottedLetterH } from "@tabler/icons-react";
 
 import type { Allocation, Bucket, Transaction } from "#/db/schema";
-import type { getBankAccount, getBankAccounts } from "#/modules/accounts/functions";
+import type { getBankAccount, getBankAccounts } from "#/modules/bank-accounts/functions";
 
 import { SortableTableHead } from "#/components/table/sortable-table-head";
 import { Badge } from "#/components/ui/badge";
@@ -16,9 +16,9 @@ import {
   getCurrency,
   isCurrencyCode,
 } from "#/lib/utils";
-import { AccountActionsDropdownMenu } from "#/modules/accounts/components/account-actions-dropdown-menu";
-import { getAccountUnallocatedBalance } from "#/modules/accounts/utils";
 import { AllocationActionsDropdownMenu } from "#/modules/allocations/components/allocation-actions-dropdown-menu";
+import { BankAccountActionsDropdownMenu } from "#/modules/bank-accounts/components/bank-account-actions-dropdown-menu";
+import { getBankAccountUnallocatedBalance } from "#/modules/bank-accounts/utils";
 import { TransactionActionsDropdownMenu } from "#/modules/transactions/components/transaction-actions-dropdown-menu";
 
 export const INDEX_COLUMNS: ColumnDef<Awaited<ReturnType<typeof getBankAccounts>>[number]>[] = [
@@ -49,13 +49,13 @@ export const INDEX_COLUMNS: ColumnDef<Awaited<ReturnType<typeof getBankAccounts>
     accessorKey: "balance",
     header: ({ column }) => <SortableTableHead column={column}>Balance</SortableTableHead>,
     sortingFn: (rowA, rowB) => {
-      const { balance: rowABalance } = getAccountUnallocatedBalance({
+      const { balance: rowABalance } = getBankAccountUnallocatedBalance({
         startingBalance: rowA.original.startingBalance,
         transactions: rowA.original.transactions,
         allocations: rowA.original.allocations,
       });
 
-      const { balance: rowBBalance } = getAccountUnallocatedBalance({
+      const { balance: rowBBalance } = getBankAccountUnallocatedBalance({
         startingBalance: rowB.original.startingBalance,
         transactions: rowB.original.transactions,
         allocations: rowB.original.allocations,
@@ -66,7 +66,7 @@ export const INDEX_COLUMNS: ColumnDef<Awaited<ReturnType<typeof getBankAccounts>
       return rowABalance - rowBBalance;
     },
     cell: ({ row }) => {
-      const { balance } = getAccountUnallocatedBalance({
+      const { balance } = getBankAccountUnallocatedBalance({
         startingBalance: row.original.startingBalance,
         transactions: row.original.transactions,
         allocations: row.original.allocations,
@@ -83,13 +83,13 @@ export const INDEX_COLUMNS: ColumnDef<Awaited<ReturnType<typeof getBankAccounts>
     accessorKey: "unallocated",
     header: ({ column }) => <SortableTableHead column={column}>Unallocated</SortableTableHead>,
     sortingFn: (rowA, rowB) => {
-      const { unallocated: rowAUnallocated } = getAccountUnallocatedBalance({
+      const { unallocated: rowAUnallocated } = getBankAccountUnallocatedBalance({
         startingBalance: rowA.original.startingBalance,
         transactions: rowA.original.transactions,
         allocations: rowA.original.allocations,
       });
 
-      const { unallocated: rowBUnallocated } = getAccountUnallocatedBalance({
+      const { unallocated: rowBUnallocated } = getBankAccountUnallocatedBalance({
         startingBalance: rowB.original.startingBalance,
         transactions: rowB.original.transactions,
         allocations: rowB.original.allocations,
@@ -100,7 +100,7 @@ export const INDEX_COLUMNS: ColumnDef<Awaited<ReturnType<typeof getBankAccounts>
       return rowAUnallocated - rowBUnallocated;
     },
     cell: ({ row }) => {
-      const { unallocated } = getAccountUnallocatedBalance({
+      const { unallocated } = getBankAccountUnallocatedBalance({
         startingBalance: row.original.startingBalance,
         transactions: row.original.transactions,
         allocations: row.original.allocations,
@@ -152,7 +152,7 @@ export const INDEX_COLUMNS: ColumnDef<Awaited<ReturnType<typeof getBankAccounts>
   {
     accessorKey: "actions",
     header: "",
-    cell: ({ row }) => <AccountActionsDropdownMenu account={row.original} />,
+    cell: ({ row }) => <BankAccountActionsDropdownMenu account={row.original} />,
   },
 ];
 

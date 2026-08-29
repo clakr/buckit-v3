@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-import { verifyUserBankAccountMiddlewareSchema } from "#/modules/accounts/schemas";
+import { verifyUserBankAccountMiddlewareSchema } from "#/modules/bank-accounts/schemas";
 
 export const verifyUserTransactionMiddlewareSchema = z.looseObject({
   transactionId: z.string().min(1, "No transaction ID provided"),

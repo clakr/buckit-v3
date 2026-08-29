@@ -1,7 +1,7 @@
 import { IconDots, IconEdit, IconEye, IconPlus, IconTrash } from "@tabler/icons-react";
 import { Link } from "@tanstack/react-router";
 
-import type { getBankAccounts } from "#/modules/accounts/functions";
+import type { getBankAccounts } from "#/modules/bank-accounts/functions";
 
 import { Button } from "#/components/ui/button";
 import {
@@ -20,7 +20,7 @@ type Props = {
   account: Awaited<ReturnType<typeof getBankAccounts>>[number];
 };
 
-export function AccountActionsDropdownMenu({ account }: Props) {
+export function BankAccountActionsDropdownMenu({ account }: Props) {
   function handleOpenLogTransactionDialog() {
     const state = useLogTransactionDialogStore.getState();
 

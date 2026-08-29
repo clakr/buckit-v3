@@ -3,7 +3,7 @@ import { env } from "cloudflare:workers";
 
 import { getDB } from "#/db";
 import { authMiddleware } from "#/lib/middlewares";
-import { verifyUserBankAccountMiddlewareSchema } from "#/modules/accounts/schemas";
+import { verifyUserBankAccountMiddlewareSchema } from "#/modules/bank-accounts/schemas";
 
 export const verifyUserBankAccountMiddleware = createMiddleware({
   type: "function",

@@ -2,7 +2,7 @@ import { queryOptions } from "@tanstack/react-query";
 
 import type { BankAccount } from "#/db/schema";
 
-import { getBankAccount, getBankAccounts } from "#/modules/accounts/functions";
+import { getBankAccount, getBankAccounts } from "#/modules/bank-accounts/functions";
 
 export const bankAccountsQueryOption = queryOptions({
   queryKey: ["bank-accounts"],

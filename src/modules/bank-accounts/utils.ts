@@ -1,6 +1,6 @@
 import type { Allocation, BankAccount, Transaction } from "#/db/schema";
 
-export function getAccountUnallocatedBalance({
+export function getBankAccountUnallocatedBalance({
   startingBalance,
   transactions,
   allocations,

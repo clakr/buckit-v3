@@ -8,8 +8,8 @@ import { getDB } from "#/db";
 import { bankAccounts, lower } from "#/db/schema";
 import { currencyCodec } from "#/lib/codecs";
 import { authMiddleware } from "#/lib/middlewares";
-import { verifyUserBankAccountMiddleware } from "#/modules/accounts/middlewares";
-import { addAccountSchema } from "#/modules/accounts/schemas";
+import { verifyUserBankAccountMiddleware } from "#/modules/bank-accounts/middlewares";
+import { addBankAccountSchema } from "#/modules/bank-accounts/schemas";
 
 export const getBankAccounts = createServerFn({
   method: "GET",
@@ -119,7 +119,7 @@ export const addBankAccount = createServerFn({
   method: "POST",
 })
   .middleware([authMiddleware])
-  .validator(addAccountSchema)
+  .validator(addBankAccountSchema)
   .handler(async ({ context, data }) => {
     const db = getDB(env.db);
 

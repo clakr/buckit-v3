@@ -33,20 +33,20 @@ import {
 import { Spinner } from "#/components/ui/spinner";
 import { useAppForm } from "#/integrations/tanstack-form";
 import { currencies } from "#/lib/constants";
-import { validateBankAccountName } from "#/modules/accounts/functions";
-import { useAddAccountMutation } from "#/modules/accounts/mutations";
-import { addAccountSchema } from "#/modules/accounts/schemas";
+import { validateBankAccountName } from "#/modules/bank-accounts/functions";
+import { useAddBankAccountMutation } from "#/modules/bank-accounts/mutations";
+import { addBankAccountSchema } from "#/modules/bank-accounts/schemas";
 import { confirm } from "#/stores/use-confirm";
 
-export const useAddAccountDialogStore = create<DialogState>()((set) => ({
+export const useAddBankAccountDialogStore = create<DialogState>()((set) => ({
   isOpen: false,
   openDialog: () => set({ isOpen: true }),
   closeDialog: () => set({ isOpen: false }),
   toggleDialog: () => set((state) => ({ isOpen: !state.isOpen })),
 }));
 
-export function AddAccountDialog() {
-  const { isOpen, closeDialog, toggleDialog } = useAddAccountDialogStore(
+export function AddBankAccountDialog() {
+  const { isOpen, closeDialog, toggleDialog } = useAddBankAccountDialogStore(
     useShallow((state) => ({
       isOpen: state.isOpen,
       closeDialog: state.closeDialog,
@@ -54,9 +54,9 @@ export function AddAccountDialog() {
     })),
   );
 
-  const mutation = useAddAccountMutation();
+  const mutation = useAddBankAccountMutation();
 
-  const defaultValues: z.input<typeof addAccountSchema> = {
+  const defaultValues: z.input<typeof addBankAccountSchema> = {
     name: "",
     currency: "PHP",
     startingBalance: 0,
@@ -65,7 +65,7 @@ export function AddAccountDialog() {
   const form = useAppForm({
     defaultValues,
     validators: {
-      onBlur: addAccountSchema,
+      onBlur: addBankAccountSchema,
     },
     onSubmit: async ({ value: data }) => {
       try {
