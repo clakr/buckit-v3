@@ -1,6 +1,11 @@
-Status: ready-for-agent
+---
+status: ready-for-agent
+module: authentication
+---
 
-# Email Verification
+# Spec: Email Verification
+
+No issue tracker is used for this project. This file is the actionable checklist — its `status: ready-for-agent` frontmatter stands in for the triage label a tracker would normally carry. Update the status (e.g. `in-progress`, `done`) as work proceeds.
 
 ## Problem Statement
 
@@ -23,7 +28,7 @@ Automatically send a verification email right after sign-up (with a manual resen
 
 ## Implementation Decisions
 
-- **Reuses the `sendEmail` seam** introduced by the Forgot / Reset Password spec (`.scratch/forgot-password/spec.md`). Whichever of the two specs is implemented first creates the seam; the other just imports it. Provider choice is the same open decision noted there — not duplicated here.
+- **Reuses the `sendEmail` seam** introduced by the Forgot / Reset Password spec (`docs/specs/forgot-password.md`). Whichever of the two specs is implemented first creates the seam; the other just imports it. Provider choice is the same open decision noted there — not duplicated here.
 - **`integrations/better-auth/index.ts`**: add `emailVerification.sendVerificationEmail: async ({ user, url }) => sendEmail({ to: user.email, subject: "Verify your email", html: <link to `url`> })` and `emailVerification.sendOnSignUp: true` — this fires automatically right after `signUpEmail`, which `signUpUser` (`modules/authentication/functions.ts`) already calls. Token expiry stays on Better-Auth's own default unless a reason to change it comes up.
 - **`modules/authentication/functions.ts`**: add `resendVerificationEmail`, wrapped in `authMiddleware` and using `context.user.email` — **never** a client-supplied email. This matters: an endpoint that emails an arbitrary caller-supplied address would let anyone use it to spam/enumerate, the same failure class as the IDOR bugs already found and fixed elsewhere in this module's ownership checks (see `allocations/SPEC.md`, `transactions/SPEC.md`). Wraps `auth.api.sendVerificationEmail({ body: { email: context.user.email } })`.
 - **New route**: `src/routes/verify-email.tsx`, top-level — deliberately outside both the `_guest` and `_protected` route groups. Sign-up already auto-signs the User in (per `signUpUser`/`register.tsx`'s existing redirect-to-`/dashboard` flow), so this link is normally clicked while authenticated, but Better-Auth's `verifyEmail` endpoint itself doesn't require a session, so the route shouldn't force one either. Calls `auth.api.verifyEmail({ query: { token } })` server-side, then redirects to `/dashboard`.
