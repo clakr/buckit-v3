@@ -22,7 +22,7 @@ export const verifyUserAllocationMiddleware = createMiddleware({
       .where(and(eq(allocations.id, data.allocationId), eq(bankAccounts.userId, context.user.id)))
       .limit(1);
 
-    if (!result) throw new Error("No allocation is linked to this user");
+    if (result.length === 0) throw new Error("No allocation is linked to this user");
 
     return next();
   });
