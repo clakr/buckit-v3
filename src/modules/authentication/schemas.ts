@@ -1,11 +1,7 @@
 import { z } from "zod";
 
 export const signInUserSchema = z.object({
-  email: z
-    .email("Please enter a valid email address")
-    .toLowerCase()
-    .trim()
-    .min(1, "Email is required"),
+  email: z.email("Please enter a valid email address").toLowerCase().trim(),
   password: z
     .string()
     .min(8, "Password must be at least 8 characters")
