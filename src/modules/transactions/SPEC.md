@@ -18,7 +18,7 @@ A Transaction is a record of money moving into (`income`) or out of (`expense`) 
 | `date`           | datetime | user-editable, defaults to now on creation                              |
 | `createdAt`      | datetime |                                                                          |
 
-No `updatedAt` column and no `bucketId` column — same reasoning as Bank Account/Bucket for the former (single-user app, no sync/API client, no concurrency-conflict scenario), and a permanent design boundary for the latter (see Design Decisions).
+No `updatedAt` column and no `bucketId` column — same reasoning as Bank Account/Bucket for the former (no sync/API client, no per-User concurrent-edit conflict scenario to detect), and a permanent design boundary for the latter (see Design Decisions).
 
 ## Design Decisions
 

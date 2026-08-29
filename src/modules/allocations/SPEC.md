@@ -18,7 +18,7 @@ An Allocation is money earmarked from a Bank Account toward a Bucket. It does no
 | `date`           | datetime | user-editable, defaults to now on creation                          |
 | `createdAt`      | datetime |                                                                      |
 
-No `updatedAt` column — same reasoning as every other entity in this app (single-user, no sync/API client, no concurrency-conflict scenario). No `currency` column — same reasoning as Transaction (see below).
+No `updatedAt` column — same reasoning as every other entity in this app (no sync/API client, no per-User concurrent-edit conflict scenario to detect). No `currency` column — same reasoning as Transaction (see below).
 
 ## Design Decisions
 

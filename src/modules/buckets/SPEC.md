@@ -15,7 +15,7 @@ A Bucket is a user-defined savings category that money gets earmarked into from 
 | `name`      | string   | user-given label, unique per user (case-insensitive), editable (planned) |
 | `createdAt` | datetime |                                                                |
 
-No currency, no balance/target column. No `updatedAt` — same reasoning as Bank Account: single-user app, no sync/API client, no concurrency-conflict scenario.
+No currency, no balance/target column. No `updatedAt` — same reasoning as Bank Account: no sync/API client, no per-User concurrent-edit conflict scenario to detect (see `authentication/SPEC.md` on multi-device Sessions).
 
 ## Design Decisions
 
