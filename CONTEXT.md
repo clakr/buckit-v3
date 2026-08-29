@@ -4,6 +4,9 @@ A personal finance tracker: money sits in Bank Accounts, gets earmarked to Bucke
 
 ## Language
 
+**User**:
+The account holder, authenticated via Better-Auth (email/password today). Owns every other entity — Bank Account, Bucket, Session, Auth Account — through a `userId` foreign key, and all of an entity's data is scoped to exactly one User. The app is built to support multiple independent, isolated Users by design (a free alternative to paid budgeting apps), not a single-operator tool — don't read "single-user" elsewhere in this repo's docs as "only one User account will ever exist." A User may hold several concurrent Sessions (e.g. phone and laptop signed in at once); see `modules/authentication/SPEC.md`.
+
 **Bank Account**:
 A money-holding container owned by a user. Has a currency (fixed at creation) and a starting balance, and accrues Transactions (income/expense) and Allocations (money earmarked to Buckets). Its Balance may never go negative — it models liquid assets only (cash, checking, savings), not credit or liabilities. In code, always `BankAccount` / `bankAccounts`. In user-facing UI copy, the shorter "Account" is used instead — intentional, not an inconsistency, since there is currently no user-facing surface for Auth Account (below). Revisit this if that ever changes.
 _Avoid_: Wallet, Ledger

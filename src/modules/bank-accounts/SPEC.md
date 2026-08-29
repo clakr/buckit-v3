@@ -63,7 +63,7 @@ Name must be unique per user, case-insensitive (compared via `lower()`), trimmed
 
 ### `updatedAt` Deferred
 
-Every other table in the schema (`users`, `sessions`, `accounts`, `verifications`) has an `updatedAt` column; `bankAccounts` doesn't. Considered and explicitly deferred: the only editable field is `name`, this is a single-user app with no sync/API client, and there's no concurrency-conflict scenario to detect. Add it if one of those drivers (sync cursor, conflict detection, "last edited" UI) actually materializes — not speculatively.
+Every other table in the schema (`users`, `sessions`, `accounts`, `verifications`) has an `updatedAt` column; `bankAccounts` doesn't. Considered and explicitly deferred: the only editable field is `name`, there's no sync/API client, and — while a User may hold multiple concurrent Sessions across devices (see `authentication/SPEC.md`) — there's no concurrency-conflict scenario to detect on a single Bank Account's own data. Add it if one of those drivers (sync cursor, conflict detection, "last edited" UI) actually materializes — not speculatively.
 
 ### Transfers Between Accounts — Out of Scope, Constraint Captured for Later
 
