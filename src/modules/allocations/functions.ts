@@ -7,8 +7,6 @@ import { getDB } from "#/db";
 import { allocations } from "#/db/schema";
 import { currencyCodec } from "#/lib/codecs";
 import { formatCurrency } from "#/lib/utils";
-import { verifyUserBankAccountMiddleware } from "#/modules/accounts/middlewares";
-import { getAccountUnallocatedBalance } from "#/modules/accounts/utils";
 import { verifyUserAllocationMiddleware } from "#/modules/allocations/middlewares";
 import {
   editAllocationSchema,
@@ -16,6 +14,8 @@ import {
   validateEditAllocationAmountSchema,
   validateLogAllocationAmountSchema,
 } from "#/modules/allocations/schemas";
+import { verifyUserBankAccountMiddleware } from "#/modules/bank-accounts/middlewares";
+import { getBankAccountUnallocatedBalance } from "#/modules/bank-accounts/utils";
 import { verifyUserBucketMiddleware } from "#/modules/buckets/middlewares";
 
 export const getAllocation = createServerFn({
@@ -80,7 +80,7 @@ export const validateLogAllocationAmount = createServerFn({
       };
     }
 
-    const { unallocated } = getAccountUnallocatedBalance({
+    const { unallocated } = getBankAccountUnallocatedBalance({
       startingBalance: bankAccount.startingBalance,
       transactions: bankAccount.transactions,
       allocations: bankAccount.allocations,
@@ -195,7 +195,7 @@ export const validateEditAllocationAmount = createServerFn({
 
     targetAllocation.amount = currencyCodec.decode(data.amount);
 
-    const { unallocated } = getAccountUnallocatedBalance({
+    const { unallocated } = getBankAccountUnallocatedBalance({
       startingBalance: allocation.bankAccount.startingBalance,
       transactions: allocation.bankAccount.transactions,
       allocations: Array.from(allocationsMap.values()),

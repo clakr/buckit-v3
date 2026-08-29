@@ -7,8 +7,8 @@ import { getDB } from "#/db";
 import { transactions } from "#/db/schema";
 import { currencyCodec } from "#/lib/codecs";
 import { formatCurrency } from "#/lib/utils";
-import { verifyUserBankAccountMiddleware } from "#/modules/accounts/middlewares";
-import { getAccountUnallocatedBalance } from "#/modules/accounts/utils";
+import { verifyUserBankAccountMiddleware } from "#/modules/bank-accounts/middlewares";
+import { getBankAccountUnallocatedBalance } from "#/modules/bank-accounts/utils";
 import { verifyUserTransactionMiddleware } from "#/modules/transactions/middlewares";
 import { editTransactionSchema, logTransactionSchema } from "#/modules/transactions/schemas";
 
@@ -73,7 +73,7 @@ export const validateLogTransaction = createServerFn({
       };
     }
 
-    const { unallocated } = getAccountUnallocatedBalance({
+    const { unallocated } = getBankAccountUnallocatedBalance({
       startingBalance: bankAccount.startingBalance,
       transactions: bankAccount.transactions,
       allocations: bankAccount.allocations,
@@ -179,7 +179,7 @@ export const validateEditTransaction = createServerFn({
     targetTransaction.amount = currencyCodec.decode(data.amount);
     targetTransaction.type = data.type;
 
-    const { unallocated } = getAccountUnallocatedBalance({
+    const { unallocated } = getBankAccountUnallocatedBalance({
       startingBalance: transaction.bankAccount.startingBalance,
       transactions: Array.from(transactionsMap.values()),
       allocations: transaction.bankAccount.allocations,
@@ -275,7 +275,7 @@ export const validateDeleteTransaction = createServerFn({
 
     transactionsMap.delete(data.transactionId);
 
-    const { unallocated } = getAccountUnallocatedBalance({
+    const { unallocated } = getBankAccountUnallocatedBalance({
       startingBalance: transaction.bankAccount.startingBalance,
       transactions: Array.from(transactionsMap.values()),
       allocations: transaction.bankAccount.allocations,

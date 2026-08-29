@@ -3,7 +3,7 @@ import type { PropsWithChildren } from "react";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute, Link } from "@tanstack/react-router";
 
-import type { getBankAccount } from "#/modules/accounts/functions";
+import type { getBankAccount } from "#/modules/bank-accounts/functions";
 
 import { Heading } from "#/components/heading";
 import { Main } from "#/components/main";
@@ -15,9 +15,9 @@ import { DataTable } from "#/components/ui/data-table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "#/components/ui/tabs";
 import { currencyCodec } from "#/lib/codecs";
 import { formatCurrency } from "#/lib/utils";
-import { ALLOCATIONS_COLUMNS, TRANSACTIONS_COLUMNS } from "#/modules/accounts/columns";
-import { bankAccountQueryOption } from "#/modules/accounts/query-options";
-import { getAccountUnallocatedBalance } from "#/modules/accounts/utils";
+import { ALLOCATIONS_COLUMNS, TRANSACTIONS_COLUMNS } from "#/modules/bank-accounts/columns";
+import { bankAccountQueryOption } from "#/modules/bank-accounts/query-options";
+import { getBankAccountUnallocatedBalance } from "#/modules/bank-accounts/utils";
 
 class BankAccountNotFoundError extends Error {
   constructor() {
@@ -75,7 +75,7 @@ function RouteComponent() {
   const { data: bankAccount } = useSuspenseQuery(bankAccountQueryOption(accountId));
   if (!bankAccount) throw new BankAccountNotFoundError();
 
-  const { balance, unallocated, totalAllocated } = getAccountUnallocatedBalance({
+  const { balance, unallocated, totalAllocated } = getBankAccountUnallocatedBalance({
     startingBalance: bankAccount.startingBalance,
     transactions: bankAccount.transactions,
     allocations: bankAccount.allocations,
@@ -152,7 +152,7 @@ function Template({
       </Main>
     );
 
-  const { balance } = getAccountUnallocatedBalance({
+  const { balance } = getBankAccountUnallocatedBalance({
     startingBalance: bankAccount.startingBalance,
     transactions: bankAccount.transactions,
     allocations: bankAccount.allocations,

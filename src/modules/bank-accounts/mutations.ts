@@ -1,8 +1,8 @@
 import { useMutation } from "@tanstack/react-query";
 
-import { addBankAccount } from "#/modules/accounts/functions";
+import { addBankAccount } from "#/modules/bank-accounts/functions";
 
-export function useAddAccountMutation() {
+export function useAddBankAccountMutation() {
   return useMutation({
     mutationFn: addBankAccount,
     meta: {

@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-import { verifyUserBankAccountMiddlewareSchema } from "#/modules/accounts/schemas";
+import { verifyUserBankAccountMiddlewareSchema } from "#/modules/bank-accounts/schemas";
 
 export const verifyUserAllocationMiddlewareSchema = z.looseObject({
   allocationId: z.string().min(1, "No allocation ID provided"),

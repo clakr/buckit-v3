@@ -6,7 +6,7 @@ export const verifyUserBankAccountMiddlewareSchema = z.looseObject({
   bankAccountId: z.string().min(1, "No bank account ID provided"),
 });
 
-export const addAccountSchema = z.object({
+export const addBankAccountSchema = z.object({
   name: z
     .string()
     .trim()
