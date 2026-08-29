@@ -206,7 +206,7 @@ export function EditAllocationDialog() {
                           onChange={(e) => field.handleChange(e.target.value)}
                           onBlur={field.handleBlur}
                           aria-invalid={isInvalid ? true : undefined}
-                          aria-labelledby={isInvalid ? "startingBalance-error" : undefined}
+                          aria-labelledby={isInvalid ? errorId : undefined}
                         />
                         <InputGroupAddon align="inline-end">
                           {field.state.meta.isValidating ? (
