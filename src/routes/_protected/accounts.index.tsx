@@ -16,7 +16,7 @@ import { bankAccountsQueryOption } from "#/modules/bank-accounts/query-options";
 
 export const Route = createFileRoute("/_protected/accounts/")({
   loader: async ({ context: { queryClient } }) => {
-    queryClient.prefetchQuery(bankAccountsQueryOption);
+    queryClient.query(bankAccountsQueryOption);
   },
   pendingComponent: () => (
     <Template>

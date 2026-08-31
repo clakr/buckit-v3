@@ -27,7 +27,7 @@ class BankAccountNotFoundError extends Error {
 
 export const Route = createFileRoute("/_protected/accounts/$accountId")({
   loader: async ({ context: { queryClient }, params }) => {
-    queryClient.prefetchQuery(bankAccountQueryOption(params.accountId));
+    queryClient.query(bankAccountQueryOption(params.accountId));
   },
   pendingComponent: () => (
     <Template>

@@ -19,7 +19,7 @@ class BucketNotFoundError extends Error {
 
 export const Route = createFileRoute("/_protected/buckets/$bucketId")({
   loader: async ({ context: { queryClient }, params }) => {
-    queryClient.prefetchQuery(bucketQueryOption(params.bucketId));
+    queryClient.query(bucketQueryOption(params.bucketId));
   },
   pendingComponent: () => (
     <Template>
