@@ -1,4 +1,4 @@
-import { IconDots, IconEdit, IconTrash } from "@tabler/icons-react";
+import { IconDots, IconEdit } from "@tabler/icons-react";
 
 import type { Transaction } from "#/db/schema";
 
@@ -8,7 +8,6 @@ import {
   DropdownMenuContent,
   DropdownMenuGroup,
   DropdownMenuItem,
-  DropdownMenuLabel,
   DropdownMenuTrigger,
 } from "#/components/ui/dropdown-menu";
 import { useEditTransactionDialogStore } from "#/modules/transactions/components/edit-transaction-dialog";
@@ -65,23 +64,18 @@ export function TransactionActionsDropdownMenu({ transactionId }: Props) {
 
   return (
     <DropdownMenu>
-      <DropdownMenuTrigger
-        render={
-          <Button variant="ghost" size="icon">
-            <IconDots />
-            <span className="sr-only">Open Transaction Action Menu</span>
-          </Button>
-        }
-      />
+      <DropdownMenuTrigger render={<Button variant="ghost" size="icon" />}>
+        <IconDots />
+        <span className="sr-only">Open Transaction Action Menu</span>
+      </DropdownMenuTrigger>
       <DropdownMenuContent className="w-fit">
         <DropdownMenuGroup>
-          <DropdownMenuLabel>Transaction</DropdownMenuLabel>
           <DropdownMenuItem onClick={handleOpenEditTransactionDialog}>
             <IconEdit />
             Edit
           </DropdownMenuItem>
           <DropdownMenuItem onClick={handleDeleteTransaction}>
-            <IconTrash />
+            <svg />
             Delete
           </DropdownMenuItem>
         </DropdownMenuGroup>
