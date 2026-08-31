@@ -1,4 +1,4 @@
-import { IconDots, IconEdit, IconEye, IconTrash } from "@tabler/icons-react";
+import { IconDots, IconEye } from "@tabler/icons-react";
 import { Link } from "@tanstack/react-router";
 
 import type { Bucket } from "#/db/schema";
@@ -9,7 +9,6 @@ import {
   DropdownMenuContent,
   DropdownMenuGroup,
   DropdownMenuItem,
-  DropdownMenuLabel,
   DropdownMenuTrigger,
 } from "#/components/ui/dropdown-menu";
 
@@ -20,27 +19,22 @@ type Props = {
 export function BucketActionsDropdownMenu({ bucketId }: Props) {
   return (
     <DropdownMenu>
-      <DropdownMenuTrigger
-        render={
-          <Button variant="ghost" size="icon">
-            <IconDots />
-            <span className="sr-only">Open Bucket Action Menu</span>
-          </Button>
-        }
-      />
+      <DropdownMenuTrigger render={<Button variant="ghost" size="icon" />}>
+        <IconDots />
+        <span className="sr-only">Open Bucket Action Menu</span>
+      </DropdownMenuTrigger>
       <DropdownMenuContent className="w-fit">
         <DropdownMenuGroup>
-          <DropdownMenuLabel>Buckets</DropdownMenuLabel>
           <DropdownMenuItem render={<Link to="/buckets/$bucketId" params={{ bucketId }} />}>
             <IconEye />
-            View Detail
+            View
           </DropdownMenuItem>
           <DropdownMenuItem disabled>
-            <IconEdit />
+            <svg />
             Edit
           </DropdownMenuItem>
           <DropdownMenuItem disabled>
-            <IconTrash />
+            <svg />
             Delete
           </DropdownMenuItem>
         </DropdownMenuGroup>

@@ -1,4 +1,4 @@
-import { IconDots, IconEdit, IconTrash } from "@tabler/icons-react";
+import { IconDots, IconEdit } from "@tabler/icons-react";
 
 import type { Allocation } from "#/db/schema";
 
@@ -8,7 +8,6 @@ import {
   DropdownMenuContent,
   DropdownMenuGroup,
   DropdownMenuItem,
-  DropdownMenuLabel,
   DropdownMenuTrigger,
 } from "#/components/ui/dropdown-menu";
 import { useEditAllocationDialogStore } from "#/modules/allocations/components/edit-allocation-dialog";
@@ -50,23 +49,18 @@ export function AllocationActionsDropdownMenu({ allocationId }: Props) {
 
   return (
     <DropdownMenu>
-      <DropdownMenuTrigger
-        render={
-          <Button variant="ghost" size="icon">
-            <IconDots />
-            <span className="sr-only">Open Allocation Action Menu</span>
-          </Button>
-        }
-      />
+      <DropdownMenuTrigger render={<Button variant="ghost" size="icon" />}>
+        <IconDots />
+        <span className="sr-only">Open Allocation Action Menu</span>
+      </DropdownMenuTrigger>
       <DropdownMenuContent className="w-fit">
         <DropdownMenuGroup>
-          <DropdownMenuLabel>Allocation</DropdownMenuLabel>
           <DropdownMenuItem onClick={handleOpenEditAllocationDialog}>
             <IconEdit />
             Edit
           </DropdownMenuItem>
           <DropdownMenuItem onClick={handleDeleteAllocation}>
-            <IconTrash />
+            <svg />
             Delete
           </DropdownMenuItem>
         </DropdownMenuGroup>

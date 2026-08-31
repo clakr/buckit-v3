@@ -1,4 +1,4 @@
-import { IconDots, IconEdit, IconEye, IconPlus, IconTrash } from "@tabler/icons-react";
+import { IconDots, IconEye, IconPlus } from "@tabler/icons-react";
 import { Link } from "@tanstack/react-router";
 
 import type { getBankAccounts } from "#/modules/bank-accounts/functions";
@@ -9,7 +9,6 @@ import {
   DropdownMenuContent,
   DropdownMenuGroup,
   DropdownMenuItem,
-  DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "#/components/ui/dropdown-menu";
@@ -37,42 +36,36 @@ export function BankAccountActionsDropdownMenu({ account }: Props) {
 
   return (
     <DropdownMenu>
-      <DropdownMenuTrigger
-        render={
-          <Button variant="ghost" size="icon">
-            <IconDots />
-            <span className="sr-only">Open Bank Account Action Menu</span>
-          </Button>
-        }
-      />
+      <DropdownMenuTrigger render={<Button variant="ghost" size="icon" />}>
+        <IconDots />
+        <span className="sr-only">Open Bank Account Action Menu</span>
+      </DropdownMenuTrigger>
       <DropdownMenuContent className="w-fit">
         <DropdownMenuGroup>
-          <DropdownMenuLabel>Accounts</DropdownMenuLabel>
-          <DropdownMenuItem
-            render={<Link to="/accounts/$accountId" params={{ accountId: account.id }} />}
-          >
-            <IconEye />
-            View Detail
+          <DropdownMenuItem onClick={handleOpenLogTransactionDialog}>
+            <IconPlus />
+            Transaction
           </DropdownMenuItem>
-          <DropdownMenuItem disabled>
-            <IconEdit />
-            Edit
-          </DropdownMenuItem>
-          <DropdownMenuItem disabled>
-            <IconTrash />
-            Delete
+          <DropdownMenuItem onClick={handleOpenLogAllocationDialog}>
+            <svg />
+            Allocation
           </DropdownMenuItem>
         </DropdownMenuGroup>
         <DropdownMenuSeparator />
         <DropdownMenuGroup>
-          <DropdownMenuLabel>Others</DropdownMenuLabel>
-          <DropdownMenuItem onClick={handleOpenLogTransactionDialog}>
-            <IconPlus />
-            New Transaction
+          <DropdownMenuItem
+            render={<Link to="/accounts/$accountId" params={{ accountId: account.id }} />}
+          >
+            <IconEye />
+            View
           </DropdownMenuItem>
-          <DropdownMenuItem onClick={handleOpenLogAllocationDialog}>
-            <IconPlus />
-            Allocate
+          <DropdownMenuItem disabled>
+            <svg />
+            Edit
+          </DropdownMenuItem>
+          <DropdownMenuItem disabled>
+            <svg />
+            Delete
           </DropdownMenuItem>
         </DropdownMenuGroup>
       </DropdownMenuContent>
