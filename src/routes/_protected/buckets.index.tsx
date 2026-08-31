@@ -16,7 +16,7 @@ import { bucketsQueryOptions } from "#/modules/buckets/query-options";
 
 export const Route = createFileRoute("/_protected/buckets/")({
   loader: async ({ context: { queryClient } }) => {
-    queryClient.prefetchQuery(bucketsQueryOptions);
+    queryClient.query(bucketsQueryOptions);
   },
   pendingComponent: () => (
     <Template>
