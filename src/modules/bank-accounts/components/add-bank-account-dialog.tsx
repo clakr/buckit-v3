@@ -122,6 +122,8 @@ export function AddBankAccountDialog() {
                 validators={{
                   onChangeAsyncDebounceMs: 500,
                   onChangeAsync: z.string().superRefine(async (data, context) => {
+                    if (!data) return;
+
                     try {
                       const { isValid, message } = await validateBankAccountName({
                         data,
