@@ -145,7 +145,7 @@ export function EditTransactionDialog() {
             <StateTemplate
               state="error"
               title="Could not load transaction"
-              description="We weren't able to retrieve this bucket. Please check your connection and try again."
+              description="We weren't able to retrieve this transaction. Please check your connection and try again."
               content={<Button onClick={() => refetch()}>Retry</Button>}
             />
           ) : null}
