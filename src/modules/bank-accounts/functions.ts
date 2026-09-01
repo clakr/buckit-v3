@@ -123,6 +123,12 @@ export const addBankAccount = createServerFn({
   .handler(async ({ context, data }) => {
     const db = getDB(env.db);
 
+    const { isValid, message } = await validateBankAccountName({
+      data: data.name,
+    });
+
+    if (!isValid) throw new Error(message);
+
     return db
       .insert(bankAccounts)
       .values({
