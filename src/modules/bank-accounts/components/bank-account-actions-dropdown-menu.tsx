@@ -15,6 +15,8 @@ import {
 import { useLogAllocationDialogStore } from "#/modules/allocations/components/log-allocation-dialog";
 import { useLogTransactionDialogStore } from "#/modules/transactions/components/log-transaction-dialog";
 
+import { useEditBankAccountDialogStore } from "./edit-bank-account-dialog";
+
 type Props = {
   account: Awaited<ReturnType<typeof getBankAccounts>>[number];
 };
@@ -31,6 +33,13 @@ export function BankAccountActionsDropdownMenu({ account }: Props) {
     const state = useLogAllocationDialogStore.getState();
 
     state.setAccount(account);
+    state.openDialog();
+  }
+
+  function handleOpenEditBankAccountDialog() {
+    const state = useEditBankAccountDialogStore.getState();
+
+    state.setBankAccountId(account.id);
     state.openDialog();
   }
 
@@ -59,7 +68,7 @@ export function BankAccountActionsDropdownMenu({ account }: Props) {
             <IconEye />
             View
           </DropdownMenuItem>
-          <DropdownMenuItem disabled>
+          <DropdownMenuItem onClick={handleOpenEditBankAccountDialog}>
             <svg />
             Edit
           </DropdownMenuItem>

@@ -1,6 +1,6 @@
 import { createServerFn } from "@tanstack/react-start";
 import { env } from "cloudflare:workers";
-import { and, eq } from "drizzle-orm";
+import { and, eq, ne } from "drizzle-orm";
 import { uuidv7 } from "uuidv7";
 import { z } from "zod";
 
@@ -9,7 +9,10 @@ import { bankAccounts, lower } from "#/db/schema";
 import { currencyCodec } from "#/lib/codecs";
 import { authMiddleware } from "#/lib/middlewares";
 import { verifyUserBankAccountMiddleware } from "#/modules/bank-accounts/middlewares";
-import { addBankAccountSchema } from "#/modules/bank-accounts/schemas";
+import {
+  addBankAccountSchema,
+  editBankAccountSchema,
+} from "#/modules/bank-accounts/schemas";
 
 export const getBankAccounts = createServerFn({
   method: "GET",
@@ -138,5 +141,61 @@ export const addBankAccount = createServerFn({
         currency: data.currency,
         startingBalance: currencyCodec.decode(data.startingBalance),
       })
+      .returning();
+  });
+
+export const validateEditBankAccountName = createServerFn({
+  method: "GET",
+})
+  .middleware([verifyUserBankAccountMiddleware])
+  .validator(editBankAccountSchema)
+  .handler(async ({ context, data }) => {
+    const db = getDB(env.db);
+
+    const result = await db
+      .select({
+        id: bankAccounts.id,
+        name: bankAccounts.name,
+      })
+      .from(bankAccounts)
+      .where(
+        and(
+          eq(bankAccounts.userId, context.session.userId),
+          eq(lower(bankAccounts.name), data.name.toLowerCase()),
+          ne(bankAccounts.id, data.bankAccountId),
+        ),
+      )
+      .limit(1);
+
+    if (result.length > 0) {
+      return {
+        isValid: false,
+        message: "An account with this name already exists.",
+      };
+    }
+
+    return { isValid: true, message: "ok" };
+  });
+
+export const editBankAccount = createServerFn({
+  method: "POST",
+})
+  .middleware([verifyUserBankAccountMiddleware])
+  .validator(editBankAccountSchema)
+  .handler(async ({ data }) => {
+    const db = getDB(env.db);
+
+    const { isValid, message } = await validateEditBankAccountName({
+      data,
+    });
+
+    if (!isValid) throw new Error(message);
+
+    return db
+      .update(bankAccounts)
+      .set({
+        name: data.name,
+      })
+      .where(eq(bankAccounts.id, data.bankAccountId))
       .returning();
   });
