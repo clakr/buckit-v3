@@ -103,6 +103,12 @@ export const addBucket = createServerFn({
   .handler(async ({ context, data }) => {
     const db = getDB(env.db);
 
+    const { isValid, message } = await validateBucketName({
+      data: data.name,
+    });
+
+    if (!isValid) throw new Error(message);
+
     return db
       .insert(buckets)
       .values({
