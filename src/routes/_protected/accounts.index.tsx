@@ -2,7 +2,7 @@ import type { PropsWithChildren } from "react";
 
 import { IconPlus, IconWallet } from "@tabler/icons-react";
 import { useSuspenseQuery } from "@tanstack/react-query";
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute } from "@tanstack/react-router";
 import { useShallow } from "zustand/react/shallow";
 
 import { Heading } from "#/components/heading";
@@ -33,12 +33,7 @@ export const Route = createFileRoute("/_protected/accounts/")({
         state="error"
         title="Could not load accounts."
         description="We weren't able to retrieve your accounts. Please try again."
-        content={
-          <>
-            <Button onClick={reset}>Retry</Button>
-            <Button render={<Link to="/accounts" />}>Go back to accounts</Button>
-          </>
-        }
+        content={<Button onClick={reset}>Retry</Button>}
       />
     </Template>
   ),
