@@ -9,6 +9,7 @@ import type { DialogState } from "#/lib/types";
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogFooter,
   DialogHeader,
   DialogTitle,
@@ -134,6 +135,7 @@ export function LogAllocationDialog() {
       <DialogContent>
         <DialogHeader>
           <DialogTitle>Allocate Money</DialogTitle>
+          <DialogDescription>Move money from this account into a bucket.</DialogDescription>
         </DialogHeader>
         <div>
           <form

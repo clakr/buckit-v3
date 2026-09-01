@@ -13,6 +13,7 @@ import { Button } from "#/components/ui/button";
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogFooter,
   DialogHeader,
   DialogTitle,
@@ -122,6 +123,9 @@ export function EditAllocationDialog() {
       <DialogContent>
         <DialogHeader>
           <DialogTitle>Edit Allocation</DialogTitle>
+          <DialogDescription>
+            Update the amount, date, or note for this allocation.
+          </DialogDescription>
         </DialogHeader>
         <div>
           {isLoading ? (
