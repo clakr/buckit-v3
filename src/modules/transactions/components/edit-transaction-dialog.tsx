@@ -13,6 +13,7 @@ import { Button } from "#/components/ui/button";
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogFooter,
   DialogHeader,
   DialogTitle,
@@ -130,6 +131,7 @@ export function EditTransactionDialog() {
       <DialogContent>
         <DialogHeader>
           <DialogTitle>Edit Transaction</DialogTitle>
+          <DialogDescription>Update the details of this transaction.</DialogDescription>
         </DialogHeader>
         <div>
           {isLoading ? (

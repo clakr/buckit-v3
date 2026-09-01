@@ -10,6 +10,7 @@ import { Alert, AlertDescription, AlertTitle } from "#/components/ui/alert";
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogFooter,
   DialogHeader,
   DialogTitle,
@@ -113,6 +114,7 @@ export function LogTransactionDialog() {
       <DialogContent>
         <DialogHeader>
           <DialogTitle>Log Transaction</DialogTitle>
+          <DialogDescription>Record a deposit or withdrawal for this account.</DialogDescription>
         </DialogHeader>
         <div>
           <form
