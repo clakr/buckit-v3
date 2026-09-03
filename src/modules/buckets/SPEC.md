@@ -8,12 +8,12 @@ A Bucket is a user-defined savings category that money gets earmarked into from 
 
 ### Bucket
 
-| Field       | Type     | Notes                                                        |
-| ----------- | -------- | ------------------------------------------------------------- |
-| `id`        | string   | auto-generated (uuidv7)                                       |
-| `userId`    | string   | FK → Users (ownership boundary)                               |
+| Field       | Type     | Notes                                                                    |
+| ----------- | -------- | ------------------------------------------------------------------------ |
+| `id`        | string   | auto-generated (uuidv7)                                                  |
+| `userId`    | string   | FK → Users (ownership boundary)                                          |
 | `name`      | string   | user-given label, unique per user (case-insensitive), editable (planned) |
-| `createdAt` | datetime |                                                                |
+| `createdAt` | datetime |                                                                          |
 
 No currency, no balance/target column. No `updatedAt` — same reasoning as Bank Account: no sync/API client, no per-User concurrent-edit conflict scenario to detect (see `authentication/SPEC.md` on multi-device Sessions).
 
@@ -41,16 +41,16 @@ Not yet built (menu item exists but is `disabled`). When built: rename only, sam
 
 ## Features
 
-| #   | Feature             | Status                                                                                                                                                                                                                                    |
-| --- | ------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 1   | Create Bucket       | **Implemented and correct.** Name only, validated (uniqueness, 1–100 chars, trimmed).                                                                                                                                                     |
-| 2   | View Buckets List   | **Implemented and correct**, with one deliberate limitation: the per-currency subtotal column is not sortable (see below).                                                                                                               |
-| 3   | View Bucket Detail  | **Implemented and correct**, as a flat Allocations table only — no aggregate/summary header (see below).                                                                                                                                  |
-| 4   | Edit Bucket         | **Not implemented** (UI menu item exists but is `disabled`). Scope for when built: **name only**.                                                                                                                                        |
-| 5   | Delete Bucket       | **Not implemented** (UI menu item exists but is `disabled`). Scope for when built: hard delete, cascades Allocations, gated by typed confirmation (re-type bucket name).                                                                 |
+| #   | Feature                    | Status                                                                                                                                                                                                                                                 |
+| --- | -------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| 1   | Create Bucket              | **Implemented and correct.** Name only, validated (uniqueness, 1–100 chars, trimmed).                                                                                                                                                                  |
+| 2   | View Buckets List          | **Implemented and correct**, with one deliberate limitation: the per-currency subtotal column is not sortable (see below).                                                                                                                             |
+| 3   | View Bucket Detail         | **Implemented and correct**, as a flat Allocations table only — no aggregate/summary header (see below).                                                                                                                                               |
+| 4   | Edit Bucket                | **Not implemented** (UI menu item exists but is `disabled`). Scope for when built: **name only**.                                                                                                                                                      |
+| 5   | Delete Bucket              | **Not implemented** (UI menu item exists but is `disabled`). Scope for when built: hard delete, cascades Allocations, gated by typed confirmation (re-type bucket name).                                                                               |
 | 6   | Log/Edit/Delete Allocation | **Implemented and correct** — lives in the sibling `allocations` module, not this one. Enforces `Unallocated ≥ 0` against the source Bank Account on log and edit; delete needs no guard since removing an Allocation only ever increases Unallocated. |
-| —   | Spend From a Bucket | **Rejected as a concept for this entity**, permanently. Spending is always recorded as a Bank Account Transaction.                                                                                                                        |
-| —   | Goal / Target Tracking | **Out of scope, deferred** to a planned, undesigned `Goal` module. See Future Considerations.                                                                                                                                          |
+| —   | Spend From a Bucket        | **Rejected as a concept for this entity**, permanently. Spending is always recorded as a Bank Account Transaction.                                                                                                                                     |
+| —   | Goal / Target Tracking     | **Out of scope, deferred** to a planned, undesigned `Goal` module. See Future Considerations.                                                                                                                                                          |
 
 ## Gaps Identified This Session (Deliberate, Not Bugs)
 

@@ -9,10 +9,7 @@ import { bankAccounts, lower } from "#/db/schema";
 import { currencyCodec } from "#/lib/codecs";
 import { authMiddleware } from "#/lib/middlewares";
 import { verifyUserBankAccountMiddleware } from "#/modules/bank-accounts/middlewares";
-import {
-  addBankAccountSchema,
-  editBankAccountSchema,
-} from "#/modules/bank-accounts/schemas";
+import { addBankAccountSchema, editBankAccountSchema } from "#/modules/bank-accounts/schemas";
 
 export const getBankAccounts = createServerFn({
   method: "GET",

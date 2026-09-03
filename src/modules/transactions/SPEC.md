@@ -8,15 +8,15 @@ A Transaction is a record of money moving into (`income`) or out of (`expense`) 
 
 ### Transaction
 
-| Field           | Type     | Notes                                                                  |
-| ---------------- | -------- | ----------------------------------------------------------------------- |
-| `id`             | string   | auto-generated (uuidv7)                                                 |
-| `bankAccountId`  | string   | FK → BankAccount, `onDelete: cascade`                                   |
-| `type`           | enum     | `income` \| `expense`                                                   |
-| `amount`         | integer  | minor units (cents) via `currencyCodec`, in the owning account's currency |
-| `note`           | string   | nullable                                                                |
-| `date`           | datetime | user-editable, defaults to now on creation                              |
-| `createdAt`      | datetime |                                                                          |
+| Field           | Type     | Notes                                                                     |
+| --------------- | -------- | ------------------------------------------------------------------------- |
+| `id`            | string   | auto-generated (uuidv7)                                                   |
+| `bankAccountId` | string   | FK → BankAccount, `onDelete: cascade`                                     |
+| `type`          | enum     | `income` \| `expense`                                                     |
+| `amount`        | integer  | minor units (cents) via `currencyCodec`, in the owning account's currency |
+| `note`          | string   | nullable                                                                  |
+| `date`          | datetime | user-editable, defaults to now on creation                                |
+| `createdAt`     | datetime |                                                                           |
 
 No `updatedAt` column and no `bucketId` column — same reasoning as Bank Account/Bucket for the former (no sync/API client, no per-User concurrent-edit conflict scenario to detect), and a permanent design boundary for the latter (see Design Decisions).
 
@@ -48,12 +48,12 @@ Transactions are only ever viewed embedded in a Bank Account's detail page (`TRA
 
 ## Features
 
-| #   | Feature            | Status                                                                                     |
-| --- | ------------------- | --------------------------------------------------------------------------------------------- |
-| 1   | Log Transaction     | **Implemented and correct.** Enforces `Unallocated ≥ 0` for expenses.                          |
-| 2   | View Transaction    | **Implemented and correct**, embedded in the owning Bank Account's detail page only.           |
-| 3   | Edit Transaction    | **Implemented and correct.** Recomputes `Unallocated` with the edit applied before allowing it. |
-| 4   | Delete Transaction  | **Implemented and correct.** Hard delete, no cascade, plain confirmation (see above).          |
+| #   | Feature            | Status                                                                                          |
+| --- | ------------------ | ----------------------------------------------------------------------------------------------- |
+| 1   | Log Transaction    | **Implemented and correct.** Enforces `Unallocated ≥ 0` for expenses.                           |
+| 2   | View Transaction   | **Implemented and correct**, embedded in the owning Bank Account's detail page only.            |
+| 3   | Edit Transaction   | **Implemented and correct.** Recomputes `Unallocated` with the edit applied before allowing it. |
+| 4   | Delete Transaction | **Implemented and correct.** Hard delete, no cascade, plain confirmation (see above).           |
 
 ## Fixed During This Session
 

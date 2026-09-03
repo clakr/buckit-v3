@@ -8,15 +8,15 @@ An Allocation is money earmarked from a Bank Account toward a Bucket. It does no
 
 ### Allocation
 
-| Field           | Type     | Notes                                                            |
-| ---------------- | -------- | ------------------------------------------------------------------ |
-| `id`             | string   | auto-generated (uuidv7)                                            |
-| `bankAccountId`  | string   | FK → BankAccount, `onDelete: cascade`                               |
-| `bucketId`       | string   | FK → Bucket, `onDelete: cascade`                                     |
-| `amount`         | integer  | minor units (cents) via `currencyCodec`, in the Bank Account's currency |
-| `note`           | string   | nullable                                                            |
-| `date`           | datetime | user-editable, defaults to now on creation                          |
-| `createdAt`      | datetime |                                                                      |
+| Field           | Type     | Notes                                                                   |
+| --------------- | -------- | ----------------------------------------------------------------------- |
+| `id`            | string   | auto-generated (uuidv7)                                                 |
+| `bankAccountId` | string   | FK → BankAccount, `onDelete: cascade`                                   |
+| `bucketId`      | string   | FK → Bucket, `onDelete: cascade`                                        |
+| `amount`        | integer  | minor units (cents) via `currencyCodec`, in the Bank Account's currency |
+| `note`          | string   | nullable                                                                |
+| `date`          | datetime | user-editable, defaults to now on creation                              |
+| `createdAt`     | datetime |                                                                         |
 
 No `updatedAt` column — same reasoning as every other entity in this app (no sync/API client, no per-User concurrent-edit conflict scenario to detect). No `currency` column — same reasoning as Transaction (see below).
 
@@ -44,12 +44,12 @@ Same reasoning as Transaction (per ADR 0001/0002's typed-confirmation precedent 
 
 ## Features
 
-| #   | Feature           | Status                                                                                     |
-| --- | ------------------ | ---------------------------------------------------------------------------------------------- |
-| 1   | Log Allocation     | **Implemented and correct.** Enforces `Unallocated ≥ 0`.                                        |
-| 2   | View Allocation    | **Implemented and correct**, embedded in both the Bucket detail page and the Bank Account detail page. No standalone list (see Future Considerations). |
-| 3   | Edit Allocation     | **Implemented and correct.** Amount/date/note only; recomputes `Unallocated` with the edit applied before allowing it. Reassigning Bucket/Bank Account is a permanent non-feature (see Design Decisions). |
-| 4   | Delete Allocation  | **Implemented and correct.** Hard delete, no cascade, plain confirmation.                        |
+| #   | Feature           | Status                                                                                                                                                                                                    |
+| --- | ----------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1   | Log Allocation    | **Implemented and correct.** Enforces `Unallocated ≥ 0`.                                                                                                                                                  |
+| 2   | View Allocation   | **Implemented and correct**, embedded in both the Bucket detail page and the Bank Account detail page. No standalone list (see Future Considerations).                                                    |
+| 3   | Edit Allocation   | **Implemented and correct.** Amount/date/note only; recomputes `Unallocated` with the edit applied before allowing it. Reassigning Bucket/Bank Account is a permanent non-feature (see Design Decisions). |
+| 4   | Delete Allocation | **Implemented and correct.** Hard delete, no cascade, plain confirmation.                                                                                                                                 |
 
 ## Fixed During This Session
 

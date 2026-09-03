@@ -30,7 +30,7 @@ _Not new work — recapped here so this file stays a complete behavioral referen
 7. As a user, I want to delete an Allocation I logged by mistake, so its money returns to the source account's unallocated pool.
 8. As a user, I want a simple yes/no confirmation when deleting an Allocation (not a typed-confirmation gate), since deleting one Allocation doesn't cascade to destroy any other records.
 9. As a user, I want an Allocation's amount to always be interpreted in its Bank Account's currency, since an Allocation has no currency of its own.
-10. As a user, I want it to stay true that I can't reassign an existing Allocation to a different Bucket or Bank Account — if I earmarked money to the wrong place, I delete it and log a new one instead. *(Confirms an existing, permanent boundary — not new work.)*
+10. As a user, I want it to stay true that I can't reassign an existing Allocation to a different Bucket or Bank Account — if I earmarked money to the wrong place, I delete it and log a new one instead. _(Confirms an existing, permanent boundary — not new work.)_
 
 ### Cross-account/cross-bucket list
 

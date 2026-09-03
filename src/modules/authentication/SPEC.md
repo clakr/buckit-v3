@@ -10,54 +10,54 @@ Better-Auth owns these four tables; this app maps them to its own names via the 
 
 ### User
 
-| Field           | Type     | Notes                                                        |
-| --------------- | -------- | ------------------------------------------------------------- |
-| `id`            | string   | primary key                                                    |
+| Field           | Type     | Notes                                                                            |
+| --------------- | -------- | -------------------------------------------------------------------------------- |
+| `id`            | string   | primary key                                                                      |
 | `name`          | string   | `"${firstName} ${lastName}"`, joined at sign-up — no separate first/last columns |
-| `email`         | string   | unique                                                         |
-| `emailVerified` | boolean  | default `false`, never set `true` today (see Future Considerations) |
-| `image`         | string   | nullable, unused (no avatar upload UI)                        |
-| `createdAt`     | datetime |                                                                |
-| `updatedAt`     | datetime |                                                                |
+| `email`         | string   | unique                                                                           |
+| `emailVerified` | boolean  | default `false`, never set `true` today (see Future Considerations)              |
+| `image`         | string   | nullable, unused (no avatar upload UI)                                           |
+| `createdAt`     | datetime |                                                                                  |
+| `updatedAt`     | datetime |                                                                                  |
 
 ### Session
 
-| Field        | Type     | Notes                                                  |
-| ------------ | -------- | -------------------------------------------------------- |
-| `id`         | string   | primary key                                              |
-| `token`      | string   | unique, the session cookie's value                       |
-| `expiresAt`  | datetime | 7 days from creation — Better-Auth's built-in default; `session.expiresIn` is not set in this app's config |
-| `userId`     | string   | FK → User, `onDelete: cascade`, indexed                  |
-| `ipAddress`  | string   | nullable                                                  |
-| `userAgent`  | string   | nullable                                                  |
-| `createdAt`  | datetime |                                                            |
-| `updatedAt`  | datetime |                                                            |
+| Field       | Type     | Notes                                                                                                      |
+| ----------- | -------- | ---------------------------------------------------------------------------------------------------------- |
+| `id`        | string   | primary key                                                                                                |
+| `token`     | string   | unique, the session cookie's value                                                                         |
+| `expiresAt` | datetime | 7 days from creation — Better-Auth's built-in default; `session.expiresIn` is not set in this app's config |
+| `userId`    | string   | FK → User, `onDelete: cascade`, indexed                                                                    |
+| `ipAddress` | string   | nullable                                                                                                   |
+| `userAgent` | string   | nullable                                                                                                   |
+| `createdAt` | datetime |                                                                                                            |
+| `updatedAt` | datetime |                                                                                                            |
 
 No uniqueness constraint on `userId` — a User can hold multiple concurrent Sessions (e.g. phone and laptop signed in at once). This already works today; nothing extra was needed to support it.
 
 ### Auth Account (`accounts` table)
 
-| Field                    | Type     | Notes                                                              |
-| ------------------------ | -------- | --------------------------------------------------------------------- |
-| `id`                     | string   | primary key                                                            |
-| `userId`                 | string   | FK → User, `onDelete: cascade`, indexed                                |
-| `issuer` / `providerId`  | string   | for email/password today, both are effectively `"credential"`         |
-| `accountId`              | string   | unique with `issuer` — for credential auth, this is the User's email  |
-| `password`               | string   | nullable — **holds the hashed password for email/password sign-up**   |
-| `accessToken`/`refreshToken`/`idToken`/`scope`/token-expiry columns | string/datetime | nullable, unused today — reserved for OAuth providers |
-| `createdAt` / `updatedAt`| datetime |                                                                         |
+| Field                                                               | Type            | Notes                                                                |
+| ------------------------------------------------------------------- | --------------- | -------------------------------------------------------------------- |
+| `id`                                                                | string          | primary key                                                          |
+| `userId`                                                            | string          | FK → User, `onDelete: cascade`, indexed                              |
+| `issuer` / `providerId`                                             | string          | for email/password today, both are effectively `"credential"`        |
+| `accountId`                                                         | string          | unique with `issuer` — for credential auth, this is the User's email |
+| `password`                                                          | string          | nullable — **holds the hashed password for email/password sign-up**  |
+| `accessToken`/`refreshToken`/`idToken`/`scope`/token-expiry columns | string/datetime | nullable, unused today — reserved for OAuth providers                |
+| `createdAt` / `updatedAt`                                           | datetime        |                                                                      |
 
 See CONTEXT.md's `Auth Account` entry for the general definition. Worth calling out explicitly here since it's non-obvious: despite the entry's OAuth-flavored description (issuer, tokens, provider id), this table is also where Better-Auth stores the **password hash** for plain email/password sign-up — there is no separate "Credential" table. A User with only email/password auth still gets exactly one Auth Account row, with `password` set and every OAuth-only column `null`.
 
 ### Verification (`verifications` table)
 
-| Field        | Type     | Notes                                          |
-| ------------ | -------- | ------------------------------------------------- |
-| `id`         | string   | primary key                                        |
-| `identifier` | string   | indexed — e.g. an email address                    |
-| `value`      | string   | the token/code being verified                      |
-| `expiresAt`  | datetime |                                                     |
-| `createdAt` / `updatedAt` | datetime |                                       |
+| Field                     | Type     | Notes                           |
+| ------------------------- | -------- | ------------------------------- |
+| `id`                      | string   | primary key                     |
+| `identifier`              | string   | indexed — e.g. an email address |
+| `value`                   | string   | the token/code being verified   |
+| `expiresAt`               | datetime |                                 |
+| `createdAt` / `updatedAt` | datetime |                                 |
 
 Schema exists but is currently unused end-to-end: nothing in this app writes or reads a Verification row today, because neither email verification nor password reset is wired up (see Future Considerations). Better-Auth would use this table for both once configured.
 
@@ -65,7 +65,7 @@ Schema exists but is currently unused end-to-end: nothing in this app writes or 
 
 ### Identity Middleware Is Separate From Ownership Middleware
 
-`authMiddleware` (`lib/middlewares.ts`) does exactly one thing: call `auth.api.getSession()` and throw `Error("UNAUTHORIZED")` if there's no Session, otherwise pass the Session through as context. It performs no resource-ownership checks. Every other module layers its own `verifyUser<Entity>Middleware` on top of this (e.g. `verifyUserBucketMiddleware`, `verifyUserAllocationMiddleware`) to confirm the *specific record* being touched belongs to `context.user.id`. This split is correct and consistent across the codebase — Authentication's job stops at "who is this," never "do they own this."
+`authMiddleware` (`lib/middlewares.ts`) does exactly one thing: call `auth.api.getSession()` and throw `Error("UNAUTHORIZED")` if there's no Session, otherwise pass the Session through as context. It performs no resource-ownership checks. Every other module layers its own `verifyUser<Entity>Middleware` on top of this (e.g. `verifyUserBucketMiddleware`, `verifyUserAllocationMiddleware`) to confirm the _specific record_ being touched belongs to `context.user.id`. This split is correct and consistent across the codebase — Authentication's job stops at "who is this," never "do they own this."
 
 ### Route Guarding Pattern
 
@@ -81,18 +81,18 @@ Better-Auth's built-in rate limiter defaults to **enabled only in production**, 
 
 ## Features
 
-| #   | Feature                          | Status                                                                                                    |
-| --- | --------------------------------- | -------------------------------------------------------------------------------------------------------------- |
-| 1   | Sign Up (email/password)          | **Implemented and correct.** First/last name, email, password (8–128 chars) + confirm-password match check.     |
-| 2   | Sign In (email/password)          | **Implemented and correct.**                                                                                     |
-| 3   | Sign Out                          | **Implemented and correct.** Invalidates Session server-side, clears client query cache.                        |
-| 4   | Session retrieval / route guarding | **Implemented and correct.** `_guest`/`_protected` layouts both correctly gate on `getSession()`.               |
-| 5   | Multi-device Sessions              | **Implemented and correct** (no extra work needed — schema already supports it).                                |
-| —   | Google OAuth Sign-In               | **Not implemented.** UI button exists on both auth pages but is `disabled`; no provider configured server-side. Intentional placeholder for planned future work — see Future Considerations. |
+| #   | Feature                            | Status                                                                                                                                                                                                     |
+| --- | ---------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1   | Sign Up (email/password)           | **Implemented and correct.** First/last name, email, password (8–128 chars) + confirm-password match check.                                                                                                |
+| 2   | Sign In (email/password)           | **Implemented and correct.**                                                                                                                                                                               |
+| 3   | Sign Out                           | **Implemented and correct.** Invalidates Session server-side, clears client query cache.                                                                                                                   |
+| 4   | Session retrieval / route guarding | **Implemented and correct.** `_guest`/`_protected` layouts both correctly gate on `getSession()`.                                                                                                          |
+| 5   | Multi-device Sessions              | **Implemented and correct** (no extra work needed — schema already supports it).                                                                                                                           |
+| —   | Google OAuth Sign-In               | **Not implemented.** UI button exists on both auth pages but is `disabled`; no provider configured server-side. Intentional placeholder for planned future work — see Future Considerations.               |
 | —   | Email Verification                 | **Not implemented.** `emailVerified` column exists and is permanently `false`; no `requireEmailVerification`, no verification-email sending configured. Spec'd, not yet built — see Future Considerations. |
-| —   | Forgot / Reset Password            | **Not implemented.** No reset-password route, no `sendResetPassword` configured. Spec'd, not yet built — see Future Considerations. |
-| —   | Account Settings Page              | **Not implemented.** "Account" item in the sidebar user menu exists but is `disabled`.                          |
-| —   | Session Management (view/revoke)   | **Not implemented, not yet planned.** A User has no way to see or revoke other active Sessions, despite multi-device Sessions already working under the hood. |
+| —   | Forgot / Reset Password            | **Not implemented.** No reset-password route, no `sendResetPassword` configured. Spec'd, not yet built — see Future Considerations.                                                                        |
+| —   | Account Settings Page              | **Not implemented.** "Account" item in the sidebar user menu exists but is `disabled`.                                                                                                                     |
+| —   | Session Management (view/revoke)   | **Not implemented, not yet planned.** A User has no way to see or revoke other active Sessions, despite multi-device Sessions already working under the hood.                                              |
 
 ## Fixed During This Session
 
@@ -110,7 +110,7 @@ The disabled button on `/` and `/register` is an intentional placeholder — not
 
 ### Email Verification (Spec'd, not yet built)
 
-`users.emailVerified` exists but nothing sets it. See [`docs/specs/email-verification.md`](../../../docs/specs/email-verification.md) for the full spec (auto-send on sign-up, manual resend, `verify-email` route). Candidate *further* future use cases, deliberately left undecided even by that spec (see its Out of Scope):
+`users.emailVerified` exists but nothing sets it. See [`docs/specs/email-verification.md`](../../../docs/specs/email-verification.md) for the full spec (auto-send on sign-up, manual resend, `verify-email` route). Candidate _further_ future use cases, deliberately left undecided even by that spec (see its Out of Scope):
 
 - Gate self-service password reset behind a verified email (depends on Forgot/Reset Password existing first).
 - Show a "please verify" banner/nag without blocking app usage.

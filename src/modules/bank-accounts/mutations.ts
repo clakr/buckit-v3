@@ -1,9 +1,6 @@
 import { useMutation } from "@tanstack/react-query";
 
-import {
-  addBankAccount,
-  editBankAccount,
-} from "#/modules/bank-accounts/functions";
+import { addBankAccount, editBankAccount } from "#/modules/bank-accounts/functions";
 
 export function useAddBankAccountMutation() {
   return useMutation({
