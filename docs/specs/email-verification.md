@@ -13,7 +13,7 @@ No issue tracker is used for this project. This file is the actionable checklist
 
 ## Solution
 
-Automatically send a verification email right after sign-up (with a manual resend option), and mark the User's email verified when they click the link — built on Better-Auth's existing `sendVerificationEmail`/`verifyEmail` primitives. This spec deliberately makes the flag *accurate* only; it does not make verification status *consequential* anywhere else in the app — see Out of Scope.
+Automatically send a verification email right after sign-up (with a manual resend option), and mark the User's email verified when they click the link — built on Better-Auth's existing `sendVerificationEmail`/`verifyEmail` primitives. This spec deliberately makes the flag _accurate_ only; it does not make verification status _consequential_ anywhere else in the app — see Out of Scope.
 
 ## User Stories
 

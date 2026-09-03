@@ -21,10 +21,7 @@ import { Field, FieldError, FieldGroup, FieldLabel } from "#/components/ui/field
 import { InputGroup, InputGroupAddon, InputGroupInput } from "#/components/ui/input-group";
 import { Spinner } from "#/components/ui/spinner";
 import { useAppForm } from "#/integrations/tanstack-form";
-import {
-  validateBankAccountName,
-  validateEditBankAccountName,
-} from "#/modules/bank-accounts/functions";
+import { validateEditBankAccountName } from "#/modules/bank-accounts/functions";
 import { useEditBankAccountMutation } from "#/modules/bank-accounts/mutations";
 import { editBankAccountSchema } from "#/modules/bank-accounts/schemas";
 import { confirm } from "#/stores/use-confirm";

@@ -9,7 +9,7 @@ No issue tracker is used for this project. This file is the actionable checklist
 
 ## Problem Statement
 
-A user can create a Bucket and see its list/detail views, but cannot fix a mistake afterward. Renaming a Bucket (even to correct a typo) is impossible — the "Edit" menu item exists but is disabled. Removing a Bucket they no longer use is equally impossible — "Delete" is disabled too. There is also no visible documentation of *why* certain things a user might expect (spending directly from a Bucket, a savings target/progress bar) don't exist — without it, a future contributor could "fix" these as if they were oversights.
+A user can create a Bucket and see its list/detail views, but cannot fix a mistake afterward. Renaming a Bucket (even to correct a typo) is impossible — the "Edit" menu item exists but is disabled. Removing a Bucket they no longer use is equally impossible — "Delete" is disabled too. There is also no visible documentation of _why_ certain things a user might expect (spending directly from a Bucket, a savings target/progress bar) don't exist — without it, a future contributor could "fix" these as if they were oversights.
 
 ## Solution
 
@@ -34,10 +34,10 @@ Add Edit (rename only) and Delete (permanently remove a Bucket and everything al
 15. As a user, I want deleting a Bucket to also remove all of its Allocations, so that I don't end up with orphaned Allocations pointing at a Bucket that no longer exists.
 16. As a user, I want a confirmation toast when a Bucket is deleted, so that I have feedback the action completed.
 17. As a user, I want to be redirected back to the Buckets list after deleting the Bucket I was currently viewing, so that I'm not left on a broken detail page for a Bucket that no longer exists.
-18. As a user, I want it to stay true that I can never record an expense directly against a Bucket, so that Buckets stay simple savings categories and all spending stays visible on the Bank Account it actually left from. *(Confirms an existing, permanent boundary — not new work.)*
-19. As a user, I want to eventually set a savings target and see progress on a Bucket, so that I know how close I am to a goal. *(Captured for a future, undesigned `Goal` module — not part of this spec's build.)*
-20. As a user, I want to eventually sort my Buckets list by subtotal, so that I can find my biggest or smallest Buckets at a glance. *(Captured for later — blocked on designing an efficient per-row currency-conversion approach; not part of this build.)*
-21. As a user, I want to eventually see a Bucket's total-per-currency summarized at the top of its detail page, not just buried in the list view, so that I don't have to go back to the list to see it. *(Captured for later — the detail page's summary needs its own design pass; not part of this build.)*
+18. As a user, I want it to stay true that I can never record an expense directly against a Bucket, so that Buckets stay simple savings categories and all spending stays visible on the Bank Account it actually left from. _(Confirms an existing, permanent boundary — not new work.)_
+19. As a user, I want to eventually set a savings target and see progress on a Bucket, so that I know how close I am to a goal. _(Captured for a future, undesigned `Goal` module — not part of this spec's build.)_
+20. As a user, I want to eventually sort my Buckets list by subtotal, so that I can find my biggest or smallest Buckets at a glance. _(Captured for later — blocked on designing an efficient per-row currency-conversion approach; not part of this build.)_
+21. As a user, I want to eventually see a Bucket's total-per-currency summarized at the top of its detail page, not just buried in the list view, so that I don't have to go back to the list to see it. _(Captured for later — the detail page's summary needs its own design pass; not part of this build.)_
 
 ## Implementation Decisions
 
