@@ -1,6 +1,6 @@
 import { createServerFn } from "@tanstack/react-start";
 import { env } from "cloudflare:workers";
-import { and, eq } from "drizzle-orm";
+import { and, eq, ne } from "drizzle-orm";
 import { uuidv7 } from "uuidv7";
 import { z } from "zod";
 
@@ -8,7 +8,7 @@ import { getDB } from "#/db";
 import { buckets, lower } from "#/db/schema";
 import { authMiddleware } from "#/lib/middlewares";
 import { verifyUserBucketMiddleware } from "#/modules/buckets/middlewares";
-import { addBucketSchema } from "#/modules/buckets/schemas";
+import { addBucketSchema, editBucketSchema } from "#/modules/buckets/schemas";
 
 export const getBuckets = createServerFn({
   method: "GET",
@@ -116,5 +116,61 @@ export const addBucket = createServerFn({
         userId: context.session.userId,
         name: data.name,
       })
+      .returning();
+  });
+
+export const validateEditBucketName = createServerFn({
+  method: "GET",
+})
+  .middleware([verifyUserBucketMiddleware])
+  .validator(editBucketSchema)
+  .handler(async ({ context, data }) => {
+    const db = getDB(env.db);
+
+    const result = await db
+      .select({
+        id: buckets.id,
+        name: buckets.name,
+      })
+      .from(buckets)
+      .where(
+        and(
+          eq(buckets.userId, context.session.userId),
+          eq(lower(buckets.name), data.name.toLowerCase()),
+          ne(buckets.id, data.bucketId),
+        ),
+      )
+      .limit(1);
+
+    if (result.length > 0) {
+      return {
+        isValid: false,
+        message: "A bucket with this name already exists.",
+      };
+    }
+
+    return { isValid: true, message: "ok" };
+  });
+
+export const editBucket = createServerFn({
+  method: "POST",
+})
+  .middleware([verifyUserBucketMiddleware])
+  .validator(editBucketSchema)
+  .handler(async ({ data }) => {
+    const db = getDB(env.db);
+
+    const { isValid, message } = await validateEditBucketName({
+      data,
+    });
+
+    if (!isValid) throw new Error(message);
+
+    return db
+      .update(buckets)
+      .set({
+        name: data.name,
+      })
+      .where(eq(buckets.id, data.bucketId))
       .returning();
   });
