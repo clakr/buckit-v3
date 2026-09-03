@@ -12,11 +12,20 @@ import {
   DropdownMenuTrigger,
 } from "#/components/ui/dropdown-menu";
 
+import { useEditBucketDialogStore } from "./edit-bucket-dialog";
+
 type Props = {
   bucketId: Bucket["id"];
 };
 
 export function BucketActionsDropdownMenu({ bucketId }: Props) {
+  function handleOpenEditBucketDialog() {
+    const state = useEditBucketDialogStore.getState();
+
+    state.setBucketId(bucketId);
+    state.openDialog();
+  }
+
   return (
     <DropdownMenu>
       <DropdownMenuTrigger render={<Button variant="ghost" size="icon" />}>
@@ -29,7 +38,7 @@ export function BucketActionsDropdownMenu({ bucketId }: Props) {
             <IconEye />
             View
           </DropdownMenuItem>
-          <DropdownMenuItem disabled>
+          <DropdownMenuItem onClick={handleOpenEditBucketDialog}>
             <svg />
             Edit
           </DropdownMenuItem>

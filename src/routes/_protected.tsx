@@ -9,6 +9,7 @@ import { getSession } from "#/modules/authentication/functions";
 import { AddBankAccountDialog } from "#/modules/bank-accounts/components/add-bank-account-dialog";
 import { EditBankAccountDialog } from "#/modules/bank-accounts/components/edit-bank-account-dialog";
 import { AddBucketDialog } from "#/modules/buckets/components/add-bucket-dialog";
+import { EditBucketDialog } from "#/modules/buckets/components/edit-bucket-dialog";
 import { EditTransactionDialog } from "#/modules/transactions/components/edit-transaction-dialog";
 import { LogTransactionDialog } from "#/modules/transactions/components/log-transaction-dialog";
 
@@ -49,6 +50,7 @@ function RouteComponent() {
       <EditTransactionDialog />
       <EditAllocationDialog />
       <EditBankAccountDialog />
+      <EditBucketDialog />
     </>
   );
 }
