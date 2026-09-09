@@ -151,7 +151,7 @@ export function EditBankAccountDialog() {
                         try {
                           const { isValid, message } = await validateEditBankAccountName({
                             data: {
-                              bankAccountId: bankAccountId ?? "",
+                              bankAccountId: bankAccount.id,
                               name: data,
                             },
                           });
