@@ -64,8 +64,7 @@ export function EditAllocationDialog() {
   );
 
   const {
-    isLoading,
-    isError,
+    status,
     refetch,
     data: allocation,
   } = useQuery({
@@ -128,14 +127,14 @@ export function EditAllocationDialog() {
           </DialogDescription>
         </DialogHeader>
         <div>
-          {isLoading ? (
+          {status === "pending" ? (
             <StateTemplate
               state="loading"
               title="Loading allocation"
               description="Fetching allocation details..."
             />
           ) : null}
-          {isError ? (
+          {status === "error" ? (
             <StateTemplate
               state="error"
               title="Could not load allocation"
@@ -143,7 +142,7 @@ export function EditAllocationDialog() {
               content={<Button onClick={() => refetch()}>Retry</Button>}
             />
           ) : null}
-          {allocation ? (
+          {status === "success" && allocation ? (
             <form
               id={form.formId}
               onSubmit={(e) => {
@@ -239,14 +238,16 @@ export function EditAllocationDialog() {
                 }
               </form.Subscribe>
             </form>
-          ) : (
+          ) : null}
+          {/* @todo: handle empty data better */}
+          {status === "success" && !allocation ? (
             <StateTemplate
               state="empty"
               title="Allocation not found"
               description="This allocation doesn't exist or may have been deleted."
               icon={<IconFileDescription />}
             />
-          )}
+          ) : null}
         </div>
         <DialogFooter>
           <form.AppForm>

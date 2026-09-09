@@ -78,9 +78,9 @@ export function LogAllocationDialog() {
     amount: 0,
   };
 
+  // @todo: handle error
   const {
-    isLoading,
-    isError, // @todo: handle error
+    status,
     data: buckets,
   } = useQuery({
     ...bucketsQueryOptions,
@@ -162,14 +162,14 @@ export function LogAllocationDialog() {
                         items={buckets}
                         value={field.state.value}
                         onValueChange={(value) => field.handleChange(value ?? "")}
-                        disabled={isLoading || isError}
+                        disabled={status !== "success"}
                       >
                         <SelectTrigger
                           id={id}
                           aria-invalid={isInvalid ? true : undefined}
                           aria-labelledby={isInvalid ? errorId : undefined}
                           className="w-full"
-                          icon={isLoading ? <Spinner /> : undefined}
+                          icon={status === "pending" ? <Spinner /> : undefined}
                         >
                           <SelectValue placeholder="Select bucket" />
                         </SelectTrigger>

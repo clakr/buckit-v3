@@ -56,8 +56,7 @@ export function EditBankAccountDialog() {
 
   // @todo: should distinguish if network error or data not found
   const {
-    isLoading,
-    isError,
+    status,
     refetch,
     data: bankAccount,
   } = useQuery({
@@ -116,14 +115,14 @@ export function EditBankAccountDialog() {
           <DialogDescription>Update your bank account's name.</DialogDescription>
         </DialogHeader>
         <div>
-          {isLoading ? (
+          {status === "pending" ? (
             <StateTemplate
               state="loading"
               title="Loading account"
               description="Fetching account details..."
             />
           ) : null}
-          {isError ? (
+          {status === "error" ? (
             <StateTemplate
               state="error"
               title="Could not load account"
@@ -131,7 +130,7 @@ export function EditBankAccountDialog() {
               content={<Button onClick={() => refetch()}>Retry</Button>}
             />
           ) : null}
-          {bankAccount ? (
+          {status === "success" && bankAccount ? (
             <form
               id={form.formId}
               onSubmit={(e) => {

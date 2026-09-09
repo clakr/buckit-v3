@@ -58,8 +58,7 @@ export function EditTransactionDialog() {
   );
 
   const {
-    isLoading,
-    isError,
+    status,
     refetch,
     data: transaction,
   } = useQuery({
@@ -134,14 +133,14 @@ export function EditTransactionDialog() {
           <DialogDescription>Update the details of this transaction.</DialogDescription>
         </DialogHeader>
         <div>
-          {isLoading ? (
+          {status === "pending" ? (
             <StateTemplate
               state="loading"
               title="Loading transaction"
               description="Fetching transaction details..."
             />
           ) : null}
-          {isError ? (
+          {status === "error" ? (
             <StateTemplate
               state="error"
               title="Could not load transaction"
@@ -149,7 +148,7 @@ export function EditTransactionDialog() {
               content={<Button onClick={() => refetch()}>Retry</Button>}
             />
           ) : null}
-          {transaction ? (
+          {status === "success" && transaction ? (
             <form
               id={form.formId}
               onSubmit={(e) => {
@@ -176,14 +175,16 @@ export function EditTransactionDialog() {
                 }
               </form.Subscribe>
             </form>
-          ) : (
+          ) : null}
+          {/* @todo: handle empty data better */}
+          {status === "success" && !transaction ? (
             <StateTemplate
               state="empty"
               title="Transaction not found"
               description="This transaction doesn't exist or may have been deleted."
               icon={<IconFileDescription />}
             />
-          )}
+          ) : null}
         </div>
         <DialogFooter>
           <form.AppForm>
