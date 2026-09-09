@@ -249,11 +249,13 @@ export function EditAllocationDialog() {
             />
           ) : null}
         </div>
-        <DialogFooter>
-          <form.AppForm>
-            <form.Button form={form.formId}>Edit Allocation</form.Button>
-          </form.AppForm>
-        </DialogFooter>
+        {status === "success" && allocation ? (
+          <DialogFooter>
+            <form.AppForm>
+              <form.Button form={form.formId}>Edit Allocation</form.Button>
+            </form.AppForm>
+          </DialogFooter>
+        ) : null}
       </DialogContent>
     </Dialog>
   );

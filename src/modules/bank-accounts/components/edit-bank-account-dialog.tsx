@@ -207,11 +207,13 @@ export function EditBankAccountDialog() {
             </form>
           ) : null}
         </div>
-        <DialogFooter>
-          <form.AppForm>
-            <form.Button form={form.formId}>Edit Account</form.Button>
-          </form.AppForm>
-        </DialogFooter>
+        {status === "success" ? (
+          <DialogFooter>
+            <form.AppForm>
+              <form.Button form={form.formId}>Edit Account</form.Button>
+            </form.AppForm>
+          </DialogFooter>
+        ) : null}
       </DialogContent>
     </Dialog>
   );
