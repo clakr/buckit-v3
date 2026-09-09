@@ -1,14 +1,10 @@
-import type { PropsWithChildren } from "react";
-
+import { IconPencil } from "@tabler/icons-react";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute, Link } from "@tanstack/react-router";
-
-import type { getBankAccount } from "#/modules/bank-accounts/functions";
 
 import { Heading } from "#/components/heading";
 import { Main } from "#/components/main";
 import { StateTemplate } from "#/components/state-template";
-import { Badge } from "#/components/ui/badge";
 import { Button } from "#/components/ui/button";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "#/components/ui/card";
 import { DataTable } from "#/components/ui/data-table";
@@ -16,6 +12,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "#/components/ui/tabs";
 import { currencyCodec } from "#/lib/codecs";
 import { formatCurrency } from "#/lib/utils";
 import { ALLOCATIONS_COLUMNS, TRANSACTIONS_COLUMNS } from "#/modules/bank-accounts/columns";
+import { useEditBankAccountDialogStore } from "#/modules/bank-accounts/components/edit-bank-account-dialog";
 import { bankAccountQueryOption } from "#/modules/bank-accounts/query-options";
 import { getBankAccountUnallocatedBalance } from "#/modules/bank-accounts/utils";
 
@@ -30,18 +27,27 @@ export const Route = createFileRoute("/_protected/accounts/$accountId")({
     queryClient.query(bankAccountQueryOption(params.accountId));
   },
   pendingComponent: () => (
-    <Template>
+    <Main>
+      <div className="flex items-baseline justify-between">
+        <Heading className="capitalize">Account</Heading>
+        <Button variant="outline" disabled>
+          <IconPencil />
+          Edit
+        </Button>
+      </div>
+
       <StateTemplate
         state="loading"
         title="Loading account..."
         description="Fetching account details and history..."
       />
-    </Template>
+    </Main>
   ),
   errorComponent: ({ error, reset }) => {
     if (error instanceof BankAccountNotFoundError)
       return (
-        <Template>
+        <Main>
+          <Heading className="capitalize">Bucket</Heading>
           <StateTemplate
             state="error"
             title="Account not found"
@@ -52,18 +58,19 @@ export const Route = createFileRoute("/_protected/accounts/$accountId")({
               </Button>
             }
           />
-        </Template>
+        </Main>
       );
 
     return (
-      <Template>
+      <Main>
+        <Heading className="capitalize">Bucket</Heading>
         <StateTemplate
           state="error"
           title="Could not load account"
           description="We weren't able to retrieve this account. Please check your connection and try again."
           content={<Button onClick={reset}>Retry</Button>}
         />
-      </Template>
+      </Main>
     );
   },
   component: RouteComponent,
@@ -81,8 +88,23 @@ function RouteComponent() {
     allocations: bankAccount.allocations,
   });
 
+  function handleOpenEditBankAccountDialog() {
+    const state = useEditBankAccountDialogStore.getState();
+
+    state.setBankAccountId(accountId);
+    state.openDialog();
+  }
+
   return (
-    <Template bankAccount={bankAccount}>
+    <Main>
+      <div className="flex items-baseline justify-between">
+        <Heading className="capitalize">{bankAccount.name}</Heading>
+        <Button variant="outline" onClick={handleOpenEditBankAccountDialog}>
+          <IconPencil />
+          Edit
+        </Button>
+      </div>
+
       <Tabs defaultValue="transactions">
         <TabsList>
           <TabsTrigger value="transactions">Transactions</TabsTrigger>
@@ -136,42 +158,6 @@ function RouteComponent() {
           </Card>
         </div>
       </Tabs>
-    </Template>
-  );
-}
-
-function Template({
-  children,
-  bankAccount,
-}: PropsWithChildren<{ bankAccount?: Awaited<ReturnType<typeof getBankAccount>> }>) {
-  if (!bankAccount)
-    return (
-      <Main>
-        <Heading>Account</Heading>
-        {children}
-      </Main>
-    );
-
-  const { balance } = getBankAccountUnallocatedBalance({
-    startingBalance: bankAccount.startingBalance,
-    transactions: bankAccount.transactions,
-    allocations: bankAccount.allocations,
-  });
-
-  return (
-    <Main>
-      <div className="flex items-center justify-between">
-        <div className="flex flex-row items-center gap-x-2.5">
-          <Heading className="capitalize">{bankAccount.name}</Heading>
-          <Badge>{bankAccount.currency}</Badge>
-          <span className="mt-1 font-medium">
-            {formatCurrency(currencyCodec.encode(balance), {
-              currency: bankAccount.currency,
-            })}
-          </span>
-        </div>
-      </div>
-      {children}
     </Main>
   );
 }
