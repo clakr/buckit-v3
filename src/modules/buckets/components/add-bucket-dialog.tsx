@@ -101,22 +101,24 @@ export function AddBucketDialog() {
                 name="name"
                 validators={{
                   onChangeAsyncDebounceMs: 500,
-                  onChangeAsync: z.string().superRefine(async (data, context) => {
-                    if (!data) return;
+                  onChangeAsync: addBucketSchema.shape.name.superRefine(
+                    async (data, context) => {
+                      if (!data) return;
 
-                    try {
-                      const { isValid, message } = await validateBucketName({
-                        data,
-                      });
+                      try {
+                        const { isValid, message } = await validateBucketName({
+                          data,
+                        });
 
-                      if (!isValid) throw new Error(message);
-                    } catch (error) {
-                      context.addIssue({
-                        code: "custom",
-                        message: error instanceof Error ? error.message : String(error),
-                      });
-                    }
-                  }),
+                        if (!isValid) throw new Error(message);
+                      } catch (error) {
+                        context.addIssue({
+                          code: "custom",
+                          message: error instanceof Error ? error.message : String(error),
+                        });
+                      }
+                    },
+                  ),
                 }}
               >
                 {(field) => {

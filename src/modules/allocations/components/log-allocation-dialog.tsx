@@ -193,23 +193,25 @@ export function LogAllocationDialog() {
                 name="amount"
                 validators={{
                   onChangeAsyncDebounceMs: 500,
-                  onChangeAsync: z.string().superRefine(async (data, context) => {
-                    try {
-                      const { isValid, message } = await validateLogAllocationAmount({
-                        data: {
-                          bankAccountId: account.id,
-                          amount: data,
-                        },
-                      });
+                  onChangeAsync: logAllocationSchema.shape.amount.superRefine(
+                    async (data, context) => {
+                      try {
+                        const { isValid, message } = await validateLogAllocationAmount({
+                          data: {
+                            bankAccountId: account.id,
+                            amount: data,
+                          },
+                        });
 
-                      if (!isValid) throw new Error(message);
-                    } catch (error) {
-                      context.addIssue({
-                        code: "custom",
-                        message: error instanceof Error ? error.message : String(error),
-                      });
-                    }
-                  }),
+                        if (!isValid) throw new Error(message);
+                      } catch (error) {
+                        context.addIssue({
+                          code: "custom",
+                          message: error instanceof Error ? error.message : String(error),
+                        });
+                      }
+                    },
+                  ),
                 }}
               >
                 {(field) => {
