@@ -144,25 +144,27 @@ export function EditBankAccountDialog() {
                   name="name"
                   validators={{
                     onChangeAsyncDebounceMs: 500,
-                    onChangeAsync: z.string().superRefine(async (data, context) => {
-                      if (!data) return;
+                    onChangeAsync: editBankAccountSchema.shape.name.superRefine(
+                      async (data, context) => {
+                        if (!data) return;
 
-                      try {
-                        const { isValid, message } = await validateEditBankAccountName({
-                          data: {
-                            bankAccountId: bankAccountId ?? "",
-                            name: data,
-                          },
-                        });
+                        try {
+                          const { isValid, message } = await validateEditBankAccountName({
+                            data: {
+                              bankAccountId: bankAccountId ?? "",
+                              name: data,
+                            },
+                          });
 
-                        if (!isValid) throw new Error(message);
-                      } catch (error) {
-                        context.addIssue({
-                          code: "custom",
-                          message: error instanceof Error ? error.message : String(error),
-                        });
-                      }
-                    }),
+                          if (!isValid) throw new Error(message);
+                        } catch (error) {
+                          context.addIssue({
+                            code: "custom",
+                            message: error instanceof Error ? error.message : String(error),
+                          });
+                        }
+                      },
+                    ),
                   }}
                 >
                   {(field) => {

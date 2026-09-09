@@ -121,22 +121,24 @@ export function AddBankAccountDialog() {
                 name="name"
                 validators={{
                   onChangeAsyncDebounceMs: 500,
-                  onChangeAsync: z.string().superRefine(async (data, context) => {
-                    if (!data) return;
+                  onChangeAsync: addBankAccountSchema.shape.name.superRefine(
+                    async (data, context) => {
+                      if (!data) return;
 
-                    try {
-                      const { isValid, message } = await validateBankAccountName({
-                        data,
-                      });
+                      try {
+                        const { isValid, message } = await validateBankAccountName({
+                          data,
+                        });
 
-                      if (!isValid) throw new Error(message);
-                    } catch (error) {
-                      context.addIssue({
-                        code: "custom",
-                        message: error instanceof Error ? error.message : String(error),
-                      });
-                    }
-                  }),
+                        if (!isValid) throw new Error(message);
+                      } catch (error) {
+                        context.addIssue({
+                          code: "custom",
+                          message: error instanceof Error ? error.message : String(error),
+                        });
+                      }
+                    },
+                  ),
                 }}
               >
                 {(field) => {

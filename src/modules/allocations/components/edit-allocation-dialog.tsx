@@ -156,24 +156,26 @@ export function EditAllocationDialog() {
                 name="amount"
                 validators={{
                   onChangeAsyncDebounceMs: 500,
-                  onChangeAsync: z.string().superRefine(async (data, context) => {
-                    try {
-                      const { isValid, message } = await validateEditAllocationAmount({
-                        data: {
-                          allocationId: allocation.id,
-                          bankAccountId: allocation.bankAccountId,
-                          amount: data,
-                        },
-                      });
+                  onChangeAsync: editAllocationSchema.shape.amount.superRefine(
+                    async (data, context) => {
+                      try {
+                        const { isValid, message } = await validateEditAllocationAmount({
+                          data: {
+                            allocationId: allocation.id,
+                            bankAccountId: allocation.bankAccountId,
+                            amount: data,
+                          },
+                        });
 
-                      if (!isValid) throw new Error(message);
-                    } catch (error) {
-                      context.addIssue({
-                        code: "custom",
-                        message: error instanceof Error ? error.message : String(error),
-                      });
-                    }
-                  }),
+                        if (!isValid) throw new Error(message);
+                      } catch (error) {
+                        context.addIssue({
+                          code: "custom",
+                          message: error instanceof Error ? error.message : String(error),
+                        });
+                      }
+                    },
+                  ),
                 }}
               >
                 {(field) => {
