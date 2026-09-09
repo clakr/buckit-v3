@@ -56,8 +56,7 @@ export function EditBucketDialog() {
 
   // @todo: should distinguish if network error or data not found
   const {
-    isLoading,
-    isError,
+    status,
     refetch,
     data: bucket,
   } = useQuery({
@@ -116,14 +115,14 @@ export function EditBucketDialog() {
           <DialogDescription>Update your bucket's name.</DialogDescription>
         </DialogHeader>
         <div>
-          {isLoading ? (
+          {status === "pending" ? (
             <StateTemplate
               state="loading"
               title="Loading bucket"
               description="Fetching bucket details..."
             />
           ) : null}
-          {isError ? (
+          {status === "error" ? (
             <StateTemplate
               state="error"
               title="Could not load bucket"
@@ -131,7 +130,7 @@ export function EditBucketDialog() {
               content={<Button onClick={() => refetch()}>Retry</Button>}
             />
           ) : null}
-          {bucket ? (
+          {status === "success" && bucket ? (
             <form
               id={form.formId}
               onSubmit={(e) => {
@@ -145,25 +144,27 @@ export function EditBucketDialog() {
                   name="name"
                   validators={{
                     onChangeAsyncDebounceMs: 500,
-                    onChangeAsync: z.string().superRefine(async (data, context) => {
-                      if (!data) return;
+                    onChangeAsync: editBucketSchema.shape.name.superRefine(
+                      async (data, context) => {
+                        if (!data) return;
 
-                      try {
-                        const { isValid, message } = await validateEditBucketName({
-                          data: {
-                            bucketId: bucketId ?? "",
-                            name: data,
-                          },
-                        });
+                        try {
+                          const { isValid, message } = await validateEditBucketName({
+                            data: {
+                              bucketId: bucket.id,
+                              name: data,
+                            },
+                          });
 
-                        if (!isValid) throw new Error(message);
-                      } catch (error) {
-                        context.addIssue({
-                          code: "custom",
-                          message: error instanceof Error ? error.message : String(error),
-                        });
-                      }
-                    }),
+                          if (!isValid) throw new Error(message);
+                        } catch (error) {
+                          context.addIssue({
+                            code: "custom",
+                            message: error instanceof Error ? error.message : String(error),
+                          });
+                        }
+                      },
+                    ),
                   }}
                 >
                   {(field) => {
@@ -208,11 +209,13 @@ export function EditBucketDialog() {
             </form>
           ) : null}
         </div>
-        <DialogFooter>
-          <form.AppForm>
-            <form.Button form={form.formId}>Edit Bucket</form.Button>
-          </form.AppForm>
-        </DialogFooter>
+        {status === "success" ? (
+          <DialogFooter>
+            <form.AppForm>
+              <form.Button form={form.formId}>Edit Bucket</form.Button>
+            </form.AppForm>
+          </DialogFooter>
+        ) : null}
       </DialogContent>
     </Dialog>
   );
