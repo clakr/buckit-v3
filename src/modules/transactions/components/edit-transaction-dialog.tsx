@@ -186,11 +186,13 @@ export function EditTransactionDialog() {
             />
           ) : null}
         </div>
-        <DialogFooter>
-          <form.AppForm>
-            <form.Button form={form.formId}>Edit Transaction</form.Button>
-          </form.AppForm>
-        </DialogFooter>
+        {status === "success" && transaction ? (
+          <DialogFooter>
+            <form.AppForm>
+              <form.Button form={form.formId}>Edit Transaction</form.Button>
+            </form.AppForm>
+          </DialogFooter>
+        ) : null}
       </DialogContent>
     </Dialog>
   );
