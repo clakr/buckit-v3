@@ -4,7 +4,7 @@ import z from "zod";
 import { create } from "zustand";
 import { useShallow } from "zustand/react/shallow";
 
-import type { BankAccount } from "#/db/schema";
+import type { BankAccount, Bucket } from "#/db/schema";
 import type { DialogState } from "#/lib/types";
 
 import { StateTemplate } from "#/components/state-template";
@@ -28,29 +28,33 @@ import { bankAccountQueryOption } from "#/modules/bank-accounts/query-options";
 import { verifyUserBankAccountMiddlewareSchema } from "#/modules/bank-accounts/schemas";
 import { getBankAccountUnallocatedBalance } from "#/modules/bank-accounts/utils";
 
+import { useDeleteBucketMutation } from "../mutations";
+import { bucketQueryOption } from "../query-options";
+import { verifyUserBucketMiddlewareSchema } from "../schemas";
+
 type StoreState = DialogState & {
-  bankAccountId: BankAccount["id"] | null;
-  setBankAccountId: (bankAccountId: BankAccount["id"]) => void;
+  bucketId: Bucket["id"] | null;
+  setBucketId: (bucketId: Bucket["id"]) => void;
 };
 
-export const useDeleteBankAccountDialogStore = create<StoreState>()((set) => ({
+export const useDeleteBucketDialogStore = create<StoreState>()((set) => ({
   isOpen: false,
   openDialog: () => set({ isOpen: true }),
   closeDialog: () => set({ isOpen: false }),
   toggleDialog: () => set((state) => ({ isOpen: !state.isOpen })),
 
-  bankAccountId: null,
-  setBankAccountId: (bankAccountId) => set({ bankAccountId }),
+  bucketId: null,
+  setBucketId: (bucketId) => set({ bucketId }),
 }));
 
-export function DeleteBankAccountDialog() {
-  const { isOpen, closeDialog, toggleDialog, bankAccountId } = useDeleteBankAccountDialogStore(
+export function DeleteBucketDialog() {
+  const { isOpen, closeDialog, toggleDialog, bucketId } = useDeleteBucketDialogStore(
     useShallow((state) => ({
       isOpen: state.isOpen,
       closeDialog: state.closeDialog,
       toggleDialog: state.toggleDialog,
 
-      bankAccountId: state.bankAccountId,
+      bucketId: state.bucketId,
     })),
   );
 
@@ -58,23 +62,23 @@ export function DeleteBankAccountDialog() {
   const {
     status,
     refetch,
-    data: bankAccount,
+    data: bucket,
   } = useQuery({
-    ...bankAccountQueryOption(bankAccountId ?? ""),
+    ...bucketQueryOption(bucketId ?? ""),
     enabled: isOpen,
   });
 
-  const mutation = useDeleteBankAccountMutation();
+  const mutation = useDeleteBucketMutation();
 
   const deleteSchema = z.object({
-    ...verifyUserBankAccountMiddlewareSchema.shape,
-    name: z.literal(bankAccount?.name ?? "", {
-      error: "Please match the account's name",
+    ...verifyUserBucketMiddlewareSchema.shape,
+    name: z.literal(bucket?.name ?? "", {
+      error: "Please match the bucket's name",
     }),
   });
 
   const defaultValues: z.input<typeof deleteSchema> = {
-    bankAccountId: bankAccount?.id ?? "",
+    bucketId: bucket?.id ?? "",
     name: "",
   };
 
@@ -102,25 +106,20 @@ export function DeleteBankAccountDialog() {
     toggleDialog();
   }
 
-  const totalTransactions = bankAccount?.transactions.length ?? 0;
-  const { balance } = getBankAccountUnallocatedBalance({
-    startingBalance: bankAccount?.startingBalance ?? 0,
-    transactions: bankAccount?.transactions ?? [],
-    allocations: bankAccount?.allocations ?? [],
-  });
-
-  const totalAllocations = bankAccount?.allocations.length ?? 0;
   const allocations =
-    bankAccount?.allocations.reduce<Record<string, number>>((acc, a) => {
-      if (!a.bucket) return acc;
+    bucket?.allocations.reduce<Record<string, { amount: number; currency: any }>>((acc, a) => {
+      if (!a.bankAccount) return acc;
 
-      const name = a.bucket.name;
+      const name = a.bankAccount?.name;
       const amount = currencyCodec.encode(a.amount);
 
       if (name in acc) {
-        acc[name] += amount;
+        acc[name].amount += amount;
       } else {
-        acc[name] = amount;
+        acc[name] = {
+          amount,
+          currency: a.bankAccount.currency,
+        };
       }
 
       return acc;
@@ -130,53 +129,42 @@ export function DeleteBankAccountDialog() {
     <Dialog open={isOpen} onOpenChange={handleOnOpenChange}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Delete Account?</DialogTitle>
+          <DialogTitle>Delete Bucket?</DialogTitle>
           <DialogDescription>
-            Permanently delete "{bankAccount?.name}" and everything logged against it. This cannot
-            be undone.
+            Permanently delete "{bucket?.name}" and everything logged against it. This cannot be
+            undone.
           </DialogDescription>
         </DialogHeader>
         <div>
           {status === "pending" ? (
             <StateTemplate
               state="loading"
-              title="Loading account"
-              description="Fetching transactions and allocations to review before deletion..."
+              title="Loading bucket"
+              description="Fetching allocations to review before deletion..."
             />
           ) : null}
           {status === "error" ? (
             <StateTemplate
               state="error"
-              title="Could not load account"
-              description="We weren't able to retrieve this account's details. Please check your connection and try again."
+              title="Could not load bucket"
+              description="We weren't able to retrieve this bucket's details. Please check your connection and try again."
               content={<Button onClick={() => refetch()}>Retry</Button>}
             />
           ) : null}
-          {status === "success" && bankAccount ? (
+          {status === "success" && bucket ? (
             <div className="flex flex-col gap-y-4">
               <ul className="list-inside list-disc text-muted-foreground empty:hidden">
-                {totalTransactions ? (
-                  <li>
-                    <b>{totalTransactions}</b> transactions totaling{" "}
-                    <b>
-                      {formatCurrency(currencyCodec.encode(balance), {
-                        currency: bankAccount.currency,
-                      })}
-                    </b>{" "}
-                    will be permanently deleted.
-                  </li>
-                ) : null}
-                {bankAccount.allocations.length ? (
+                {bucket.allocations.length ? (
                   <li>
                     {/* @todo: word this better */}
                     Allocations
                     <ul className="ms-4 list-inside list-disc">
-                      {Object.entries(allocations).map(([name, amount]) => (
+                      {Object.entries(allocations).map(([name, { amount, currency }]) => (
                         <li>
                           {name} -{" "}
                           <b className="font-semibold">
                             {formatCurrency(amount, {
-                              currency: bankAccount.currency,
+                              currency,
                             })}
                           </b>
                         </li>
@@ -203,7 +191,7 @@ export function DeleteBankAccountDialog() {
 
                       return (
                         <Field data-invalid={isInvalid}>
-                          <FieldLabel htmlFor={id}>Type "{bankAccount.name}" to confirm</FieldLabel>
+                          <FieldLabel htmlFor={id}>Type "{bucket.name}" to confirm</FieldLabel>
 
                           <InputGroup>
                             <InputGroupInput

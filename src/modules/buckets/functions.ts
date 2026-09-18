@@ -174,3 +174,13 @@ export const editBucket = createServerFn({
       .where(eq(buckets.id, data.bucketId))
       .returning();
   });
+
+export const deleteBucket = createServerFn({
+  method: "POST",
+})
+  .middleware([verifyUserBucketMiddleware])
+  .handler(async ({ data }) => {
+    const db = getDB(env.db);
+
+    return db.delete(buckets).where(eq(buckets.id, data.bucketId)).returning();
+  });

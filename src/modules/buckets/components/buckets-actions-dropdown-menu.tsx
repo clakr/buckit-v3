@@ -12,6 +12,7 @@ import {
   DropdownMenuTrigger,
 } from "#/components/ui/dropdown-menu";
 
+import { useDeleteBucketDialogStore } from "./delete-bucket-dialog";
 import { useEditBucketDialogStore } from "./edit-bucket-dialog";
 
 type Props = {
@@ -21,6 +22,13 @@ type Props = {
 export function BucketActionsDropdownMenu({ bucketId }: Props) {
   function handleOpenEditBucketDialog() {
     const state = useEditBucketDialogStore.getState();
+
+    state.setBucketId(bucketId);
+    state.openDialog();
+  }
+
+  function handleOpenDeleteBucketDialog() {
+    const state = useDeleteBucketDialogStore.getState();
 
     state.setBucketId(bucketId);
     state.openDialog();
@@ -42,7 +50,7 @@ export function BucketActionsDropdownMenu({ bucketId }: Props) {
             <svg />
             Edit
           </DropdownMenuItem>
-          <DropdownMenuItem disabled>
+          <DropdownMenuItem onClick={handleOpenDeleteBucketDialog}>
             <svg />
             Delete
           </DropdownMenuItem>
