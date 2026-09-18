@@ -4,7 +4,7 @@ import { Button } from "#/components/ui/button";
 import { Spinner } from "#/components/ui/spinner";
 import { useFormContext } from "#/integrations/tanstack-form";
 
-type Props = ComponentProps<"button">;
+type Props = ComponentProps<typeof Button>;
 
 export default function SubmitButton({ children, ...rest }: Props) {
   const form = useFormContext();

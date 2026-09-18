@@ -23,10 +23,9 @@ import { Spinner } from "#/components/ui/spinner";
 import { useAppForm } from "#/integrations/tanstack-form";
 import { validateEditBankAccountName } from "#/modules/bank-accounts/functions";
 import { useEditBankAccountMutation } from "#/modules/bank-accounts/mutations";
+import { bankAccountQueryOption } from "#/modules/bank-accounts/query-options";
 import { editBankAccountSchema } from "#/modules/bank-accounts/schemas";
 import { confirm } from "#/stores/use-confirm";
-
-import { bankAccountQueryOption } from "../query-options";
 
 type StoreState = DialogState & {
   bankAccountId: BankAccount["id"] | null;

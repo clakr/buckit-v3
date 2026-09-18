@@ -15,6 +15,7 @@ import {
 import { useLogAllocationDialogStore } from "#/modules/allocations/components/log-allocation-dialog";
 import { useLogTransactionDialogStore } from "#/modules/transactions/components/log-transaction-dialog";
 
+import { useDeleteBankAccountDialogStore } from "./delete-bank-account-dialog";
 import { useEditBankAccountDialogStore } from "./edit-bank-account-dialog";
 
 type Props = {
@@ -38,6 +39,13 @@ export function BankAccountActionsDropdownMenu({ account }: Props) {
 
   function handleOpenEditBankAccountDialog() {
     const state = useEditBankAccountDialogStore.getState();
+
+    state.setBankAccountId(account.id);
+    state.openDialog();
+  }
+
+  function handleOpenDeleteBankAccountDialog() {
+    const state = useDeleteBankAccountDialogStore.getState();
 
     state.setBankAccountId(account.id);
     state.openDialog();
@@ -72,7 +80,7 @@ export function BankAccountActionsDropdownMenu({ account }: Props) {
             <svg />
             Edit
           </DropdownMenuItem>
-          <DropdownMenuItem disabled>
+          <DropdownMenuItem onClick={handleOpenDeleteBankAccountDialog}>
             <svg />
             Delete
           </DropdownMenuItem>

@@ -6,6 +6,7 @@ import { uuidv7 } from "uuidv7";
 import { getDB } from "#/db";
 import { allocations } from "#/db/schema";
 import { currencyCodec } from "#/lib/codecs";
+import { authMiddleware } from "#/lib/middlewares";
 import { formatCurrency } from "#/lib/utils";
 import { verifyUserAllocationMiddleware } from "#/modules/allocations/middlewares";
 import {
@@ -183,7 +184,9 @@ export const validateEditAllocationAmount = createServerFn({
       };
     }
 
-    const allocationsMap = new Map(allocation.bankAccount.allocations.map((a) => [a.id, a]));
+    const allocationsMap = new Map(
+      allocation.bankAccount.allocations.map((a) => [a.id, a]),
+    );
     const targetAllocation = allocationsMap.get(data.allocationId);
 
     if (!targetAllocation) {
@@ -249,5 +252,31 @@ export const deleteAllocation = createServerFn({
   .handler(async ({ data }) => {
     const db = getDB(env.db);
 
-    return db.delete(allocations).where(eq(allocations.id, data.allocationId)).returning();
+    return db
+      .delete(allocations)
+      .where(eq(allocations.id, data.allocationId))
+      .returning();
+  });
+
+export const getAllocations = createServerFn({
+  method: "GET",
+})
+  .middleware([authMiddleware])
+  .handler(async ({ context }) => {
+    const db = getDB(env.db);
+
+    return db.query.allocations.findMany({
+      where: {
+        bankAccount: {
+          userId: context.user.id,
+        },
+      },
+      with: {
+        bankAccount: {
+          columns: {
+            name: true,
+          },
+        },
+      },
+    });
   });

@@ -7,6 +7,7 @@ import { EditAllocationDialog } from "#/modules/allocations/components/edit-allo
 import { LogAllocationDialog } from "#/modules/allocations/components/log-allocation-dialog";
 import { getSession } from "#/modules/authentication/functions";
 import { AddBankAccountDialog } from "#/modules/bank-accounts/components/add-bank-account-dialog";
+import { DeleteBankAccountDialog } from "#/modules/bank-accounts/components/delete-bank-account-dialog";
 import { EditBankAccountDialog } from "#/modules/bank-accounts/components/edit-bank-account-dialog";
 import { AddBucketDialog } from "#/modules/buckets/components/add-bucket-dialog";
 import { EditBucketDialog } from "#/modules/buckets/components/edit-bucket-dialog";
@@ -51,6 +52,7 @@ function RouteComponent() {
       <EditAllocationDialog />
       <EditBankAccountDialog />
       <EditBucketDialog />
+      <DeleteBankAccountDialog />
     </>
   );
 }
