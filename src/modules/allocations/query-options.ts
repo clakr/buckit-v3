@@ -2,7 +2,7 @@ import { queryOptions } from "@tanstack/react-query";
 
 import type { Allocation } from "#/db/schema";
 
-import { getAllocation } from "#/modules/allocations/functions";
+import { getAllocation, getAllocations } from "#/modules/allocations/functions";
 
 export function allocationQueryOption(allocationId: Allocation["id"]) {
   return queryOptions({
@@ -15,3 +15,8 @@ export function allocationQueryOption(allocationId: Allocation["id"]) {
       }),
   });
 }
+
+export const allocationsQueryOptions = queryOptions({
+  queryKey: ["allocations"],
+  queryFn: getAllocations,
+});

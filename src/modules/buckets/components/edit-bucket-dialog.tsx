@@ -23,10 +23,9 @@ import { Spinner } from "#/components/ui/spinner";
 import { useAppForm } from "#/integrations/tanstack-form";
 import { validateEditBucketName } from "#/modules/buckets/functions";
 import { useEditBucketMutation } from "#/modules/buckets/mutations";
+import { bucketQueryOption } from "#/modules/buckets/query-options";
 import { editBucketSchema } from "#/modules/buckets/schemas";
 import { confirm } from "#/stores/use-confirm";
-
-import { bucketQueryOption } from "../query-options";
 
 type StoreState = DialogState & {
   bucketId: Bucket["id"] | null;
