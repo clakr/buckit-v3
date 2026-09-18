@@ -168,7 +168,8 @@ export function DeleteBankAccountDialog() {
                 ) : null}
                 {bankAccount.allocations.length ? (
                   <li>
-                    <b>{totalAllocations}</b> allocations spanning various bucket/s
+                    {/* @todo: word this better */}
+                    Allocations
                     <ul className="ms-4 list-inside list-disc">
                       {Object.entries(allocations).map(([name, amount]) => (
                         <li>
