@@ -184,9 +184,7 @@ export const validateEditAllocationAmount = createServerFn({
       };
     }
 
-    const allocationsMap = new Map(
-      allocation.bankAccount.allocations.map((a) => [a.id, a]),
-    );
+    const allocationsMap = new Map(allocation.bankAccount.allocations.map((a) => [a.id, a]));
     const targetAllocation = allocationsMap.get(data.allocationId);
 
     if (!targetAllocation) {
@@ -252,10 +250,7 @@ export const deleteAllocation = createServerFn({
   .handler(async ({ data }) => {
     const db = getDB(env.db);
 
-    return db
-      .delete(allocations)
-      .where(eq(allocations.id, data.allocationId))
-      .returning();
+    return db.delete(allocations).where(eq(allocations.id, data.allocationId)).returning();
   });
 
 export const getAllocations = createServerFn({

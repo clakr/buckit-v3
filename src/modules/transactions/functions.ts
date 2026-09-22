@@ -11,10 +11,7 @@ import { formatCurrency } from "#/lib/utils";
 import { verifyUserBankAccountMiddleware } from "#/modules/bank-accounts/middlewares";
 import { getBankAccountUnallocatedBalance } from "#/modules/bank-accounts/utils";
 import { verifyUserTransactionMiddleware } from "#/modules/transactions/middlewares";
-import {
-  editTransactionSchema,
-  logTransactionSchema,
-} from "#/modules/transactions/schemas";
+import { editTransactionSchema, logTransactionSchema } from "#/modules/transactions/schemas";
 
 export const getTransaction = createServerFn({
   method: "GET",
@@ -83,10 +80,7 @@ export const validateLogTransaction = createServerFn({
       allocations: bankAccount.allocations,
     });
 
-    if (
-      data.type === "expense" &&
-      unallocated - currencyCodec.decode(data.amount) < 0
-    ) {
+    if (data.type === "expense" && unallocated - currencyCodec.decode(data.amount) < 0) {
       return {
         isValid: false,
         message:
@@ -173,9 +167,7 @@ export const validateEditTransaction = createServerFn({
       };
     }
 
-    const transactionsMap = new Map(
-      transaction.bankAccount.transactions.map((t) => [t.id, t]),
-    );
+    const transactionsMap = new Map(transaction.bankAccount.transactions.map((t) => [t.id, t]));
     const targetTransaction = transactionsMap.get(data.transactionId);
 
     if (!targetTransaction) {
@@ -280,9 +272,7 @@ export const validateDeleteTransaction = createServerFn({
       };
     }
 
-    const transactionsMap = new Map(
-      transaction.bankAccount.transactions.map((t) => [t.id, t]),
-    );
+    const transactionsMap = new Map(transaction.bankAccount.transactions.map((t) => [t.id, t]));
 
     transactionsMap.delete(data.transactionId);
 
@@ -322,10 +312,7 @@ export const deleteTransaction = createServerFn({
 
     if (!isValid) throw new Error(message);
 
-    return db
-      .delete(transactions)
-      .where(eq(transactions.id, data.transactionId))
-      .returning();
+    return db.delete(transactions).where(eq(transactions.id, data.transactionId)).returning();
   });
 
 export const getTransactions = createServerFn({

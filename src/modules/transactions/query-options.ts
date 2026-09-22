@@ -2,10 +2,7 @@ import { queryOptions } from "@tanstack/react-query";
 
 import type { Transaction } from "#/db/schema";
 
-import {
-  getTransaction,
-  getTransactions,
-} from "#/modules/transactions/functions";
+import { getTransaction, getTransactions } from "#/modules/transactions/functions";
 
 export function transactionQueryOption(transactionId: Transaction["id"]) {
   return queryOptions({
