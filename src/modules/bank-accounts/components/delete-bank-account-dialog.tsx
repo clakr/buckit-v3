@@ -69,7 +69,7 @@ export function DeleteBankAccountDialog() {
   const deleteSchema = z.object({
     ...verifyUserBankAccountMiddlewareSchema.shape,
     name: z.literal(bankAccount?.name ?? "", {
-      error: "Please match the account's name",
+      error: "Doesn't match the account name.",
     }),
   });
 
@@ -85,7 +85,7 @@ export function DeleteBankAccountDialog() {
     },
     onSubmit: async ({ value: data }) => {
       try {
-        mutation.mutateAsync({ data });
+        await mutation.mutateAsync({ data });
 
         form.reset();
         closeDialog();
@@ -166,13 +166,13 @@ export function DeleteBankAccountDialog() {
                     will be permanently deleted.
                   </li>
                 ) : null}
-                {bankAccount.allocations.length ? (
+                {totalAllocations ? (
                   <li>
                     {/* @todo: word this better */}
                     Allocations
                     <ul className="ms-4 list-inside list-disc">
                       {Object.entries(allocations).map(([name, amount]) => (
-                        <li>
+                        <li key={name}>
                           {name} -{" "}
                           <b className="font-semibold">
                             {formatCurrency(amount, {
