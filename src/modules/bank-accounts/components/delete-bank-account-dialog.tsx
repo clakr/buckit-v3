@@ -168,8 +168,8 @@ export function DeleteBankAccountDialog() {
                 ) : null}
                 {totalAllocations ? (
                   <li>
-                    {/* @todo: word this better */}
-                    Allocations
+                    <b>{totalAllocations}</b> allocations will be permanently deleted, reducing the
+                    balance of these buckets:
                     <ul className="ms-4 list-inside list-disc">
                       {Object.entries(allocations).map(([name, amount]) => (
                         <li key={name}>

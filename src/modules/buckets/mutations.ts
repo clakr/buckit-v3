@@ -1,10 +1,6 @@
 import { useMutation } from "@tanstack/react-query";
 
-import {
-  addBucket,
-  deleteBucket,
-  editBucket,
-} from "#/modules/buckets/functions";
+import { addBucket, deleteBucket, editBucket } from "#/modules/buckets/functions";
 
 export function useAddBucketMutation() {
   return useMutation({

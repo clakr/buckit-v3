@@ -9,10 +9,7 @@ import { bankAccounts, lower } from "#/db/schema";
 import { currencyCodec } from "#/lib/codecs";
 import { authMiddleware } from "#/lib/middlewares";
 import { verifyUserBankAccountMiddleware } from "#/modules/bank-accounts/middlewares";
-import {
-  addBankAccountSchema,
-  editBankAccountSchema,
-} from "#/modules/bank-accounts/schemas";
+import { addBankAccountSchema, editBankAccountSchema } from "#/modules/bank-accounts/schemas";
 
 export const getBankAccounts = createServerFn({
   method: "GET",
@@ -207,8 +204,5 @@ export const deleteBankAccount = createServerFn({
   .handler(async ({ data }) => {
     const db = getDB(env.db);
 
-    return db
-      .delete(bankAccounts)
-      .where(eq(bankAccounts.id, data.bankAccountId))
-      .returning();
+    return db.delete(bankAccounts).where(eq(bankAccounts.id, data.bankAccountId)).returning();
   });

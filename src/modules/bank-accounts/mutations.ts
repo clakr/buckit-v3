@@ -44,8 +44,7 @@ export function useDeleteBankAccountMutation() {
     meta: {
       success: {
         title: "Account Deleted",
-        description:
-          "The account and all its transactions and allocations have been removed.",
+        description: "The account and all its transactions and allocations have been removed.",
       },
       error: {
         title: "Failed to Delete Account",

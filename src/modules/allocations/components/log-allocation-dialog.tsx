@@ -79,10 +79,7 @@ export function LogAllocationDialog() {
   };
 
   // @todo: handle error
-  const {
-    status,
-    data: buckets,
-  } = useQuery({
+  const { status, data: buckets } = useQuery({
     ...bucketsQueryOptions,
     enabled: isOpen,
     select: (buckets) =>
