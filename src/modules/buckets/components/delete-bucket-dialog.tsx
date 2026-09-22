@@ -23,10 +23,6 @@ import { Spinner } from "#/components/ui/spinner";
 import { useAppForm } from "#/integrations/tanstack-form";
 import { currencyCodec } from "#/lib/codecs";
 import { formatCurrency } from "#/lib/utils";
-import { useDeleteBankAccountMutation } from "#/modules/bank-accounts/mutations";
-import { bankAccountQueryOption } from "#/modules/bank-accounts/query-options";
-import { verifyUserBankAccountMiddlewareSchema } from "#/modules/bank-accounts/schemas";
-import { getBankAccountUnallocatedBalance } from "#/modules/bank-accounts/utils";
 
 import { useDeleteBucketMutation } from "../mutations";
 import { bucketQueryOption } from "../query-options";
@@ -73,7 +69,7 @@ export function DeleteBucketDialog() {
   const deleteSchema = z.object({
     ...verifyUserBucketMiddlewareSchema.shape,
     name: z.literal(bucket?.name ?? "", {
-      error: "Please match the bucket's name",
+      error: "Doesn't match the bucket name.",
     }),
   });
 
@@ -89,7 +85,7 @@ export function DeleteBucketDialog() {
     },
     onSubmit: async ({ value: data }) => {
       try {
-        mutation.mutateAsync({ data });
+        await mutation.mutateAsync({ data });
 
         form.reset();
         closeDialog();
@@ -106,8 +102,11 @@ export function DeleteBucketDialog() {
     toggleDialog();
   }
 
+  const totalAllocations = bucket?.allocations.length ?? 0;
   const allocations =
-    bucket?.allocations.reduce<Record<string, { amount: number; currency: any }>>((acc, a) => {
+    bucket?.allocations.reduce<
+      Record<string, { amount: number; currency: BankAccount["currency"] }>
+    >((acc, a) => {
       if (!a.bankAccount) return acc;
 
       const name = a.bankAccount?.name;
@@ -154,13 +153,13 @@ export function DeleteBucketDialog() {
           {status === "success" && bucket ? (
             <div className="flex flex-col gap-y-4">
               <ul className="list-inside list-disc text-muted-foreground empty:hidden">
-                {bucket.allocations.length ? (
+                {totalAllocations ? (
                   <li>
-                    {/* @todo: word this better */}
-                    Allocations
+                    <b>{totalAllocations}</b> allocations will be permanently deleted. This money
+                    returns to each bank account's unallocated balance:
                     <ul className="ms-4 list-inside list-disc">
                       {Object.entries(allocations).map(([name, { amount, currency }]) => (
-                        <li>
+                        <li key={name}>
                           {name} -{" "}
                           <b className="font-semibold">
                             {formatCurrency(amount, {
@@ -232,7 +231,7 @@ export function DeleteBucketDialog() {
           <DialogFooter>
             <form.AppForm>
               <form.Button form={form.formId} variant="destructive">
-                Delete Account
+                Delete Bucket
               </form.Button>
             </form.AppForm>
           </DialogFooter>
