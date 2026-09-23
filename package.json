@@ -22,7 +22,8 @@
     "db:migrate:remote": "wrangler d1 migrations apply buckit --remote",
     "db:studio": "drizzle-kit studio",
     "db:list-tables": "wrangler d1 execute buckit --local --command \"SELECT name FROM sqlite_schema WHERE type='table' AND name NOT LIKE 'sqlite_%';\"",
-    "db:seed": "tsx scripts/seed.ts"
+    "db:seed": "tsx scripts/seed.ts",
+    "db:pull:prod": "rm -rf .wrangler/state/v3/d1 && wrangler d1 migrations apply buckit --local && wrangler d1 export buckit --remote --no-schema --output=.wrangler/prod-dump.sql && bash scripts/strip-d1-migrations.sh .wrangler/prod-dump.sql .wrangler/prod-dump.filtered.sql && wrangler d1 execute buckit --local --file=.wrangler/prod-dump.filtered.sql"
   },
   "dependencies": {
     "@base-ui/react": "1.8.0",
