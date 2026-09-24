@@ -59,6 +59,7 @@ function TableHead({ className, ...props }: React.ComponentProps<"th">) {
         "h-10 px-4 text-left align-middle font-mono text-xs font-medium whitespace-nowrap text-muted-foreground uppercase",
         "has-[[role=checkbox]]:pr-0",
         "last:not-first:text-end",
+        "has-data-currency:text-end [&:has([data-currency])_button]:-me-2",
         className,
       )}
       {...props}

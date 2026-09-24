@@ -47,7 +47,11 @@ export const INDEX_COLUMNS: ColumnDef<Awaited<ReturnType<typeof getBankAccounts>
   },
   {
     accessorKey: "balance",
-    header: ({ column }) => <SortableTableHead column={column}>Balance</SortableTableHead>,
+    header: ({ column }) => (
+      <SortableTableHead column={column} data-currency>
+        Balance
+      </SortableTableHead>
+    ),
     sortingFn: (rowA, rowB) => {
       const { balance: rowABalance } = getBankAccountUnallocatedBalance({
         startingBalance: rowA.original.startingBalance,
@@ -76,12 +80,16 @@ export const INDEX_COLUMNS: ColumnDef<Awaited<ReturnType<typeof getBankAccounts>
         currency: row.original.currency,
       });
 
-      return <span className="font-medium">{value}</span>;
+      return <span className="block text-end font-medium">{value}</span>;
     },
   },
   {
     accessorKey: "unallocated",
-    header: ({ column }) => <SortableTableHead column={column}>Unallocated</SortableTableHead>,
+    header: ({ column }) => (
+      <SortableTableHead column={column} data-currency>
+        Unallocated
+      </SortableTableHead>
+    ),
     sortingFn: (rowA, rowB) => {
       const { unallocated: rowAUnallocated } = getBankAccountUnallocatedBalance({
         startingBalance: rowA.original.startingBalance,
@@ -110,7 +118,7 @@ export const INDEX_COLUMNS: ColumnDef<Awaited<ReturnType<typeof getBankAccounts>
         currency: row.original.currency,
       });
 
-      return <span className="font-medium">{value}</span>;
+      return <span className="block text-end font-medium">{value}</span>;
     },
   },
   {
