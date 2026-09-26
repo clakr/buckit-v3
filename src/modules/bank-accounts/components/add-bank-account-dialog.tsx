@@ -32,7 +32,7 @@ import {
 } from "#/components/ui/input-group";
 import { Spinner } from "#/components/ui/spinner";
 import { useAppForm } from "#/integrations/tanstack-form";
-import { currencies } from "#/lib/constants";
+import { CURRENCIES } from "#/lib/constants";
 import { validateBankAccountName } from "#/modules/bank-accounts/functions";
 import { useAddBankAccountMutation } from "#/modules/bank-accounts/mutations";
 import { addBankAccountSchema } from "#/modules/bank-accounts/schemas";
@@ -187,7 +187,7 @@ export function AddBankAccountDialog() {
                     <form.AppField name="currency">
                       {(field) => (
                         <Combobox
-                          items={currencies}
+                          items={CURRENCIES}
                           value={field.state.value}
                           onValueChange={(value) => field.handleChange(value?.toString() ?? "")}
                         >

@@ -3,7 +3,7 @@ import { twMerge } from "tailwind-merge";
 
 import type { Currency } from "#/lib/types";
 
-import { currencies } from "#/lib/constants";
+import { CURRENCIES } from "#/lib/constants";
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -54,11 +54,11 @@ export function formatToRelative(
 }
 
 export function isCurrencyCode(code: string): code is Currency["code"] {
-  return currencies.some((currency) => currency.code === code);
+  return CURRENCIES.some((currency) => currency.code === code);
 }
 
 export function getCurrency(code: Currency["code"]) {
-  return currencies.find((currency) => currency.code === code);
+  return CURRENCIES.find((currency) => currency.code === code);
 }
 
 export function formatDateTime(value: Date, opts?: Intl.DateTimeFormat) {

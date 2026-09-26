@@ -16,7 +16,7 @@ export const MODULE_ICONS = {
   allocations: IconChartPie,
 } as const;
 
-export const currencies = [
+export const CURRENCIES = [
   { code: "AED", name: "UAE Dirham", symbol: "د.إ", flag: "🇦🇪" },
   { code: "AFN", name: "Afghan Afghani", symbol: "؋", flag: "🇦🇫" },
   { code: "ALL", name: "Albanian Lek", symbol: "L", flag: "🇦🇱" },
@@ -199,7 +199,7 @@ export const currencies = [
   { code: "ZWG", name: "Zimbabwean Gold", symbol: "ZiG", flag: "🇿🇼" },
 ] as const;
 
-export const currenciesCodes = currencies.map((currency) => currency.code) as unknown as [
+export const CURRENCIES_CODES = CURRENCIES.map((currency) => currency.code) as unknown as [
   string,
   ...string[],
 ];
