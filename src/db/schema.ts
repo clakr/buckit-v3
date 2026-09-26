@@ -162,6 +162,17 @@ export const allocations = sqliteTable("allocations", {
     .notNull(),
 });
 
+export const debts = sqliteTable("debts", {
+  id: text("id").primaryKey(),
+  userId: text("user_id")
+    .notNull()
+    .references(() => users.id, { onDelete: "set null" }),
+  direction: text("direction", { enum: ["receivable", "payable"] }).notNull(),
+  amount: integer("amount").notNull(),
+  currency: text("currency", { enum: currenciesCodes }).notNull(),
+  name: text("name").notNull(),
+});
+
 //
 
 export const relations = defineRelations(
@@ -174,6 +185,7 @@ export const relations = defineRelations(
     buckets,
     transactions,
     allocations,
+    debts,
   },
   (r) => ({
     users: {
@@ -224,6 +236,12 @@ export const relations = defineRelations(
         to: r.buckets.id,
       }),
     },
+    debts: {
+      user: r.one.users({
+        from: r.debts.userId,
+        to: r.users.id,
+      }),
+    },
   }),
 );
 
@@ -233,6 +251,7 @@ export type BankAccount = typeof bankAccounts.$inferSelect;
 export type Bucket = typeof buckets.$inferSelect;
 export type Transaction = typeof transactions.$inferSelect;
 export type Allocation = typeof allocations.$inferSelect;
+export type Debt = typeof debts.$inferSelect;
 
 //
 
