@@ -1,5 +1,3 @@
-import type { PropsWithChildren } from "react";
-
 import { IconPlus } from "@tabler/icons-react";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
@@ -20,23 +18,27 @@ export const Route = createFileRoute("/_protected/buckets/")({
     queryClient.query(bucketsQueryOptions);
   },
   pendingComponent: () => (
-    <Template>
+    <Main>
+      <Heading>Buckets</Heading>
+
       <StateTemplate
         state="loading"
         title="Loading buckets..."
         description="Fetching your buckets..."
       />
-    </Template>
+    </Main>
   ),
   errorComponent: ({ reset }) => (
-    <Template>
+    <Main>
+      <Heading>Buckets</Heading>
+
       <StateTemplate
         state="error"
         title="Could not load buckets."
         description="We weren't able to retrieve your buckets. Please try again."
         content={<Button onClick={reset}>Retry</Button>}
       />
-    </Template>
+    </Main>
   ),
   component: RouteComponent,
 });
@@ -49,7 +51,15 @@ function RouteComponent() {
   const openDialog = useAddBucketDialogStore(useShallow((state) => state.openDialog));
 
   return (
-    <Template>
+    <Main>
+      <div className="flex items-center justify-between">
+        <Heading>Buckets</Heading>
+        <Button onClick={openDialog}>
+          <IconPlus />
+          Add Bucket
+        </Button>
+      </div>
+
       {isEmpty ? (
         <StateTemplate
           state="empty"
@@ -70,23 +80,6 @@ function RouteComponent() {
           initialSorting={[{ id: "createdAt", desc: true }]}
         />
       )}
-    </Template>
-  );
-}
-
-function Template({ children }: PropsWithChildren) {
-  const openDialog = useAddBucketDialogStore(useShallow((state) => state.openDialog));
-
-  return (
-    <Main>
-      <div className="flex items-center justify-between">
-        <Heading>Buckets</Heading>
-        <Button onClick={openDialog}>
-          <IconPlus />
-          Add Bucket
-        </Button>
-      </div>
-      {children}
     </Main>
   );
 }

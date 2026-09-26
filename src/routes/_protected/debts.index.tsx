@@ -15,13 +15,7 @@ export const Route = createFileRoute("/_protected/debts/")({
   },
   pendingComponent: () => (
     <Main>
-      <div className="flex items-center justify-between">
-        <Heading>Debts</Heading>
-        <Button disabled>
-          <IconPlus />
-          Log Debt
-        </Button>
-      </div>
+      <Heading>Debts</Heading>
 
       <StateTemplate
         state="loading"
@@ -32,13 +26,7 @@ export const Route = createFileRoute("/_protected/debts/")({
   ),
   errorComponent: ({ reset }) => (
     <Main>
-      <div className="flex items-center justify-between">
-        <Heading>Debts</Heading>
-        <Button disabled>
-          <IconPlus />
-          Log Debt
-        </Button>
-      </div>
+      <Heading>Debts</Heading>
 
       <StateTemplate
         state="error"
