@@ -1,6 +1,6 @@
 import type { PropsWithChildren } from "react";
 
-import { IconPlus, IconWallet } from "@tabler/icons-react";
+import { IconPlus } from "@tabler/icons-react";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
 import { useShallow } from "zustand/react/shallow";
@@ -10,6 +10,7 @@ import { Main } from "#/components/main";
 import { StateTemplate } from "#/components/state-template";
 import { Button } from "#/components/ui/button";
 import { DataTable } from "#/components/ui/data-table";
+import { MODULE_ICONS } from "#/lib/constants";
 import { INDEX_COLUMNS } from "#/modules/bank-accounts/columns";
 import { useAddBankAccountDialogStore } from "#/modules/bank-accounts/components/add-bank-account-dialog";
 import { bankAccountsQueryOption } from "#/modules/bank-accounts/query-options";
@@ -54,7 +55,7 @@ function RouteComponent() {
           state="empty"
           title="No accounts yet."
           description="Add your first bank account to start tracking."
-          icon={<IconWallet />}
+          icon={<MODULE_ICONS.accounts />}
           content={
             <Button onClick={openDialog}>
               <IconPlus />
