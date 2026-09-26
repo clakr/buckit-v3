@@ -8,12 +8,12 @@ A Bucket is a user-defined savings category that money gets earmarked into from 
 
 ### Bucket
 
-| Field       | Type     | Notes                                                                    |
-| ----------- | -------- | ------------------------------------------------------------------------ |
-| `id`        | string   | auto-generated (uuidv7)                                                  |
-| `userId`    | string   | FK → Users (ownership boundary)                                          |
-| `name`      | string   | user-given label, unique per user (case-insensitive), editable (planned) |
-| `createdAt` | datetime |                                                                          |
+| Field       | Type     | Notes                                                          |
+| ----------- | -------- | -------------------------------------------------------------- |
+| `id`        | string   | auto-generated (uuidv7)                                        |
+| `userId`    | string   | FK → Users (ownership boundary)                                |
+| `name`      | string   | user-given label, unique per user (case-insensitive), editable |
+| `createdAt` | datetime |                                                                |
 
 No currency, no balance/target column. No `updatedAt` — same reasoning as Bank Account: no sync/API client, no per-User concurrent-edit conflict scenario to detect (see `authentication/SPEC.md` on multi-device Sessions).
 
@@ -31,13 +31,13 @@ A Bucket can receive Allocations from Bank Accounts in different currencies. The
 
 Name must be unique per user, case-insensitive (compared via `lower()`), trimmed — same pattern as Bank Account. Enforced today only on create, via the dialog's async validator (`validateBucketName`) calling the server; the DB has a plain (case-sensitive) `unique(userId, name)` constraint as a backstop, matching Bank Account's existing (accepted) inconsistency between app-level case-insensitive checks and a case-sensitive DB constraint.
 
-### Deletion Will Be Destructive, Not Blocked
+### Deletion Is Destructive, Not Blocked
 
-Not yet built (menu item exists but is `disabled`). When built: hard delete, cascading to all of the Bucket's Allocations (matches the existing `onDelete: "cascade"` FK on `allocations.bucketId`), gated by a typed confirmation (user must re-type the bucket name) rather than a blocking check — mirrors the Bank Account precedent exactly. See [`docs/adr/0002-hard-delete-buckets.md`](../../../docs/adr/0002-hard-delete-buckets.md). Because `Unallocated` is computed on read, cascading the Allocations away automatically returns that money to each source Bank Account's unallocated pool — the confirmation dialog must disclose this consequence when built.
+**Implemented.** Hard delete, cascading to all of the Bucket's Allocations (matches the existing `onDelete: "cascade"` FK on `allocations.bucketId`), gated by a typed confirmation (user must re-type the bucket name) rather than a blocking check — mirrors the Bank Account precedent exactly. See [`docs/adr/0002-hard-delete-buckets.md`](../../../docs/adr/0002-hard-delete-buckets.md). Because `Unallocated` is computed on read, cascading the Allocations away automatically returns that money to each source Bank Account's unallocated pool — the confirmation dialog discloses this consequence (per-account, per-currency breakdown) before the user confirms.
 
-### Edit Will Be Name-Only
+### Edit Is Name-Only
 
-Not yet built (menu item exists but is `disabled`). When built: rename only, same case-insensitive uniqueness check as create. There is no other mutable field on the entity.
+**Implemented.** Rename only, same case-insensitive uniqueness check as create (excluding the bucket's own current name). There is no other mutable field on the entity.
 
 ## Features
 
@@ -46,8 +46,8 @@ Not yet built (menu item exists but is `disabled`). When built: rename only, sam
 | 1   | Create Bucket              | **Implemented and correct.** Name only, validated (uniqueness, 1–100 chars, trimmed).                                                                                                                                                                  |
 | 2   | View Buckets List          | **Implemented and correct**, with one deliberate limitation: the per-currency subtotal column is not sortable (see below).                                                                                                                             |
 | 3   | View Bucket Detail         | **Implemented and correct**, as a flat Allocations table only — no aggregate/summary header (see below).                                                                                                                                               |
-| 4   | Edit Bucket                | **Not implemented** (UI menu item exists but is `disabled`). Scope for when built: **name only**.                                                                                                                                                      |
-| 5   | Delete Bucket              | **Not implemented** (UI menu item exists but is `disabled`). Scope for when built: hard delete, cascades Allocations, gated by typed confirmation (re-type bucket name).                                                                               |
+| 4   | Edit Bucket                | **Implemented and correct.** Name only.                                                                                                                                                                                                                |
+| 5   | Delete Bucket              | **Implemented and correct.** Hard delete, cascades Allocations, gated by typed confirmation (re-type bucket name); dialog discloses the per-account amounts being returned to Unallocated.                                                             |
 | 6   | Log/Edit/Delete Allocation | **Implemented and correct** — lives in the sibling `allocations` module, not this one. Enforces `Unallocated ≥ 0` against the source Bank Account on log and edit; delete needs no guard since removing an Allocation only ever increases Unallocated. |
 | —   | Spend From a Bucket        | **Rejected as a concept for this entity**, permanently. Spending is always recorded as a Bank Account Transaction.                                                                                                                                     |
 | —   | Goal / Target Tracking     | **Out of scope, deferred** to a planned, undesigned `Goal` module. See Future Considerations.                                                                                                                                                          |
