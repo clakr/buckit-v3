@@ -1,5 +1,3 @@
-import type { PropsWithChildren } from "react";
-
 import { IconPlus } from "@tabler/icons-react";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
@@ -20,23 +18,27 @@ export const Route = createFileRoute("/_protected/accounts/")({
     queryClient.query(bankAccountsQueryOption);
   },
   pendingComponent: () => (
-    <Template>
+    <Main>
+      <Heading>Accounts</Heading>
+
       <StateTemplate
         state="loading"
         title="Loading accounts..."
         description="Fetching your bank accounts..."
       />
-    </Template>
+    </Main>
   ),
   errorComponent: ({ reset }) => (
-    <Template>
+    <Main>
+      <Heading>Accounts</Heading>
+
       <StateTemplate
         state="error"
         title="Could not load accounts."
         description="We weren't able to retrieve your accounts. Please try again."
         content={<Button onClick={reset}>Retry</Button>}
       />
-    </Template>
+    </Main>
   ),
   component: RouteComponent,
 });
@@ -49,7 +51,15 @@ function RouteComponent() {
   const openDialog = useAddBankAccountDialogStore(useShallow((state) => state.openDialog));
 
   return (
-    <Template>
+    <Main>
+      <div className="flex items-center justify-between">
+        <Heading>Accounts</Heading>
+        <Button onClick={openDialog}>
+          <IconPlus />
+          Add Account
+        </Button>
+      </div>
+
       {isEmpty ? (
         <StateTemplate
           state="empty"
@@ -70,23 +80,6 @@ function RouteComponent() {
           initialSorting={[{ id: "lastTransactionDate", desc: true }]}
         />
       )}
-    </Template>
-  );
-}
-
-function Template({ children }: PropsWithChildren) {
-  const openDialog = useAddBankAccountDialogStore(useShallow((state) => state.openDialog));
-
-  return (
-    <Main>
-      <div className="flex items-center justify-between">
-        <Heading>Accounts</Heading>
-        <Button onClick={openDialog}>
-          <IconPlus />
-          Add Account
-        </Button>
-      </div>
-      {children}
     </Main>
   );
 }
