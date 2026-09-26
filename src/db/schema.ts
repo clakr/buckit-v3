@@ -8,15 +8,13 @@ import {
   type AnySQLiteColumn,
 } from "drizzle-orm/sqlite-core";
 
-import { currenciesCodes } from "#/lib/constants";
+import { CURRENCIES_CODES } from "#/lib/constants";
 
 export const users = sqliteTable("users", {
   id: text("id").primaryKey(),
   name: text("name").notNull(),
   email: text("email").notNull().unique(),
-  emailVerified: integer("email_verified", { mode: "boolean" })
-    .default(false)
-    .notNull(),
+  emailVerified: integer("email_verified", { mode: "boolean" }).default(false).notNull(),
   image: text("image"),
   createdAt: integer("created_at", { mode: "timestamp_ms" })
     .default(sql`(cast(unixepoch('subsecond') * 1000 as integer))`)
@@ -104,7 +102,7 @@ export const bankAccounts = sqliteTable(
       .notNull()
       .references(() => users.id, { onDelete: "cascade" }),
     name: text("name").notNull(),
-    currency: text("currency", { enum: currenciesCodes }).notNull(),
+    currency: text("currency", { enum: CURRENCIES_CODES }).notNull(),
     startingBalance: integer("starting_balance").default(0).notNull(),
     createdAt: integer("created_at", { mode: "timestamp_ms" })
       .default(sql`(cast(unixepoch('subsecond') * 1000 as integer))`)
@@ -169,7 +167,7 @@ export const debts = sqliteTable("debts", {
     .references(() => users.id, { onDelete: "set null" }),
   direction: text("direction", { enum: ["receivable", "payable"] }).notNull(),
   amount: integer("amount").notNull(),
-  currency: text("currency", { enum: currenciesCodes }).notNull(),
+  currency: text("currency", { enum: CURRENCIES_CODES }).notNull(),
   name: text("name").notNull(),
 });
 

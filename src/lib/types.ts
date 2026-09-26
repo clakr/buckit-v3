@@ -1,6 +1,6 @@
-import type { currencies } from "#/lib/constants";
+import type { CURRENCIES } from "#/lib/constants";
 
-export type Currency = (typeof currencies)[number];
+export type Currency = (typeof CURRENCIES)[number];
 
 export type DialogState = {
   isOpen: boolean;
