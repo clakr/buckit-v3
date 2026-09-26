@@ -6,12 +6,12 @@ import { Sidebar, SidebarInset, SidebarProvider, SidebarTrigger } from "#/compon
 import { EditAllocationDialog } from "#/modules/allocations/components/edit-allocation-dialog";
 import { LogAllocationDialog } from "#/modules/allocations/components/log-allocation-dialog";
 import { getSession } from "#/modules/authentication/functions";
-import { AddBankAccountDialog } from "#/modules/bank-accounts/components/add-bank-account-dialog";
 import { DeleteBankAccountDialog } from "#/modules/bank-accounts/components/delete-bank-account-dialog";
 import { EditBankAccountDialog } from "#/modules/bank-accounts/components/edit-bank-account-dialog";
-import { AddBucketDialog } from "#/modules/buckets/components/add-bucket-dialog";
+import { RegisterBankAccountDialog } from "#/modules/bank-accounts/components/register-bank-account-dialog";
 import { DeleteBucketDialog } from "#/modules/buckets/components/delete-bucket-dialog";
 import { EditBucketDialog } from "#/modules/buckets/components/edit-bucket-dialog";
+import { SetUpBucketDialog } from "#/modules/buckets/components/set-up-bucket-dialog";
 import { EditTransactionDialog } from "#/modules/transactions/components/edit-transaction-dialog";
 import { LogTransactionDialog } from "#/modules/transactions/components/log-transaction-dialog";
 
@@ -45,8 +45,8 @@ function RouteComponent() {
         </SidebarInset>
       </SidebarProvider>
 
-      <AddBankAccountDialog />
-      <AddBucketDialog />
+      <RegisterBankAccountDialog />
+      <SetUpBucketDialog />
       <LogTransactionDialog />
       <LogAllocationDialog />
       <EditTransactionDialog />

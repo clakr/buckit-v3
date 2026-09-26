@@ -10,7 +10,7 @@ import { Button } from "#/components/ui/button";
 import { DataTable } from "#/components/ui/data-table";
 import { MODULE_ICONS } from "#/lib/constants";
 import { INDEX_COLUMNS } from "#/modules/buckets/columns";
-import { useAddBucketDialogStore } from "#/modules/buckets/components/add-bucket-dialog";
+import { useSetUpBucketDialogStore } from "#/modules/buckets/components/set-up-bucket-dialog";
 import { bucketsQueryOptions } from "#/modules/buckets/query-options";
 
 export const Route = createFileRoute("/_protected/buckets/")({
@@ -48,7 +48,7 @@ function RouteComponent() {
 
   const isEmpty = buckets.length === 0;
 
-  const openDialog = useAddBucketDialogStore(useShallow((state) => state.openDialog));
+  const openDialog = useSetUpBucketDialogStore(useShallow((state) => state.openDialog));
 
   return (
     <Main>
@@ -56,7 +56,7 @@ function RouteComponent() {
         <Heading>Buckets</Heading>
         <Button onClick={openDialog}>
           <IconPlus />
-          Add Bucket
+          Set Up Bucket
         </Button>
       </div>
 
@@ -69,7 +69,7 @@ function RouteComponent() {
           content={
             <Button onClick={openDialog}>
               <IconPlus />
-              Add Bucket
+              Set Up Bucket
             </Button>
           }
         />

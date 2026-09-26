@@ -38,15 +38,15 @@ import { useAddBankAccountMutation } from "#/modules/bank-accounts/mutations";
 import { addBankAccountSchema } from "#/modules/bank-accounts/schemas";
 import { confirm } from "#/stores/use-confirm";
 
-export const useAddBankAccountDialogStore = create<DialogState>()((set) => ({
+export const useRegisterBankAccountDialogStore = create<DialogState>()((set) => ({
   isOpen: false,
   openDialog: () => set({ isOpen: true }),
   closeDialog: () => set({ isOpen: false }),
   toggleDialog: () => set((state) => ({ isOpen: !state.isOpen })),
 }));
 
-export function AddBankAccountDialog() {
-  const { isOpen, closeDialog, toggleDialog } = useAddBankAccountDialogStore(
+export function RegisterBankAccountDialog() {
+  const { isOpen, closeDialog, toggleDialog } = useRegisterBankAccountDialogStore(
     useShallow((state) => ({
       isOpen: state.isOpen,
       closeDialog: state.closeDialog,
@@ -102,7 +102,7 @@ export function AddBankAccountDialog() {
     <Dialog open={isOpen} onOpenChange={handleOnOpenChange}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Add Account</DialogTitle>
+          <DialogTitle>Register Account</DialogTitle>
           <DialogDescription>
             Enter the details of your bank account to start tracking.
           </DialogDescription>
@@ -250,7 +250,7 @@ export function AddBankAccountDialog() {
         </div>
         <DialogFooter>
           <form.AppForm>
-            <form.Button form={form.formId}>Add Account</form.Button>
+            <form.Button form={form.formId}>Register Account</form.Button>
           </form.AppForm>
         </DialogFooter>
       </DialogContent>

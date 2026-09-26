@@ -50,7 +50,7 @@ function RouteComponent() {
         <Heading>Debts</Heading>
         <Button disabled>
           <IconPlus />
-          Log Debt
+          Record Debt
         </Button>
       </div>
 
@@ -58,12 +58,12 @@ function RouteComponent() {
         <StateTemplate
           state="empty"
           title="No debts yet."
-          description="Log your first debt to start tracking what you owe or are owed."
+          description="Record your first debt to start tracking what you owe or are owed."
           icon={<MODULE_ICONS.debts />}
           content={
             <Button disabled>
               <IconPlus />
-              Log Debt
+              Record Debt
             </Button>
           }
         />

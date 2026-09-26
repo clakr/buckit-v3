@@ -61,11 +61,11 @@ export function BankAccountActionsDropdownMenu({ account }: Props) {
         <DropdownMenuGroup>
           <DropdownMenuItem onClick={handleOpenLogTransactionDialog}>
             <IconPlus />
-            Transaction
+            Log Transaction
           </DropdownMenuItem>
           <DropdownMenuItem onClick={handleOpenLogAllocationDialog}>
             <svg />
-            Allocation
+            Allocate Money
           </DropdownMenuItem>
         </DropdownMenuGroup>
         <DropdownMenuSeparator />

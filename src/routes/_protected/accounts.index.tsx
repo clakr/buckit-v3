@@ -10,7 +10,7 @@ import { Button } from "#/components/ui/button";
 import { DataTable } from "#/components/ui/data-table";
 import { MODULE_ICONS } from "#/lib/constants";
 import { INDEX_COLUMNS } from "#/modules/bank-accounts/columns";
-import { useAddBankAccountDialogStore } from "#/modules/bank-accounts/components/add-bank-account-dialog";
+import { useRegisterBankAccountDialogStore } from "#/modules/bank-accounts/components/register-bank-account-dialog";
 import { bankAccountsQueryOption } from "#/modules/bank-accounts/query-options";
 
 export const Route = createFileRoute("/_protected/accounts/")({
@@ -48,7 +48,7 @@ function RouteComponent() {
 
   const isEmpty = bankAccounts.length === 0;
 
-  const openDialog = useAddBankAccountDialogStore(useShallow((state) => state.openDialog));
+  const openDialog = useRegisterBankAccountDialogStore(useShallow((state) => state.openDialog));
 
   return (
     <Main>
@@ -56,7 +56,7 @@ function RouteComponent() {
         <Heading>Accounts</Heading>
         <Button onClick={openDialog}>
           <IconPlus />
-          Add Account
+          Register Account
         </Button>
       </div>
 
@@ -69,7 +69,7 @@ function RouteComponent() {
           content={
             <Button onClick={openDialog}>
               <IconPlus />
-              Add Account
+              Register Account
             </Button>
           }
         />

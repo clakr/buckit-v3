@@ -22,15 +22,15 @@ import { useAddBucketMutation } from "#/modules/buckets/mutations";
 import { addBucketSchema } from "#/modules/buckets/schemas";
 import { confirm } from "#/stores/use-confirm";
 
-export const useAddBucketDialogStore = create<DialogState>()((set) => ({
+export const useSetUpBucketDialogStore = create<DialogState>()((set) => ({
   isOpen: false,
   openDialog: () => set({ isOpen: true }),
   closeDialog: () => set({ isOpen: false }),
   toggleDialog: () => set((state) => ({ isOpen: !state.isOpen })),
 }));
 
-export function AddBucketDialog() {
-  const { isOpen, closeDialog, toggleDialog } = useAddBucketDialogStore(
+export function SetUpBucketDialog() {
+  const { isOpen, closeDialog, toggleDialog } = useSetUpBucketDialogStore(
     useShallow((state) => ({
       isOpen: state.isOpen,
       closeDialog: state.closeDialog,
@@ -84,7 +84,7 @@ export function AddBucketDialog() {
     <Dialog open={isOpen} onOpenChange={handleOnOpenChange}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Add Bucket</DialogTitle>
+          <DialogTitle>Set Up Bucket</DialogTitle>
           <DialogDescription>Create a bucket to organize your money.</DialogDescription>
         </DialogHeader>
         <div>
@@ -162,7 +162,7 @@ export function AddBucketDialog() {
         </div>
         <DialogFooter>
           <form.AppForm>
-            <form.Button form={form.formId}>Add Bucket</form.Button>
+            <form.Button form={form.formId}>Set Up Bucket</form.Button>
           </form.AppForm>
         </DialogFooter>
       </DialogContent>
