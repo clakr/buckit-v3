@@ -23,13 +23,7 @@ export const Route = createFileRoute("/_protected/buckets/$bucketId")({
   },
   pendingComponent: () => (
     <Main>
-      <div className="flex items-baseline justify-between">
-        <Heading className="capitalize">Bucket</Heading>
-        <Button variant="outline" disabled>
-          <IconPencil />
-          Edit
-        </Button>
-      </div>
+      <Heading className="capitalize">Bucket</Heading>
 
       <StateTemplate
         state="loading"
