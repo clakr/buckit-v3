@@ -15,28 +15,35 @@ export const Route = createFileRoute("/_protected/debts/")({
   },
   pendingComponent: () => (
     <Main>
-      <div className="flex items-baseline justify-between">
-        <Heading className="capitalize">Debts</Heading>
+      <div className="flex items-center justify-between">
+        <Heading>Debts</Heading>
         <Button disabled>
           <IconPlus />
-          Add
+          Log Debt
         </Button>
       </div>
 
       <StateTemplate
         state="loading"
         title="Loading debts..."
-        description="Fetching debts details and history..."
+        description="Fetching your debts..."
       />
     </Main>
   ),
   errorComponent: ({ reset }) => (
     <Main>
-      <Heading className="capitalize">Debts</Heading>
+      <div className="flex items-center justify-between">
+        <Heading>Debts</Heading>
+        <Button disabled>
+          <IconPlus />
+          Log Debt
+        </Button>
+      </div>
+
       <StateTemplate
         state="error"
-        title="Could not load debts"
-        description="We weren't able to retrieve this debts. Please check your connection and try again."
+        title="Could not load debts."
+        description="We weren't able to retrieve your debts. Please try again."
         content={<Button onClick={reset}>Retry</Button>}
       />
     </Main>
@@ -51,11 +58,11 @@ function RouteComponent() {
 
   return (
     <Main>
-      <div className="flex items-baseline justify-between">
-        <Heading className="capitalize">Debts</Heading>
+      <div className="flex items-center justify-between">
+        <Heading>Debts</Heading>
         <Button disabled>
           <IconPlus />
-          Log
+          Log Debt
         </Button>
       </div>
 
@@ -63,12 +70,12 @@ function RouteComponent() {
         <StateTemplate
           state="empty"
           title="No debts yet."
-          description="Create a debt" // @todo: reword to be consistent with sibling indexes
+          description="Log your first debt to start tracking what you owe or are owed."
           icon={<MODULE_ICONS.debts />}
           content={
             <Button disabled>
               <IconPlus />
-              Log
+              Log Debt
             </Button>
           }
         />
