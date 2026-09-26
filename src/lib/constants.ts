@@ -1,3 +1,21 @@
+import {
+  IconArrowsExchange,
+  IconBucket,
+  IconChartPie,
+  IconCredits,
+  IconLayoutDashboard,
+  IconWallet,
+} from "@tabler/icons-react";
+
+export const MODULE_ICONS = {
+  dashboard: IconLayoutDashboard,
+  accounts: IconWallet,
+  buckets: IconBucket,
+  debts: IconCredits,
+  transactions: IconArrowsExchange,
+  allocations: IconChartPie,
+} as const;
+
 export const currencies = [
   { code: "AED", name: "UAE Dirham", symbol: "د.إ", flag: "🇦🇪" },
   { code: "AFN", name: "Afghan Afghani", symbol: "؋", flag: "🇦🇫" },

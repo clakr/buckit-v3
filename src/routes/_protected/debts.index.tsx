@@ -1,4 +1,4 @@
-import { IconCredits, IconPlus } from "@tabler/icons-react";
+import { IconPlus } from "@tabler/icons-react";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
 
@@ -6,6 +6,7 @@ import { Heading } from "#/components/heading";
 import { Main } from "#/components/main";
 import { StateTemplate } from "#/components/state-template";
 import { Button } from "#/components/ui/button";
+import { MODULE_ICONS } from "#/lib/constants";
 import { debtsQueryOptions } from "#/modules/debts/query-options";
 
 export const Route = createFileRoute("/_protected/debts/")({
@@ -63,7 +64,7 @@ function RouteComponent() {
           state="empty"
           title="No debts yet."
           description="Create a debt" // @todo: reword to be consistent with sibling indexes
-          icon={<IconCredits />}
+          icon={<MODULE_ICONS.debts />}
           content={
             <Button disabled>
               <IconPlus />

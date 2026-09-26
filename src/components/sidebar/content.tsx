@@ -1,4 +1,3 @@
-import { IconBucket, IconCredits, IconWallet } from "@tabler/icons-react";
 import { Link } from "@tanstack/react-router";
 
 import {
@@ -8,6 +7,7 @@ import {
   SidebarMenuItem,
   SidebarMenuButton,
 } from "#/components/ui/sidebar";
+import { MODULE_ICONS } from "#/lib/constants";
 
 export function SidebarContent() {
   return (
@@ -18,7 +18,7 @@ export function SidebarContent() {
             <SidebarMenuButton
               render={
                 <Link to="/dashboard" activeProps={{ "data-active": true }}>
-                  <svg />
+                  <MODULE_ICONS.dashboard />
                   Dashboard
                 </Link>
               }
@@ -28,7 +28,7 @@ export function SidebarContent() {
             <SidebarMenuButton
               render={
                 <Link to="/accounts" activeProps={{ "data-active": true }}>
-                  <IconWallet />
+                  <MODULE_ICONS.accounts />
                   Accounts
                 </Link>
               }
@@ -38,7 +38,7 @@ export function SidebarContent() {
             <SidebarMenuButton
               render={
                 <Link to="/buckets" activeProps={{ "data-active": true }}>
-                  <IconBucket />
+                  <MODULE_ICONS.buckets />
                   Buckets
                 </Link>
               }
@@ -48,7 +48,7 @@ export function SidebarContent() {
             <SidebarMenuButton
               render={
                 <Link to="/debts" activeProps={{ "data-active": true }}>
-                  <IconCredits />
+                  <MODULE_ICONS.debts />
                   Debts
                 </Link>
               }
@@ -58,7 +58,7 @@ export function SidebarContent() {
             <SidebarMenuButton
               render={
                 <Link to="/transactions" activeProps={{ "data-active": true }}>
-                  <svg />
+                  <MODULE_ICONS.transactions />
                   Transactions
                 </Link>
               }
@@ -68,7 +68,7 @@ export function SidebarContent() {
             <SidebarMenuButton
               render={
                 <Link to="/allocations" activeProps={{ "data-active": true }}>
-                  <svg />
+                  <MODULE_ICONS.allocations />
                   Allocations
                 </Link>
               }

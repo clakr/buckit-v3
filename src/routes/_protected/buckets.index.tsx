@@ -1,6 +1,6 @@
 import type { PropsWithChildren } from "react";
 
-import { IconBucket, IconPlus } from "@tabler/icons-react";
+import { IconPlus } from "@tabler/icons-react";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
 import { useShallow } from "zustand/react/shallow";
@@ -10,6 +10,7 @@ import { Main } from "#/components/main";
 import { StateTemplate } from "#/components/state-template";
 import { Button } from "#/components/ui/button";
 import { DataTable } from "#/components/ui/data-table";
+import { MODULE_ICONS } from "#/lib/constants";
 import { INDEX_COLUMNS } from "#/modules/buckets/columns";
 import { useAddBucketDialogStore } from "#/modules/buckets/components/add-bucket-dialog";
 import { bucketsQueryOptions } from "#/modules/buckets/query-options";
@@ -54,7 +55,7 @@ function RouteComponent() {
           state="empty"
           title="No buckets yet."
           description="Create a bucket to start organizing your money."
-          icon={<IconBucket />}
+          icon={<MODULE_ICONS.buckets />}
           content={
             <Button onClick={openDialog}>
               <IconPlus />
