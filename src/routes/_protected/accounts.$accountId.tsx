@@ -28,13 +28,7 @@ export const Route = createFileRoute("/_protected/accounts/$accountId")({
   },
   pendingComponent: () => (
     <Main>
-      <div className="flex items-baseline justify-between">
-        <Heading className="capitalize">Account</Heading>
-        <Button variant="outline" disabled>
-          <IconPencil />
-          Edit
-        </Button>
-      </div>
+      <Heading className="capitalize">Account</Heading>
 
       <StateTemplate
         state="loading"
@@ -47,7 +41,7 @@ export const Route = createFileRoute("/_protected/accounts/$accountId")({
     if (error instanceof BankAccountNotFoundError)
       return (
         <Main>
-          <Heading className="capitalize">Bucket</Heading>
+          <Heading className="capitalize">Account</Heading>
           <StateTemplate
             state="error"
             title="Account not found"
@@ -63,7 +57,7 @@ export const Route = createFileRoute("/_protected/accounts/$accountId")({
 
     return (
       <Main>
-        <Heading className="capitalize">Bucket</Heading>
+        <Heading className="capitalize">Account</Heading>
         <StateTemplate
           state="error"
           title="Could not load account"
