@@ -87,8 +87,7 @@ export function RecordDebtDialog() {
       <DialogContent>
         <DialogHeader>
           <DialogTitle>Record Debt</DialogTitle>
-          {/* @todo: description */}
-          <DialogDescription>Create a bucket to organize your money.</DialogDescription>
+          <DialogDescription>Track money you owe someone, or that they owe you.</DialogDescription>
         </DialogHeader>
         <div>
           <form
