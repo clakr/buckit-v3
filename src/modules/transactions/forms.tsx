@@ -12,9 +12,7 @@ import {
   InputGroupInput,
   InputGroupText,
 } from "#/components/ui/input-group";
-import { Label } from "#/components/ui/label";
 import { Popover, PopoverContent, PopoverTrigger } from "#/components/ui/popover";
-import { RadioGroup, RadioGroupItem } from "#/components/ui/radio-group";
 import { withFieldGroup } from "#/integrations/tanstack-form";
 import { getCurrency, isCurrencyCode } from "#/lib/utils";
 import { baseTransactionSchema, transactionTypeEnum } from "#/modules/transactions/schemas";
@@ -37,38 +35,15 @@ export const BaseTransactionFieldGroup = withFieldGroup({
     return (
       <FieldGroup>
         <group.AppField name="type">
-          {(field) => {
-            const isInvalid = field.state.meta.isTouched && !field.state.meta.isValid;
-
-            const id = field.name;
-            const errorId = `${id}-error`;
-
-            return (
-              <Field data-invalid={isInvalid}>
-                <FieldLabel htmlFor={id}>Type</FieldLabel>
-
-                <RadioGroup
-                  id={id}
-                  value={field.state.value}
-                  onValueChange={field.handleChange}
-                  onBlur={field.handleBlur}
-                  aria-invalid={isInvalid ? true : undefined}
-                  aria-labelledby={isInvalid ? errorId : undefined}
-                >
-                  {Object.keys(transactionTypeEnum.enum).map((type) => (
-                    <div key={type} className="flex items-center gap-x-2">
-                      <RadioGroupItem value={type} id={type} />
-                      <Label htmlFor={type} className="capitalize">
-                        {type}
-                      </Label>
-                    </div>
-                  ))}
-                </RadioGroup>
-
-                {isInvalid && <FieldError id={errorId} errors={field.state.meta.errors} />}
-              </Field>
-            );
-          }}
+          {(field) => (
+            <field.RadioGroup
+              label="Type"
+              options={Object.keys(transactionTypeEnum.enum).map((type) => ({
+                label: type,
+                value: type,
+              }))}
+            />
+          )}
         </group.AppField>
         <group.AppField name="amount">
           {(field) => {
