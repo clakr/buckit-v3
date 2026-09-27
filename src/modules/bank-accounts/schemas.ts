@@ -14,13 +14,8 @@ export const baseBankAccountSchema = z.object({
     .max(100, "Name must be 100 characters or fewer"),
 });
 
-// @todo: inherit from baseBankAccountSchema
 export const addBankAccountSchema = z.object({
-  name: z
-    .string()
-    .trim()
-    .min(1, "Name is required")
-    .max(100, "Name must be 100 characters or fewer"),
+  ...baseBankAccountSchema.shape,
   currency: z.enum(CURRENCIES_CODES),
   startingBalance: z.coerce.number().min(0, "Starting balance cannot be negative.").default(0),
 });

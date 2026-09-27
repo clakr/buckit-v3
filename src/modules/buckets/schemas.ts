@@ -12,13 +12,8 @@ export const baseBucketSchema = z.object({
     .max(100, "Name must be 100 characters or fewer"),
 });
 
-// @todo: inherit from baseBucketSchema
 export const addBucketSchema = z.object({
-  name: z
-    .string()
-    .trim()
-    .min(1, "Name is required")
-    .max(100, "Name must be 100 characters or fewer"),
+  ...baseBucketSchema.shape,
 });
 
 export const editBucketSchema = z.strictObject({
