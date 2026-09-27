@@ -14,7 +14,7 @@ export const baseBankAccountSchema = z.object({
     .max(100, "Name must be 100 characters or fewer"),
 });
 
-export const addBankAccountSchema = z.object({
+export const registerBankAccountSchema = z.object({
   ...baseBankAccountSchema.shape,
   currency: z.enum(CURRENCIES_CODES),
   startingBalance: z.coerce.number().min(0, "Starting balance cannot be negative.").default(0),

@@ -19,8 +19,8 @@ import { InputGroup, InputGroupAddon, InputGroupInput } from "#/components/ui/in
 import { Spinner } from "#/components/ui/spinner";
 import { useAppForm } from "#/integrations/tanstack-form";
 import { validateBankAccountName } from "#/modules/bank-accounts/functions";
-import { useAddBankAccountMutation } from "#/modules/bank-accounts/mutations";
-import { addBankAccountSchema } from "#/modules/bank-accounts/schemas";
+import { useRegisterBankAccountMutation } from "#/modules/bank-accounts/mutations";
+import { registerBankAccountSchema } from "#/modules/bank-accounts/schemas";
 import { confirm } from "#/stores/use-confirm";
 
 export const useRegisterBankAccountDialogStore = create<DialogState>()((set) => ({
@@ -39,9 +39,9 @@ export function RegisterBankAccountDialog() {
     })),
   );
 
-  const mutation = useAddBankAccountMutation();
+  const mutation = useRegisterBankAccountMutation();
 
-  const defaultValues: z.input<typeof addBankAccountSchema> = {
+  const defaultValues: z.input<typeof registerBankAccountSchema> = {
     name: "",
     currency: "PHP",
     startingBalance: 0,
@@ -50,7 +50,7 @@ export function RegisterBankAccountDialog() {
   const form = useAppForm({
     defaultValues,
     validators: {
-      onChange: addBankAccountSchema,
+      onChange: registerBankAccountSchema,
     },
     onSubmit: async ({ value: data }) => {
       try {
@@ -106,7 +106,7 @@ export function RegisterBankAccountDialog() {
                 name="name"
                 validators={{
                   onChangeAsyncDebounceMs: 500,
-                  onChangeAsync: addBankAccountSchema.shape.name.superRefine(
+                  onChangeAsync: registerBankAccountSchema.shape.name.superRefine(
                     async (data, context) => {
                       if (!data) return;
 

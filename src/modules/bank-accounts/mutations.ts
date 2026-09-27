@@ -1,14 +1,14 @@
 import { useMutation } from "@tanstack/react-query";
 
 import {
-  addBankAccount,
   deleteBankAccount,
   editBankAccount,
+  registerBankAccount,
 } from "#/modules/bank-accounts/functions";
 
-export function useAddBankAccountMutation() {
+export function useRegisterBankAccountMutation() {
   return useMutation({
-    mutationFn: addBankAccount,
+    mutationFn: registerBankAccount,
     meta: {
       success: {
         title: "Account Created",

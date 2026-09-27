@@ -18,8 +18,8 @@ import { InputGroup, InputGroupAddon, InputGroupInput } from "#/components/ui/in
 import { Spinner } from "#/components/ui/spinner";
 import { useAppForm } from "#/integrations/tanstack-form";
 import { validateBucketName } from "#/modules/buckets/functions";
-import { useAddBucketMutation } from "#/modules/buckets/mutations";
-import { addBucketSchema } from "#/modules/buckets/schemas";
+import { useSetUpBucketMutation } from "#/modules/buckets/mutations";
+import { setUpBucketSchema } from "#/modules/buckets/schemas";
 import { confirm } from "#/stores/use-confirm";
 
 export const useSetUpBucketDialogStore = create<DialogState>()((set) => ({
@@ -38,16 +38,16 @@ export function SetUpBucketDialog() {
     })),
   );
 
-  const mutation = useAddBucketMutation();
+  const mutation = useSetUpBucketMutation();
 
-  const defaultValues: z.input<typeof addBucketSchema> = {
+  const defaultValues: z.input<typeof setUpBucketSchema> = {
     name: "",
   };
 
   const form = useAppForm({
     defaultValues,
     validators: {
-      onChange: addBucketSchema,
+      onChange: setUpBucketSchema,
     },
     onSubmit: async ({ value: data }) => {
       try {
@@ -101,7 +101,7 @@ export function SetUpBucketDialog() {
                 name="name"
                 validators={{
                   onChangeAsyncDebounceMs: 500,
-                  onChangeAsync: addBucketSchema.shape.name.superRefine(async (data, context) => {
+                  onChangeAsync: setUpBucketSchema.shape.name.superRefine(async (data, context) => {
                     if (!data) return;
 
                     try {

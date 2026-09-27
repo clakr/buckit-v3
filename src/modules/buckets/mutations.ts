@@ -1,10 +1,10 @@
 import { useMutation } from "@tanstack/react-query";
 
-import { addBucket, deleteBucket, editBucket } from "#/modules/buckets/functions";
+import { deleteBucket, editBucket, setUpBucket } from "#/modules/buckets/functions";
 
-export function useAddBucketMutation() {
+export function useSetUpBucketMutation() {
   return useMutation({
-    mutationFn: addBucket,
+    mutationFn: setUpBucket,
     meta: {
       success: {
         title: "Bucket Created",

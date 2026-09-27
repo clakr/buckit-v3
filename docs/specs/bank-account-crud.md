@@ -61,7 +61,7 @@ Add Edit (rename only) and Delete (permanently remove an account and everything 
 Deferred for this pass, by explicit request — the developer is new to this and doesn't want to take it on alongside everything else here. Recorded for whenever it's picked back up:
 
 - The one clean seam in this module is `getBankAccountUnallocatedBalance` (`src/modules/bank-accounts/utils.ts`) — a pure function of `(startingBalance, transactions, allocations) → { balance, unallocated, totalAllocated }`, already isolated from the database and the Cloudflare Workers runtime. It's the natural starting point: plain Vitest, no mocking required.
-- No test harness exists yet for the D1-backed server functions in this module (`addBankAccount`, and the new `editBankAccount`/`deleteBankAccount`). They call `getDB(env.db)` via `cloudflare:workers`, which needs `@cloudflare/vitest-pool-workers` (or equivalent) to exercise in a test. That's new infrastructure for the whole repo, not a one-module decision — intentionally not introduced here.
+- No test harness exists yet for the D1-backed server functions in this module (`registerBankAccount`, and the new `editBankAccount`/`deleteBankAccount`). They call `getDB(env.db)` via `cloudflare:workers`, which needs `@cloudflare/vitest-pool-workers` (or equivalent) to exercise in a test. That's new infrastructure for the whole repo, not a one-module decision — intentionally not introduced here.
 
 ## Out of Scope
 

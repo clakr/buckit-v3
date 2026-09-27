@@ -12,7 +12,7 @@ export const baseBucketSchema = z.object({
     .max(100, "Name must be 100 characters or fewer"),
 });
 
-export const addBucketSchema = z.object({
+export const setUpBucketSchema = z.object({
   ...baseBucketSchema.shape,
 });
 

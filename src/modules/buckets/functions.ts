@@ -8,7 +8,7 @@ import { getDB } from "#/db";
 import { buckets, lower } from "#/db/schema";
 import { authMiddleware } from "#/lib/middlewares";
 import { verifyUserBucketMiddleware } from "#/modules/buckets/middlewares";
-import { addBucketSchema, editBucketSchema } from "#/modules/buckets/schemas";
+import { editBucketSchema, setUpBucketSchema } from "#/modules/buckets/schemas";
 
 export const getBuckets = createServerFn({
   method: "GET",
@@ -95,11 +95,11 @@ export const validateBucketName = createServerFn({
     return { isValid: true, message: "ok" };
   });
 
-export const addBucket = createServerFn({
+export const setUpBucket = createServerFn({
   method: "POST",
 })
   .middleware([authMiddleware])
-  .validator(addBucketSchema)
+  .validator(setUpBucketSchema)
   .handler(async ({ context, data }) => {
     const db = getDB(env.db);
 
