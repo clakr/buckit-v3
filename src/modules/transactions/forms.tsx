@@ -33,7 +33,7 @@ export const BaseTransactionFieldGroup = withFieldGroup({
   },
   render: function Render({ group, currency: accountCurrency }) {
     return (
-      <FieldGroup>
+      <>
         <group.AppField name="type">
           {(field) => (
             <field.RadioGroup
@@ -136,7 +136,7 @@ export const BaseTransactionFieldGroup = withFieldGroup({
         <group.AppField name="note">
           {(field) => <field.Textarea label="Note (optional)" placeholder="Add a note..." />}
         </group.AppField>
-      </FieldGroup>
+      </>
     );
   },
 });

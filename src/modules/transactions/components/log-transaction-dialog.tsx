@@ -15,6 +15,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "#/components/ui/dialog";
+import { FieldGroup } from "#/components/ui/field";
 import { useAppForm } from "#/integrations/tanstack-form";
 import {
   baseTransactionDefaultValues,
@@ -124,24 +125,25 @@ export function LogTransactionDialog() {
               e.stopPropagation();
               form.handleSubmit();
             }}
-            className="flex flex-col gap-y-4"
           >
-            <BaseTransactionFieldGroup
-              form={form}
-              currency={account.currency}
-              fields={baseTransactionFields}
-            />
-            <form.Subscribe selector={(state) => state.errorMap.onSubmit}>
-              {(error) =>
-                error ? (
-                  <Alert variant="destructive" className="max-w-md">
-                    <IconAlertCircle />
-                    <AlertTitle>Log Transaction failed</AlertTitle>
-                    <AlertDescription>{error}</AlertDescription>
-                  </Alert>
-                ) : null
-              }
-            </form.Subscribe>
+            <FieldGroup>
+              <BaseTransactionFieldGroup
+                form={form}
+                currency={account.currency}
+                fields={baseTransactionFields}
+              />
+              <form.Subscribe selector={(state) => state.errorMap.onSubmit}>
+                {(error) =>
+                  error ? (
+                    <Alert variant="destructive" className="max-w-md">
+                      <IconAlertCircle />
+                      <AlertTitle>Log Transaction failed</AlertTitle>
+                      <AlertDescription>{error}</AlertDescription>
+                    </Alert>
+                  ) : null
+                }
+              </form.Subscribe>
+            </FieldGroup>
           </form>
         </div>
         <DialogFooter>

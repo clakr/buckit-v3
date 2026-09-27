@@ -18,7 +18,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "#/components/ui/dialog";
-import { Field, FieldError, FieldLabel } from "#/components/ui/field";
+import { Field, FieldError, FieldGroup, FieldLabel } from "#/components/ui/field";
 import {
   InputGroup,
   InputGroupAddon,
@@ -150,95 +150,96 @@ export function EditAllocationDialog() {
                 e.stopPropagation();
                 form.handleSubmit();
               }}
-              className="flex flex-col gap-y-4"
             >
-              <form.AppField
-                name="amount"
-                validators={{
-                  onChangeAsyncDebounceMs: 500,
-                  onChangeAsync: editAllocationSchema.shape.amount.superRefine(
-                    async (data, context) => {
-                      try {
-                        const { isValid, message } = await validateEditAllocationAmount({
-                          data: {
-                            allocationId: allocation.id,
-                            bankAccountId: allocation.bankAccountId,
-                            amount: data,
-                          },
-                        });
+              <FieldGroup>
+                <form.AppField
+                  name="amount"
+                  validators={{
+                    onChangeAsyncDebounceMs: 500,
+                    onChangeAsync: editAllocationSchema.shape.amount.superRefine(
+                      async (data, context) => {
+                        try {
+                          const { isValid, message } = await validateEditAllocationAmount({
+                            data: {
+                              allocationId: allocation.id,
+                              bankAccountId: allocation.bankAccountId,
+                              amount: data,
+                            },
+                          });
 
-                        if (!isValid) throw new Error(message);
-                      } catch (error) {
-                        context.addIssue({
-                          code: "custom",
-                          message: error instanceof Error ? error.message : String(error),
-                        });
-                      }
-                    },
-                  ),
-                }}
-              >
-                {(field) => {
-                  const isInvalid = field.state.meta.isTouched && !field.state.meta.isValid;
+                          if (!isValid) throw new Error(message);
+                        } catch (error) {
+                          context.addIssue({
+                            code: "custom",
+                            message: error instanceof Error ? error.message : String(error),
+                          });
+                        }
+                      },
+                    ),
+                  }}
+                >
+                  {(field) => {
+                    const isInvalid = field.state.meta.isTouched && !field.state.meta.isValid;
 
-                  const id = field.name;
-                  const errorId = `${id}-error`;
+                    const id = field.name;
+                    const errorId = `${id}-error`;
 
-                  const accountCurrency = allocation.bankAccount?.currency ?? "PHP";
+                    const accountCurrency = allocation.bankAccount?.currency ?? "PHP";
 
-                  const validated = isCurrencyCode(accountCurrency);
-                  if (!validated) return null;
+                    const validated = isCurrencyCode(accountCurrency);
+                    if (!validated) return null;
 
-                  const currency = getCurrency(accountCurrency);
-                  if (!currency) return null;
+                    const currency = getCurrency(accountCurrency);
+                    if (!currency) return null;
 
-                  return (
-                    <Field data-invalid={isInvalid}>
-                      <FieldLabel htmlFor={id}>Amount</FieldLabel>
+                    return (
+                      <Field data-invalid={isInvalid}>
+                        <FieldLabel htmlFor={id}>Amount</FieldLabel>
 
-                      <InputGroup>
-                        <InputGroupAddon>
-                          <InputGroupText>{currency.symbol}</InputGroupText>
-                        </InputGroupAddon>
-                        <InputGroupInput
-                          type="number"
-                          id={field.name}
-                          placeholder="0.00"
-                          min={0}
-                          step={0.01}
-                          required
-                          value={field.state.value as string}
-                          onChange={(e) => field.handleChange(e.target.value)}
-                          onBlur={field.handleBlur}
-                          aria-invalid={isInvalid ? true : undefined}
-                          aria-labelledby={isInvalid ? errorId : undefined}
-                        />
-                        <InputGroupAddon align="inline-end">
-                          {field.state.meta.isValidating ? (
-                            <Spinner />
-                          ) : (
-                            <InputGroupText>{currency.code}</InputGroupText>
-                          )}
-                        </InputGroupAddon>
-                      </InputGroup>
+                        <InputGroup>
+                          <InputGroupAddon>
+                            <InputGroupText>{currency.symbol}</InputGroupText>
+                          </InputGroupAddon>
+                          <InputGroupInput
+                            type="number"
+                            id={field.name}
+                            placeholder="0.00"
+                            min={0}
+                            step={0.01}
+                            required
+                            value={field.state.value as string}
+                            onChange={(e) => field.handleChange(e.target.value)}
+                            onBlur={field.handleBlur}
+                            aria-invalid={isInvalid ? true : undefined}
+                            aria-labelledby={isInvalid ? errorId : undefined}
+                          />
+                          <InputGroupAddon align="inline-end">
+                            {field.state.meta.isValidating ? (
+                              <Spinner />
+                            ) : (
+                              <InputGroupText>{currency.code}</InputGroupText>
+                            )}
+                          </InputGroupAddon>
+                        </InputGroup>
 
-                      {isInvalid && <FieldError id={errorId} errors={field.state.meta.errors} />}
-                    </Field>
-                  );
-                }}
-              </form.AppField>
-              <BaseAllocationFieldGroup form={form} fields={baseAllocationFields} />
-              <form.Subscribe selector={(state) => state.errorMap.onSubmit}>
-                {(error) =>
-                  error ? (
-                    <Alert variant="destructive" className="max-w-md">
-                      <IconAlertCircle />
-                      <AlertTitle>Edit Allocation failed</AlertTitle>
-                      <AlertDescription>{error}</AlertDescription>
-                    </Alert>
-                  ) : null
-                }
-              </form.Subscribe>
+                        {isInvalid && <FieldError id={errorId} errors={field.state.meta.errors} />}
+                      </Field>
+                    );
+                  }}
+                </form.AppField>
+                <BaseAllocationFieldGroup form={form} fields={baseAllocationFields} />
+                <form.Subscribe selector={(state) => state.errorMap.onSubmit}>
+                  {(error) =>
+                    error ? (
+                      <Alert variant="destructive" className="max-w-md">
+                        <IconAlertCircle />
+                        <AlertTitle>Edit Allocation failed</AlertTitle>
+                        <AlertDescription>{error}</AlertDescription>
+                      </Alert>
+                    ) : null
+                  }
+                </form.Subscribe>
+              </FieldGroup>
             </form>
           ) : null}
           {/* @todo: handle empty data better */}

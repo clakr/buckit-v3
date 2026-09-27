@@ -18,6 +18,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "#/components/ui/dialog";
+import { FieldGroup } from "#/components/ui/field";
 import { useAppForm } from "#/integrations/tanstack-form";
 import { currencyCodec } from "#/lib/codecs";
 import {
@@ -156,24 +157,25 @@ export function EditTransactionDialog() {
                 e.stopPropagation();
                 form.handleSubmit();
               }}
-              className="flex flex-col gap-y-4"
             >
-              <BaseTransactionFieldGroup
-                form={form}
-                fields={baseTransactionFields}
-                currency={transaction.bankAccount?.currency ?? "PHP"}
-              />
-              <form.Subscribe selector={(state) => state.errorMap.onSubmit}>
-                {(error) =>
-                  error ? (
-                    <Alert variant="destructive" className="max-w-md">
-                      <IconAlertCircle />
-                      <AlertTitle>Edit Transaction failed</AlertTitle>
-                      <AlertDescription>{error}</AlertDescription>
-                    </Alert>
-                  ) : null
-                }
-              </form.Subscribe>
+              <FieldGroup>
+                <BaseTransactionFieldGroup
+                  form={form}
+                  fields={baseTransactionFields}
+                  currency={transaction.bankAccount?.currency ?? "PHP"}
+                />
+                <form.Subscribe selector={(state) => state.errorMap.onSubmit}>
+                  {(error) =>
+                    error ? (
+                      <Alert variant="destructive" className="max-w-md">
+                        <IconAlertCircle />
+                        <AlertTitle>Edit Transaction failed</AlertTitle>
+                        <AlertDescription>{error}</AlertDescription>
+                      </Alert>
+                    ) : null
+                  }
+                </form.Subscribe>
+              </FieldGroup>
             </form>
           ) : null}
           {/* @todo: handle empty data better */}
