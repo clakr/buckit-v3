@@ -23,8 +23,11 @@ class BankAccountNotFoundError extends Error {
 }
 
 export const Route = createFileRoute("/_protected/accounts/$accountId")({
-  loader: async ({ context: { queryClient }, params }) => {
-    queryClient.query(bankAccountQueryOption(params.accountId));
+  context: ({ params }) => ({
+    bankAccountQueryOptions: bankAccountQueryOption(params.accountId),
+  }),
+  loader: async ({ context: { queryClient, bankAccountQueryOptions } }) => {
+    return queryClient.query(bankAccountQueryOptions);
   },
   pendingComponent: () => (
     <Main>
@@ -72,8 +75,9 @@ export const Route = createFileRoute("/_protected/accounts/$accountId")({
 
 function RouteComponent() {
   const { accountId } = Route.useParams();
+  const { bankAccountQueryOptions } = Route.useRouteContext();
 
-  const { data: bankAccount } = useSuspenseQuery(bankAccountQueryOption(accountId));
+  const { data: bankAccount } = useSuspenseQuery(bankAccountQueryOptions);
   if (!bankAccount) throw new BankAccountNotFoundError();
 
   const { balance, unallocated, totalAllocated } = getBankAccountUnallocatedBalance({

@@ -14,8 +14,9 @@ import { useSetUpBucketDialogStore } from "#/modules/buckets/components/set-up-b
 import { bucketsQueryOptions } from "#/modules/buckets/query-options";
 
 export const Route = createFileRoute("/_protected/buckets/")({
-  loader: async ({ context: { queryClient } }) => {
-    queryClient.query(bucketsQueryOptions);
+  context: () => ({ bucketsQueryOptions }),
+  loader: async ({ context: { queryClient, bucketsQueryOptions } }) => {
+    return queryClient.query(bucketsQueryOptions);
   },
   pendingComponent: () => (
     <Main>
@@ -44,6 +45,7 @@ export const Route = createFileRoute("/_protected/buckets/")({
 });
 
 function RouteComponent() {
+  const { bucketsQueryOptions } = Route.useRouteContext();
   const { data: buckets } = useSuspenseQuery(bucketsQueryOptions);
 
   const isEmpty = buckets.length === 0;

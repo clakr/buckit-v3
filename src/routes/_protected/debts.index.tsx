@@ -10,8 +10,9 @@ import { MODULE_ICONS } from "#/lib/constants";
 import { debtsQueryOptions } from "#/modules/debts/query-options";
 
 export const Route = createFileRoute("/_protected/debts/")({
-  loader: async ({ context: { queryClient } }) => {
-    queryClient.query(debtsQueryOptions);
+  context: () => ({ debtsQueryOptions }),
+  loader: async ({ context: { queryClient, debtsQueryOptions } }) => {
+    return queryClient.query(debtsQueryOptions);
   },
   pendingComponent: () => (
     <Main>
@@ -40,6 +41,7 @@ export const Route = createFileRoute("/_protected/debts/")({
 });
 
 function RouteComponent() {
+  const { debtsQueryOptions } = Route.useRouteContext();
   const { data: debts } = useSuspenseQuery(debtsQueryOptions);
 
   const isEmpty = debts.length === 0;

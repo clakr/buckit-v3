@@ -18,8 +18,11 @@ class BucketNotFoundError extends Error {
 }
 
 export const Route = createFileRoute("/_protected/buckets/$bucketId")({
-  loader: async ({ context: { queryClient }, params }) => {
-    queryClient.query(bucketQueryOption(params.bucketId));
+  context: ({ params }) => ({
+    bucketQueryOptions: bucketQueryOption(params.bucketId),
+  }),
+  loader: async ({ context: { queryClient, bucketQueryOptions } }) => {
+    return queryClient.query(bucketQueryOptions);
   },
   pendingComponent: () => (
     <Main>
@@ -67,8 +70,9 @@ export const Route = createFileRoute("/_protected/buckets/$bucketId")({
 
 function RouteComponent() {
   const { bucketId } = Route.useParams();
+  const { bucketQueryOptions } = Route.useRouteContext();
 
-  const { data: bucket } = useSuspenseQuery(bucketQueryOption(bucketId));
+  const { data: bucket } = useSuspenseQuery(bucketQueryOptions);
   if (!bucket) throw new BucketNotFoundError();
 
   function handleOpenEditBucketDialog() {
