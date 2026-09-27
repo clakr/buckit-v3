@@ -3,18 +3,9 @@ import z from "zod";
 import { create } from "zustand";
 import { useShallow } from "zustand/react/shallow";
 
-import type { Currency, DialogState } from "#/lib/types";
+import type { DialogState } from "#/lib/types";
 
-import {
-  Combobox,
-  ComboboxContent,
-  ComboboxEmpty,
-  ComboboxInput,
-  ComboboxItem,
-  ComboboxList,
-  ComboboxTrigger,
-  ComboboxValue,
-} from "#/components/ui/combobox";
+import { CurrencyCombobox } from "#/components/currency-combobox";
 import {
   Dialog,
   DialogContent,
@@ -24,15 +15,9 @@ import {
   DialogTitle,
 } from "#/components/ui/dialog";
 import { Field, FieldError, FieldGroup, FieldLabel } from "#/components/ui/field";
-import {
-  InputGroup,
-  InputGroupAddon,
-  InputGroupButton,
-  InputGroupInput,
-} from "#/components/ui/input-group";
+import { InputGroup, InputGroupAddon, InputGroupInput } from "#/components/ui/input-group";
 import { Spinner } from "#/components/ui/spinner";
 import { useAppForm } from "#/integrations/tanstack-form";
-import { CURRENCIES } from "#/lib/constants";
 import { validateBankAccountName } from "#/modules/bank-accounts/functions";
 import { useAddBankAccountMutation } from "#/modules/bank-accounts/mutations";
 import { addBankAccountSchema } from "#/modules/bank-accounts/schemas";
@@ -186,33 +171,10 @@ export function RegisterBankAccountDialog() {
                   <InputGroupAddon>
                     <form.AppField name="currency">
                       {(field) => (
-                        <Combobox
-                          items={CURRENCIES}
+                        <CurrencyCombobox
                           value={field.state.value}
                           onValueChange={(value) => field.handleChange(value?.toString() ?? "")}
-                        >
-                          <ComboboxTrigger
-                            render={
-                              <InputGroupButton>
-                                <ComboboxValue />
-                              </InputGroupButton>
-                            }
-                          />
-                          <ComboboxContent className="w-fit">
-                            <ComboboxInput showTrigger={false} placeholder="Search currencies..." />
-                            <ComboboxEmpty>No currencies found.</ComboboxEmpty>
-                            <ComboboxList>
-                              {(currency: Currency) => (
-                                <ComboboxItem key={currency.code} value={currency.code}>
-                                  <span>{currency.flag}</span>
-                                  <span>{currency.code}</span>
-                                  <span>{currency.name}</span>
-                                  <span className="grow text-end">{currency.symbol}</span>
-                                </ComboboxItem>
-                              )}
-                            </ComboboxList>
-                          </ComboboxContent>
-                        </Combobox>
+                        />
                       )}
                     </form.AppField>
                   </InputGroupAddon>
