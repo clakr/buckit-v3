@@ -47,7 +47,7 @@ export function SetUpBucketDialog() {
   const form = useAppForm({
     defaultValues,
     validators: {
-      onBlur: addBucketSchema,
+      onChange: addBucketSchema,
     },
     onSubmit: async ({ value: data }) => {
       try {

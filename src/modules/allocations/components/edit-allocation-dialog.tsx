@@ -84,7 +84,7 @@ export function EditAllocationDialog() {
   const form = useAppForm({
     defaultValues,
     validators: {
-      onBlur: editAllocationSchema,
+      onChange: editAllocationSchema,
     },
     onSubmit: async ({ value: data }) => {
       try {

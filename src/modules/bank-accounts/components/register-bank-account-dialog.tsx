@@ -65,7 +65,7 @@ export function RegisterBankAccountDialog() {
   const form = useAppForm({
     defaultValues,
     validators: {
-      onBlur: addBankAccountSchema,
+      onChange: addBankAccountSchema,
     },
     onSubmit: async ({ value: data }) => {
       try {
@@ -239,7 +239,7 @@ export function RegisterBankAccountDialog() {
                     }}
                   </form.AppField>
                 </InputGroup>
-                <form.Subscribe selector={(state) => state.errorMap.onBlur?.startingBalance}>
+                <form.Subscribe selector={(state) => state.errorMap.onChange?.startingBalance}>
                   {(startingBalanceErrors) => (
                     <FieldError id="startingBalance-error" errors={startingBalanceErrors} />
                   )}

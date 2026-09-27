@@ -62,7 +62,7 @@ export function LogTransactionDialog() {
   const form = useAppForm({
     defaultValues,
     validators: {
-      onBlur: logTransactionSchema,
+      onChange: logTransactionSchema,
       onSubmitAsync: async ({ value }) => {
         const { isValid, message } = await validateLogTransaction({
           data: {

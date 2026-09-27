@@ -73,7 +73,7 @@ export function EditBucketDialog() {
   const form = useAppForm({
     defaultValues,
     validators: {
-      onBlur: editBucketSchema,
+      onChange: editBucketSchema,
     },
     onSubmit: async ({ value: data }) => {
       try {

@@ -81,7 +81,7 @@ export function EditTransactionDialog() {
   const form = useAppForm({
     defaultValues,
     validators: {
-      onBlur: editTransactionSchema,
+      onChange: editTransactionSchema,
       onSubmitAsync: async ({ value }) => {
         const { isValid, message } = await validateEditTransaction({
           data: {

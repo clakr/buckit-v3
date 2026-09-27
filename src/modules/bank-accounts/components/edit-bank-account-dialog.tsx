@@ -73,7 +73,7 @@ export function EditBankAccountDialog() {
   const form = useAppForm({
     defaultValues,
     validators: {
-      onBlur: editBankAccountSchema,
+      onChange: editBankAccountSchema,
     },
     onSubmit: async ({ value: data }) => {
       try {

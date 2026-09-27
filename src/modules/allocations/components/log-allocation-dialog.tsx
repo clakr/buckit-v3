@@ -92,7 +92,7 @@ export function LogAllocationDialog() {
   const form = useAppForm({
     defaultValues,
     validators: {
-      onBlur: logAllocationSchema,
+      onChange: logAllocationSchema,
     },
     onSubmit: async ({ value: data }) => {
       try {

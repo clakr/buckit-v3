@@ -25,7 +25,7 @@ function RouteComponent() {
   const form = useAppForm({
     defaultValues,
     validators: {
-      onBlur: signInUserSchema,
+      onChange: signInUserSchema,
     },
     onSubmit: async ({ value: data }) => {
       try {
