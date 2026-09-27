@@ -1,12 +1,14 @@
 import { IconPlus } from "@tabler/icons-react";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
+import { useShallow } from "zustand/react/shallow";
 
 import { Heading } from "#/components/heading";
 import { Main } from "#/components/main";
 import { StateTemplate } from "#/components/state-template";
 import { Button } from "#/components/ui/button";
 import { MODULE_ICONS } from "#/lib/constants";
+import { useRecordDebtDialogStore } from "#/modules/debts/components/record-debt-dialog";
 import { debtsQueryOptions } from "#/modules/debts/query-options";
 
 export const Route = createFileRoute("/_protected/debts/")({
@@ -46,11 +48,13 @@ function RouteComponent() {
 
   const isEmpty = debts.length === 0;
 
+  const openDialog = useRecordDebtDialogStore(useShallow((state) => state.openDialog));
+
   return (
     <Main>
       <div className="flex items-center justify-between">
         <Heading>Debts</Heading>
-        <Button disabled>
+        <Button onClick={openDialog}>
           <IconPlus />
           Record Debt
         </Button>
@@ -63,7 +67,7 @@ function RouteComponent() {
           description="Record your first debt to start tracking what you owe or are owed."
           icon={<MODULE_ICONS.debts />}
           content={
-            <Button disabled>
+            <Button onClick={openDialog}>
               <IconPlus />
               Record Debt
             </Button>
