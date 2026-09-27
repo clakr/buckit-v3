@@ -54,6 +54,7 @@ _Not new work — recapped here so this file stays a complete behavioral referen
 - **New columns**: `UNIFIED_ALLOCATIONS_COLUMNS` (Date, Bank Account, Bucket, Amount, Note, Actions — reusing the existing `AllocationActionsDropdownMenu` unchanged). The existing per-Bucket and per-Account `ALLOCATIONS_COLUMNS` definitions are untouched.
 - **`LogAllocationDialog` gains an in-dialog Bank Account picker.** Today its store only holds a preset `account: BankAccount | null` (set by whichever Bank Account detail page opened it) and the dialog has no account-selection UI — only the Bucket select. Opening it from the unified list has no preset account, so the dialog needs an optional Bank Account select field, shown only when no account is preset. When opened from a Bank Account detail page, behavior is unchanged (account preset, no picker shown).
 - **Entry point**: a "Log Allocation" toolbar action on the new unified list, opening `LogAllocationDialog` with no preset account.
+- **Route wiring**: since this route's query key is filter-derived (`validateSearch` for `bankAccountId`/`bucketId`/`dateFrom`/`dateTo`/`search`), use `loaderDeps` + route `context()` to derive the filtered `getAllocations` queryOptions once, shared between the loader and the component — rather than each independently re-deriving it from search params, which is the divergence bug TkDodo's [reliable query prefetching with TanStack Router](https://tkdodo.eu/blog/reliable-query-prefetching-with-tanstack-router) post warns about.
 
 ## Testing Decisions
 
