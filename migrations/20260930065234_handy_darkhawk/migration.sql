@@ -1,0 +1,1 @@
+ALTER TABLE `debts` ADD `originating_transaction_id` text REFERENCES transactions(id) ON DELETE SET NULL;

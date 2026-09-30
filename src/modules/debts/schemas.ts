@@ -16,4 +16,5 @@ export const recordDebtSchema = z.object({
     .trim()
     .min(1, "Counterparty name is required")
     .max(100, "Counterparty name must be 100 characters or fewer"),
+  bankAccountId: z.string().optional(),
 });

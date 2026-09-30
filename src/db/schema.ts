@@ -14,7 +14,9 @@ export const users = sqliteTable("users", {
   id: text("id").primaryKey(),
   name: text("name").notNull(),
   email: text("email").notNull().unique(),
-  emailVerified: integer("email_verified", { mode: "boolean" }).default(false).notNull(),
+  emailVerified: integer("email_verified", { mode: "boolean" })
+    .default(false)
+    .notNull(),
   image: text("image"),
   createdAt: integer("created_at", { mode: "timestamp_ms" })
     .default(sql`(cast(unixepoch('subsecond') * 1000 as integer))`)
@@ -169,6 +171,10 @@ export const debts = sqliteTable("debts", {
   amount: integer("amount").notNull(),
   currency: text("currency", { enum: CURRENCIES_CODES }).notNull(),
   name: text("name").notNull(),
+  originatingTransactionId: text("originating_transaction_id").references(
+    (): AnySQLiteColumn => transactions.id,
+    { onDelete: "set null" },
+  ),
 });
 
 //
@@ -238,6 +244,10 @@ export const relations = defineRelations(
       user: r.one.users({
         from: r.debts.userId,
         to: r.users.id,
+      }),
+      originatingTransaction: r.one.transactions({
+        from: r.debts.originatingTransactionId,
+        to: r.transactions.id,
       }),
     },
   }),

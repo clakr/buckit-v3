@@ -3,7 +3,7 @@ import { env } from "cloudflare:workers";
 import { uuidv7 } from "uuidv7";
 
 import { getDB } from "#/db";
-import { debts } from "#/db/schema";
+import { debts, transactions } from "#/db/schema";
 import { currencyCodec } from "#/lib/codecs";
 import { authMiddleware } from "#/lib/middlewares";
 import { recordDebtSchema } from "#/modules/debts/schemas";
@@ -29,16 +29,63 @@ export const recordDebt = createServerFn({
   .validator(recordDebtSchema)
   .handler(async ({ context, data }) => {
     const db = getDB(env.db);
+    const debtId = uuidv7();
 
-    return db
-      .insert(debts)
-      .values({
-        id: uuidv7(),
-        userId: context.session.userId,
-        direction: data.direction,
+    const amount = currencyCodec.decode(data.amount);
+
+    if (data.direction === "payable" || !data.bankAccountId) {
+      const [debt] = await db
+        .insert(debts)
+        .values({
+          id: debtId,
+          userId: context.user.id,
+          direction: data.direction,
+          currency: data.currency,
+          amount,
+          name: data.name,
+        })
+        .returning();
+
+      return debt;
+    }
+
+    // Re-verify ownership and currency here rather than trusting the client-picked
+    // id — never take a bankAccountId at face value.
+    const account = await db.query.bankAccounts.findFirst({
+      where: {
+        id: data.bankAccountId,
+        userId: context.user.id,
         currency: data.currency,
-        amount: currencyCodec.decode(data.amount),
-        name: data.name,
-      })
-      .returning();
+      },
+      columns: { id: true },
+    });
+    if (!account) {
+      throw new Error("The source account is invalid for this debt.");
+    }
+
+    const transactionId = uuidv7();
+
+    const [, debtRows] = await db.batch([
+      db.insert(transactions).values({
+        id: transactionId,
+        bankAccountId: data.bankAccountId,
+        type: "expense",
+        amount,
+        note: `From Debt "${data.name}"`, //@todo: reword accordingly
+      }),
+      db
+        .insert(debts)
+        .values({
+          id: debtId,
+          originatingTransactionId: transactionId,
+          userId: context.user.id,
+          direction: data.direction,
+          currency: data.currency,
+          amount,
+          name: data.name,
+        })
+        .returning(),
+    ]);
+
+    return debtRows[0];
   });

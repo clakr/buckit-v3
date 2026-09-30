@@ -1,3 +1,4 @@
+import { useSelector } from "@tanstack/react-form";
 import z from "zod";
 import { create } from "zustand";
 import { useShallow } from "zustand/react/shallow";
@@ -16,6 +17,7 @@ import {
 import { Field, FieldError, FieldGroup, FieldLabel } from "#/components/ui/field";
 import { InputGroup, InputGroupAddon, InputGroupInput } from "#/components/ui/input-group";
 import { useAppForm } from "#/integrations/tanstack-form";
+import { SourceAccountField } from "#/modules/debts/components/source-account-field";
 import { useRecordDebtMutation } from "#/modules/debts/mutations";
 import { confirm } from "#/stores/use-confirm";
 
@@ -65,6 +67,9 @@ export function RecordDebtDialog() {
     },
   });
 
+  const currency = useSelector(form.store, (state) => state.values.currency);
+  const direction = useSelector(form.store, (state) => state.values.direction);
+
   async function handleOnOpenChange(open: boolean) {
     if (!open && form.state.isDirty) {
       const confirmed = await confirm("Discard new debt?", {
@@ -102,7 +107,16 @@ export function RecordDebtDialog() {
               <form.AppField name="name">
                 {(field) => <field.Input label="Counterparty Name" placeholder="John" required />}
               </form.AppField>
-              <form.AppField name="direction">
+              <form.AppField
+                name="direction"
+                listeners={{
+                  onChange: ({ value }) => {
+                    if (value === "receivable") return;
+
+                    form.setFieldValue("bankAccountId", undefined);
+                  },
+                }}
+              >
                 {(field) => (
                   <field.RadioGroup
                     label="Direction"
@@ -153,6 +167,22 @@ export function RecordDebtDialog() {
                   {(amountErrors) => <FieldError id="amount-error" errors={amountErrors} />}
                 </form.Subscribe>
               </Field>
+              {direction === "receivable" ? (
+                <form.AppField name="bankAccountId">
+                  {(field) => (
+                    <SourceAccountField
+                      currency={currency}
+                      isQueryEnabled={isOpen && direction === "receivable"}
+                      bankAccountId={field.state.value}
+                      onBankAccountIdChange={field.handleChange}
+                    />
+                  )}
+                </form.AppField>
+              ) : (
+                <p className="text-muted-foreground">
+                  No account needed yet — this is recorded as a pure IOU until you log a repayment.
+                </p>
+              )}
             </FieldGroup>
           </form>
         </div>
