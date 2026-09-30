@@ -159,7 +159,7 @@ export function LogAllocationDialog() {
                         items={buckets}
                         value={field.state.value}
                         onValueChange={(value) => field.handleChange(value ?? "")}
-                        disabled={status !== "success"}
+                        disabled={status !== "success" || !buckets || buckets.length === 0}
                       >
                         <SelectTrigger
                           id={id}
