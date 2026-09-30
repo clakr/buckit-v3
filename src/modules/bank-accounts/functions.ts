@@ -9,18 +9,24 @@ import { bankAccounts, lower } from "#/db/schema";
 import { currencyCodec } from "#/lib/codecs";
 import { authMiddleware } from "#/lib/middlewares";
 import { verifyUserBankAccountMiddleware } from "#/modules/bank-accounts/middlewares";
-import { editBankAccountSchema, registerBankAccountSchema } from "#/modules/bank-accounts/schemas";
+import {
+  editBankAccountSchema,
+  getBankAccountsSchema,
+  registerBankAccountSchema,
+} from "#/modules/bank-accounts/schemas";
 
 export const getBankAccounts = createServerFn({
   method: "GET",
 })
   .middleware([authMiddleware])
-  .handler(async ({ context }) => {
+  .validator(getBankAccountsSchema)
+  .handler(async ({ context, data }) => {
     const db = getDB(env.db);
 
     return db.query.bankAccounts.findMany({
       where: {
         userId: context.user.id,
+        ...data,
       },
       with: {
         transactions: {

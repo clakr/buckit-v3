@@ -24,3 +24,7 @@ export const editBankAccountSchema = z.strictObject({
   ...verifyUserBankAccountMiddlewareSchema.shape,
   ...baseBankAccountSchema.shape,
 });
+
+export const getBankAccountsSchema = z
+  .object({ currency: z.enum(CURRENCIES_CODES).optional() })
+  .optional();

@@ -14,9 +14,9 @@ import { useRegisterBankAccountDialogStore } from "#/modules/bank-accounts/compo
 import { bankAccountsQueryOption } from "#/modules/bank-accounts/query-options";
 
 export const Route = createFileRoute("/_protected/accounts/")({
-  context: () => ({ bankAccountsQueryOption }),
-  loader: async ({ context: { queryClient, bankAccountsQueryOption } }) => {
-    return queryClient.query(bankAccountsQueryOption);
+  context: () => ({ bankAccountsQueryOptions: bankAccountsQueryOption() }),
+  loader: async ({ context: { queryClient, bankAccountsQueryOptions } }) => {
+    return queryClient.query(bankAccountsQueryOptions);
   },
   pendingComponent: () => (
     <Main>
@@ -45,8 +45,8 @@ export const Route = createFileRoute("/_protected/accounts/")({
 });
 
 function RouteComponent() {
-  const { bankAccountsQueryOption } = Route.useRouteContext();
-  const { data: bankAccounts } = useSuspenseQuery(bankAccountsQueryOption);
+  const { bankAccountsQueryOptions } = Route.useRouteContext();
+  const { data: bankAccounts } = useSuspenseQuery(bankAccountsQueryOptions);
 
   const isEmpty = bankAccounts.length === 0;
 
