@@ -25,10 +25,6 @@ type SourceAccountFieldProps = {
   onBankAccountIdChange: (bankAccountId: string | undefined) => void;
 };
 
-function openRegisterBankAccountDialog() {
-  useRegisterBankAccountDialogStore.getState().openDialog();
-}
-
 export function SourceAccountField({
   currency,
   isQueryEnabled,
@@ -54,6 +50,13 @@ export function SourceAccountField({
   const noEligibleAccounts = status === "success" && (eligibleAccounts?.length ?? 0) === 0;
   const id = useId();
 
+  function openRegisterBankAccountDialog() {
+    const state = useRegisterBankAccountDialogStore.getState();
+
+    state.openDialog();
+    state.setCurrency(currency);
+  }
+
   return (
     <Field data-invalid={noEligibleAccounts}>
       <FieldLabel htmlFor={id}>Funding Source</FieldLabel>
@@ -64,14 +67,8 @@ export function SourceAccountField({
       {noEligibleAccounts ? (
         <>
           <FieldError>No {currency} accounts with available balance.</FieldError>
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            className="w-fit"
-            onClick={openRegisterBankAccountDialog}
-          >
-            Register a {currency} account
+          <Button type="button" variant="outline" onClick={openRegisterBankAccountDialog}>
+            Register a/an {currency} account
           </Button>
         </>
       ) : (

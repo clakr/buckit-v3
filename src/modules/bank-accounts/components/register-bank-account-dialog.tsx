@@ -23,19 +23,28 @@ import { useRegisterBankAccountMutation } from "#/modules/bank-accounts/mutation
 import { registerBankAccountSchema } from "#/modules/bank-accounts/schemas";
 import { confirm } from "#/stores/use-confirm";
 
-export const useRegisterBankAccountDialogStore = create<DialogState>()((set) => ({
+type StoreState = DialogState & {
+  currency: string;
+  setCurrency: (currency: string) => void;
+};
+
+export const useRegisterBankAccountDialogStore = create<StoreState>()((set) => ({
   isOpen: false,
   openDialog: () => set({ isOpen: true }),
   closeDialog: () => set({ isOpen: false }),
   toggleDialog: () => set((state) => ({ isOpen: !state.isOpen })),
+
+  currency: "PHP",
+  setCurrency: (currency) => set({ currency }),
 }));
 
 export function RegisterBankAccountDialog() {
-  const { isOpen, closeDialog, toggleDialog } = useRegisterBankAccountDialogStore(
+  const { isOpen, closeDialog, toggleDialog, currency } = useRegisterBankAccountDialogStore(
     useShallow((state) => ({
       isOpen: state.isOpen,
       closeDialog: state.closeDialog,
       toggleDialog: state.toggleDialog,
+      currency: state.currency,
     })),
   );
 
@@ -43,7 +52,7 @@ export function RegisterBankAccountDialog() {
 
   const defaultValues: z.input<typeof registerBankAccountSchema> = {
     name: "",
-    currency: "PHP",
+    currency,
     startingBalance: 0,
   };
 
