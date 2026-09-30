@@ -199,7 +199,6 @@ export const CURRENCIES = [
   { code: "ZWG", name: "Zimbabwean Gold", symbol: "ZiG", flag: "🇿🇼" },
 ] as const;
 
-export const CURRENCIES_CODES = CURRENCIES.map((currency) => currency.code) as unknown as [
-  string,
-  ...string[],
-];
+export const CURRENCIES_CODES = CURRENCIES.map(
+  (currency) => currency.code,
+) as unknown as [string, ...string[]];
