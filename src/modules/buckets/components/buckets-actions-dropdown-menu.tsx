@@ -1,7 +1,7 @@
-import { IconDots, IconEye } from "@tabler/icons-react";
+import { IconDots, IconEye, IconPlus } from "@tabler/icons-react";
 import { Link } from "@tanstack/react-router";
 
-import type { Bucket } from "#/db/schema";
+import type { getBuckets } from "#/modules/buckets/functions";
 
 import { Button } from "#/components/ui/button";
 import {
@@ -9,17 +9,28 @@ import {
   DropdownMenuContent,
   DropdownMenuGroup,
   DropdownMenuItem,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "#/components/ui/dropdown-menu";
+import { useLogAllocationDialogStore } from "#/modules/allocations/components/log-allocation-dialog";
 
 import { useDeleteBucketDialogStore } from "./delete-bucket-dialog";
 import { useEditBucketDialogStore } from "./edit-bucket-dialog";
 
 type Props = {
-  bucketId: Bucket["id"];
+  bucket: Awaited<ReturnType<typeof getBuckets>>[number];
 };
 
-export function BucketActionsDropdownMenu({ bucketId }: Props) {
+export function BucketActionsDropdownMenu({ bucket }: Props) {
+  const bucketId = bucket.id;
+
+  function handleOpenLogAllocationDialog() {
+    const state = useLogAllocationDialogStore.getState();
+
+    state.setData({ source: "bucket", bucket });
+    state.openDialog();
+  }
+
   function handleOpenEditBucketDialog() {
     const state = useEditBucketDialogStore.getState();
 
@@ -41,6 +52,13 @@ export function BucketActionsDropdownMenu({ bucketId }: Props) {
         <span className="sr-only">Open Bucket Action Menu</span>
       </DropdownMenuTrigger>
       <DropdownMenuContent className="w-fit">
+        <DropdownMenuGroup>
+          <DropdownMenuItem onClick={handleOpenLogAllocationDialog}>
+            <IconPlus />
+            Allocate Money
+          </DropdownMenuItem>
+        </DropdownMenuGroup>
+        <DropdownMenuSeparator />
         <DropdownMenuGroup>
           <DropdownMenuItem render={<Link to="/buckets/$bucketId" params={{ bucketId }} />}>
             <IconEye />

@@ -65,7 +65,7 @@ export const INDEX_COLUMNS: ColumnDef<Awaited<ReturnType<typeof getBuckets>>[num
   {
     accessorKey: "actions",
     header: "",
-    cell: ({ row }) => <BucketActionsDropdownMenu bucketId={row.original.id} />,
+    cell: ({ row }) => <BucketActionsDropdownMenu bucket={row.original} />,
   },
 ];
 

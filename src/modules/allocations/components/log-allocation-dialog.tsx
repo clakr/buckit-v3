@@ -1,9 +1,10 @@
+import { useSelector } from "@tanstack/react-form";
 import { useQuery } from "@tanstack/react-query";
 import z from "zod";
 import { create } from "zustand";
 import { useShallow } from "zustand/react/shallow";
 
-import type { BankAccount } from "#/db/schema";
+import type { BankAccount, Bucket } from "#/db/schema";
 import type { DialogState } from "#/lib/types";
 
 import {
@@ -40,12 +41,17 @@ import {
 import { validateLogAllocationAmount } from "#/modules/allocations/functions";
 import { useLogAllocationMutation } from "#/modules/allocations/mutations";
 import { logAllocationSchema } from "#/modules/allocations/schemas";
+import { bankAccountsQueryOption } from "#/modules/bank-accounts/query-options";
 import { bucketsQueryOptions } from "#/modules/buckets/query-options";
 import { confirm } from "#/stores/use-confirm";
 
+export type Data =
+  | { source: "bank-account"; account: BankAccount }
+  | { source: "bucket"; bucket: Bucket };
+
 type StoreState = DialogState & {
-  account: BankAccount | null;
-  setAccount: (account: BankAccount) => void;
+  data: Data | null;
+  setData: (data: Data) => void;
 };
 
 export const useLogAllocationDialogStore = create<StoreState>()((set) => ({
@@ -54,18 +60,18 @@ export const useLogAllocationDialogStore = create<StoreState>()((set) => ({
   closeDialog: () => set({ isOpen: false }),
   toggleDialog: () => set((state) => ({ isOpen: !state.isOpen })),
 
-  account: null,
-  setAccount: (account) => set({ account }),
+  data: null,
+  setData: (data) => set({ data }),
 }));
 
 export function LogAllocationDialog() {
-  const { isOpen, closeDialog, toggleDialog, account } = useLogAllocationDialogStore(
+  const { isOpen, closeDialog, toggleDialog, data } = useLogAllocationDialogStore(
     useShallow((state) => ({
       isOpen: state.isOpen,
       closeDialog: state.closeDialog,
       toggleDialog: state.toggleDialog,
 
-      account: state.account,
+      data: state.data,
     })),
   );
 
@@ -73,20 +79,26 @@ export function LogAllocationDialog() {
 
   const defaultValues: z.input<typeof logAllocationSchema> = {
     ...baseAllocationDefaultValues,
-    bankAccountId: account?.id ?? "",
-    bucketId: "",
+    bankAccountId: data?.source === "bank-account" ? data.account.id : "",
+    bucketId: data?.source === "bucket" ? data.bucket.id : "",
     amount: 0,
   };
 
   // @todo: handle error
-  const { status, data: buckets } = useQuery({
+  const { status: bucketsStatus, data: buckets } = useQuery({
     ...bucketsQueryOptions,
-    enabled: isOpen,
+    enabled: isOpen && data?.source === "bank-account",
     select: (buckets) =>
       buckets.map((b) => ({
         value: b.id,
         label: b.name,
       })),
+  });
+
+  // @todo: handle error
+  const { status: bankAccountsStatus, data: bankAccounts } = useQuery({
+    ...bankAccountsQueryOption(),
+    enabled: isOpen && data?.source === "bucket",
   });
 
   const form = useAppForm({
@@ -108,6 +120,8 @@ export function LogAllocationDialog() {
     },
   });
 
+  const selectedBankAccountId = useSelector(form.store, (state) => state.values.bankAccountId);
+
   async function handleOnOpenChange(open: boolean) {
     if (!open && form.state.isDirty) {
       const confirmed = await confirm("Discard new allocation?", {
@@ -125,14 +139,25 @@ export function LogAllocationDialog() {
     toggleDialog();
   }
 
-  if (!account) return null;
+  if (!data) return null;
+
+  const currencyCode =
+    data.source === "bank-account"
+      ? data.account.currency
+      : bankAccounts?.find((a) => a.id === selectedBankAccountId)?.currency;
+
+  const currency = currencyCode && isCurrencyCode(currencyCode) ? getCurrency(currencyCode) : null;
 
   return (
     <Dialog open={isOpen} onOpenChange={handleOnOpenChange}>
       <DialogContent>
         <DialogHeader>
           <DialogTitle>Allocate Money</DialogTitle>
-          <DialogDescription>Move money from this account into a bucket.</DialogDescription>
+          <DialogDescription>
+            {data.source === "bank-account"
+              ? `Move money from ${data.account.name} into a bucket.`
+              : `Move money into ${data.bucket.name} from a bank account.`}
+          </DialogDescription>
         </DialogHeader>
         <div>
           <form
@@ -144,59 +169,111 @@ export function LogAllocationDialog() {
             }}
           >
             <FieldGroup>
-              <form.AppField name="bucketId">
-                {(field) => {
-                  const isInvalid = field.state.meta.isTouched && !field.state.meta.isValid;
+              {data.source === "bank-account" ? (
+                <form.AppField name="bucketId">
+                  {(field) => {
+                    const isInvalid = field.state.meta.isTouched && !field.state.meta.isValid;
 
-                  const id = field.name;
-                  const errorId = `${id}-error`;
+                    const id = field.name;
+                    const errorId = `${id}-error`;
 
-                  return (
-                    <Field data-invalid={isInvalid}>
-                      <FieldLabel htmlFor={id}>Bucket</FieldLabel>
+                    return (
+                      <Field data-invalid={isInvalid}>
+                        <FieldLabel htmlFor={id}>Bucket</FieldLabel>
 
-                      <Select
-                        items={buckets}
-                        value={field.state.value}
-                        onValueChange={(value) => field.handleChange(value ?? "")}
-                        disabled={status !== "success" || !buckets || buckets.length === 0}
-                      >
-                        <SelectTrigger
-                          id={id}
-                          aria-invalid={isInvalid ? true : undefined}
-                          aria-labelledby={isInvalid ? errorId : undefined}
-                          className="w-full"
-                          icon={status === "pending" ? <Spinner /> : undefined}
+                        <Select
+                          items={buckets}
+                          value={field.state.value}
+                          onValueChange={(value) => field.handleChange(value ?? "")}
+                          disabled={bucketsStatus !== "success" || !buckets || buckets.length === 0}
                         >
-                          <SelectValue placeholder="Select bucket" />
-                        </SelectTrigger>
-                        <SelectContent alignItemWithTrigger>
-                          <SelectGroup>
-                            {buckets?.map((b) => (
-                              <SelectItem key={b.value} value={b.value}>
-                                {b.label}
-                              </SelectItem>
-                            ))}
-                          </SelectGroup>
-                        </SelectContent>
-                      </Select>
+                          <SelectTrigger
+                            id={id}
+                            aria-invalid={isInvalid ? true : undefined}
+                            aria-labelledby={isInvalid ? errorId : undefined}
+                            className="w-full"
+                            icon={bucketsStatus === "pending" ? <Spinner /> : undefined}
+                          >
+                            <SelectValue placeholder="Select bucket" />
+                          </SelectTrigger>
+                          <SelectContent alignItemWithTrigger>
+                            <SelectGroup>
+                              {buckets?.map((b) => (
+                                <SelectItem key={b.value} value={b.value}>
+                                  {b.label}
+                                </SelectItem>
+                              ))}
+                            </SelectGroup>
+                          </SelectContent>
+                        </Select>
 
-                      {isInvalid && <FieldError id={errorId} errors={field.state.meta.errors} />}
-                    </Field>
-                  );
-                }}
-              </form.AppField>
+                        {isInvalid && <FieldError id={errorId} errors={field.state.meta.errors} />}
+                      </Field>
+                    );
+                  }}
+                </form.AppField>
+              ) : (
+                <form.AppField name="bankAccountId">
+                  {(field) => {
+                    const isInvalid = field.state.meta.isTouched && !field.state.meta.isValid;
+
+                    const id = field.name;
+                    const errorId = `${id}-error`;
+
+                    return (
+                      <Field data-invalid={isInvalid}>
+                        <FieldLabel htmlFor={id}>Bank Account</FieldLabel>
+
+                        <Select
+                          items={bankAccounts?.map((a) => ({ value: a.id, label: a.name }))}
+                          value={field.state.value}
+                          onValueChange={(value) => field.handleChange(value ?? "")}
+                          disabled={
+                            bankAccountsStatus !== "success" ||
+                            !bankAccounts ||
+                            bankAccounts.length === 0
+                          }
+                        >
+                          <SelectTrigger
+                            id={id}
+                            aria-invalid={isInvalid ? true : undefined}
+                            aria-labelledby={isInvalid ? errorId : undefined}
+                            className="w-full"
+                            icon={bankAccountsStatus === "pending" ? <Spinner /> : undefined}
+                          >
+                            <SelectValue placeholder="Select bank account" />
+                          </SelectTrigger>
+                          <SelectContent alignItemWithTrigger>
+                            <SelectGroup>
+                              {bankAccounts?.map((a) => (
+                                <SelectItem key={a.id} value={a.id}>
+                                  {a.name}
+                                </SelectItem>
+                              ))}
+                            </SelectGroup>
+                          </SelectContent>
+                        </Select>
+
+                        {isInvalid && <FieldError id={errorId} errors={field.state.meta.errors} />}
+                      </Field>
+                    );
+                  }}
+                </form.AppField>
+              )}
               <form.AppField
                 name="amount"
                 validators={{
                   onChangeAsyncDebounceMs: 500,
                   onChangeAsync: logAllocationSchema.shape.amount.superRefine(
-                    async (data, context) => {
+                    async (value, context) => {
+                      const bankAccountId = form.getFieldValue("bankAccountId");
+                      if (!bankAccountId) return;
+
                       try {
                         const { isValid, message } = await validateLogAllocationAmount({
                           data: {
-                            bankAccountId: account.id,
-                            amount: data,
+                            bankAccountId,
+                            amount: value,
                           },
                         });
 
@@ -217,12 +294,6 @@ export function LogAllocationDialog() {
                   const id = field.name;
                   const errorId = `${id}-error`;
 
-                  const accountCurrency = account.currency;
-
-                  const validated = isCurrencyCode(accountCurrency);
-                  if (!validated) return null;
-
-                  const currency = getCurrency(accountCurrency);
                   if (!currency) return null;
 
                   return (
