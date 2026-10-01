@@ -186,93 +186,36 @@ export function LogAllocationDialog() {
             <FieldGroup>
               {data.source === "bank-account" ? (
                 <form.AppField name="bucketId">
-                  {(field) => {
-                    const isInvalid = field.state.meta.isTouched && !field.state.meta.isValid;
-
-                    const id = field.name;
-                    const errorId = `${id}-error`;
-
-                    return (
-                      <Field data-invalid={isInvalid}>
-                        <FieldLabel htmlFor={id}>Bucket</FieldLabel>
-
-                        <Select
-                          items={buckets}
-                          value={field.state.value}
-                          onValueChange={(value) => field.handleChange(value ?? "")}
-                          disabled={bucketsStatus !== "success" || !buckets || buckets.length === 0}
-                        >
-                          <SelectTrigger
-                            id={id}
-                            aria-invalid={isInvalid ? true : undefined}
-                            aria-labelledby={isInvalid ? errorId : undefined}
-                            className="w-full"
-                            icon={bucketsStatus === "pending" ? <Spinner /> : undefined}
-                          >
-                            <SelectValue placeholder="Select bucket" />
-                          </SelectTrigger>
-                          <SelectContent alignItemWithTrigger>
-                            <SelectGroup>
-                              {buckets?.map((b) => (
-                                <SelectItem key={b.value} value={b.value}>
-                                  {b.label}
-                                </SelectItem>
-                              ))}
-                            </SelectGroup>
-                          </SelectContent>
-                        </Select>
-
-                        {isInvalid && <FieldError id={errorId} errors={field.state.meta.errors} />}
-                      </Field>
-                    );
-                  }}
+                  {(field) => (
+                    <field.Select
+                      label="Bucket"
+                      items={buckets}
+                      disabled={bucketsStatus !== "success" || !buckets || buckets.length === 0}
+                      placeholder="Select bucket"
+                      options={buckets ?? []}
+                    />
+                  )}
                 </form.AppField>
               ) : (
                 <form.AppField name="bankAccountId">
-                  {(field) => {
-                    const isInvalid = field.state.meta.isTouched && !field.state.meta.isValid;
-
-                    const id = field.name;
-                    const errorId = `${id}-error`;
-
-                    return (
-                      <Field data-invalid={isInvalid}>
-                        <FieldLabel htmlFor={id}>Bank Account</FieldLabel>
-
-                        <Select
-                          items={bankAccounts?.map((a) => ({ value: a.id, label: a.name }))}
-                          value={field.state.value}
-                          onValueChange={(value) => field.handleChange(value ?? "")}
-                          disabled={
-                            bankAccountsStatus !== "success" ||
-                            !bankAccounts ||
-                            bankAccounts.length === 0
-                          }
-                        >
-                          <SelectTrigger
-                            id={id}
-                            aria-invalid={isInvalid ? true : undefined}
-                            aria-labelledby={isInvalid ? errorId : undefined}
-                            className="w-full"
-                            icon={bankAccountsStatus === "pending" ? <Spinner /> : undefined}
-                          >
-                            <SelectValue placeholder="Select bank account" />
-                          </SelectTrigger>
-                          <SelectContent alignItemWithTrigger>
-                            <SelectGroup>
-                              {bankAccounts?.map((a) => (
-                                <SelectItem key={a.id} value={a.id}>
-                                  {a.name}
-                                </SelectItem>
-                              ))}
-                            </SelectGroup>
-                          </SelectContent>
-                        </Select>
-
-                        {isInvalid && <FieldError id={errorId} errors={field.state.meta.errors} />}
-                      </Field>
-                    );
-                  }}
+                  {(field) => (
+                    <field.Select
+                      label="Bank Account"
+                      items={bankAccounts?.map((a) => ({ value: a.id, label: a.name }))}
+                      disabled={
+                        bankAccountsStatus !== "success" ||
+                        !bankAccounts ||
+                        bankAccounts.length === 0
+                      }
+                      placeholder="Select bank account"
+                      options={
+                        bankAccounts?.map((a) => ({
+                          label: a.name,
+                          value: a.id,
+                        })) ?? []
+                      }
+                    />
+                  )}
                 </form.AppField>
               )}
               <form.AppField

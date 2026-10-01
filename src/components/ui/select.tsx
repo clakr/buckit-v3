@@ -1,8 +1,7 @@
 import { Select as SelectPrimitive } from "@base-ui/react/select";
 import { IconSelector, IconCheck, IconChevronUp, IconChevronDown } from "@tabler/icons-react";
+import { cn } from "cn";
 import * as React from "react";
-
-import { cn } from "#/lib/utils.ts";
 
 const Select = SelectPrimitive.Root;
 
@@ -29,12 +28,10 @@ function SelectValue({ className, ...props }: SelectPrimitive.Value.Props) {
 function SelectTrigger({
   className,
   size = "default",
-  icon,
   children,
   ...props
 }: SelectPrimitive.Trigger.Props & {
   size?: "sm" | "default";
-  icon?: React.JSX.Element;
 }) {
   return (
     <SelectPrimitive.Trigger
@@ -48,9 +45,7 @@ function SelectTrigger({
     >
       {children}
       <SelectPrimitive.Icon
-        render={
-          icon ?? <IconSelector className="pointer-events-none size-3.5 text-muted-foreground" />
-        }
+        render={<IconSelector className="pointer-events-none size-3.5 text-muted-foreground" />}
       />
     </SelectPrimitive.Trigger>
   );

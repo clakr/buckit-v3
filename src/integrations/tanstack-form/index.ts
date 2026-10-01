@@ -5,6 +5,7 @@ const Input = lazy(() => import("#/components/form/input"));
 const Button = lazy(() => import("#/components/form/button"));
 const Textarea = lazy(() => import("#/components/form/textarea"));
 const RadioGroup = lazy(() => import("#/components/form/radio-group"));
+const Select = lazy(() => import("#/components/form/select"));
 
 export const { fieldContext, formContext, useFieldContext, useFormContext } =
   createFormHookContexts();
@@ -12,7 +13,7 @@ export const { fieldContext, formContext, useFieldContext, useFormContext } =
 export const { useAppForm, withFieldGroup } = createFormHook({
   fieldContext,
   formContext,
-  fieldComponents: { Input, Textarea, RadioGroup },
+  fieldComponents: { Input, Textarea, RadioGroup, Select },
   formComponents: {
     Button,
   },
