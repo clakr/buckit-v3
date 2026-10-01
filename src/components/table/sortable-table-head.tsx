@@ -12,7 +12,11 @@ export function SortableTableHead({ column, children, className, ...props }: Pro
   return (
     <Button
       variant="ghost"
-      className={cn("-ms-2 justify-start gap-x-2 uppercase", className)}
+      className={cn(
+        "-ms-2 justify-start gap-x-2 uppercase",
+        "data-currency:ms-0 data-currency:-me-2",
+        className,
+      )}
       onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
       {...props}
     >

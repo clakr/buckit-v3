@@ -7,7 +7,9 @@ import { Heading } from "#/components/heading";
 import { Main } from "#/components/main";
 import { StateTemplate } from "#/components/state-template";
 import { Button } from "#/components/ui/button";
+import { DataTable } from "#/components/ui/data-table";
 import { MODULE_ICONS } from "#/lib/constants";
+import { INDEX_COLUMNS } from "#/modules/debts/columns";
 import { useRecordDebtDialogStore } from "#/modules/debts/components/record-debt-dialog";
 import { debtsQueryOptions } from "#/modules/debts/query-options";
 
@@ -74,7 +76,7 @@ function RouteComponent() {
           }
         />
       ) : (
-        <pre>{JSON.stringify(debts, null, 2)}</pre>
+        <DataTable columns={INDEX_COLUMNS} data={debts} />
       )}
     </Main>
   );
