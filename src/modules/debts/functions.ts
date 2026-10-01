@@ -71,7 +71,7 @@ export const recordDebt = createServerFn({
         bankAccountId: data.bankAccountId,
         type: "expense",
         amount,
-        note: `From Debt "${data.name}"`, //@todo: reword accordingly
+        note: `Loan to "${data.name}"`,
       }),
       db
         .insert(debts)

@@ -39,7 +39,7 @@ export const INDEX_COLUMNS: ColumnDef<Awaited<ReturnType<typeof getDebts>>[numbe
     accessorKey: "amount",
     header: ({ column }) => (
       <SortableTableHead column={column} data-currency>
-        Initial Amount {/* @todo: reword accordingly */}
+        Amount
       </SortableTableHead>
     ),
     cell: ({ row }) => {
@@ -51,11 +51,11 @@ export const INDEX_COLUMNS: ColumnDef<Awaited<ReturnType<typeof getDebts>>[numbe
     },
   },
   {
-    accessorKey: "amountNow", //@todo: reword accordingly, this should be the value of amount + ∑ repayment
+    // @todo: this should be the value of amount − ∑ repayments, once repayments are implemented
+    accessorKey: "outstanding",
     header: ({ column }) => (
       <SortableTableHead column={column} data-currency>
-        Amount Now{" "}
-        {/* @todo: reword accordingly, this should be the value of amount + ∑ repayment */}
+        Outstanding
       </SortableTableHead>
     ),
     cell: () => {
