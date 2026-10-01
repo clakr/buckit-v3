@@ -4,8 +4,9 @@ import z from "zod";
 import { create } from "zustand";
 import { useShallow } from "zustand/react/shallow";
 
-import type { BankAccount, Bucket } from "#/db/schema";
+import type { Bucket } from "#/db/schema";
 import type { DialogState } from "#/lib/types";
+import type { getBankAccounts } from "#/modules/bank-accounts/functions";
 
 import {
   Dialog,
@@ -15,7 +16,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "#/components/ui/dialog";
-import { Field, FieldError, FieldGroup, FieldLabel } from "#/components/ui/field";
+import { Field, FieldDescription, FieldError, FieldGroup, FieldLabel } from "#/components/ui/field";
 import {
   InputGroup,
   InputGroupAddon,
@@ -32,7 +33,8 @@ import {
 } from "#/components/ui/select";
 import { Spinner } from "#/components/ui/spinner";
 import { useAppForm } from "#/integrations/tanstack-form";
-import { getCurrency, isCurrencyCode } from "#/lib/utils";
+import { currencyCodec } from "#/lib/codecs";
+import { formatCurrency, getCurrency, isCurrencyCode } from "#/lib/utils";
 import {
   baseAllocationDefaultValues,
   BaseAllocationFieldGroup,
@@ -42,11 +44,12 @@ import { validateLogAllocationAmount } from "#/modules/allocations/functions";
 import { useLogAllocationMutation } from "#/modules/allocations/mutations";
 import { logAllocationSchema } from "#/modules/allocations/schemas";
 import { bankAccountsQueryOption } from "#/modules/bank-accounts/query-options";
+import { getBankAccountUnallocatedBalance } from "#/modules/bank-accounts/utils";
 import { bucketsQueryOptions } from "#/modules/buckets/query-options";
 import { confirm } from "#/stores/use-confirm";
 
 export type Data =
-  | { source: "bank-account"; account: BankAccount }
+  | { source: "bank-account"; account: Awaited<ReturnType<typeof getBankAccounts>>[number] }
   | { source: "bucket"; bucket: Bucket };
 
 type StoreState = DialogState & {
@@ -120,7 +123,8 @@ export function LogAllocationDialog() {
     },
   });
 
-  const selectedBankAccountId = useSelector(form.store, (state) => state.values.bankAccountId);
+  const bankAccountId = useSelector(form.store, (state) => state.values.bankAccountId);
+  const bucketId = useSelector(form.store, (state) => state.values.bucketId);
 
   async function handleOnOpenChange(open: boolean) {
     if (!open && form.state.isDirty) {
@@ -141,12 +145,23 @@ export function LogAllocationDialog() {
 
   if (!data) return null;
 
-  const currencyCode =
+  const selectedBankAccount =
     data.source === "bank-account"
-      ? data.account.currency
-      : bankAccounts?.find((a) => a.id === selectedBankAccountId)?.currency;
+      ? data.account
+      : bankAccounts?.find((a) => a.id === bankAccountId);
 
+  const currencyCode = selectedBankAccount?.currency;
   const currency = currencyCode && isCurrencyCode(currencyCode) ? getCurrency(currencyCode) : null;
+
+  const unallocated = selectedBankAccount
+    ? getBankAccountUnallocatedBalance({
+        startingBalance: selectedBankAccount.startingBalance,
+        transactions: selectedBankAccount.transactions,
+        allocations: selectedBankAccount.allocations,
+      }).unallocated
+    : null;
+
+  const isAmountDisabled = !bankAccountId || !bucketId;
 
   return (
     <Dialog open={isOpen} onOpenChange={handleOnOpenChange}>
@@ -266,13 +281,13 @@ export function LogAllocationDialog() {
                   onChangeAsyncDebounceMs: 500,
                   onChangeAsync: logAllocationSchema.shape.amount.superRefine(
                     async (value, context) => {
-                      const bankAccountId = form.getFieldValue("bankAccountId");
-                      if (!bankAccountId) return;
+                      const currentBankAccountId = form.getFieldValue("bankAccountId");
+                      if (!currentBankAccountId) return;
 
                       try {
                         const { isValid, message } = await validateLogAllocationAmount({
                           data: {
-                            bankAccountId,
+                            bankAccountId: currentBankAccountId,
                             amount: value,
                           },
                         });
@@ -294,7 +309,7 @@ export function LogAllocationDialog() {
                   const id = field.name;
                   const errorId = `${id}-error`;
 
-                  if (!currency) return null;
+                  const isDisabled = isAmountDisabled || !currency;
 
                   return (
                     <Field data-invalid={isInvalid}>
@@ -302,7 +317,7 @@ export function LogAllocationDialog() {
 
                       <InputGroup>
                         <InputGroupAddon>
-                          <InputGroupText>{currency.symbol}</InputGroupText>
+                          <InputGroupText>{currency?.symbol ?? "—"}</InputGroupText>
                         </InputGroupAddon>
                         <InputGroupInput
                           type="number"
@@ -311,6 +326,7 @@ export function LogAllocationDialog() {
                           min={0}
                           step={0.01}
                           required
+                          disabled={isDisabled}
                           value={field.state.value as string}
                           onChange={(e) => field.handleChange(e.target.value)}
                           onBlur={field.handleBlur}
@@ -321,10 +337,19 @@ export function LogAllocationDialog() {
                           {field.state.meta.isValidating ? (
                             <Spinner />
                           ) : (
-                            <InputGroupText>{currency.code}</InputGroupText>
+                            <InputGroupText>{currency?.code ?? ""}</InputGroupText>
                           )}
                         </InputGroupAddon>
                       </InputGroup>
+
+                      {currency && unallocated !== null && (
+                        <FieldDescription>
+                          Available:{" "}
+                          {formatCurrency(currencyCodec.encode(unallocated), {
+                            currency: currency.code,
+                          })}
+                        </FieldDescription>
+                      )}
 
                       {isInvalid && <FieldError id={errorId} errors={field.state.meta.errors} />}
                     </Field>
