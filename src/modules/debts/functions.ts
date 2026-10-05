@@ -19,6 +19,16 @@ export const getDebts = createServerFn({
       where: {
         userId: context.user.id,
       },
+      with: {
+        repayments: {
+          orderBy: { createdAt: "desc" },
+          with: {
+            transaction: {
+              columns: { amount: true, date: true },
+            },
+          },
+        },
+      },
     });
   });
 

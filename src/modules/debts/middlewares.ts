@@ -1,0 +1,27 @@
+import { createMiddleware } from "@tanstack/react-start";
+import { env } from "cloudflare:workers";
+
+import { getDB } from "#/db";
+import { authMiddleware } from "#/lib/middlewares";
+
+import { verifyUserDebtMiddlewareSchema } from "./schemas";
+
+export const verifyUserDebtMiddleware = createMiddleware({
+  type: "function",
+})
+  .middleware([authMiddleware])
+  .validator(verifyUserDebtMiddlewareSchema)
+  .server(async ({ next, context, data }) => {
+    const db = getDB(env.db);
+
+    const result = await db.query.debts.findFirst({
+      where: {
+        userId: context.user.id,
+        id: data.debtId,
+      },
+    });
+
+    if (!result) throw new Error("No debt is linked to this user");
+
+    return next();
+  });

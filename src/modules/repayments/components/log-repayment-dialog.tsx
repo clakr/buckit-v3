@@ -131,7 +131,9 @@ export function LogRepaymentDialog() {
       <DialogContent>
         <DialogHeader>
           <DialogTitle>Log Repayment</DialogTitle>
-          <DialogDescription>@todo: add description</DialogDescription>
+          <DialogDescription>
+            Record a payment against "{debt.name}" as a real transaction.
+          </DialogDescription>
         </DialogHeader>
         <div>
           <form

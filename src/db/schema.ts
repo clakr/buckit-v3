@@ -173,6 +173,23 @@ export const debts = sqliteTable("debts", {
     (): AnySQLiteColumn => transactions.id,
     { onDelete: "set null" },
   ),
+  createdAt: integer("created_at", { mode: "timestamp_ms" })
+    .default(sql`(cast(unixepoch('subsecond') * 1000 as integer))`)
+    .notNull(),
+});
+
+export const repayments = sqliteTable("repayments", {
+  id: text("id").primaryKey(),
+  debtId: text("debt_id")
+    .notNull()
+    .references(() => debts.id, { onDelete: "cascade" }),
+  transactionId: text("transaction_id")
+    .notNull()
+    .unique()
+    .references(() => transactions.id, { onDelete: "cascade" }),
+  createdAt: integer("created_at", { mode: "timestamp_ms" })
+    .default(sql`(cast(unixepoch('subsecond') * 1000 as integer))`)
+    .notNull(),
 });
 
 //
@@ -188,6 +205,7 @@ export const relations = defineRelations(
     transactions,
     allocations,
     debts,
+    repayments,
   },
   (r) => ({
     users: {
@@ -247,6 +265,17 @@ export const relations = defineRelations(
         from: r.debts.originatingTransactionId,
         to: r.transactions.id,
       }),
+      repayments: r.many.repayments(),
+    },
+    repayments: {
+      debt: r.one.debts({
+        from: r.repayments.debtId,
+        to: r.debts.id,
+      }),
+      transaction: r.one.transactions({
+        from: r.repayments.transactionId,
+        to: r.transactions.id,
+      }),
     },
   }),
 );
@@ -258,6 +287,7 @@ export type Bucket = typeof buckets.$inferSelect;
 export type Transaction = typeof transactions.$inferSelect;
 export type Allocation = typeof allocations.$inferSelect;
 export type Debt = typeof debts.$inferSelect;
+export type Repayment = typeof repayments.$inferSelect;
 
 //
 

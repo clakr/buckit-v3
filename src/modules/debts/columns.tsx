@@ -1,15 +1,17 @@
 import type { ColumnDef } from "@tanstack/react-table";
 
-import { IconCircleDashed } from "@tabler/icons-react";
+import { IconCircleDashed, IconCircleDottedLetterH } from "@tabler/icons-react";
 
 import { SortableTableHead } from "#/components/table/sortable-table-head";
 import { Badge } from "#/components/ui/badge";
+import { Tooltip, TooltipContent, TooltipTrigger } from "#/components/ui/tooltip";
 import { currencyCodec } from "#/lib/codecs";
-import { formatCurrency, getCurrency, isCurrencyCode } from "#/lib/utils";
+import { formatCurrency, formatDateTime, formatToRelative } from "#/lib/utils";
 
 import type { getDebts } from "./functions";
 
 import { DebtActionsDropdownMenu } from "./components/debt-actions-dropdown-menu";
+import { getDebtOutstanding } from "./utils";
 
 export const INDEX_COLUMNS: ColumnDef<Awaited<ReturnType<typeof getDebts>>[number]>[] = [
   {
@@ -17,21 +19,17 @@ export const INDEX_COLUMNS: ColumnDef<Awaited<ReturnType<typeof getDebts>>[numbe
     header: ({ column }) => <SortableTableHead column={column}>Name</SortableTableHead>,
   },
   {
-    accessorKey: "currency",
+    accessorKey: "direction",
     cell: ({ row }) => {
-      const value = row.original.currency;
-
-      const validated = isCurrencyCode(value);
-      if (!validated) return `Unknown Currency`;
-
-      const currency = getCurrency(value);
-      if (!currency) return `Unknown Currency`;
+      const direction = row.original.direction;
 
       return (
-        <div className="flex items-center gap-x-2">
-          <Badge>{currency.code}</Badge>
-          <span className="text-muted-foreground">{currency.name}</span>
-        </div>
+        <Badge
+          variant={direction === "receivable" ? "default" : "secondary"}
+          className="capitalize"
+        >
+          {direction}
+        </Badge>
       );
     },
   },
@@ -51,15 +49,23 @@ export const INDEX_COLUMNS: ColumnDef<Awaited<ReturnType<typeof getDebts>>[numbe
     },
   },
   {
-    // @todo: this should be the value of amount − ∑ repayments, once repayments are implemented
     accessorKey: "outstanding",
     header: ({ column }) => (
       <SortableTableHead column={column} data-currency>
         Outstanding
       </SortableTableHead>
     ),
-    cell: () => {
-      return <span className="block text-end font-medium">-</span>;
+    cell: ({ row }) => {
+      const outstanding = getDebtOutstanding({
+        amount: row.original.amount,
+        repayments: row.original.repayments,
+      });
+
+      const value = formatCurrency(currencyCodec.encode(outstanding), {
+        currency: row.original.currency,
+      });
+
+      return <span className="block text-end font-medium">{value}</span>;
     },
   },
   {
@@ -67,18 +73,32 @@ export const INDEX_COLUMNS: ColumnDef<Awaited<ReturnType<typeof getDebts>>[numbe
     header: ({ column }) => (
       <SortableTableHead column={column}>Last Repayment Date</SortableTableHead>
     ),
-    cell: () => {
+    cell: ({ row }) => {
+      const lastRepaymentDate = row.original.repayments[0]?.transaction?.date;
+
+      if (!lastRepaymentDate) {
+        return (
+          <Badge variant="secondary" className="uppercase">
+            <IconCircleDashed />
+            No Repayments
+          </Badge>
+        );
+      }
+
       return (
-        <Badge variant="secondary" className="uppercase">
-          <IconCircleDashed />
-          No Repayments
-        </Badge>
+        <Tooltip>
+          <TooltipTrigger render={<Badge variant="secondary" className="capitalize" />}>
+            <IconCircleDottedLetterH />
+            {formatToRelative(lastRepaymentDate)}
+          </TooltipTrigger>
+          <TooltipContent>{formatDateTime(lastRepaymentDate)}</TooltipContent>
+        </Tooltip>
       );
     },
   },
   {
     accessorKey: "actions",
     header: "",
-    cell: ({ row }) => <DebtActionsDropdownMenu debtId={row.original.id} />,
+    cell: ({ row }) => <DebtActionsDropdownMenu debt={row.original} />,
   },
 ];
