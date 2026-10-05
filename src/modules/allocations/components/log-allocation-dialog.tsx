@@ -1,5 +1,7 @@
+import { IconCalendar } from "@tabler/icons-react";
 import { useSelector } from "@tanstack/react-form";
 import { useQuery } from "@tanstack/react-query";
+import { format } from "date-fns";
 import z from "zod";
 import { create } from "zustand";
 import { useShallow } from "zustand/react/shallow";
@@ -8,6 +10,8 @@ import type { Bucket } from "#/db/schema";
 import type { DialogState } from "#/lib/types";
 import type { getBankAccounts } from "#/modules/bank-accounts/functions";
 
+import { Button } from "#/components/ui/button";
+import { Calendar } from "#/components/ui/calendar";
 import {
   Dialog,
   DialogContent,
@@ -23,6 +27,7 @@ import {
   InputGroupInput,
   InputGroupText,
 } from "#/components/ui/input-group";
+import { Popover, PopoverContent, PopoverTrigger } from "#/components/ui/popover";
 import {
   Select,
   SelectContent,
@@ -35,11 +40,6 @@ import { Spinner } from "#/components/ui/spinner";
 import { useAppForm } from "#/integrations/tanstack-form";
 import { currencyCodec } from "#/lib/codecs";
 import { formatCurrency, getCurrency, isCurrencyCode } from "#/lib/utils";
-import {
-  baseAllocationDefaultValues,
-  BaseAllocationFieldGroup,
-  baseAllocationFields,
-} from "#/modules/allocations/forms";
 import { validateLogAllocationAmount } from "#/modules/allocations/functions";
 import { useLogAllocationMutation } from "#/modules/allocations/mutations";
 import { logAllocationSchema } from "#/modules/allocations/schemas";
@@ -81,10 +81,11 @@ export function LogAllocationDialog() {
   const mutation = useLogAllocationMutation();
 
   const defaultValues: z.input<typeof logAllocationSchema> = {
-    ...baseAllocationDefaultValues,
     bankAccountId: data?.source === "bank-account" ? data.account.id : "",
     bucketId: data?.source === "bucket" ? data.bucket.id : "",
     amount: 0,
+    date: new Date(),
+    note: "",
   };
 
   // @todo: handle error
@@ -299,7 +300,53 @@ export function LogAllocationDialog() {
                   );
                 }}
               </form.AppField>
-              <BaseAllocationFieldGroup form={form} fields={baseAllocationFields} />
+              <form.AppField name="date">
+                {(field) => {
+                  const date = field.state.value;
+
+                  const isInvalid = field.state.meta.isTouched && !field.state.meta.isValid;
+
+                  const id = field.name;
+                  const errorId = `${id}-error`;
+
+                  return (
+                    <Field data-invalid={isInvalid}>
+                      <FieldLabel htmlFor={id}>Date</FieldLabel>
+
+                      <Popover>
+                        <PopoverTrigger
+                          render={
+                            <Button
+                              id={id}
+                              variant="outline"
+                              data-empty={!date}
+                              className="justify-start text-left font-normal data-[empty=true]:text-muted-foreground"
+                              aria-invalid={isInvalid ? true : undefined}
+                              aria-labelledby={isInvalid ? errorId : undefined}
+                            />
+                          }
+                        >
+                          <IconCalendar />
+                          {date ? format(date, "PPP") : <span>Pick a date</span>}
+                        </PopoverTrigger>
+                        <PopoverContent className="w-auto p-0">
+                          <Calendar
+                            mode="single"
+                            selected={date}
+                            onSelect={(value) => field.handleChange(value ?? new Date())}
+                            onDayBlur={field.handleBlur}
+                          />
+                        </PopoverContent>
+                      </Popover>
+
+                      {isInvalid && <FieldError errors={field.state.meta.errors} />}
+                    </Field>
+                  );
+                }}
+              </form.AppField>
+              <form.AppField name="note">
+                {(field) => <field.Textarea label="Note (optional)" placeholder="Add a note..." />}
+              </form.AppField>
             </FieldGroup>
           </form>
         </div>

@@ -1,5 +1,6 @@
-import { IconAlertCircle, IconFileDescription } from "@tabler/icons-react";
+import { IconAlertCircle, IconCalendar, IconFileDescription } from "@tabler/icons-react";
 import { useQuery } from "@tanstack/react-query";
+import { format } from "date-fns";
 import z from "zod";
 import { create } from "zustand";
 import { useShallow } from "zustand/react/shallow";
@@ -10,6 +11,7 @@ import type { DialogState } from "#/lib/types";
 import { StateTemplate } from "#/components/state-template";
 import { Alert, AlertDescription, AlertTitle } from "#/components/ui/alert";
 import { Button } from "#/components/ui/button";
+import { Calendar } from "#/components/ui/calendar";
 import {
   Dialog,
   DialogContent,
@@ -18,18 +20,21 @@ import {
   DialogHeader,
   DialogTitle,
 } from "#/components/ui/dialog";
-import { FieldGroup } from "#/components/ui/field";
+import { Field, FieldError, FieldGroup, FieldLabel } from "#/components/ui/field";
+import {
+  InputGroup,
+  InputGroupAddon,
+  InputGroupInput,
+  InputGroupText,
+} from "#/components/ui/input-group";
+import { Popover, PopoverContent, PopoverTrigger } from "#/components/ui/popover";
 import { useAppForm } from "#/integrations/tanstack-form";
 import { currencyCodec } from "#/lib/codecs";
-import {
-  baseTransactionDefaultValues,
-  BaseTransactionFieldGroup,
-  baseTransactionFields,
-} from "#/modules/transactions/forms";
+import { getCurrency, isCurrencyCode } from "#/lib/utils";
 import { validateEditTransaction } from "#/modules/transactions/functions";
 import { useEditTransactionMutation } from "#/modules/transactions/mutations";
 import { transactionQueryOption } from "#/modules/transactions/query-options";
-import { editTransactionSchema } from "#/modules/transactions/schemas";
+import { editTransactionSchema, transactionTypeEnum } from "#/modules/transactions/schemas";
 import { confirm } from "#/stores/use-confirm";
 
 type StoreState = DialogState & {
@@ -71,12 +76,10 @@ export function EditTransactionDialog() {
 
   const defaultValues: z.input<typeof editTransactionSchema> = {
     transactionId: transaction?.id ?? "",
-    type: transaction?.type ?? baseTransactionDefaultValues.type,
-    amount: currencyCodec.encode(
-      transaction?.amount ?? Number(baseTransactionDefaultValues.amount),
-    ),
-    date: transaction?.date ?? baseTransactionDefaultValues.date,
-    note: transaction?.note ?? baseTransactionDefaultValues.note,
+    type: transaction?.type ?? "income",
+    amount: currencyCodec.encode(transaction?.amount ?? 0),
+    date: transaction?.date ?? new Date(),
+    note: transaction?.note ?? "",
   };
 
   const form = useAppForm({
@@ -159,11 +162,112 @@ export function EditTransactionDialog() {
               }}
             >
               <FieldGroup>
-                <BaseTransactionFieldGroup
-                  form={form}
-                  fields={baseTransactionFields}
-                  currency={transaction.bankAccount?.currency ?? "PHP"}
-                />
+                <form.AppField name="type">
+                  {(field) => (
+                    <field.RadioGroup
+                      label="Type"
+                      options={Object.keys(transactionTypeEnum.enum).map((type) => ({
+                        label: type,
+                        value: type,
+                      }))}
+                    />
+                  )}
+                </form.AppField>
+                <form.AppField name="amount">
+                  {(field) => {
+                    const isInvalid = field.state.meta.isTouched && !field.state.meta.isValid;
+
+                    const id = field.name;
+                    const errorId = `${id}-error`;
+
+                    const accountCurrency = transaction.bankAccount?.currency ?? "PHP";
+
+                    const validated = isCurrencyCode(accountCurrency);
+                    if (!validated) return null;
+
+                    const currency = getCurrency(accountCurrency);
+                    if (!currency) return null;
+
+                    return (
+                      <Field data-invalid={isInvalid}>
+                        <FieldLabel htmlFor={id}>Amount</FieldLabel>
+
+                        <InputGroup>
+                          <InputGroupAddon>
+                            <InputGroupText>{currency.symbol}</InputGroupText>
+                          </InputGroupAddon>
+                          <InputGroupInput
+                            type="number"
+                            id={field.name}
+                            placeholder="0.00"
+                            min={0}
+                            step={0.01}
+                            required
+                            value={field.state.value as string}
+                            onChange={(e) => field.handleChange(e.target.value)}
+                            onBlur={field.handleBlur}
+                            aria-invalid={isInvalid ? true : undefined}
+                            aria-labelledby={isInvalid ? errorId : undefined}
+                          />
+                          <InputGroupAddon align="inline-end">
+                            <InputGroupText>{currency.code}</InputGroupText>
+                          </InputGroupAddon>
+                        </InputGroup>
+
+                        {isInvalid && <FieldError id={errorId} errors={field.state.meta.errors} />}
+                      </Field>
+                    );
+                  }}
+                </form.AppField>
+                <form.AppField name="date">
+                  {(field) => {
+                    const date = field.state.value;
+
+                    const isInvalid = field.state.meta.isTouched && !field.state.meta.isValid;
+
+                    const id = field.name;
+                    const errorId = `${id}-error`;
+
+                    return (
+                      <Field data-invalid={isInvalid}>
+                        <FieldLabel htmlFor={id}>Date</FieldLabel>
+
+                        <Popover>
+                          <PopoverTrigger
+                            render={
+                              <Button
+                                id={id}
+                                variant="outline"
+                                data-empty={!date}
+                                className="justify-start text-left font-normal data-[empty=true]:text-muted-foreground"
+                                aria-invalid={isInvalid ? true : undefined}
+                                aria-labelledby={isInvalid ? errorId : undefined}
+                              />
+                            }
+                          >
+                            <IconCalendar />
+                            {date ? format(date, "PPP") : <span>Pick a date</span>}
+                          </PopoverTrigger>
+                          <PopoverContent className="w-auto p-0">
+                            <Calendar
+                              mode="single"
+                              selected={date}
+                              onSelect={(value) => field.handleChange(value ?? new Date())}
+                              onDayBlur={field.handleBlur}
+                            />
+                          </PopoverContent>
+                        </Popover>
+
+                        {isInvalid && <FieldError errors={field.state.meta.errors} />}
+                      </Field>
+                    );
+                  }}
+                </form.AppField>
+                <form.AppField name="note">
+                  {(field) => (
+                    <field.Textarea label="Note (optional)" placeholder="Add a note..." />
+                  )}
+                </form.AppField>
                 <form.Subscribe selector={(state) => state.errorMap.onSubmit}>
                   {(error) =>
                     error ? (

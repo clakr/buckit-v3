@@ -1,5 +1,6 @@
-import { IconAlertCircle, IconFileDescription } from "@tabler/icons-react";
+import { IconAlertCircle, IconCalendar, IconFileDescription } from "@tabler/icons-react";
 import { useQuery } from "@tanstack/react-query";
+import { format } from "date-fns";
 import z from "zod";
 import { create } from "zustand";
 import { useShallow } from "zustand/react/shallow";
@@ -10,6 +11,7 @@ import type { DialogState } from "#/lib/types";
 import { StateTemplate } from "#/components/state-template";
 import { Alert, AlertDescription, AlertTitle } from "#/components/ui/alert";
 import { Button } from "#/components/ui/button";
+import { Calendar } from "#/components/ui/calendar";
 import {
   Dialog,
   DialogContent,
@@ -25,16 +27,15 @@ import {
   InputGroupInput,
   InputGroupText,
 } from "#/components/ui/input-group";
+import { Popover, PopoverContent, PopoverTrigger } from "#/components/ui/popover";
 import { Spinner } from "#/components/ui/spinner";
 import { useAppForm } from "#/integrations/tanstack-form";
 import { currencyCodec } from "#/lib/codecs";
 import { getCurrency, isCurrencyCode } from "#/lib/utils";
-import { BaseAllocationFieldGroup, baseAllocationFields } from "#/modules/allocations/forms";
 import { validateEditAllocationAmount } from "#/modules/allocations/functions";
 import { useEditAllocationMutation } from "#/modules/allocations/mutations";
 import { allocationQueryOption } from "#/modules/allocations/query-options";
 import { editAllocationSchema } from "#/modules/allocations/schemas";
-import { baseTransactionDefaultValues } from "#/modules/transactions/forms";
 import { confirm } from "#/stores/use-confirm";
 
 type StoreState = DialogState & {
@@ -77,8 +78,8 @@ export function EditAllocationDialog() {
   const defaultValues: z.input<typeof editAllocationSchema> = {
     allocationId: allocationId ?? "",
     amount: currencyCodec.encode(allocation?.amount ?? 0),
-    date: allocation?.date ?? baseTransactionDefaultValues.date,
-    note: allocation?.note ?? baseTransactionDefaultValues.note,
+    date: allocation?.date ?? new Date(),
+    note: allocation?.note ?? "",
   };
 
   const form = useAppForm({
@@ -227,7 +228,55 @@ export function EditAllocationDialog() {
                     );
                   }}
                 </form.AppField>
-                <BaseAllocationFieldGroup form={form} fields={baseAllocationFields} />
+                <form.AppField name="date">
+                  {(field) => {
+                    const date = field.state.value;
+
+                    const isInvalid = field.state.meta.isTouched && !field.state.meta.isValid;
+
+                    const id = field.name;
+                    const errorId = `${id}-error`;
+
+                    return (
+                      <Field data-invalid={isInvalid}>
+                        <FieldLabel htmlFor={id}>Date</FieldLabel>
+
+                        <Popover>
+                          <PopoverTrigger
+                            render={
+                              <Button
+                                id={id}
+                                variant="outline"
+                                data-empty={!date}
+                                className="justify-start text-left font-normal data-[empty=true]:text-muted-foreground"
+                                aria-invalid={isInvalid ? true : undefined}
+                                aria-labelledby={isInvalid ? errorId : undefined}
+                              />
+                            }
+                          >
+                            <IconCalendar />
+                            {date ? format(date, "PPP") : <span>Pick a date</span>}
+                          </PopoverTrigger>
+                          <PopoverContent className="w-auto p-0">
+                            <Calendar
+                              mode="single"
+                              selected={date}
+                              onSelect={(value) => field.handleChange(value ?? new Date())}
+                              onDayBlur={field.handleBlur}
+                            />
+                          </PopoverContent>
+                        </Popover>
+
+                        {isInvalid && <FieldError errors={field.state.meta.errors} />}
+                      </Field>
+                    );
+                  }}
+                </form.AppField>
+                <form.AppField name="note">
+                  {(field) => (
+                    <field.Textarea label="Note (optional)" placeholder="Add a note..." />
+                  )}
+                </form.AppField>
                 <form.Subscribe selector={(state) => state.errorMap.onSubmit}>
                   {(error) =>
                     error ? (
