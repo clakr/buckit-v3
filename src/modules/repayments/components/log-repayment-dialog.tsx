@@ -19,13 +19,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "#/components/ui/dialog";
-import {
-  Field,
-  FieldDescription,
-  FieldError,
-  FieldGroup,
-  FieldLabel,
-} from "#/components/ui/field";
+import { Field, FieldDescription, FieldError, FieldGroup, FieldLabel } from "#/components/ui/field";
 import {
   InputGroup,
   InputGroupAddon,
@@ -44,6 +38,7 @@ import {
 import { useAppForm } from "#/integrations/tanstack-form";
 import { currencyCodec } from "#/lib/codecs";
 import { formatCurrency, getCurrency, isCurrencyCode } from "#/lib/utils";
+import { BankAccountFigures } from "#/modules/bank-accounts/components/bank-account-figures";
 import { bankAccountsQueryOption } from "#/modules/bank-accounts/query-options";
 import { getBankAccountUnallocatedBalance } from "#/modules/bank-accounts/utils";
 import { confirm } from "#/stores/use-confirm";
@@ -155,7 +150,8 @@ export function LogRepaymentDialog() {
                   const id = field.name;
                   const errorId = `${id}-error`;
 
-                  const disabled = status !== "success" || !bankAccounts || bankAccounts.length === 0;
+                  const disabled =
+                    status !== "success" || !bankAccounts || bankAccounts.length === 0;
 
                   const items = bankAccounts?.map((a) => ({ value: a.id, label: a.name }));
 
@@ -196,37 +192,16 @@ export function LogRepaymentDialog() {
                                 allocations: account.allocations,
                               });
 
-                              const fullyUnallocated = balance === unallocated;
-
                               return (
                                 <SelectItem key={account.id} value={account.id}>
                                   <div className="flex w-full items-center justify-between gap-3">
                                     <span className="font-medium">{account.name}</span>
-                                    <span className="flex items-center gap-1.5 text-[11px] text-muted-foreground tabular-nums">
-                                      {fullyUnallocated ? (
-                                        <span>
-                                          {formatCurrency(currencyCodec.encode(balance), {
-                                            currency: account.currency,
-                                          })}
-                                        </span>
-                                      ) : (
-                                        <>
-                                          <span>
-                                            {formatCurrency(currencyCodec.encode(balance), {
-                                              currency: account.currency,
-                                            })}{" "}
-                                            bal
-                                          </span>
-                                          <span className="text-foreground/30">·</span>
-                                          <span>
-                                            {formatCurrency(currencyCodec.encode(unallocated), {
-                                              currency: account.currency,
-                                            })}{" "}
-                                            free
-                                          </span>
-                                        </>
-                                      )}
-                                    </span>
+                                    <BankAccountFigures
+                                      balance={balance}
+                                      unallocated={unallocated}
+                                      currency={account.currency}
+                                      className="text-[11px]"
+                                    />
                                   </div>
                                 </SelectItem>
                               );

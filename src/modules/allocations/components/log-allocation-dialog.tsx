@@ -43,6 +43,7 @@ import { formatCurrency, getCurrency, isCurrencyCode } from "#/lib/utils";
 import { validateLogAllocationAmount } from "#/modules/allocations/functions";
 import { useLogAllocationMutation } from "#/modules/allocations/mutations";
 import { logAllocationSchema } from "#/modules/allocations/schemas";
+import { BankAccountFigures } from "#/modules/bank-accounts/components/bank-account-figures";
 import { bankAccountsQueryOption } from "#/modules/bank-accounts/query-options";
 import { getBankAccountUnallocatedBalance } from "#/modules/bank-accounts/utils";
 import { bucketsQueryOptions } from "#/modules/buckets/query-options";
@@ -199,24 +200,69 @@ export function LogAllocationDialog() {
                 </form.AppField>
               ) : (
                 <form.AppField name="bankAccountId">
-                  {(field) => (
-                    <field.Select
-                      label="Bank Account"
-                      items={bankAccounts?.map((a) => ({ value: a.id, label: a.name }))}
-                      disabled={
-                        bankAccountsStatus !== "success" ||
-                        !bankAccounts ||
-                        bankAccounts.length === 0
-                      }
-                      placeholder="Select bank account"
-                      options={
-                        bankAccounts?.map((a) => ({
-                          label: a.name,
-                          value: a.id,
-                        })) ?? []
-                      }
-                    />
-                  )}
+                  {(field) => {
+                    const isInvalid = field.state.meta.isTouched && !field.state.meta.isValid;
+
+                    const id = field.name;
+                    const errorId = `${id}-error`;
+
+                    const disabled =
+                      bankAccountsStatus !== "success" ||
+                      !bankAccounts ||
+                      bankAccounts.length === 0;
+
+                    const items = bankAccounts?.map((a) => ({ value: a.id, label: a.name }));
+
+                    return (
+                      <Field data-invalid={isInvalid}>
+                        <FieldLabel htmlFor={id}>Bank Account</FieldLabel>
+
+                        <Select
+                          items={items}
+                          value={field.state.value}
+                          onValueChange={(value) => field.handleChange(value as string)}
+                          disabled={disabled}
+                        >
+                          <SelectTrigger
+                            id={id}
+                            className="w-full"
+                            onBlur={field.handleBlur}
+                            aria-invalid={isInvalid ? true : undefined}
+                            aria-labelledby={isInvalid ? errorId : undefined}
+                          >
+                            <SelectValue placeholder="Select bank account" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectGroup>
+                              {bankAccounts?.map((account) => {
+                                const { balance, unallocated } = getBankAccountUnallocatedBalance({
+                                  startingBalance: account.startingBalance,
+                                  transactions: account.transactions,
+                                  allocations: account.allocations,
+                                });
+
+                                return (
+                                  <SelectItem key={account.id} value={account.id}>
+                                    <div className="flex w-full items-center justify-between gap-3">
+                                      <span className="font-medium">{account.name}</span>
+                                      <BankAccountFigures
+                                        balance={balance}
+                                        unallocated={unallocated}
+                                        currency={account.currency}
+                                        className="text-[11px]"
+                                      />
+                                    </div>
+                                  </SelectItem>
+                                );
+                              })}
+                            </SelectGroup>
+                          </SelectContent>
+                        </Select>
+
+                        {isInvalid && <FieldError id={errorId} errors={field.state.meta.errors} />}
+                      </Field>
+                    );
+                  }}
                 </form.AppField>
               )}
               <form.AppField

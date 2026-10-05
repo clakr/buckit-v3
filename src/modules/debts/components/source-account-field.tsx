@@ -11,9 +11,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "#/components/ui/select";
-import { Spinner } from "#/components/ui/spinner";
-import { currencyCodec } from "#/lib/codecs";
-import { formatCurrency } from "#/lib/utils";
+import { BankAccountFigures } from "#/modules/bank-accounts/components/bank-account-figures";
 import { useRegisterBankAccountDialogStore } from "#/modules/bank-accounts/components/register-bank-account-dialog";
 import { bankAccountsQueryOption } from "#/modules/bank-accounts/query-options";
 import { getBankAccountUnallocatedBalance } from "#/modules/bank-accounts/utils";
@@ -78,31 +76,28 @@ export function SourceAccountField({
           onValueChange={(value) => onBankAccountIdChange(value || undefined)}
           disabled={status !== "success"}
         >
-          <SelectTrigger
-            id={id}
-            className="w-full"
-            icon={status === "pending" ? <Spinner /> : undefined}
-          >
+          <SelectTrigger id={id} className="w-full">
             <SelectValue placeholder="No source account" />
           </SelectTrigger>
           <SelectContent alignItemWithTrigger>
             <SelectGroup>
               {eligibleAccounts?.map((account) => {
-                const { unallocated } = getBankAccountUnallocatedBalance({
+                const { balance, unallocated } = getBankAccountUnallocatedBalance({
                   startingBalance: account.startingBalance,
                   transactions: account.transactions,
                   allocations: account.allocations,
-                });
-
-                const amount = formatCurrency(currencyCodec.encode(unallocated), {
-                  currency: account.currency,
                 });
 
                 return (
                   <SelectItem key={account.id} value={account.id}>
                     <span className="flex w-full min-w-0 items-center justify-between gap-4">
                       <span className="truncate">{account.name}</span>
-                      <span className="shrink-0 text-muted-foreground tabular-nums">{amount}</span>
+                      <BankAccountFigures
+                        balance={balance}
+                        unallocated={unallocated}
+                        currency={account.currency}
+                        className="shrink-0"
+                      />
                     </span>
                   </SelectItem>
                 );

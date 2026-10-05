@@ -1,0 +1,38 @@
+import { currencyCodec } from "#/lib/codecs";
+import { cn, formatCurrency } from "#/lib/utils";
+
+type BankAccountFiguresProps = {
+  balance: number;
+  unallocated: number;
+  currency: string;
+  className?: string;
+};
+
+/** Balance + unallocated for a bank account select item, collapsed to one figure when they're equal. */
+export function BankAccountFigures({
+  balance,
+  unallocated,
+  currency,
+  className,
+}: BankAccountFiguresProps) {
+  const wrapperClassName = cn(
+    "flex items-center gap-1.5 text-muted-foreground tabular-nums",
+    className,
+  );
+
+  if (balance === unallocated) {
+    return (
+      <span className={wrapperClassName}>
+        {formatCurrency(currencyCodec.encode(balance), { currency })}
+      </span>
+    );
+  }
+
+  return (
+    <span className={wrapperClassName}>
+      <span>{formatCurrency(currencyCodec.encode(balance), { currency })} bal</span>
+      <span className="text-foreground/30">·</span>
+      <span>{formatCurrency(currencyCodec.encode(unallocated), { currency })} free</span>
+    </span>
+  );
+}
