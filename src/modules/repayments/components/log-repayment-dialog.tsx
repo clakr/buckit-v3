@@ -196,7 +196,7 @@ export function LogRepaymentDialog() {
 
                               return (
                                 <SelectItem key={account.id} value={account.id}>
-                                  <div className="flex w-full items-center justify-between gap-3">
+                                  <div className="flex w-full flex-col items-start gap-0.5">
                                     <span className="font-medium">{account.name}</span>
                                     <BankAccountFigures
                                       balance={balance}

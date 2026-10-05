@@ -90,13 +90,12 @@ export function SourceAccountField({
 
                 return (
                   <SelectItem key={account.id} value={account.id}>
-                    <span className="flex w-full min-w-0 items-center justify-between gap-4">
-                      <span className="truncate">{account.name}</span>
+                    <span className="flex w-full min-w-0 flex-col items-start gap-0.5">
+                      <span className="w-full truncate">{account.name}</span>
                       <BankAccountFigures
                         balance={balance}
                         unallocated={unallocated}
                         currency={account.currency}
-                        className="shrink-0"
                       />
                     </span>
                   </SelectItem>
