@@ -1,9 +1,11 @@
 import type { ColumnDef } from "@tanstack/react-table";
 
-import { IconCircleDashed, IconCircleDottedLetterH } from "@tabler/icons-react";
+import { IconCircleDashed, IconCircleDottedLetterH, IconInfoCircle } from "@tabler/icons-react";
 
 import { SortableTableHead } from "#/components/table/sortable-table-head";
 import { Badge } from "#/components/ui/badge";
+import { Button } from "#/components/ui/button";
+import { Popover, PopoverContent, PopoverTrigger } from "#/components/ui/popover";
 import { Tooltip, TooltipContent, TooltipTrigger } from "#/components/ui/tooltip";
 import { currencyCodec } from "#/lib/codecs";
 import { formatCurrency, formatDateTime, formatToRelative } from "#/lib/utils";
@@ -34,21 +36,6 @@ export const INDEX_COLUMNS: ColumnDef<Awaited<ReturnType<typeof getDebts>>[numbe
     },
   },
   {
-    accessorKey: "amount",
-    header: ({ column }) => (
-      <SortableTableHead column={column} data-currency>
-        Amount
-      </SortableTableHead>
-    ),
-    cell: ({ row }) => {
-      const value = formatCurrency(currencyCodec.encode(row.original.amount), {
-        currency: row.original.currency,
-      });
-
-      return <span className="block text-end font-medium">{value}</span>;
-    },
-  },
-  {
     accessorKey: "outstanding",
     header: ({ column }) => (
       <SortableTableHead column={column} data-currency>
@@ -56,16 +43,55 @@ export const INDEX_COLUMNS: ColumnDef<Awaited<ReturnType<typeof getDebts>>[numbe
       </SortableTableHead>
     ),
     cell: ({ row }) => {
-      const outstanding = getDebtOutstanding({
-        amount: row.original.amount,
-        repayments: row.original.repayments,
-      });
+      const amount = row.original.amount;
+      const outstanding = getDebtOutstanding({ amount, repayments: row.original.repayments });
+      const repaid = amount - outstanding;
 
-      const value = formatCurrency(currencyCodec.encode(outstanding), {
-        currency: row.original.currency,
-      });
+      const hasRepayments = repaid > 0;
 
-      return <span className="block text-end font-medium">{value}</span>;
+      return (
+        <div className="flex items-center justify-end gap-1">
+          {hasRepayments ? (
+            <Popover>
+              <PopoverTrigger
+                render={
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="size-5 text-muted-foreground"
+                    aria-label="Show original amount"
+                  />
+                }
+              >
+                <IconInfoCircle className="size-3.5" />
+              </PopoverTrigger>
+              <PopoverContent className="w-fit" align="end">
+                <dl className="grid grid-cols-2 gap-x-4 gap-y-1.5">
+                  <dt className="text-muted-foreground">Original amount</dt>
+                  <dd className="text-end font-medium tabular-nums">
+                    {formatCurrency(currencyCodec.encode(amount), {
+                      currency: row.original.currency,
+                    })}
+                  </dd>
+
+                  <dt className="text-muted-foreground">Repaid</dt>
+                  <dd className="text-end font-medium tabular-nums">
+                    {formatCurrency(currencyCodec.encode(repaid), {
+                      currency: row.original.currency,
+                    })}
+                  </dd>
+                </dl>
+              </PopoverContent>
+            </Popover>
+          ) : null}
+
+          <span className="text-end font-semibold tabular-nums">
+            {formatCurrency(currencyCodec.encode(outstanding), {
+              currency: row.original.currency,
+            })}
+          </span>
+        </div>
+      );
     },
   },
   {
