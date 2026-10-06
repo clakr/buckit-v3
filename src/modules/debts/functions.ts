@@ -6,7 +6,12 @@ import { getDB } from "#/db";
 import { debts, transactions } from "#/db/schema";
 import { currencyCodec } from "#/lib/codecs";
 import { authMiddleware } from "#/lib/middlewares";
-import { recordDebtSchema } from "#/modules/debts/schemas";
+import {
+  recordDebtSchema,
+  verifyUserDebtMiddlewareSchema,
+} from "#/modules/debts/schemas";
+
+import { verifyUserDebtMiddleware } from "./middlewares";
 
 export const getDebts = createServerFn({
   method: "GET",
@@ -98,4 +103,20 @@ export const recordDebt = createServerFn({
     ]);
 
     return debtRows[0];
+  });
+
+export const getDebt = createServerFn({
+  method: "GET",
+})
+  .middleware([verifyUserDebtMiddleware])
+  .handler(async ({ data }) => {
+    const db = getDB(env.db);
+
+    const debt = await db.query.debts.findFirst({
+      where: {
+        id: data.debtId,
+      },
+    });
+
+    return debt ?? null;
   });

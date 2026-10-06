@@ -1,4 +1,5 @@
-import { IconDots, IconPlus } from "@tabler/icons-react";
+import { IconDots, IconEye, IconPlus } from "@tabler/icons-react";
+import { Link } from "@tanstack/react-router";
 
 import { Button } from "#/components/ui/button";
 import {
@@ -6,6 +7,7 @@ import {
   DropdownMenuContent,
   DropdownMenuGroup,
   DropdownMenuItem,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "#/components/ui/dropdown-menu";
 import { useLogRepaymentDialogStore } from "#/modules/repayments/components/log-repayment-dialog";
@@ -35,6 +37,13 @@ export function DebtActionsDropdownMenu({ debt }: Props) {
           <DropdownMenuItem onClick={handleOpenLogRepaymentDialog}>
             <IconPlus />
             Log Repayment
+          </DropdownMenuItem>
+        </DropdownMenuGroup>
+        <DropdownMenuSeparator />
+        <DropdownMenuGroup>
+          <DropdownMenuItem render={<Link to="/debts/$debtId" params={{ debtId: debt.id }} />}>
+            <IconEye />
+            View
           </DropdownMenuItem>
         </DropdownMenuGroup>
       </DropdownMenuContent>

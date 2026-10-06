@@ -23,6 +23,7 @@ import { Route as ProtectedAllocationsIndexRouteImport } from './routes/_protect
 import { Route as ProtectedBucketsIndexRouteImport } from './routes/_protected/buckets.index'
 import { Route as ProtectedBucketsBucketIdRouteImport } from './routes/_protected/buckets.$bucketId'
 import { Route as ProtectedDebtsIndexRouteImport } from './routes/_protected/debts.index'
+import { Route as ProtectedDebtsDebtIdRouteImport } from './routes/_protected/debts.$debtId'
 import { Route as ProtectedTransactionsIndexRouteImport } from './routes/_protected/transactions.index'
 import { Route as ApiAuthSplatRouteImport } from './routes/api/auth/$'
 import { Route as DemoFormAddressRouteImport } from './routes/demo/form.address'
@@ -99,6 +100,11 @@ const ProtectedDebtsIndexRoute = ProtectedDebtsIndexRouteImport.update({
   path: '/debts/',
   getParentRoute: () => ProtectedRoute,
 } as any)
+const ProtectedDebtsDebtIdRoute = ProtectedDebtsDebtIdRouteImport.update({
+  id: '/debts/$debtId',
+  path: '/debts/$debtId',
+  getParentRoute: () => ProtectedRoute,
+} as any)
 const ProtectedTransactionsIndexRoute =
   ProtectedTransactionsIndexRouteImport.update({
     id: '/transactions/',
@@ -130,6 +136,7 @@ export interface FileRoutesByFullPath {
   '/demo/tanstack-query': typeof DemoTanstackQueryRoute
   '/accounts/$accountId': typeof ProtectedAccountsAccountIdRoute
   '/buckets/$bucketId': typeof ProtectedBucketsBucketIdRoute
+  '/debts/$debtId': typeof ProtectedDebtsDebtIdRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/demo/form/address': typeof DemoFormAddressRoute
   '/demo/form/simple': typeof DemoFormSimpleRoute
@@ -148,6 +155,7 @@ export interface FileRoutesByTo {
   '/demo/tanstack-query': typeof DemoTanstackQueryRoute
   '/accounts/$accountId': typeof ProtectedAccountsAccountIdRoute
   '/buckets/$bucketId': typeof ProtectedBucketsBucketIdRoute
+  '/debts/$debtId': typeof ProtectedDebtsDebtIdRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/demo/form/address': typeof DemoFormAddressRoute
   '/demo/form/simple': typeof DemoFormSimpleRoute
@@ -169,6 +177,7 @@ export interface FileRoutesById {
   '/_guest/': typeof GuestIndexRoute
   '/_protected/accounts/$accountId': typeof ProtectedAccountsAccountIdRoute
   '/_protected/buckets/$bucketId': typeof ProtectedBucketsBucketIdRoute
+  '/_protected/debts/$debtId': typeof ProtectedDebtsDebtIdRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/demo/form/address': typeof DemoFormAddressRoute
   '/demo/form/simple': typeof DemoFormSimpleRoute
@@ -189,6 +198,7 @@ export interface FileRouteTypes {
     | '/demo/tanstack-query'
     | '/accounts/$accountId'
     | '/buckets/$bucketId'
+    | '/debts/$debtId'
     | '/api/auth/$'
     | '/demo/form/address'
     | '/demo/form/simple'
@@ -207,6 +217,7 @@ export interface FileRouteTypes {
     | '/demo/tanstack-query'
     | '/accounts/$accountId'
     | '/buckets/$bucketId'
+    | '/debts/$debtId'
     | '/api/auth/$'
     | '/demo/form/address'
     | '/demo/form/simple'
@@ -227,6 +238,7 @@ export interface FileRouteTypes {
     | '/_guest/'
     | '/_protected/accounts/$accountId'
     | '/_protected/buckets/$bucketId'
+    | '/_protected/debts/$debtId'
     | '/api/auth/$'
     | '/demo/form/address'
     | '/demo/form/simple'
@@ -348,6 +360,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ProtectedDebtsIndexRouteImport
       parentRoute: typeof ProtectedRoute
     }
+    '/_protected/debts/$debtId': {
+      id: '/_protected/debts/$debtId'
+      path: '/debts/$debtId'
+      fullPath: '/debts/$debtId'
+      preLoaderRoute: typeof ProtectedDebtsDebtIdRouteImport
+      parentRoute: typeof ProtectedRoute
+    }
     '/_protected/transactions/': {
       id: '/_protected/transactions/'
       path: '/transactions'
@@ -395,6 +414,7 @@ interface ProtectedRouteChildren {
   ProtectedDashboardRoute: typeof ProtectedDashboardRoute
   ProtectedAccountsAccountIdRoute: typeof ProtectedAccountsAccountIdRoute
   ProtectedBucketsBucketIdRoute: typeof ProtectedBucketsBucketIdRoute
+  ProtectedDebtsDebtIdRoute: typeof ProtectedDebtsDebtIdRoute
   ProtectedAccountsIndexRoute: typeof ProtectedAccountsIndexRoute
   ProtectedAllocationsIndexRoute: typeof ProtectedAllocationsIndexRoute
   ProtectedBucketsIndexRoute: typeof ProtectedBucketsIndexRoute
@@ -406,6 +426,7 @@ const ProtectedRouteChildren: ProtectedRouteChildren = {
   ProtectedDashboardRoute: ProtectedDashboardRoute,
   ProtectedAccountsAccountIdRoute: ProtectedAccountsAccountIdRoute,
   ProtectedBucketsBucketIdRoute: ProtectedBucketsBucketIdRoute,
+  ProtectedDebtsDebtIdRoute: ProtectedDebtsDebtIdRoute,
   ProtectedAccountsIndexRoute: ProtectedAccountsIndexRoute,
   ProtectedAllocationsIndexRoute: ProtectedAllocationsIndexRoute,
   ProtectedBucketsIndexRoute: ProtectedBucketsIndexRoute,

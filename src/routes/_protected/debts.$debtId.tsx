@@ -1,0 +1,83 @@
+import { useSuspenseQuery } from "@tanstack/react-query";
+import { createFileRoute, Link } from "@tanstack/react-router";
+
+import { Heading } from "#/components/heading";
+import { Main } from "#/components/main";
+import { StateTemplate } from "#/components/state-template";
+import { Button } from "#/components/ui/button";
+import { debtQueryOption } from "#/modules/debts/query-options";
+
+class DebtNotFoundError extends Error {
+  constructor() {
+    super();
+  }
+}
+
+export const Route = createFileRoute("/_protected/debts/$debtId")({
+  context: ({ params }) => ({
+    debtQueryOptions: debtQueryOption(params.debtId),
+  }),
+  loader: async ({ context: { queryClient, debtQueryOptions } }) => {
+    return queryClient.query(debtQueryOptions);
+  },
+  pendingComponent: () => (
+    <Main>
+      <Heading className="capitalize">Debt</Heading>
+
+      <StateTemplate
+        state="loading"
+        title="Loading debt..."
+        description="Fetching debt details and history..."
+      />
+    </Main>
+  ),
+  errorComponent: ({ error, reset }) => {
+    if (error instanceof DebtNotFoundError)
+      return (
+        <Main>
+          <Heading className="capitalize">Debt</Heading>
+          <StateTemplate
+            state="error"
+            title="Debt not found"
+            description="This debt doesn't exist or may have been deleted."
+            content={
+              <Button variant="secondary" render={<Link to=".." />}>
+                Go back to debts
+              </Button>
+            }
+          />
+        </Main>
+      );
+
+    return (
+      <Main>
+        <Heading className="capitalize">Debt</Heading>
+        <StateTemplate
+          state="error"
+          title="Could not load debt"
+          description="We weren't able to retrieve this debt. Please check your connection and try again."
+          content={<Button onClick={reset}>Retry</Button>}
+        />
+      </Main>
+    );
+  },
+  component: RouteComponent,
+});
+
+function RouteComponent() {
+  const { debtId } = Route.useParams();
+  const { debtQueryOptions } = Route.useRouteContext();
+
+  const { data: debt } = useSuspenseQuery(debtQueryOptions);
+  if (!debt) throw new DebtNotFoundError();
+
+  return (
+    <Main>
+      <div className="flex items-baseline justify-between">
+        <Heading className="capitalize">{debt.name}</Heading>
+      </div>
+
+      <pre>{JSON.stringify(debt, null, 2)}</pre>
+    </Main>
+  );
+}
