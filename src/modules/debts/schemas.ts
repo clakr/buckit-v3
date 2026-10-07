@@ -22,3 +22,8 @@ export const recordDebtSchema = z.object({
     .max(100, "Counterparty name must be 100 characters or fewer"),
   bankAccountId: z.string().optional(),
 });
+
+export const validateDebtSourceBankAccountSchema = z.object({
+  bankAccountId: z.string().min(1, "No bank account ID provided"),
+  currency: z.enum(CURRENCIES_CODES),
+});

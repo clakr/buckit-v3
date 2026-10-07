@@ -6,7 +6,7 @@ import { getDB } from "#/db";
 import { debts, transactions } from "#/db/schema";
 import { currencyCodec } from "#/lib/codecs";
 import { authMiddleware } from "#/lib/middlewares";
-import { recordDebtSchema } from "#/modules/debts/schemas";
+import { recordDebtSchema, validateDebtSourceBankAccountSchema } from "#/modules/debts/schemas";
 
 import { verifyUserDebtMiddleware } from "./middlewares";
 
@@ -32,6 +32,30 @@ export const getDebts = createServerFn({
         },
       },
     });
+  });
+
+export const validateDebtSourceBankAccount = createServerFn({
+  method: "GET",
+})
+  .middleware([authMiddleware])
+  .validator(validateDebtSourceBankAccountSchema)
+  .handler(async ({ context, data }) => {
+    const db = getDB(env.db);
+
+    const account = await db.query.bankAccounts.findFirst({
+      where: {
+        id: data.bankAccountId,
+        userId: context.user.id,
+        currency: data.currency,
+      },
+      columns: { id: true },
+    });
+
+    if (!account) {
+      return { isValid: false, message: "The source account is invalid for this debt." };
+    }
+
+    return { isValid: true, message: "ok" };
   });
 
 export const recordDebt = createServerFn({
@@ -61,19 +85,14 @@ export const recordDebt = createServerFn({
       return debt;
     }
 
-    // Re-verify ownership and currency here rather than trusting the client-picked
-    // id — never take a bankAccountId at face value.
-    const account = await db.query.bankAccounts.findFirst({
-      where: {
-        id: data.bankAccountId,
-        userId: context.user.id,
+    const { isValid, message } = await validateDebtSourceBankAccount({
+      data: {
+        bankAccountId: data.bankAccountId,
         currency: data.currency,
       },
-      columns: { id: true },
     });
-    if (!account) {
-      throw new Error("The source account is invalid for this debt.");
-    }
+
+    if (!isValid) throw new Error(message);
 
     const transactionId = uuidv7();
 

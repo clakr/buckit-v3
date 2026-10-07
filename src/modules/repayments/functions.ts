@@ -11,6 +11,23 @@ import { getBankAccountUnallocatedBalance } from "#/modules/bank-accounts/utils"
 import { verifyUserDebtMiddleware } from "../debts/middlewares";
 import { logRepaymentSchema } from "./schemas";
 
+export const getRepaymentDebt = createServerFn({
+  method: "GET",
+})
+  .middleware([verifyUserDebtMiddleware])
+  .handler(async ({ data }) => {
+    const db = getDB(env.db);
+
+    const debt = await db.query.debts.findFirst({
+      where: { id: data.debtId },
+      columns: { direction: true },
+    });
+
+    if (!debt) throw new Error("No debt found.");
+
+    return debt;
+  });
+
 export const validateLogRepaymentCurrency = createServerFn({
   method: "GET",
 })
@@ -112,11 +129,7 @@ export const logRepayment = createServerFn({
     });
     if (!isBalanceValid) throw new Error(balanceMessage);
 
-    const debt = await db.query.debts.findFirst({
-      where: { id: data.debtId },
-      columns: { direction: true },
-    });
-    if (!debt) throw new Error("No debt found.");
+    const debt = await getRepaymentDebt({ data: { debtId: data.debtId } });
 
     const amount = currencyCodec.decode(data.amount);
     const type = debt.direction === "receivable" ? "income" : "expense";
