@@ -37,11 +37,7 @@ export const INDEX_COLUMNS: ColumnDef<Awaited<ReturnType<typeof getDebts>>[numbe
   },
   {
     accessorKey: "outstanding",
-    header: ({ column }) => (
-      <SortableTableHead column={column} data-currency>
-        Outstanding
-      </SortableTableHead>
-    ),
+    header: () => <div data-currency>Outstanding</div>,
     cell: ({ row }) => {
       const amount = row.original.amount;
       const outstanding = getDebtOutstanding({ amount, repayments: row.original.repayments });

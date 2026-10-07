@@ -9,13 +9,7 @@ import { SortableTableHead } from "#/components/table/sortable-table-head";
 import { Badge } from "#/components/ui/badge";
 import { Tooltip, TooltipContent, TooltipTrigger } from "#/components/ui/tooltip";
 import { currencyCodec } from "#/lib/codecs";
-import {
-  formatCurrency,
-  formatDateTime,
-  formatToRelative,
-  getCurrency,
-  isCurrencyCode,
-} from "#/lib/utils";
+import { formatCurrency, formatDateTime, formatToRelative } from "#/lib/utils";
 import { AllocationActionsDropdownMenu } from "#/modules/allocations/components/allocation-actions-dropdown-menu";
 import { BankAccountActionsDropdownMenu } from "#/modules/bank-accounts/components/bank-account-actions-dropdown-menu";
 import { getBankAccountUnallocatedBalance } from "#/modules/bank-accounts/utils";
@@ -27,31 +21,8 @@ export const INDEX_COLUMNS: ColumnDef<Awaited<ReturnType<typeof getBankAccounts>
     header: ({ column }) => <SortableTableHead column={column}>Name</SortableTableHead>,
   },
   {
-    accessorKey: "currency",
-    cell: ({ row }) => {
-      const value = row.original.currency;
-
-      const validated = isCurrencyCode(value);
-      if (!validated) return `Unknown Currency`;
-
-      const currency = getCurrency(value);
-      if (!currency) return `Unknown Currency`;
-
-      return (
-        <div className="flex items-center gap-x-2">
-          <Badge>{currency.code}</Badge>
-          <span className="text-muted-foreground">{currency.name}</span>
-        </div>
-      );
-    },
-  },
-  {
     accessorKey: "balance",
-    header: ({ column }) => (
-      <SortableTableHead column={column} data-currency>
-        Balance
-      </SortableTableHead>
-    ),
+    header: () => <div data-currency>Balance</div>,
     sortingFn: (rowA, rowB) => {
       const { balance: rowABalance } = getBankAccountUnallocatedBalance({
         startingBalance: rowA.original.startingBalance,
@@ -80,16 +51,12 @@ export const INDEX_COLUMNS: ColumnDef<Awaited<ReturnType<typeof getBankAccounts>
         currency: row.original.currency,
       });
 
-      return <span className="block text-end font-medium">{value}</span>;
+      return <span className="block text-end font-semibold tabular-nums">{value}</span>;
     },
   },
   {
     accessorKey: "unallocated",
-    header: ({ column }) => (
-      <SortableTableHead column={column} data-currency>
-        Unallocated
-      </SortableTableHead>
-    ),
+    header: () => <div data-currency>Unallocated</div>,
     sortingFn: (rowA, rowB) => {
       const { unallocated: rowAUnallocated } = getBankAccountUnallocatedBalance({
         startingBalance: rowA.original.startingBalance,
@@ -118,7 +85,7 @@ export const INDEX_COLUMNS: ColumnDef<Awaited<ReturnType<typeof getBankAccounts>
         currency: row.original.currency,
       });
 
-      return <span className="block text-end font-medium">{value}</span>;
+      return <span className="block text-end font-semibold tabular-nums">{value}</span>;
     },
   },
   {
@@ -199,7 +166,7 @@ export const TRANSACTIONS_COLUMNS: ColumnDef<
   {
     accessorKey: "amount",
     cell: ({ row }) => (
-      <span className="font-medium">
+      <span className="block text-end font-semibold tabular-nums">
         {formatCurrency(currencyCodec.encode(row.original.amount), {
           currency: row.original.bankAccount?.currency,
         })}
@@ -244,7 +211,7 @@ export const ALLOCATIONS_COLUMNS: ColumnDef<
   {
     accessorKey: "amount",
     cell: ({ row }) => (
-      <span className="font-medium">
+      <span className="block text-end font-semibold tabular-nums">
         {formatCurrency(currencyCodec.encode(row.original.amount), {
           currency: row.original.bankAccount?.currency,
         })}

@@ -20,6 +20,7 @@ export const INDEX_COLUMNS: ColumnDef<Awaited<ReturnType<typeof getBuckets>>[num
   },
   {
     accessorKey: "subtotal",
+    header: () => <div data-currency>Subtotal</div>,
     cell: ({ row }) => {
       const accumulatedPerCurrency = row.original.allocations.reduce<Record<string, number>>(
         (acc, a) => {
@@ -46,7 +47,7 @@ export const INDEX_COLUMNS: ColumnDef<Awaited<ReturnType<typeof getBuckets>>[num
 
       if (!subtotals) return "-";
 
-      return <span className="font-medium">{subtotals}</span>;
+      return <span className="block text-end font-semibold tabular-nums">{subtotals}</span>;
     },
   },
   {
@@ -102,7 +103,7 @@ export const ALLOCATIONS_COLUMNS: ColumnDef<
   {
     accessorKey: "amount",
     cell: ({ row }) => (
-      <span className="font-medium">
+      <span className="block text-end font-semibold tabular-nums">
         {formatCurrency(currencyCodec.encode(row.original.amount), {
           currency: row.original.bankAccount?.currency,
         })}
