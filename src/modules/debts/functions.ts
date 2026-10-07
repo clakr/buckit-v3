@@ -6,6 +6,7 @@ import { getDB } from "#/db";
 import { debts, transactions } from "#/db/schema";
 import { currencyCodec } from "#/lib/codecs";
 import { authMiddleware } from "#/lib/middlewares";
+import { verifyUserBankAccountMiddleware } from "#/modules/bank-accounts/middlewares";
 import { recordDebtSchema, validateDebtSourceBankAccountSchema } from "#/modules/debts/schemas";
 
 import { verifyUserDebtMiddleware } from "./middlewares";
@@ -37,22 +38,24 @@ export const getDebts = createServerFn({
 export const validateDebtSourceBankAccount = createServerFn({
   method: "GET",
 })
-  .middleware([authMiddleware])
+  .middleware([verifyUserBankAccountMiddleware])
   .validator(validateDebtSourceBankAccountSchema)
-  .handler(async ({ context, data }) => {
+  .handler(async ({ data }) => {
     const db = getDB(env.db);
 
     const account = await db.query.bankAccounts.findFirst({
       where: {
         id: data.bankAccountId,
-        userId: context.user.id,
         currency: data.currency,
       },
       columns: { id: true },
     });
 
     if (!account) {
-      return { isValid: false, message: "The source account is invalid for this debt." };
+      return {
+        isValid: false,
+        message: "The source account is invalid for this debt.",
+      };
     }
 
     return { isValid: true, message: "ok" };
