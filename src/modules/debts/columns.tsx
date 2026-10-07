@@ -19,6 +19,7 @@ export const INDEX_COLUMNS: ColumnDef<Awaited<ReturnType<typeof getDebts>>[numbe
   {
     accessorKey: "name",
     header: ({ column }) => <SortableTableHead column={column}>Name</SortableTableHead>,
+    cell: ({ row }) => <span className="font-semibold">{row.original.name}</span>,
   },
   {
     accessorKey: "direction",
@@ -81,7 +82,7 @@ export const INDEX_COLUMNS: ColumnDef<Awaited<ReturnType<typeof getDebts>>[numbe
             </Popover>
           ) : null}
 
-          <span className="text-end font-semibold tabular-nums">
+          <span className="text-end font-medium tabular-nums">
             {formatCurrency(currencyCodec.encode(outstanding), {
               currency: row.original.currency,
             })}

@@ -17,6 +17,7 @@ export const INDEX_COLUMNS: ColumnDef<Awaited<ReturnType<typeof getBuckets>>[num
   {
     accessorKey: "name",
     header: ({ column }) => <SortableTableHead column={column}>Name</SortableTableHead>,
+    cell: ({ row }) => <span className="font-semibold">{row.original.name}</span>,
   },
   {
     accessorKey: "subtotal",
@@ -47,7 +48,7 @@ export const INDEX_COLUMNS: ColumnDef<Awaited<ReturnType<typeof getBuckets>>[num
 
       if (!subtotals) return "-";
 
-      return <span className="block text-end font-semibold tabular-nums">{subtotals}</span>;
+      return <span className="block text-end font-medium tabular-nums">{subtotals}</span>;
     },
   },
   {
@@ -102,8 +103,9 @@ export const ALLOCATIONS_COLUMNS: ColumnDef<
   },
   {
     accessorKey: "amount",
+    header: () => <div data-currency>Amount</div>,
     cell: ({ row }) => (
-      <span className="block text-end font-semibold tabular-nums">
+      <span className="block text-end font-medium tabular-nums">
         {formatCurrency(currencyCodec.encode(row.original.amount), {
           currency: row.original.bankAccount?.currency,
         })}
