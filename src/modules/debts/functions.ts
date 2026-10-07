@@ -6,10 +6,7 @@ import { getDB } from "#/db";
 import { debts, transactions } from "#/db/schema";
 import { currencyCodec } from "#/lib/codecs";
 import { authMiddleware } from "#/lib/middlewares";
-import {
-  recordDebtSchema,
-  verifyUserDebtMiddlewareSchema,
-} from "#/modules/debts/schemas";
+import { recordDebtSchema } from "#/modules/debts/schemas";
 
 import { verifyUserDebtMiddleware } from "./middlewares";
 
