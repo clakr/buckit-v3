@@ -135,6 +135,13 @@ export const getDebt = createServerFn({
       where: {
         id: data.debtId,
       },
+      with: {
+        repayments: {
+          orderBy: {
+            createdAt: "desc",
+          },
+        },
+      },
     });
 
     return debt ?? null;
