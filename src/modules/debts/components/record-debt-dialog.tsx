@@ -161,7 +161,11 @@ export function RecordDebtDialog() {
                       {(field) => (
                         <CurrencyCombobox
                           value={field.state.value}
-                          onValueChange={(value) => field.handleChange(value?.toString() ?? "")}
+                          onValueChange={(value) => {
+                            field.handleChange(value?.toString() ?? "");
+                            // A picked source account is tied to the old currency.
+                            form.setFieldValue("bankAccountId", undefined);
+                          }}
                         />
                       )}
                     </form.AppField>
@@ -175,7 +179,7 @@ export function RecordDebtDialog() {
                           type="number"
                           id={field.name}
                           placeholder="0.00"
-                          min={0}
+                          min={0.01}
                           step={0.01}
                           required
                           value={field.state.value as string}

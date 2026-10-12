@@ -14,7 +14,10 @@ export const debtDirectionEnum = z.enum(
 export const recordDebtSchema = z.object({
   direction: debtDirectionEnum,
   currency: z.enum(CURRENCIES_CODES),
-  amount: z.coerce.number().min(0, "Amount cannot be negative.").default(0),
+  amount: z.coerce
+    .number()
+    .min(0.01, "Amount must be greater than 0.")
+    .default(0),
   name: z
     .string()
     .trim()
@@ -41,7 +44,10 @@ export const editDebtSchema = z.strictObject({
     .trim()
     .min(1, "Counterparty name is required")
     .max(100, "Counterparty name must be 100 characters or fewer"),
-  amount: z.coerce.number().min(0, "Amount cannot be negative.").optional(),
+  amount: z.coerce
+    .number()
+    .min(0.01, "Amount must be greater than 0.")
+    .optional(),
   date: z.date(),
   note: z.string().trim(),
 });

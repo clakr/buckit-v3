@@ -196,7 +196,7 @@ export function EditDebtDialog() {
                             type="number"
                             id={id}
                             placeholder="0.00"
-                            min={0}
+                            min={0.01}
                             step={0.01}
                             required
                             disabled={isAmountLocked}
