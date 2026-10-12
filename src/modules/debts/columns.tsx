@@ -46,6 +46,7 @@ export const INDEX_COLUMNS: ColumnDef<Awaited<ReturnType<typeof getDebts>>[numbe
       const repaid = amount - outstanding;
 
       const hasRepayments = repaid > 0;
+      const repaymentsCount = row.original.repayments.length;
 
       return (
         <div className="flex items-center justify-end gap-1">
@@ -72,7 +73,9 @@ export const INDEX_COLUMNS: ColumnDef<Awaited<ReturnType<typeof getDebts>>[numbe
                     })}
                   </dd>
 
-                  <dt className="text-muted-foreground">Repaid</dt>
+                  <dt className="text-muted-foreground">
+                    Repaid ({repaymentsCount} repayment{repaymentsCount > 1 ? "s" : null})
+                  </dt>
                   <dd className="text-end font-medium tabular-nums">
                     {formatCurrency(currencyCodec.encode(repaid), {
                       currency: row.original.currency,
