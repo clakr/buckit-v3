@@ -14,6 +14,7 @@ import { useLogRepaymentDialogStore } from "#/modules/repayments/components/log-
 
 import type { getDebts } from "../functions";
 
+import { useDeleteDebtDialogStore } from "./delete-debt-dialog";
 import { useEditDebtDialogStore } from "./edit-debt-dialog";
 
 type Props = {
@@ -30,6 +31,13 @@ export function DebtActionsDropdownMenu({ debt }: Props) {
 
   function handleOpenEditDebtDialog() {
     const state = useEditDebtDialogStore.getState();
+
+    state.setDebtId(debt.id);
+    state.openDialog();
+  }
+
+  function handleOpenDeleteDebtDialog() {
+    const state = useDeleteDebtDialogStore.getState();
 
     state.setDebtId(debt.id);
     state.openDialog();
@@ -57,6 +65,10 @@ export function DebtActionsDropdownMenu({ debt }: Props) {
           <DropdownMenuItem onClick={handleOpenEditDebtDialog}>
             <svg />
             Edit
+          </DropdownMenuItem>
+          <DropdownMenuItem onClick={handleOpenDeleteDebtDialog}>
+            <svg />
+            Delete
           </DropdownMenuItem>
         </DropdownMenuGroup>
       </DropdownMenuContent>

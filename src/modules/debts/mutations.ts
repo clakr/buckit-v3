@@ -1,6 +1,6 @@
 import { useMutation } from "@tanstack/react-query";
 
-import { editDebt, recordDebt } from "#/modules/debts/functions";
+import { deleteDebt, editDebt, recordDebt } from "#/modules/debts/functions";
 
 export function useRecordDebtMutation() {
   return useMutation({
@@ -28,6 +28,22 @@ export function useEditDebtMutation() {
       },
       error: {
         title: "Failed to Update Debt",
+        description: "Please try again.",
+      },
+    },
+  });
+}
+
+export function useDeleteDebtMutation() {
+  return useMutation({
+    mutationFn: deleteDebt,
+    meta: {
+      success: {
+        title: "Debt Deleted",
+        description: "The debt and its repayments have been removed.",
+      },
+      error: {
+        title: "Failed to Delete Debt",
         description: "Please try again.",
       },
     },

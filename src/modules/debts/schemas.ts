@@ -44,3 +44,10 @@ export const editDebtSchema = z.strictObject({
   date: z.date(),
   note: z.string().trim(),
 });
+
+// `deleteTransactions` is story 18's opt-in: off, only the Debt (and its repayments) go;
+// on, every Transaction it links to is deleted too — real money leaving the history.
+export const deleteDebtSchema = z.strictObject({
+  ...verifyUserDebtMiddlewareSchema.shape,
+  deleteTransactions: z.boolean(),
+});

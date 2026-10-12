@@ -1,6 +1,6 @@
 import { createServerFn } from "@tanstack/react-start";
 import { env } from "cloudflare:workers";
-import { eq, sql } from "drizzle-orm";
+import { eq, inArray, sql } from "drizzle-orm";
 import { uuidv7 } from "uuidv7";
 
 import { getDB } from "#/db";
@@ -8,13 +8,16 @@ import { debts, transactions } from "#/db/schema";
 import { currencyCodec } from "#/lib/codecs";
 import { authMiddleware } from "#/lib/middlewares";
 import { verifyUserBankAccountMiddleware } from "#/modules/bank-accounts/middlewares";
+import { getBankAccountUnallocatedBalance } from "#/modules/bank-accounts/utils";
 import {
+  deleteDebtSchema,
   editDebtSchema,
   recordDebtSchema,
   validateDebtSourceBankAccountSchema,
 } from "#/modules/debts/schemas";
 
 import { verifyUserDebtMiddleware } from "./middlewares";
+import { getDebtLinkedTransactionIds } from "./utils";
 
 export const getDebts = createServerFn({
   method: "GET",
@@ -203,4 +206,104 @@ export const editDebt = createServerFn({
       .returning();
 
     return updated;
+  });
+
+export const validateDeleteDebt = createServerFn({
+  method: "GET",
+})
+  .middleware([verifyUserDebtMiddleware])
+  .validator(deleteDebtSchema)
+  .handler(async ({ data }) => {
+    // Keeping the linked Transactions never changes a Balance — nothing to check.
+    if (!data.deleteTransactions) return { isValid: true, message: "ok" };
+
+    const db = getDB(env.db);
+
+    const debt = await db.query.debts.findFirst({
+      where: { id: data.debtId },
+      columns: { originatingTransactionId: true },
+      with: { repayments: { columns: { transactionId: true } } },
+    });
+
+    if (!debt) return { isValid: false, message: "No debt found." };
+
+    const transactionIds = new Set(getDebtLinkedTransactionIds(debt));
+
+    if (!transactionIds.size) return { isValid: true, message: "ok" };
+
+    const linkedTransactions = await db.query.transactions.findMany({
+      where: { id: { in: Array.from(transactionIds) } },
+      columns: { bankAccountId: true },
+      with: {
+        bankAccount: {
+          columns: { name: true, startingBalance: true },
+          with: {
+            transactions: { columns: { id: true, type: true, amount: true } },
+            allocations: { columns: { amount: true } },
+          },
+        },
+      },
+    });
+
+    // Several linked Transactions can share an account, so check each account once with
+    // all of them removed — e.g. a receivable's repayment (income) leaving Savings can
+    // push it below what's allocated from it.
+    const bankAccountsById = new Map(
+      linkedTransactions.flatMap((t) => (t.bankAccount ? [[t.bankAccountId, t.bankAccount]] : [])),
+    );
+
+    for (const bankAccount of bankAccountsById.values()) {
+      const { unallocated } = getBankAccountUnallocatedBalance({
+        startingBalance: bankAccount.startingBalance,
+        transactions: bankAccount.transactions.filter((t) => !transactionIds.has(t.id)),
+        allocations: bankAccount.allocations,
+      });
+
+      if (unallocated < 0) {
+        return {
+          isValid: false,
+          message: `Deleting the linked transactions would leave "${bankAccount.name}" with a negative unallocated balance. Adjust its allocations first, or keep the transactions.`,
+        };
+      }
+    }
+
+    return { isValid: true, message: "ok" };
+  });
+
+export const deleteDebt = createServerFn({
+  method: "POST",
+})
+  .middleware([verifyUserDebtMiddleware])
+  .validator(deleteDebtSchema)
+  .handler(async ({ data }) => {
+    const db = getDB(env.db);
+
+    const { isValid, message } = await validateDeleteDebt({ data });
+
+    if (!isValid) throw new Error(message);
+
+    const deleteDebtQuery = db.delete(debts).where(eq(debts.id, data.debtId)).returning();
+
+    if (!data.deleteTransactions) return deleteDebtQuery;
+
+    // Resolved before anything is deleted: the `debts` row's cascade takes its
+    // `repayments` rows — and with them the repayment → Transaction links — along.
+    const debt = await db.query.debts.findFirst({
+      where: { id: data.debtId },
+      columns: { originatingTransactionId: true },
+      with: { repayments: { columns: { transactionId: true } } },
+    });
+
+    if (!debt) throw new Error("No debt found.");
+
+    const transactionIds = getDebtLinkedTransactionIds(debt);
+
+    if (!transactionIds.length) return deleteDebtQuery;
+
+    const [, deleted] = await db.batch([
+      db.delete(transactions).where(inArray(transactions.id, transactionIds)),
+      deleteDebtQuery,
+    ]);
+
+    return deleted;
   });
