@@ -1,3 +1,4 @@
+import { IconPlus } from "@tabler/icons-react";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute, Link } from "@tanstack/react-router";
 
@@ -5,7 +6,9 @@ import { Heading } from "#/components/heading";
 import { Main } from "#/components/main";
 import { StateTemplate } from "#/components/state-template";
 import { Button } from "#/components/ui/button";
+import { DebtLedgerTable } from "#/modules/debts/components/debt-ledger-table";
 import { debtQueryOption } from "#/modules/debts/query-options";
+import { useLogRepaymentDialogStore } from "#/modules/repayments/components/log-repayment-dialog";
 
 class DebtNotFoundError extends Error {
   constructor() {
@@ -65,19 +68,29 @@ export const Route = createFileRoute("/_protected/debts/$debtId")({
 });
 
 function RouteComponent() {
-  const { debtId } = Route.useParams();
   const { debtQueryOptions } = Route.useRouteContext();
 
   const { data: debt } = useSuspenseQuery(debtQueryOptions);
   if (!debt) throw new DebtNotFoundError();
 
+  function handleOpenLogRepaymentDialog() {
+    const state = useLogRepaymentDialogStore.getState();
+
+    state.setDebt(debt!);
+    state.openDialog();
+  }
+
   return (
     <Main>
       <div className="flex items-baseline justify-between">
         <Heading className="capitalize">{debt.name}</Heading>
+        <Button onClick={handleOpenLogRepaymentDialog}>
+          <IconPlus />
+          Log Repayment
+        </Button>
       </div>
 
-      <pre>{JSON.stringify(debt, null, 2)}</pre>
+      <DebtLedgerTable debt={debt} />
     </Main>
   );
 }

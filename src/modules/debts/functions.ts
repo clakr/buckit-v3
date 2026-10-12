@@ -1,5 +1,6 @@
 import { createServerFn } from "@tanstack/react-start";
 import { env } from "cloudflare:workers";
+import { sql } from "drizzle-orm";
 import { uuidv7 } from "uuidv7";
 
 import { getDB } from "#/db";
@@ -136,9 +137,24 @@ export const getDebt = createServerFn({
         id: data.debtId,
       },
       with: {
+        originatingTransaction: {
+          columns: { date: true },
+          with: { bankAccount: { columns: { id: true, name: true } } },
+        },
         repayments: {
-          orderBy: {
-            createdAt: "desc",
+          // Oldest first, by the effective date: the linked Transaction's date wins
+          // over the repayment's own (only set when there's no Transaction).
+          orderBy: (repayment, { asc }) => [
+            asc(
+              sql`coalesce((select ${transactions.date} from ${transactions} where ${transactions.id} = ${repayment.transactionId}), ${repayment.date})`,
+            ),
+            asc(repayment.createdAt),
+          ],
+          with: {
+            transaction: {
+              columns: { amount: true, date: true, note: true },
+              with: { bankAccount: { columns: { id: true, name: true } } },
+            },
           },
         },
       },
