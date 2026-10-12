@@ -1,6 +1,6 @@
 import { useMutation } from "@tanstack/react-query";
 
-import { logRepayment } from "./functions";
+import { editRepayment, logRepayment } from "./functions";
 
 export function useLogRepaymentMutation() {
   return useMutation({
@@ -12,6 +12,22 @@ export function useLogRepaymentMutation() {
       },
       error: {
         title: "Failed to Log Repayment",
+        description: "Please try again.",
+      },
+    },
+  });
+}
+
+export function useEditRepaymentMutation() {
+  return useMutation({
+    mutationFn: editRepayment,
+    meta: {
+      success: {
+        title: "Repayment Updated",
+        description: "Your changes have been saved.",
+      },
+      error: {
+        title: "Failed to Update Repayment",
         description: "Please try again.",
       },
     },

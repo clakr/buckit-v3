@@ -1,5 +1,6 @@
 import { createServerFn } from "@tanstack/react-start";
 import { env } from "cloudflare:workers";
+import { eq } from "drizzle-orm";
 import { uuidv7 } from "uuidv7";
 
 import { getDB } from "#/db";
@@ -7,9 +8,14 @@ import { repayments, transactions } from "#/db/schema";
 import { currencyCodec } from "#/lib/codecs";
 import { verifyUserBankAccountMiddleware } from "#/modules/bank-accounts/middlewares";
 import { getBankAccountUnallocatedBalance } from "#/modules/bank-accounts/utils";
+import { editTransaction, validateEditTransaction } from "#/modules/transactions/functions";
 
 import { verifyUserDebtMiddleware } from "../debts/middlewares";
-import { logRepaymentSchema, validateRepaymentSourceBankAccountSchema } from "./schemas";
+import {
+  editRepaymentSchema,
+  logRepaymentSchema,
+  validateRepaymentSourceBankAccountSchema,
+} from "./schemas";
 
 export const validateRepaymentSourceBankAccount = createServerFn({
   method: "GET",
@@ -195,4 +201,82 @@ export const logRepayment = createServerFn({
     ]);
 
     return repaymentRows[0];
+  });
+
+export const validateEditRepayment = createServerFn({
+  method: "GET",
+})
+  .middleware([verifyUserDebtMiddleware])
+  .validator(editRepaymentSchema)
+  .handler(async ({ data }) => {
+    const db = getDB(env.db);
+
+    // Scoped by `debtId` too — the middleware only proves the Debt is the user's.
+    const repayment = await db.query.repayments.findFirst({
+      where: { id: data.repaymentId, debtId: data.debtId },
+      columns: { id: true },
+      with: { transaction: { columns: { id: true, type: true } } },
+    });
+    if (!repayment) {
+      return { isValid: false, message: "No repayment found." };
+    }
+
+    // No Transaction — a pure record, no Balance to protect.
+    if (!repayment.transaction) {
+      return { isValid: true, message: "ok" };
+    }
+
+    return validateEditTransaction({
+      data: {
+        transactionId: repayment.transaction.id,
+        type: repayment.transaction.type,
+        amount: data.amount,
+        date: data.date,
+        note: data.note,
+      },
+    });
+  });
+
+export const editRepayment = createServerFn({
+  method: "POST",
+})
+  .middleware([verifyUserDebtMiddleware])
+  .validator(editRepaymentSchema)
+  .handler(async ({ data }) => {
+    const db = getDB(env.db);
+
+    const repayment = await db.query.repayments.findFirst({
+      where: { id: data.repaymentId, debtId: data.debtId },
+      columns: { id: true },
+      with: { transaction: { columns: { id: true, type: true } } },
+    });
+    if (!repayment) throw new Error("No repayment found.");
+
+    if (!repayment.transaction) {
+      const [updated] = await db
+        .update(repayments)
+        .set({
+          amount: currencyCodec.decode(data.amount),
+          date: data.date,
+          note: data.note,
+        })
+        .where(eq(repayments.id, repayment.id))
+        .returning();
+
+      return updated;
+    }
+
+    // The Transaction is the source of truth, so the edit lands there — through the
+    // Transaction module's own edit path, which re-checks the Balance.
+    await editTransaction({
+      data: {
+        transactionId: repayment.transaction.id,
+        type: repayment.transaction.type,
+        amount: data.amount,
+        date: data.date,
+        note: data.note,
+      },
+    });
+
+    return repayment;
   });

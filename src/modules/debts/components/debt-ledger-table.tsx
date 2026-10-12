@@ -21,6 +21,7 @@ import {
 } from "#/components/ui/table";
 import { currencyCodec } from "#/lib/codecs";
 import { cn, formatCurrency, formatDate } from "#/lib/utils";
+import { RepaymentActionsDropdownMenu } from "#/modules/repayments/components/repayment-actions-dropdown-menu";
 import { getRepaymentAmount, getRepaymentDate } from "#/modules/repayments/utils";
 
 import type { getDebt } from "../functions";
@@ -78,6 +79,7 @@ export function DebtLedgerTable({ debt }: Props) {
             <TableHead>Account</TableHead>
             <TableHead className="text-end">Change</TableHead>
             <TableHead className="text-end">Outstanding</TableHead>
+            <TableHead />
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -101,6 +103,7 @@ export function DebtLedgerTable({ debt }: Props) {
             <TableCell className="text-end font-medium tabular-nums">
               {formatDebtAmount(debt.amount)}
             </TableCell>
+            <TableCell />
           </TableRow>
 
           {entries.map((entry) => (
@@ -126,12 +129,15 @@ export function DebtLedgerTable({ debt }: Props) {
               >
                 {formatDebtAmount(entry.balance)}
               </TableCell>
+              <TableCell className="text-end">
+                <RepaymentActionsDropdownMenu debt={debt} repaymentId={entry.id} />
+              </TableCell>
             </TableRow>
           ))}
 
           {hasRepayments ? null : (
             <TableRow className="hover:bg-transparent">
-              <TableCell colSpan={5} className="px-0 py-2">
+              <TableCell colSpan={6} className="px-0 py-2">
                 <Empty className="min-h-[15vh] border border-dashed">
                   <EmptyHeader>
                     <EmptyMedia variant="icon">
@@ -163,6 +169,7 @@ export function DebtLedgerTable({ debt }: Props) {
               >
                 {formatDebtAmount(outstanding)}
               </TableCell>
+              <TableCell />
             </TableRow>
           </TableFooter>
         ) : null}
