@@ -87,6 +87,8 @@ export const recordDebt = createServerFn({
           currency: data.currency,
           amount,
           name: data.name,
+          date: data.date,
+          note: data.note || null,
         })
         .returning();
 
@@ -110,6 +112,7 @@ export const recordDebt = createServerFn({
         bankAccountId: data.bankAccountId,
         type: "expense",
         amount,
+        date: data.date,
         note: `Loan to "${data.name}"`,
       }),
       db
@@ -122,6 +125,8 @@ export const recordDebt = createServerFn({
           currency: data.currency,
           amount,
           name: data.name,
+          date: data.date,
+          note: data.note || null,
         })
         .returning(),
     ]);
