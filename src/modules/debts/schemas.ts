@@ -28,6 +28,7 @@ export const recordDebtSchema = z.object({
 export const validateDebtSourceBankAccountSchema = z.object({
   bankAccountId: z.string().min(1, "No bank account ID provided"),
   currency: z.enum(CURRENCIES_CODES),
+  amount: z.coerce.number().min(0, "Amount cannot be negative."),
 });
 
 // `direction` is deliberately absent — it's fixed once a Debt is created. `amount` is

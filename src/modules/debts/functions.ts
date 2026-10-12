@@ -56,13 +56,32 @@ export const validateDebtSourceBankAccount = createServerFn({
         id: data.bankAccountId,
         currency: data.currency,
       },
-      columns: { id: true },
+      columns: { startingBalance: true },
+      with: {
+        transactions: { columns: { type: true, amount: true } },
+        allocations: { columns: { amount: true } },
+      },
     });
 
     if (!account) {
       return {
         isValid: false,
         message: "The source account is invalid for this debt.",
+      };
+    }
+
+    // Funding a receivable is an `expense` — same `Balance ≥ 0` guard as any other.
+    const { unallocated } = getBankAccountUnallocatedBalance({
+      startingBalance: account.startingBalance,
+      transactions: account.transactions,
+      allocations: account.allocations,
+    });
+
+    if (unallocated - currencyCodec.decode(data.amount) < 0) {
+      return {
+        isValid: false,
+        message:
+          "This loan would result in a negative unallocated balance. Adjust the amount or pick another account.",
       };
     }
 
@@ -102,6 +121,7 @@ export const recordDebt = createServerFn({
       data: {
         bankAccountId: data.bankAccountId,
         currency: data.currency,
+        amount: data.amount,
       },
     });
 

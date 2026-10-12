@@ -1,4 +1,4 @@
-import { IconCalendar } from "@tabler/icons-react";
+import { IconAlertCircle, IconCalendar } from "@tabler/icons-react";
 import { useSelector } from "@tanstack/react-form";
 import { format } from "date-fns";
 import z from "zod";
@@ -8,6 +8,7 @@ import { useShallow } from "zustand/react/shallow";
 import type { DialogState } from "#/lib/types";
 
 import { CurrencyCombobox } from "#/components/currency-combobox";
+import { Alert, AlertDescription, AlertTitle } from "#/components/ui/alert";
 import { Button } from "#/components/ui/button";
 import { Calendar } from "#/components/ui/calendar";
 import {
@@ -23,6 +24,7 @@ import { InputGroup, InputGroupAddon, InputGroupInput } from "#/components/ui/in
 import { Popover, PopoverContent, PopoverTrigger } from "#/components/ui/popover";
 import { useAppForm } from "#/integrations/tanstack-form";
 import { SourceAccountField } from "#/modules/debts/components/source-account-field";
+import { validateDebtSourceBankAccount } from "#/modules/debts/functions";
 import { useRecordDebtMutation } from "#/modules/debts/mutations";
 import { confirm } from "#/stores/use-confirm";
 
@@ -59,6 +61,22 @@ export function RecordDebtDialog() {
     defaultValues,
     validators: {
       onChange: recordDebtSchema,
+      onSubmitAsync: async ({ value }) => {
+        // Only a funded receivable moves money — nothing to check otherwise.
+        if (value.direction !== "receivable" || !value.bankAccountId) return undefined;
+
+        const { isValid, message } = await validateDebtSourceBankAccount({
+          data: {
+            bankAccountId: value.bankAccountId,
+            currency: value.currency,
+            amount: value.amount,
+          },
+        });
+
+        if (!isValid) return message;
+
+        return undefined;
+      },
     },
     onSubmit: async ({ value: data }) => {
       try {
@@ -237,6 +255,17 @@ export function RecordDebtDialog() {
               <form.AppField name="note">
                 {(field) => <field.Textarea label="Note (optional)" placeholder="Add a note..." />}
               </form.AppField>
+              <form.Subscribe selector={(state) => state.errorMap.onSubmit}>
+                {(error) =>
+                  error ? (
+                    <Alert variant="destructive" className="max-w-md">
+                      <IconAlertCircle />
+                      <AlertTitle>Record Debt failed</AlertTitle>
+                      <AlertDescription>{error}</AlertDescription>
+                    </Alert>
+                  ) : null
+                }
+              </form.Subscribe>
             </FieldGroup>
           </form>
         </div>
