@@ -78,7 +78,7 @@ export function DeleteDebtDialog() {
   const deleteSchema = z.object({
     ...deleteDebtSchema.shape,
     name: z.literal(debt?.name ?? "", {
-      error: "Doesn't match the counterparty name.",
+      error: "Doesn't match the name.",
     }),
   });
 

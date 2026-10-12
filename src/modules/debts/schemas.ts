@@ -21,8 +21,8 @@ export const recordDebtSchema = z.object({
   name: z
     .string()
     .trim()
-    .min(1, "Counterparty name is required")
-    .max(100, "Counterparty name must be 100 characters or fewer"),
+    .min(1, "Name is required")
+    .max(100, "Name must be 100 characters or fewer"),
   bankAccountId: z.string().optional(),
   date: z.date(),
   note: z.string().trim(),
@@ -42,8 +42,8 @@ export const editDebtSchema = z.strictObject({
   name: z
     .string()
     .trim()
-    .min(1, "Counterparty name is required")
-    .max(100, "Counterparty name must be 100 characters or fewer"),
+    .min(1, "Name is required")
+    .max(100, "Name must be 100 characters or fewer"),
   amount: z.coerce
     .number()
     .min(0.01, "Amount must be greater than 0.")
