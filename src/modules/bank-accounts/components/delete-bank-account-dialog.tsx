@@ -27,6 +27,8 @@ import { useDeleteBankAccountMutation } from "#/modules/bank-accounts/mutations"
 import { bankAccountQueryOption } from "#/modules/bank-accounts/query-options";
 import { verifyUserBankAccountMiddlewareSchema } from "#/modules/bank-accounts/schemas";
 import { getBankAccountUnallocatedBalance } from "#/modules/bank-accounts/utils";
+import { BankAccountDeletionDebtsItem } from "#/modules/debts/components/bank-account-deletion-debts-item";
+import { bankAccountLinkedDebtsQueryOption } from "#/modules/debts/query-options";
 
 type StoreState = DialogState & {
   bankAccountId: BankAccount["id"] | null;
@@ -55,14 +57,27 @@ export function DeleteBankAccountDialog() {
   );
 
   // @todo: should distinguish if network error or data not found
-  const {
-    status,
-    refetch,
-    data: bankAccount,
-  } = useQuery({
+  const bankAccountQuery = useQuery({
     ...bankAccountQueryOption(bankAccountId ?? ""),
     enabled: isOpen,
   });
+  const linkedDebtsQuery = useQuery({
+    ...bankAccountLinkedDebtsQueryOption(bankAccountId ?? ""),
+    enabled: isOpen,
+  });
+
+  const bankAccount = bankAccountQuery.data;
+  const linkedDebts = linkedDebtsQuery.data ?? [];
+  const status = [bankAccountQuery.status, linkedDebtsQuery.status].includes("error")
+    ? "error"
+    : [bankAccountQuery.status, linkedDebtsQuery.status].includes("pending")
+      ? "pending"
+      : "success";
+
+  function refetch() {
+    if (bankAccountQuery.isError) bankAccountQuery.refetch();
+    if (linkedDebtsQuery.isError) linkedDebtsQuery.refetch();
+  }
 
   const mutation = useDeleteBankAccountMutation();
 
@@ -141,7 +156,7 @@ export function DeleteBankAccountDialog() {
             <StateTemplate
               state="loading"
               title="Loading account"
-              description="Fetching transactions and allocations to review before deletion..."
+              description="Fetching transactions, allocations, and debts to review before deletion..."
             />
           ) : null}
           {status === "error" ? (
@@ -184,6 +199,7 @@ export function DeleteBankAccountDialog() {
                     </ul>
                   </li>
                 ) : null}
+                <BankAccountDeletionDebtsItem bankAccountId={bankAccount.id} debts={linkedDebts} />
               </ul>
               <form
                 id={form.formId}

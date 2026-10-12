@@ -1,8 +1,8 @@
 import { queryOptions } from "@tanstack/react-query";
 
-import type { Debt } from "#/db/schema";
+import type { BankAccount, Debt } from "#/db/schema";
 
-import { getDebt, getDebts } from "#/modules/debts/functions";
+import { getBankAccountLinkedDebts, getDebt, getDebts } from "#/modules/debts/functions";
 
 export const debtsQueryOptions = queryOptions({
   queryKey: ["debts"],
@@ -16,6 +16,18 @@ export function debtQueryOption(debtId: Debt["id"]) {
       getDebt({
         data: {
           debtId,
+        },
+      }),
+  });
+}
+
+export function bankAccountLinkedDebtsQueryOption(bankAccountId: BankAccount["id"]) {
+  return queryOptions({
+    queryKey: ["debts", "bank-account", bankAccountId],
+    queryFn: () =>
+      getBankAccountLinkedDebts({
+        data: {
+          bankAccountId,
         },
       }),
   });
