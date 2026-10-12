@@ -94,6 +94,17 @@ export function LogRepaymentDialog() {
       onChange: logRepaymentSchema,
     },
     onSubmit: async ({ value: data }) => {
+      if (debt?.forgivenAt) {
+        const confirmed = await confirm(`Reopen "${debt.name}"?`, {
+          description:
+            "This debt was forgiven. Logging a repayment reopens it, and the forgiveness is lifted.",
+          confirmLabel: "Log & Reopen",
+          cancelLabel: "Cancel",
+        });
+
+        if (!confirmed) return;
+      }
+
       try {
         await mutation.mutateAsync({ data });
       } catch (error) {

@@ -14,7 +14,8 @@ import { getRepaymentDate } from "#/modules/repayments/utils";
 import type { getDebts } from "./functions";
 
 import { DebtActionsDropdownMenu } from "./components/debt-actions-dropdown-menu";
-import { getDebtOutstanding } from "./utils";
+import { DebtStatusBadge } from "./components/debt-status-badge";
+import { getDebtOutstanding, getDebtStatus } from "./utils";
 
 export const INDEX_COLUMNS: ColumnDef<Awaited<ReturnType<typeof getDebts>>[number]>[] = [
   {
@@ -36,6 +37,11 @@ export const INDEX_COLUMNS: ColumnDef<Awaited<ReturnType<typeof getDebts>>[numbe
         </Badge>
       );
     },
+  },
+  {
+    id: "status",
+    header: "Status",
+    cell: ({ row }) => <DebtStatusBadge status={getDebtStatus(row.original)} />,
   },
   {
     accessorKey: "outstanding",

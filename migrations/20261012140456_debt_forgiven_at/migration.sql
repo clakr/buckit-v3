@@ -1,0 +1,1 @@
+ALTER TABLE `debts` ADD `forgiven_at` integer;

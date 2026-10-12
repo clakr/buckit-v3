@@ -7,8 +7,10 @@ import { Main } from "#/components/main";
 import { StateTemplate } from "#/components/state-template";
 import { Button } from "#/components/ui/button";
 import { DebtLedgerTable } from "#/modules/debts/components/debt-ledger-table";
+import { DebtStatusBadge } from "#/modules/debts/components/debt-status-badge";
 import { useEditDebtDialogStore } from "#/modules/debts/components/edit-debt-dialog";
 import { debtQueryOption } from "#/modules/debts/query-options";
+import { getDebtStatus } from "#/modules/debts/utils";
 import { useLogRepaymentDialogStore } from "#/modules/repayments/components/log-repayment-dialog";
 
 class DebtNotFoundError extends Error {
@@ -91,7 +93,10 @@ function RouteComponent() {
   return (
     <Main>
       <div className="flex items-baseline justify-between">
-        <Heading className="capitalize">{debt.name}</Heading>
+        <div className="flex items-baseline gap-x-3">
+          <Heading className="capitalize">{debt.name}</Heading>
+          <DebtStatusBadge status={getDebtStatus(debt)} />
+        </div>
         <div className="flex gap-x-2">
           <Button variant="outline" onClick={handleOpenEditDebtDialog}>
             <IconPencil />

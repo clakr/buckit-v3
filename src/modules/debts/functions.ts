@@ -17,7 +17,7 @@ import {
 } from "#/modules/debts/schemas";
 
 import { verifyUserDebtMiddleware } from "./middlewares";
-import { getDebtLinkedTransactionIds } from "./utils";
+import { getDebtLinkedTransactionIds, getDebtStatus } from "./utils";
 
 export const getDebts = createServerFn({
   method: "GET",
@@ -306,4 +306,51 @@ export const deleteDebt = createServerFn({
     ]);
 
     return deleted;
+  });
+
+export const forgiveDebt = createServerFn({
+  method: "POST",
+})
+  .middleware([verifyUserDebtMiddleware])
+  .handler(async ({ data }) => {
+    const db = getDB(env.db);
+
+    const debt = await db.query.debts.findFirst({
+      where: { id: data.debtId },
+      columns: { amount: true, forgivenAt: true },
+      with: {
+        repayments: {
+          with: { transaction: { columns: { amount: true } } },
+        },
+      },
+    });
+    if (!debt) throw new Error("No debt is linked to this user");
+
+    const status = getDebtStatus(debt);
+    if (status === "forgiven") throw new Error("This debt is already forgiven.");
+    if (status === "settled") throw new Error("A settled debt has nothing left to forgive.");
+
+    const [updated] = await db
+      .update(debts)
+      .set({ forgivenAt: new Date() })
+      .where(eq(debts.id, data.debtId))
+      .returning();
+
+    return updated;
+  });
+
+export const unforgiveDebt = createServerFn({
+  method: "POST",
+})
+  .middleware([verifyUserDebtMiddleware])
+  .handler(async ({ data }) => {
+    const db = getDB(env.db);
+
+    const [updated] = await db
+      .update(debts)
+      .set({ forgivenAt: null })
+      .where(eq(debts.id, data.debtId))
+      .returning();
+
+    return updated;
   });

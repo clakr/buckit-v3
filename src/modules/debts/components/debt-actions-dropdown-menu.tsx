@@ -11,9 +11,12 @@ import {
   DropdownMenuTrigger,
 } from "#/components/ui/dropdown-menu";
 import { useLogRepaymentDialogStore } from "#/modules/repayments/components/log-repayment-dialog";
+import { confirm } from "#/stores/use-confirm";
 
 import type { getDebts } from "../functions";
 
+import { useForgiveDebtMutation, useUnforgiveDebtMutation } from "../mutations";
+import { getDebtStatus } from "../utils";
 import { useDeleteDebtDialogStore } from "./delete-debt-dialog";
 import { useEditDebtDialogStore } from "./edit-debt-dialog";
 
@@ -22,6 +25,11 @@ type Props = {
 };
 
 export function DebtActionsDropdownMenu({ debt }: Props) {
+  const forgiveMutation = useForgiveDebtMutation();
+  const unforgiveMutation = useUnforgiveDebtMutation();
+
+  const status = getDebtStatus(debt);
+
   function handleOpenLogRepaymentDialog() {
     const state = useLogRepaymentDialogStore.getState();
 
@@ -41,6 +49,31 @@ export function DebtActionsDropdownMenu({ debt }: Props) {
 
     state.setDebtId(debt.id);
     state.openDialog();
+  }
+
+  async function handleForgiveDebt() {
+    const confirmed = await confirm(`Forgive "${debt.name}"?`, {
+      description:
+        "Whatever is still outstanding will be written off. No transactions or balances change, and you can undo this anytime.",
+      confirmLabel: "Forgive",
+      cancelLabel: "Cancel",
+    });
+
+    if (!confirmed) return;
+
+    forgiveMutation.mutate({ data: { debtId: debt.id } });
+  }
+
+  async function handleUnforgiveDebt() {
+    const confirmed = await confirm(`Unforgive "${debt.name}"?`, {
+      description: "The debt will reopen with whatever is still outstanding.",
+      confirmLabel: "Unforgive",
+      cancelLabel: "Cancel",
+    });
+
+    if (!confirmed) return;
+
+    unforgiveMutation.mutate({ data: { debtId: debt.id } });
   }
 
   return (
@@ -66,6 +99,18 @@ export function DebtActionsDropdownMenu({ debt }: Props) {
             <svg />
             Edit
           </DropdownMenuItem>
+          {status === "open" ? (
+            <DropdownMenuItem onClick={handleForgiveDebt}>
+              <svg />
+              Forgive
+            </DropdownMenuItem>
+          ) : null}
+          {status === "forgiven" ? (
+            <DropdownMenuItem onClick={handleUnforgiveDebt}>
+              <svg />
+              Unforgive
+            </DropdownMenuItem>
+          ) : null}
           <DropdownMenuItem onClick={handleOpenDeleteDebtDialog}>
             <svg />
             Delete

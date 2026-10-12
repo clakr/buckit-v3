@@ -177,6 +177,8 @@ export const debts = sqliteTable("debts", {
     .default(sql`(cast(unixepoch() as integer))`)
     .notNull(),
   note: text("note"),
+  // The only Debt state that can't be derived: presence means forgiven.
+  forgivenAt: integer("forgiven_at", { mode: "timestamp_ms" }),
   createdAt: integer("created_at", { mode: "timestamp_ms" })
     .default(sql`(cast(unixepoch('subsecond') * 1000 as integer))`)
     .notNull(),

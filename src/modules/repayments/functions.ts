@@ -4,7 +4,7 @@ import { eq } from "drizzle-orm";
 import { uuidv7 } from "uuidv7";
 
 import { getDB } from "#/db";
-import { repayments, transactions } from "#/db/schema";
+import { debts, repayments, transactions } from "#/db/schema";
 import { currencyCodec } from "#/lib/codecs";
 import { verifyUserBankAccountMiddleware } from "#/modules/bank-accounts/middlewares";
 import { getBankAccountUnallocatedBalance } from "#/modules/bank-accounts/utils";
@@ -162,19 +162,29 @@ export const logRepayment = createServerFn({
 
     const amount = currencyCodec.decode(data.amount);
 
-    if (!data.bankAccountId) {
-      const [repayment] = await db
-        .insert(repayments)
-        .values({
-          id: uuidv7(),
-          debtId: data.debtId,
-          amount,
-          date: data.date,
-          note: data.note,
-        })
-        .returning();
+    // A genuine payment must not be swallowed by a "closed" status, so logging one
+    // reopens a forgiven Debt in the same batch.
+    const reopenDebtQuery = db
+      .update(debts)
+      .set({ forgivenAt: null })
+      .where(eq(debts.id, data.debtId));
 
-      return repayment;
+    if (!data.bankAccountId) {
+      const [repaymentRows] = await db.batch([
+        db
+          .insert(repayments)
+          .values({
+            id: uuidv7(),
+            debtId: data.debtId,
+            amount,
+            date: data.date,
+            note: data.note,
+          })
+          .returning(),
+        reopenDebtQuery,
+      ]);
+
+      return repaymentRows[0];
     }
 
     const type = debt.direction === "receivable" ? "income" : "expense";
@@ -198,6 +208,7 @@ export const logRepayment = createServerFn({
           transactionId,
         })
         .returning(),
+      reopenDebtQuery,
     ]);
 
     return repaymentRows[0];

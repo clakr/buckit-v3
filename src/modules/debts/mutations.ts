@@ -1,6 +1,12 @@
 import { useMutation } from "@tanstack/react-query";
 
-import { deleteDebt, editDebt, recordDebt } from "#/modules/debts/functions";
+import {
+  deleteDebt,
+  editDebt,
+  forgiveDebt,
+  recordDebt,
+  unforgiveDebt,
+} from "#/modules/debts/functions";
 
 export function useRecordDebtMutation() {
   return useMutation({
@@ -44,6 +50,38 @@ export function useDeleteDebtMutation() {
       },
       error: {
         title: "Failed to Delete Debt",
+        description: "Please try again.",
+      },
+    },
+  });
+}
+
+export function useForgiveDebtMutation() {
+  return useMutation({
+    mutationFn: forgiveDebt,
+    meta: {
+      success: {
+        title: "Debt Forgiven",
+        description: "The outstanding balance has been written off.",
+      },
+      error: {
+        title: "Failed to Forgive Debt",
+        description: "Please try again.",
+      },
+    },
+  });
+}
+
+export function useUnforgiveDebtMutation() {
+  return useMutation({
+    mutationFn: unforgiveDebt,
+    meta: {
+      success: {
+        title: "Debt Reopened",
+        description: "The debt is no longer forgiven.",
+      },
+      error: {
+        title: "Failed to Reopen Debt",
         description: "Please try again.",
       },
     },
