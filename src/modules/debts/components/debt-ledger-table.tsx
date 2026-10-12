@@ -36,7 +36,6 @@ export function DebtLedgerTable({ debt }: Props) {
     return formatCurrency(currencyCodec.encode(value), { currency: debt.currency });
   }
 
-  const recordedAt = debt.originatingTransaction?.date ?? debt.createdAt;
   const outstanding = getDebtOutstanding({ amount: debt.amount, repayments: debt.repayments });
   const repaid = debt.amount - outstanding;
   const progress = debt.amount === 0 ? 0 : (repaid / debt.amount) * 100;
@@ -68,7 +67,7 @@ export function DebtLedgerTable({ debt }: Props) {
           {isSettled ? "Settled" : "Open"}
         </Badge>
         <span className="capitalize">{debt.direction}</span>·<span>{debt.currency}</span>·
-        <span>Recorded {formatDate(recordedAt)}</span>
+        <span>Recorded {formatDate(debt.date)}</span>
       </p>
 
       <Table>
@@ -83,7 +82,7 @@ export function DebtLedgerTable({ debt }: Props) {
         </TableHeader>
         <TableBody>
           <TableRow className="bg-muted/40">
-            <TableCell>{formatDate(recordedAt)}</TableCell>
+            <TableCell>{formatDate(debt.date)}</TableCell>
             <TableCell className="font-medium">
               {debt.direction === "receivable"
                 ? `Lent to ${debt.name}`

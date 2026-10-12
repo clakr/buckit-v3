@@ -14,6 +14,8 @@ import { useLogRepaymentDialogStore } from "#/modules/repayments/components/log-
 
 import type { getDebts } from "../functions";
 
+import { useEditDebtDialogStore } from "./edit-debt-dialog";
+
 type Props = {
   debt: Awaited<ReturnType<typeof getDebts>>[number];
 };
@@ -23,6 +25,13 @@ export function DebtActionsDropdownMenu({ debt }: Props) {
     const state = useLogRepaymentDialogStore.getState();
 
     state.setDebt(debt);
+    state.openDialog();
+  }
+
+  function handleOpenEditDebtDialog() {
+    const state = useEditDebtDialogStore.getState();
+
+    state.setDebtId(debt.id);
     state.openDialog();
   }
 
@@ -44,6 +53,10 @@ export function DebtActionsDropdownMenu({ debt }: Props) {
           <DropdownMenuItem render={<Link to="/debts/$debtId" params={{ debtId: debt.id }} />}>
             <IconEye />
             View
+          </DropdownMenuItem>
+          <DropdownMenuItem onClick={handleOpenEditDebtDialog}>
+            <svg />
+            Edit
           </DropdownMenuItem>
         </DropdownMenuGroup>
       </DropdownMenuContent>

@@ -12,6 +12,7 @@ import { RegisterBankAccountDialog } from "#/modules/bank-accounts/components/re
 import { DeleteBucketDialog } from "#/modules/buckets/components/delete-bucket-dialog";
 import { EditBucketDialog } from "#/modules/buckets/components/edit-bucket-dialog";
 import { SetUpBucketDialog } from "#/modules/buckets/components/set-up-bucket-dialog";
+import { EditDebtDialog } from "#/modules/debts/components/edit-debt-dialog";
 import { RecordDebtDialog } from "#/modules/debts/components/record-debt-dialog";
 import { LogRepaymentDialog } from "#/modules/repayments/components/log-repayment-dialog";
 import { EditTransactionDialog } from "#/modules/transactions/components/edit-transaction-dialog";
@@ -58,6 +59,7 @@ function RouteComponent() {
       <DeleteBankAccountDialog />
       <DeleteBucketDialog />
       <RecordDebtDialog />
+      <EditDebtDialog />
       <LogRepaymentDialog />
     </>
   );

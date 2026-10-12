@@ -1,4 +1,4 @@
-import { IconPlus } from "@tabler/icons-react";
+import { IconPencil, IconPlus } from "@tabler/icons-react";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute, Link } from "@tanstack/react-router";
 
@@ -7,6 +7,7 @@ import { Main } from "#/components/main";
 import { StateTemplate } from "#/components/state-template";
 import { Button } from "#/components/ui/button";
 import { DebtLedgerTable } from "#/modules/debts/components/debt-ledger-table";
+import { useEditDebtDialogStore } from "#/modules/debts/components/edit-debt-dialog";
 import { debtQueryOption } from "#/modules/debts/query-options";
 import { useLogRepaymentDialogStore } from "#/modules/repayments/components/log-repayment-dialog";
 
@@ -80,15 +81,30 @@ function RouteComponent() {
     state.openDialog();
   }
 
+  function handleOpenEditDebtDialog() {
+    const state = useEditDebtDialogStore.getState();
+
+    state.setDebtId(debt!.id);
+    state.openDialog();
+  }
+
   return (
     <Main>
       <div className="flex items-baseline justify-between">
         <Heading className="capitalize">{debt.name}</Heading>
-        <Button onClick={handleOpenLogRepaymentDialog}>
-          <IconPlus />
-          Log Repayment
-        </Button>
+        <div className="flex gap-x-2">
+          <Button variant="outline" onClick={handleOpenEditDebtDialog}>
+            <IconPencil />
+            Edit
+          </Button>
+          <Button onClick={handleOpenLogRepaymentDialog}>
+            <IconPlus />
+            Log Repayment
+          </Button>
+        </div>
       </div>
+
+      {debt.note ? <p className="whitespace-pre-wrap text-muted-foreground">{debt.note}</p> : null}
 
       <DebtLedgerTable debt={debt} />
     </Main>

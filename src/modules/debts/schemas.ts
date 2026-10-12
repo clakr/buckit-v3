@@ -27,3 +27,18 @@ export const validateDebtSourceBankAccountSchema = z.object({
   bankAccountId: z.string().min(1, "No bank account ID provided"),
   currency: z.enum(CURRENCIES_CODES),
 });
+
+// `direction` is deliberately absent — it's fixed once a Debt is created. `amount` is
+// optional because only a `payable`'s is editable; a `receivable`'s stays locked to what
+// it was recorded with (see `editDebt`).
+export const editDebtSchema = z.strictObject({
+  ...verifyUserDebtMiddlewareSchema.shape,
+  name: z
+    .string()
+    .trim()
+    .min(1, "Counterparty name is required")
+    .max(100, "Counterparty name must be 100 characters or fewer"),
+  amount: z.coerce.number().min(0, "Amount cannot be negative.").optional(),
+  date: z.date(),
+  note: z.string().trim(),
+});

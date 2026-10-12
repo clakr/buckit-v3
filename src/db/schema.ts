@@ -173,6 +173,10 @@ export const debts = sqliteTable("debts", {
     (): AnySQLiteColumn => transactions.id,
     { onDelete: "set null" },
   ),
+  date: integer("date", { mode: "timestamp" })
+    .default(sql`(cast(unixepoch() as integer))`)
+    .notNull(),
+  note: text("note"),
   createdAt: integer("created_at", { mode: "timestamp_ms" })
     .default(sql`(cast(unixepoch('subsecond') * 1000 as integer))`)
     .notNull(),

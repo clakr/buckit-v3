@@ -1,6 +1,6 @@
 import { createServerFn } from "@tanstack/react-start";
 import { env } from "cloudflare:workers";
-import { sql } from "drizzle-orm";
+import { eq, sql } from "drizzle-orm";
 import { uuidv7 } from "uuidv7";
 
 import { getDB } from "#/db";
@@ -8,7 +8,11 @@ import { debts, transactions } from "#/db/schema";
 import { currencyCodec } from "#/lib/codecs";
 import { authMiddleware } from "#/lib/middlewares";
 import { verifyUserBankAccountMiddleware } from "#/modules/bank-accounts/middlewares";
-import { recordDebtSchema, validateDebtSourceBankAccountSchema } from "#/modules/debts/schemas";
+import {
+  editDebtSchema,
+  recordDebtSchema,
+  validateDebtSourceBankAccountSchema,
+} from "#/modules/debts/schemas";
 
 import { verifyUserDebtMiddleware } from "./middlewares";
 
@@ -138,7 +142,7 @@ export const getDebt = createServerFn({
       },
       with: {
         originatingTransaction: {
-          columns: { date: true },
+          columns: { id: true },
           with: { bankAccount: { columns: { id: true, name: true } } },
         },
         repayments: {
@@ -161,4 +165,37 @@ export const getDebt = createServerFn({
     });
 
     return debt ?? null;
+  });
+
+export const editDebt = createServerFn({
+  method: "POST",
+})
+  .middleware([verifyUserDebtMiddleware])
+  .validator(editDebtSchema)
+  .handler(async ({ data }) => {
+    const db = getDB(env.db);
+
+    const debt = await db.query.debts.findFirst({
+      where: { id: data.debtId },
+      columns: { direction: true },
+    });
+
+    if (!debt) throw new Error("No debt is linked to this user");
+
+    if (debt.direction === "receivable" && data.amount !== undefined) {
+      throw new Error("A receivable debt's amount can't be changed.");
+    }
+
+    const [updated] = await db
+      .update(debts)
+      .set({
+        name: data.name,
+        date: data.date,
+        note: data.note || null,
+        ...(data.amount === undefined ? {} : { amount: currencyCodec.decode(data.amount) }),
+      })
+      .where(eq(debts.id, data.debtId))
+      .returning();
+
+    return updated;
   });
