@@ -26,7 +26,8 @@ import { getRepaymentAmount, getRepaymentDate } from "#/modules/repayments/utils
 
 import type { getDebt } from "../functions";
 
-import { getDebtOutstanding } from "../utils";
+import { getDebtOutstanding, getDebtStatus } from "../utils";
+import { DebtStatusBadge } from "./debt-status-badge";
 
 type Props = {
   debt: NonNullable<Awaited<ReturnType<typeof getDebt>>>;
@@ -58,15 +59,12 @@ export function DebtLedgerTable({ debt }: Props) {
     };
   });
 
-  const isSettled = outstanding <= 0;
   const hasRepayments = entries.length > 0;
 
   return (
     <div className="flex flex-col gap-y-3">
       <p className="flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
-        <Badge variant={isSettled ? "default" : "secondary"} className="uppercase">
-          {isSettled ? "Settled" : "Open"}
-        </Badge>
+        <DebtStatusBadge status={getDebtStatus(debt)} />
         <span className="capitalize">{debt.direction}</span>·<span>{debt.currency}</span>·
         <span>Recorded {formatDate(debt.date)}</span>
       </p>
