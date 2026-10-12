@@ -111,9 +111,6 @@ export function RecordDebtDialog() {
             }}
           >
             <FieldGroup>
-              <form.AppField name="name">
-                {(field) => <field.Input label="Counterparty Name" placeholder="John" required />}
-              </form.AppField>
               <form.AppField
                 name="direction"
                 listeners={{
@@ -133,6 +130,9 @@ export function RecordDebtDialog() {
                     }))}
                   />
                 )}
+              </form.AppField>
+              <form.AppField name="name">
+                {(field) => <field.Input label="Counterparty Name" placeholder="John" required />}
               </form.AppField>
               <Field>
                 <FieldLabel htmlFor="amount">Amount</FieldLabel>
