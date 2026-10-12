@@ -43,6 +43,7 @@ import { bankAccountsQueryOption } from "#/modules/bank-accounts/query-options";
 import { getBankAccountUnallocatedBalance } from "#/modules/bank-accounts/utils";
 import { confirm } from "#/stores/use-confirm";
 
+import { validateLogRepaymentBalance, validateLogRepaymentCurrency } from "../functions";
 import { useLogRepaymentMutation } from "../mutations";
 import { logRepaymentSchema } from "../schemas";
 
@@ -92,6 +93,15 @@ export function LogRepaymentDialog() {
     defaultValues,
     validators: {
       onChange: logRepaymentSchema,
+      onSubmitAsync: async ({ value }) => {
+        const currency = await validateLogRepaymentCurrency({ data: value });
+        if (!currency.isValid) return currency.message;
+
+        const balance = await validateLogRepaymentBalance({ data: value });
+        if (!balance.isValid) return balance.message;
+
+        return undefined;
+      },
     },
     onSubmit: async ({ value: data }) => {
       if (debt?.forgivenAt) {
