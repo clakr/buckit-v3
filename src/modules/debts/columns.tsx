@@ -9,6 +9,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "#/components/ui/popover
 import { Tooltip, TooltipContent, TooltipTrigger } from "#/components/ui/tooltip";
 import { currencyCodec } from "#/lib/codecs";
 import { formatCurrency, formatDateTime, formatToRelative } from "#/lib/utils";
+import { getRepaymentDate } from "#/modules/repayments/utils";
 
 import type { getDebts } from "./functions";
 
@@ -97,7 +98,8 @@ export const INDEX_COLUMNS: ColumnDef<Awaited<ReturnType<typeof getDebts>>[numbe
       <SortableTableHead column={column}>Last Repayment Date</SortableTableHead>
     ),
     cell: ({ row }) => {
-      const lastRepaymentDate = row.original.repayments[0]?.transaction?.date;
+      const lastRepayment = row.original.repayments[0];
+      const lastRepaymentDate = lastRepayment ? getRepaymentDate(lastRepayment) : undefined;
 
       if (!lastRepaymentDate) {
         return (

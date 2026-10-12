@@ -9,7 +9,33 @@ import { verifyUserBankAccountMiddleware } from "#/modules/bank-accounts/middlew
 import { getBankAccountUnallocatedBalance } from "#/modules/bank-accounts/utils";
 
 import { verifyUserDebtMiddleware } from "../debts/middlewares";
-import { logRepaymentSchema } from "./schemas";
+import { logRepaymentSchema, validateRepaymentSourceBankAccountSchema } from "./schemas";
+
+export const validateRepaymentSourceBankAccount = createServerFn({
+  method: "GET",
+})
+  .middleware([verifyUserBankAccountMiddleware])
+  .validator(validateRepaymentSourceBankAccountSchema)
+  .handler(async ({ data }) => {
+    const db = getDB(env.db);
+
+    const account = await db.query.bankAccounts.findFirst({
+      where: {
+        id: data.bankAccountId,
+        currency: data.currency,
+      },
+      columns: { id: true },
+    });
+
+    if (!account) {
+      return {
+        isValid: false,
+        message: "The selected account's currency doesn't match this debt.",
+      };
+    }
+
+    return { isValid: true, message: "ok" };
+  });
 
 export const getRepaymentDebt = createServerFn({
   method: "GET",
@@ -31,7 +57,7 @@ export const getRepaymentDebt = createServerFn({
 export const validateLogRepaymentCurrency = createServerFn({
   method: "GET",
 })
-  .middleware([verifyUserBankAccountMiddleware, verifyUserDebtMiddleware])
+  .middleware([verifyUserDebtMiddleware])
   .validator(logRepaymentSchema)
   .handler(async ({ data }) => {
     const db = getDB(env.db);
@@ -44,30 +70,22 @@ export const validateLogRepaymentCurrency = createServerFn({
       return { isValid: false, message: "No debt found." };
     }
 
-    const bankAccount = await db.query.bankAccounts.findFirst({
-      where: { id: data.bankAccountId },
-      columns: { currency: true },
+    // No Bank Account picked — this repayment is a pure record, nothing to match currencies against.
+    if (!data.bankAccountId) {
+      return { isValid: true, message: "ok" };
+    }
+
+    return validateRepaymentSourceBankAccount({
+      data: { bankAccountId: data.bankAccountId, currency: debt.currency },
     });
-    if (!bankAccount) {
-      return { isValid: false, message: "No account found." };
-    }
-
-    if (bankAccount.currency !== debt.currency) {
-      return {
-        isValid: false,
-        message: "The selected account's currency doesn't match this debt.",
-      };
-    }
-
-    return { isValid: true, message: "ok" };
   });
 
 export const validateLogRepaymentBalance = createServerFn({
   method: "GET",
 })
-  .middleware([verifyUserBankAccountMiddleware, verifyUserDebtMiddleware])
+  .middleware([verifyUserDebtMiddleware])
   .validator(logRepaymentSchema)
-  .handler(async ({ data }) => {
+  .handler(async ({ context, data }) => {
     const db = getDB(env.db);
 
     const debt = await db.query.debts.findFirst({
@@ -78,13 +96,18 @@ export const validateLogRepaymentBalance = createServerFn({
       return { isValid: false, message: "No debt found." };
     }
 
+    // No Bank Account picked — no money is moving, so there's no balance to check.
+    if (!data.bankAccountId) {
+      return { isValid: true, message: "ok" };
+    }
+
     // A `receivable` repayment is income — it can never push the account negative.
     if (debt.direction === "receivable") {
       return { isValid: true, message: "ok" };
     }
 
     const bankAccount = await db.query.bankAccounts.findFirst({
-      where: { id: data.bankAccountId },
+      where: { id: data.bankAccountId, userId: context.user.id },
       columns: { startingBalance: true },
       with: {
         transactions: { columns: { type: true, amount: true } },
@@ -115,7 +138,7 @@ export const validateLogRepaymentBalance = createServerFn({
 export const logRepayment = createServerFn({
   method: "POST",
 })
-  .middleware([verifyUserBankAccountMiddleware, verifyUserDebtMiddleware])
+  .middleware([verifyUserDebtMiddleware])
   .validator(logRepaymentSchema)
   .handler(async ({ data }) => {
     const db = getDB(env.db);
@@ -132,6 +155,22 @@ export const logRepayment = createServerFn({
     const debt = await getRepaymentDebt({ data: { debtId: data.debtId } });
 
     const amount = currencyCodec.decode(data.amount);
+
+    if (!data.bankAccountId) {
+      const [repayment] = await db
+        .insert(repayments)
+        .values({
+          id: uuidv7(),
+          debtId: data.debtId,
+          amount,
+          date: data.date,
+          note: data.note,
+        })
+        .returning();
+
+      return repayment;
+    }
+
     const type = debt.direction === "receivable" ? "income" : "expense";
 
     const transactionId = uuidv7();

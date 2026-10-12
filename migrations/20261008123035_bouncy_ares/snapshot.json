@@ -1,7 +1,7 @@
 {
   "version": "7",
   "dialect": "sqlite",
-  "id": "9fbaf497-44db-4d51-b105-a2bc44c0e6db",
+  "id": "0e30d23f-1c4e-469d-973c-f7ed4f8e7dae",
   "prevIds": [
     "c0e8f667-e508-4a27-86c2-a0b7668be179"
   ],
@@ -447,8 +447,38 @@
       "table": "repayments"
     },
     {
+      "type": "integer",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "amount",
+      "entityType": "columns",
+      "table": "repayments"
+    },
+    {
+      "type": "integer",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "date",
+      "entityType": "columns",
+      "table": "repayments"
+    },
+    {
       "type": "text",
-      "notNull": true,
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "note",
+      "entityType": "columns",
+      "table": "repayments"
+    },
+    {
+      "type": "text",
+      "notNull": false,
       "autoincrement": false,
       "default": null,
       "generated": null,
@@ -875,7 +905,7 @@
         "id"
       ],
       "onUpdate": "NO ACTION",
-      "onDelete": "CASCADE",
+      "onDelete": "SET NULL",
       "nameExplicit": false,
       "name": "fk_repayments_transaction_id_transactions_id_fk",
       "entityType": "fks",

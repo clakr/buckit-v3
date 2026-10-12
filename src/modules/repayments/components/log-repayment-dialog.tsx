@@ -76,7 +76,7 @@ export function LogRepaymentDialog() {
 
   const defaultValues: z.input<typeof logRepaymentSchema> = {
     debtId: debt?.id ?? "",
-    bankAccountId: "",
+    bankAccountId: null,
     amount: 0,
     date: new Date(),
     note: "",
@@ -131,9 +131,7 @@ export function LogRepaymentDialog() {
       <DialogContent>
         <DialogHeader>
           <DialogTitle>Log Repayment</DialogTitle>
-          <DialogDescription>
-            Record a payment against "{debt.name}" as a real transaction.
-          </DialogDescription>
+          <DialogDescription>Record a payment against "{debt.name}".</DialogDescription>
         </DialogHeader>
         <div>
           <form
@@ -169,11 +167,14 @@ export function LogRepaymentDialog() {
                   return (
                     <Field data-invalid={isInvalid}>
                       <FieldLabel htmlFor={id}>Bank Account</FieldLabel>
+                      <FieldDescription>
+                        Optional — leave empty if this isn't a real money movement.
+                      </FieldDescription>
 
                       <Select
                         items={items}
-                        value={field.state.value}
-                        onValueChange={(value) => field.handleChange(value as string)}
+                        value={field.state.value ?? ""}
+                        onValueChange={(value) => field.handleChange((value as string) || null)}
                         disabled={disabled}
                       >
                         <SelectTrigger
@@ -183,7 +184,7 @@ export function LogRepaymentDialog() {
                           aria-invalid={isInvalid ? true : undefined}
                           aria-labelledby={isInvalid ? errorId : undefined}
                         >
-                          <SelectValue placeholder="Select bank account" />
+                          <SelectValue placeholder="No bank account" />
                         </SelectTrigger>
                         <SelectContent>
                           <SelectGroup>
