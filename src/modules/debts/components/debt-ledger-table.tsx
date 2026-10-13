@@ -29,6 +29,7 @@ import type { getDebt } from "../functions";
 import { getDebtOutstanding, getDebtStatus } from "../utils";
 import { DebtOutstandingMeter } from "./debt-outstanding-meter";
 import { DebtStatusBadge } from "./debt-status-badge";
+import { ForgivenOutstanding } from "./forgiven-outstanding";
 
 type Props = {
   debt: NonNullable<Awaited<ReturnType<typeof getDebt>>>;
@@ -160,13 +161,21 @@ export function DebtLedgerTable({ debt }: Props) {
               </TableCell>
               <TableCell className="text-end tabular-nums">−{formatDebtAmount(repaid)}</TableCell>
               <TableCell className="text-end font-semibold tabular-nums">
-                <DebtOutstandingMeter
-                  direction={debt.direction}
-                  amount={debt.amount}
-                  outstanding={outstanding}
-                  repaymentsCount={entries.length}
-                  formatDebtAmount={formatDebtAmount}
-                />
+                {debt.forgivenAt ? (
+                  <ForgivenOutstanding
+                    amount={debt.amount}
+                    outstanding={outstanding}
+                    formatDebtAmount={formatDebtAmount}
+                  />
+                ) : (
+                  <DebtOutstandingMeter
+                    direction={debt.direction}
+                    amount={debt.amount}
+                    outstanding={outstanding}
+                    repaymentsCount={entries.length}
+                    formatDebtAmount={formatDebtAmount}
+                  />
+                )}
               </TableCell>
               <TableCell />
             </TableRow>
