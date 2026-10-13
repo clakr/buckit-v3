@@ -168,6 +168,52 @@ export function LogRepaymentDialog() {
             }}
           >
             <FieldGroup>
+              <form.AppField name="amount">
+                {(field) => {
+                  const isInvalid = field.state.meta.isTouched && !field.state.meta.isValid;
+
+                  const id = field.name;
+                  const errorId = `${id}-error`;
+
+                  const accountCurrency = debt.currency;
+
+                  const validated = isCurrencyCode(accountCurrency);
+                  if (!validated) return null;
+
+                  const currency = getCurrency(accountCurrency);
+                  if (!currency) return null;
+
+                  return (
+                    <Field data-invalid={isInvalid}>
+                      <FieldLabel htmlFor={id}>Amount</FieldLabel>
+
+                      <InputGroup>
+                        <InputGroupAddon>
+                          <InputGroupText>{currency.symbol}</InputGroupText>
+                        </InputGroupAddon>
+                        <InputGroupInput
+                          type="number"
+                          id={field.name}
+                          placeholder="0.00"
+                          min={0}
+                          step={0.01}
+                          required
+                          value={field.state.value as string}
+                          onChange={(e) => field.handleChange(e.target.value)}
+                          onBlur={field.handleBlur}
+                          aria-invalid={isInvalid ? true : undefined}
+                          aria-labelledby={isInvalid ? errorId : undefined}
+                        />
+                        <InputGroupAddon align="inline-end">
+                          <InputGroupText>{currency.code}</InputGroupText>
+                        </InputGroupAddon>
+                      </InputGroup>
+
+                      {isInvalid && <FieldError id={errorId} errors={field.state.meta.errors} />}
+                    </Field>
+                  );
+                }}
+              </form.AppField>
               <form.AppField name="bankAccountId">
                 {(field) => {
                   const isInvalid = field.state.meta.isTouched && !field.state.meta.isValid;
@@ -265,52 +311,6 @@ export function LogRepaymentDialog() {
                             </span>
                           </FieldDescription>
                         ))}
-
-                      {isInvalid && <FieldError id={errorId} errors={field.state.meta.errors} />}
-                    </Field>
-                  );
-                }}
-              </form.AppField>
-              <form.AppField name="amount">
-                {(field) => {
-                  const isInvalid = field.state.meta.isTouched && !field.state.meta.isValid;
-
-                  const id = field.name;
-                  const errorId = `${id}-error`;
-
-                  const accountCurrency = debt.currency;
-
-                  const validated = isCurrencyCode(accountCurrency);
-                  if (!validated) return null;
-
-                  const currency = getCurrency(accountCurrency);
-                  if (!currency) return null;
-
-                  return (
-                    <Field data-invalid={isInvalid}>
-                      <FieldLabel htmlFor={id}>Amount</FieldLabel>
-
-                      <InputGroup>
-                        <InputGroupAddon>
-                          <InputGroupText>{currency.symbol}</InputGroupText>
-                        </InputGroupAddon>
-                        <InputGroupInput
-                          type="number"
-                          id={field.name}
-                          placeholder="0.00"
-                          min={0}
-                          step={0.01}
-                          required
-                          value={field.state.value as string}
-                          onChange={(e) => field.handleChange(e.target.value)}
-                          onBlur={field.handleBlur}
-                          aria-invalid={isInvalid ? true : undefined}
-                          aria-labelledby={isInvalid ? errorId : undefined}
-                        />
-                        <InputGroupAddon align="inline-end">
-                          <InputGroupText>{currency.code}</InputGroupText>
-                        </InputGroupAddon>
-                      </InputGroup>
 
                       {isInvalid && <FieldError id={errorId} errors={field.state.meta.errors} />}
                     </Field>

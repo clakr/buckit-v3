@@ -181,19 +181,9 @@ export function LogAllocationDialog() {
             }}
           >
             <FieldGroup>
-              {data.source === "bank-account" ? (
-                <form.AppField name="bucketId">
-                  {(field) => (
-                    <field.Select
-                      label="Bucket"
-                      items={buckets}
-                      disabled={bucketsStatus !== "success" || !buckets || buckets.length === 0}
-                      placeholder="Select bucket"
-                      options={buckets ?? []}
-                    />
-                  )}
-                </form.AppField>
-              ) : (
+              {/* Reads as a sentence. From a bucket: "From BPI, set aside ₱500" (the amount needs
+                  the account's currency). From an account: "Set aside ₱500 into Emergency". */}
+              {data.source === "bucket" ? (
                 <form.AppField name="bankAccountId">
                   {(field) => {
                     const isInvalid = field.state.meta.isTouched && !field.state.meta.isValid;
@@ -259,7 +249,7 @@ export function LogAllocationDialog() {
                     );
                   }}
                 </form.AppField>
-              )}
+              ) : null}
               <form.AppField
                 name="amount"
                 validators={{
@@ -343,6 +333,19 @@ export function LogAllocationDialog() {
                   );
                 }}
               </form.AppField>
+              {data.source === "bank-account" ? (
+                <form.AppField name="bucketId">
+                  {(field) => (
+                    <field.Select
+                      label="Bucket"
+                      items={buckets}
+                      disabled={bucketsStatus !== "success" || !buckets || buckets.length === 0}
+                      placeholder="Select bucket"
+                      options={buckets ?? []}
+                    />
+                  )}
+                </form.AppField>
+              ) : null}
               <form.AppField name="date">
                 {(field) => <field.Datepicker label="Date" />}
               </form.AppField>
