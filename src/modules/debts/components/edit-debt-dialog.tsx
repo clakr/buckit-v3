@@ -1,6 +1,5 @@
-import { IconCalendar, IconFileDescription, IconLock } from "@tabler/icons-react";
+import { IconFileDescription, IconLock } from "@tabler/icons-react";
 import { useQuery } from "@tanstack/react-query";
-import { format } from "date-fns";
 import z from "zod";
 import { create } from "zustand";
 import { useShallow } from "zustand/react/shallow";
@@ -11,7 +10,6 @@ import type { DialogState } from "#/lib/types";
 import { StateTemplate } from "#/components/state-template";
 import { Badge } from "#/components/ui/badge";
 import { Button } from "#/components/ui/button";
-import { Calendar } from "#/components/ui/calendar";
 import {
   Dialog,
   DialogContent,
@@ -27,7 +25,6 @@ import {
   InputGroupInput,
   InputGroupText,
 } from "#/components/ui/input-group";
-import { Popover, PopoverContent, PopoverTrigger } from "#/components/ui/popover";
 import { useAppForm } from "#/integrations/tanstack-form";
 import { currencyCodec } from "#/lib/codecs";
 import { getCurrency, isCurrencyCode } from "#/lib/utils";
@@ -224,48 +221,7 @@ export function EditDebtDialog() {
                   }}
                 </form.AppField>
                 <form.AppField name="date">
-                  {(field) => {
-                    const date = field.state.value;
-
-                    const isInvalid = field.state.meta.isTouched && !field.state.meta.isValid;
-
-                    const id = field.name;
-                    const errorId = `${id}-error`;
-
-                    return (
-                      <Field data-invalid={isInvalid}>
-                        <FieldLabel htmlFor={id}>Date</FieldLabel>
-
-                        <Popover>
-                          <PopoverTrigger
-                            render={
-                              <Button
-                                id={id}
-                                variant="outline"
-                                data-empty={!date}
-                                className="justify-start text-left font-normal data-[empty=true]:text-muted-foreground"
-                                aria-invalid={isInvalid ? true : undefined}
-                                aria-labelledby={isInvalid ? errorId : undefined}
-                              />
-                            }
-                          >
-                            <IconCalendar />
-                            {date ? format(date, "PPP") : <span>Pick a date</span>}
-                          </PopoverTrigger>
-                          <PopoverContent className="w-auto p-0">
-                            <Calendar
-                              mode="single"
-                              selected={date}
-                              onSelect={(value) => field.handleChange(value ?? new Date())}
-                              onDayBlur={field.handleBlur}
-                            />
-                          </PopoverContent>
-                        </Popover>
-
-                        {isInvalid && <FieldError id={errorId} errors={field.state.meta.errors} />}
-                      </Field>
-                    );
-                  }}
+                  {(field) => <field.Datepicker label="Date" />}
                 </form.AppField>
                 <form.AppField name="note">
                   {(field) => (
