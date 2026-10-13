@@ -104,8 +104,6 @@ function RouteComponent() {
         </div>
       </div>
 
-      {debt.note ? <p className="whitespace-pre-wrap text-muted-foreground">{debt.note}</p> : null}
-
       <DebtLedgerTable debt={debt} />
     </Main>
   );

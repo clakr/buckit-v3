@@ -87,6 +87,9 @@ export function DebtLedgerTable({ debt }: Props) {
               {debt.direction === "receivable"
                 ? `Lent to ${debt.name}`
                 : `Borrowed from ${debt.name}`}
+              {debt.note ? (
+                <span className="ms-2 font-normal text-muted-foreground">“{debt.note}”</span>
+              ) : null}
             </TableCell>
             <TableCell>
               {debt.direction === "receivable" ? (
