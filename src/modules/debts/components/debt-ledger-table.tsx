@@ -20,13 +20,14 @@ import {
   TableRow,
 } from "#/components/ui/table";
 import { currencyCodec } from "#/lib/codecs";
-import { cn, formatCurrency, formatDate } from "#/lib/utils";
+import { formatCurrency, formatDate } from "#/lib/utils";
 import { RepaymentActionsDropdownMenu } from "#/modules/repayments/components/repayment-actions-dropdown-menu";
 import { getRepaymentAmount, getRepaymentDate } from "#/modules/repayments/utils";
 
 import type { getDebt } from "../functions";
 
 import { getDebtOutstanding, getDebtStatus } from "../utils";
+import { DebtOutstandingMeter } from "./debt-outstanding-meter";
 import { DebtStatusBadge } from "./debt-status-badge";
 
 type Props = {
@@ -122,13 +123,9 @@ export function DebtLedgerTable({ debt }: Props) {
               <TableCell className="text-end text-emerald-600 tabular-nums">
                 −{formatDebtAmount(entry.amount)}
               </TableCell>
-              <TableCell
-                className={cn(
-                  "text-end font-medium tabular-nums",
-                  entry.balance < 0 && "text-destructive",
-                )}
-              >
-                {formatDebtAmount(entry.balance)}
+              {/* Past zero there's nothing outstanding; the footer meter shows the overpayment. */}
+              <TableCell className="text-end font-medium tabular-nums">
+                {formatDebtAmount(Math.max(entry.balance, 0))}
               </TableCell>
               <TableCell className="text-end">
                 <RepaymentActionsDropdownMenu debt={debt} repaymentId={entry.id} />
@@ -162,13 +159,14 @@ export function DebtLedgerTable({ debt }: Props) {
                 {progress.toFixed(0)}%)
               </TableCell>
               <TableCell className="text-end tabular-nums">−{formatDebtAmount(repaid)}</TableCell>
-              <TableCell
-                className={cn(
-                  "text-end font-semibold tabular-nums",
-                  outstanding < 0 && "text-destructive",
-                )}
-              >
-                {formatDebtAmount(outstanding)}
+              <TableCell className="text-end font-semibold tabular-nums">
+                <DebtOutstandingMeter
+                  direction={debt.direction}
+                  amount={debt.amount}
+                  outstanding={outstanding}
+                  repaymentsCount={entries.length}
+                  formatDebtAmount={formatDebtAmount}
+                />
               </TableCell>
               <TableCell />
             </TableRow>
