@@ -20,16 +20,14 @@ import {
   TableRow,
 } from "#/components/ui/table";
 import { currencyCodec } from "#/lib/codecs";
-import { formatCurrency, formatDate } from "#/lib/utils";
+import { cn, formatCurrency, formatDate } from "#/lib/utils";
 import { RepaymentActionsDropdownMenu } from "#/modules/repayments/components/repayment-actions-dropdown-menu";
 import { getRepaymentAmount, getRepaymentDate } from "#/modules/repayments/utils";
 
 import type { getDebt } from "../functions";
 
 import { getDebtOutstanding, getDebtStatus } from "../utils";
-import { DebtOutstandingMeter } from "./debt-outstanding-meter";
 import { DebtStatusBadge } from "./debt-status-badge";
-import { ForgivenOutstanding } from "./forgiven-outstanding";
 
 type Props = {
   debt: NonNullable<Awaited<ReturnType<typeof getDebt>>>;
@@ -124,7 +122,7 @@ export function DebtLedgerTable({ debt }: Props) {
               <TableCell className="text-end text-emerald-600 tabular-nums">
                 −{formatDebtAmount(entry.amount)}
               </TableCell>
-              {/* Past zero there's nothing outstanding; the footer meter shows the overpayment. */}
+              {/* Past zero there's nothing outstanding; the footer shows the overpayment. */}
               <TableCell className="text-end font-medium tabular-nums">
                 {formatDebtAmount(Math.max(entry.balance, 0))}
               </TableCell>
@@ -162,19 +160,27 @@ export function DebtLedgerTable({ debt }: Props) {
               <TableCell className="text-end tabular-nums">−{formatDebtAmount(repaid)}</TableCell>
               <TableCell className="text-end font-semibold tabular-nums">
                 {debt.forgivenAt ? (
-                  <ForgivenOutstanding
-                    amount={debt.amount}
-                    outstanding={outstanding}
-                    formatDebtAmount={formatDebtAmount}
-                  />
+                  // The ledger is the full record, so the forgiven amount stays visible here
+                  // rather than behind the list's show/hide toggle.
+                  <span className="text-muted-foreground">
+                    <span className="me-1.5 uppercase">Forgiven</span>
+                    <span className="line-through">
+                      {formatDebtAmount(Math.max(outstanding, 0))}
+                    </span>
+                  </span>
+                ) : outstanding < 0 ? (
+                  // Overpaying isn't an error: in the user's favour on a receivable, money to
+                  // get back on a payable.
+                  <span
+                    className={cn(
+                      "uppercase",
+                      debt.direction === "receivable" ? "text-emerald-600" : "text-amber-600",
+                    )}
+                  >
+                    Overpaid +{formatDebtAmount(-outstanding)}
+                  </span>
                 ) : (
-                  <DebtOutstandingMeter
-                    direction={debt.direction}
-                    amount={debt.amount}
-                    outstanding={outstanding}
-                    repaymentsCount={entries.length}
-                    formatDebtAmount={formatDebtAmount}
-                  />
+                  formatDebtAmount(outstanding)
                 )}
               </TableCell>
               <TableCell />
@@ -189,7 +195,7 @@ export function DebtLedgerTable({ debt }: Props) {
 function AccountBadge({ bankAccount }: { bankAccount: Pick<BankAccount, "name"> | null }) {
   if (!bankAccount) {
     return (
-      <Badge variant="ghost" className="text-muted-foreground">
+      <Badge variant="ghost" className="-ms-2 text-muted-foreground">
         <IconCash />
         Off-app
       </Badge>
@@ -197,7 +203,7 @@ function AccountBadge({ bankAccount }: { bankAccount: Pick<BankAccount, "name"> 
   }
 
   return (
-    <Badge variant="outline">
+    <Badge variant="outline" className="-ms-2">
       <IconBuildingBank />
       {bankAccount.name}
     </Badge>
