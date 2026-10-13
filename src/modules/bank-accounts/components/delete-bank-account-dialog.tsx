@@ -21,13 +21,11 @@ import { Field, FieldError, FieldGroup, FieldLabel } from "#/components/ui/field
 import { InputGroup, InputGroupAddon, InputGroupInput } from "#/components/ui/input-group";
 import { Spinner } from "#/components/ui/spinner";
 import { useAppForm } from "#/integrations/tanstack-form";
-import { currencyCodec } from "#/lib/codecs";
-import { formatCurrency } from "#/lib/utils";
+import { BankAccountDeletionSummary } from "#/modules/bank-accounts/components/bank-account-deletion-summary";
 import { useDeleteBankAccountMutation } from "#/modules/bank-accounts/mutations";
 import { bankAccountQueryOption } from "#/modules/bank-accounts/query-options";
 import { verifyUserBankAccountMiddlewareSchema } from "#/modules/bank-accounts/schemas";
-import { getBankAccountUnallocatedBalance } from "#/modules/bank-accounts/utils";
-import { BankAccountDeletionDebtsItem } from "#/modules/debts/components/bank-account-deletion-debts-item";
+import { bucketsQueryOptions } from "#/modules/buckets/query-options";
 import { bankAccountLinkedDebtsQueryOption } from "#/modules/debts/query-options";
 
 type StoreState = DialogState & {
@@ -65,18 +63,26 @@ export function DeleteBankAccountDialog() {
     ...bankAccountLinkedDebtsQueryOption(bankAccountId ?? ""),
     enabled: isOpen,
   });
+  // Every bucket, not just this account's: a bucket's "before" balance spans accounts.
+  const bucketsQuery = useQuery({
+    ...bucketsQueryOptions,
+    enabled: isOpen,
+  });
 
   const bankAccount = bankAccountQuery.data;
   const linkedDebts = linkedDebtsQuery.data ?? [];
-  const status = [bankAccountQuery.status, linkedDebtsQuery.status].includes("error")
+  const buckets = bucketsQuery.data ?? [];
+  const statuses = [bankAccountQuery.status, linkedDebtsQuery.status, bucketsQuery.status];
+  const status = statuses.includes("error")
     ? "error"
-    : [bankAccountQuery.status, linkedDebtsQuery.status].includes("pending")
+    : statuses.includes("pending")
       ? "pending"
       : "success";
 
   function refetch() {
     if (bankAccountQuery.isError) bankAccountQuery.refetch();
     if (linkedDebtsQuery.isError) linkedDebtsQuery.refetch();
+    if (bucketsQuery.isError) bucketsQuery.refetch();
   }
 
   const mutation = useDeleteBankAccountMutation();
@@ -117,30 +123,6 @@ export function DeleteBankAccountDialog() {
     toggleDialog();
   }
 
-  const totalTransactions = bankAccount?.transactions.length ?? 0;
-  const { balance } = getBankAccountUnallocatedBalance({
-    startingBalance: bankAccount?.startingBalance ?? 0,
-    transactions: bankAccount?.transactions ?? [],
-    allocations: bankAccount?.allocations ?? [],
-  });
-
-  const totalAllocations = bankAccount?.allocations.length ?? 0;
-  const allocations =
-    bankAccount?.allocations.reduce<Record<string, number>>((acc, a) => {
-      if (!a.bucket) return acc;
-
-      const name = a.bucket.name;
-      const amount = currencyCodec.encode(a.amount);
-
-      if (name in acc) {
-        acc[name] += amount;
-      } else {
-        acc[name] = amount;
-      }
-
-      return acc;
-    }, {}) ?? {};
-
   return (
     <Dialog open={isOpen} onOpenChange={handleOnOpenChange}>
       <DialogContent>
@@ -156,7 +138,7 @@ export function DeleteBankAccountDialog() {
             <StateTemplate
               state="loading"
               title="Loading account"
-              description="Fetching transactions, allocations, and debts to review before deletion..."
+              description="Fetching transactions, allocations, buckets, and debts to review before deletion..."
             />
           ) : null}
           {status === "error" ? (
@@ -169,38 +151,11 @@ export function DeleteBankAccountDialog() {
           ) : null}
           {status === "success" && bankAccount ? (
             <div className="flex flex-col gap-y-4">
-              <ul className="list-inside list-disc text-muted-foreground empty:hidden">
-                {totalTransactions ? (
-                  <li>
-                    <b>{totalTransactions}</b> transactions totaling{" "}
-                    <b>
-                      {formatCurrency(currencyCodec.encode(balance), {
-                        currency: bankAccount.currency,
-                      })}
-                    </b>{" "}
-                    will be permanently deleted.
-                  </li>
-                ) : null}
-                {totalAllocations ? (
-                  <li>
-                    <b>{totalAllocations}</b> allocations will be permanently deleted, reducing the
-                    balance of these buckets:
-                    <ul className="ms-4 list-inside list-disc">
-                      {Object.entries(allocations).map(([name, amount]) => (
-                        <li key={name}>
-                          {name} -{" "}
-                          <b className="font-semibold">
-                            {formatCurrency(amount, {
-                              currency: bankAccount.currency,
-                            })}
-                          </b>
-                        </li>
-                      ))}
-                    </ul>
-                  </li>
-                ) : null}
-                <BankAccountDeletionDebtsItem bankAccountId={bankAccount.id} debts={linkedDebts} />
-              </ul>
+              <BankAccountDeletionSummary
+                bankAccount={bankAccount}
+                buckets={buckets}
+                linkedDebts={linkedDebts}
+              />
               <form
                 id={form.formId}
                 onSubmit={(e) => {

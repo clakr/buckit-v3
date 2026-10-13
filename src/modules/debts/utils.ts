@@ -16,6 +16,8 @@ export function getDebtOutstanding({
 
 // Computed on read, never stored — a stored status would go stale the moment a repayment
 // disappears through an unrelated code path (e.g. a Bank Account deletion).
+export type DebtStatus = "open" | "settled" | "forgiven";
+
 export function getDebtStatus({
   amount,
   forgivenAt,
@@ -24,7 +26,7 @@ export function getDebtStatus({
   amount: Debt["amount"];
   forgivenAt: Debt["forgivenAt"];
   repayments: Parameters<typeof getRepaymentAmount>[0][];
-}) {
+}): DebtStatus {
   if (forgivenAt) return "forgiven";
 
   return getDebtOutstanding({ amount, repayments }) <= 0 ? "settled" : "open";
