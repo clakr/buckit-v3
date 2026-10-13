@@ -21,7 +21,10 @@ import { Field, FieldError, FieldGroup, FieldLabel } from "#/components/ui/field
 import { InputGroup, InputGroupAddon, InputGroupInput } from "#/components/ui/input-group";
 import { Spinner } from "#/components/ui/spinner";
 import { useAppForm } from "#/integrations/tanstack-form";
-import { BankAccountDeletionSummary } from "#/modules/bank-accounts/components/bank-account-deletion-summary";
+import {
+  BankAccountDeletionSummary,
+  getBankAccountDeletionDescription,
+} from "#/modules/bank-accounts/components/bank-account-deletion-summary";
 import { useDeleteBankAccountMutation } from "#/modules/bank-accounts/mutations";
 import { bankAccountQueryOption } from "#/modules/bank-accounts/query-options";
 import { verifyUserBankAccountMiddlewareSchema } from "#/modules/bank-accounts/schemas";
@@ -129,8 +132,9 @@ export function DeleteBankAccountDialog() {
         <DialogHeader>
           <DialogTitle>Delete Account?</DialogTitle>
           <DialogDescription>
-            Permanently delete "{bankAccount?.name}" and everything logged against it. This cannot
-            be undone.
+            {status === "success" && bankAccount
+              ? getBankAccountDeletionDescription({ bankAccount, linkedDebts })
+              : `Permanently delete "${bankAccount?.name ?? ""}" and everything logged against it. This cannot be undone.`}
           </DialogDescription>
         </DialogHeader>
         <div>

@@ -1,4 +1,4 @@
-import { IconBuildingBank, IconTrash } from "@tabler/icons-react";
+import { IconBuildingBank } from "@tabler/icons-react";
 
 import type { getBankAccounts } from "#/modules/bank-accounts/functions";
 import type { getBucket } from "#/modules/buckets/functions";
@@ -12,9 +12,17 @@ type Props = {
   bankAccounts: Awaited<ReturnType<typeof getBankAccounts>>;
 };
 
-// Same shape as `BankAccountDeletionSummary`: what's deleted in one sentence, then what
-// survives but changes. Here that's only each account's unallocated balance — the money
-// stays in the account, it just stops being earmarked.
+// The dialog's description: what goes with the bucket, so the summary below only has to
+// cover what survives but changes.
+export function getBucketDeletionDescription({ bucket }: Pick<Props, "bucket">) {
+  const allocationCount = bucket.allocations.length;
+
+  return `Permanently delete "${bucket.name}"${allocationCount ? ` with its ${allocationCount} ${allocationCount === 1 ? "allocation" : "allocations"}` : ""}. This cannot be undone.`;
+}
+
+// Same shape as `BankAccountDeletionSummary`: what survives but changes. Here that's only
+// each account's unallocated balance — the money stays in the account, it just stops
+// being earmarked.
 export function BucketDeletionSummary({ bucket, bankAccounts }: Props) {
   const releasedByBankAccountId = new Map<string, number>();
   for (const allocation of bucket.allocations) {
@@ -38,20 +46,8 @@ export function BucketDeletionSummary({ bucket, bankAccounts }: Props) {
       };
     });
 
-  const allocationCount = bucket.allocations.length;
-
   return (
     <div className="flex flex-col gap-y-3">
-      <p className="flex items-start gap-x-1.5 rounded-md bg-destructive/5 px-3 py-2 text-destructive">
-        <IconTrash className="mt-px size-4 shrink-0" />
-        <span>
-          Deletes "{bucket.name}"
-          {allocationCount
-            ? ` with its ${allocationCount} ${allocationCount === 1 ? "allocation" : "allocations"}`
-            : ""}
-          .
-        </span>
-      </p>
       {affectedBankAccounts.length ? (
         <>
           <table className="w-full tabular-nums">

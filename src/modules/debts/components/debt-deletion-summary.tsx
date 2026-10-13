@@ -1,4 +1,4 @@
-import { IconBuildingBank, IconTrash } from "@tabler/icons-react";
+import { IconBuildingBank } from "@tabler/icons-react";
 
 import type { getBankAccounts } from "#/modules/bank-accounts/functions";
 import type { getDebt } from "#/modules/debts/functions";
@@ -6,6 +6,7 @@ import type { getDebt } from "#/modules/debts/functions";
 import { currencyCodec } from "#/lib/codecs";
 import { formatCurrency } from "#/lib/utils";
 import { getBankAccountUnallocatedBalance } from "#/modules/bank-accounts/utils";
+import { getDebtLinkedTransactionIds } from "#/modules/debts/utils";
 
 type Props = {
   debt: NonNullable<Awaited<ReturnType<typeof getDebt>>>;
@@ -13,9 +14,30 @@ type Props = {
   deleteTransactions: boolean;
 };
 
-// Same shape as `BankAccountDeletionSummary`: what's deleted in one sentence, then what
-// survives but changes. Here that's each linked account's balance, and only when the
-// linked Transactions are deleted too — keeping them changes nothing outside the Debt.
+// The dialog's description: what goes with the Debt (and, if ticked, its linked
+// Transactions), so the summary below only has to cover what survives but changes.
+export function getDebtDeletionDescription({
+  debt,
+  deleteTransactions,
+}: Pick<Props, "debt" | "deleteTransactions">) {
+  const repaymentCount = debt.repayments.length;
+  const transactionCount = getDebtLinkedTransactionIds(debt).length;
+
+  const deletedRecords = [
+    repaymentCount
+      ? `${repaymentCount} ${repaymentCount === 1 ? "repayment" : "repayments"}`
+      : null,
+    deleteTransactions && transactionCount
+      ? `${transactionCount} linked ${transactionCount === 1 ? "transaction" : "transactions"}`
+      : null,
+  ].filter((part) => part !== null);
+
+  return `Permanently delete the debt with "${debt.name}"${deletedRecords.length ? ` with its ${deletedRecords.join(" and ")}` : ""}. This cannot be undone.`;
+}
+
+// Same shape as `BankAccountDeletionSummary`: what survives but changes. Here that's each
+// linked account's balance, and only when the linked Transactions are deleted too —
+// keeping them changes nothing outside the Debt.
 export function DebtDeletionSummary({ debt, bankAccounts, deleteTransactions }: Props) {
   function formatDebtAmount(value: number) {
     return formatCurrency(currencyCodec.encode(value), { currency: debt.currency });
@@ -63,16 +85,7 @@ export function DebtDeletionSummary({ debt, bankAccounts, deleteTransactions }: 
       };
     });
 
-  const repaymentCount = debt.repayments.length;
   const transactionCount = linkedTransactions.length;
-  const deletedParts = [
-    repaymentCount
-      ? `${repaymentCount} ${repaymentCount === 1 ? "repayment" : "repayments"}`
-      : null,
-    deleteTransactions && transactionCount
-      ? `${transactionCount} linked ${transactionCount === 1 ? "transaction" : "transactions"}`
-      : null,
-  ].filter(Boolean);
 
   const bankAccountsLabel = [...new Set(linkedTransactions.map((t) => t.bankAccount.name))]
     .map((name) => `"${name}"`)
@@ -80,13 +93,6 @@ export function DebtDeletionSummary({ debt, bankAccounts, deleteTransactions }: 
 
   return (
     <div className="flex flex-col gap-y-3">
-      <p className="flex items-start gap-x-1.5 rounded-md bg-destructive/5 px-3 py-2 text-destructive">
-        <IconTrash className="mt-px size-4 shrink-0" />
-        <span>
-          Deletes the debt with "{debt.name}"
-          {deletedParts.length ? ` with its ${deletedParts.join(" and ")}` : ""}.
-        </span>
-      </p>
       {!transactionCount ? (
         <p className="text-muted-foreground">Nothing outside this debt is affected.</p>
       ) : deleteTransactions ? (

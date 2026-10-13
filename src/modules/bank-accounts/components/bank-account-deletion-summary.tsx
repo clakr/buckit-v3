@@ -1,4 +1,4 @@
-import { IconBucket, IconCredits, IconTrash } from "@tabler/icons-react";
+import { IconBucket, IconCredits } from "@tabler/icons-react";
 
 import type { getBankAccount } from "#/modules/bank-accounts/functions";
 import type { getBuckets } from "#/modules/buckets/functions";
@@ -15,9 +15,37 @@ type Props = {
   linkedDebts: Awaited<ReturnType<typeof getBankAccountLinkedDebts>>;
 };
 
-// What goes with the account fits in one sentence; what survives but changes (a bucket's
-// balance, a debt's outstanding) is the part the user can't see from the account page,
-// so it gets the before → after table.
+const deletedRecordsList = new Intl.ListFormat("en", { type: "conjunction" });
+
+// The dialog's description: what goes with the account, so the summary below only has to
+// cover what survives but changes.
+export function getBankAccountDeletionDescription({
+  bankAccount,
+  linkedDebts,
+}: Pick<Props, "bankAccount" | "linkedDebts">) {
+  const transactionCount = bankAccount.transactions.length;
+  const allocationCount = bankAccount.allocations.length;
+  const removedRepaymentCount = linkedDebts
+    .flatMap((debt) => debt.repayments)
+    .filter((r) => r.transaction?.bankAccountId === bankAccount.id).length;
+
+  const deletedRecords = [
+    transactionCount
+      ? `${transactionCount} ${transactionCount === 1 ? "transaction" : "transactions"}`
+      : null,
+    allocationCount
+      ? `${allocationCount} ${allocationCount === 1 ? "allocation" : "allocations"}`
+      : null,
+    removedRepaymentCount
+      ? `${removedRepaymentCount} debt ${removedRepaymentCount === 1 ? "repayment" : "repayments"}`
+      : null,
+  ].filter((part) => part !== null);
+
+  return `Permanently delete "${bankAccount.name}"${deletedRecords.length ? ` with its ${deletedRecordsList.format(deletedRecords)}` : ""}. This cannot be undone.`;
+}
+
+// What survives but changes (a bucket's balance, a debt's outstanding) is the part the user
+// can't see from the account page, so it gets a before → after table.
 export function BankAccountDeletionSummary({ bankAccount, buckets, linkedDebts }: Props) {
   function formatAccountAmount(value: number) {
     return formatCurrency(currencyCodec.encode(value), { currency: bankAccount.currency });
@@ -57,7 +85,6 @@ export function BankAccountDeletionSummary({ bankAccount, buckets, linkedDebts }
       id: debt.id,
       name: debt.name,
       currency: debt.currency,
-      removedRepaymentCount: debt.repayments.length - remainingRepayments.length,
       outstandingBefore: getDebtOutstanding(debt),
       outstandingAfter: getDebtOutstanding(debtAfter),
       statusBefore: getDebtStatus(debt),
@@ -66,35 +93,10 @@ export function BankAccountDeletionSummary({ bankAccount, buckets, linkedDebts }
     };
   });
 
-  const transactionCount = bankAccount.transactions.length;
-  const allocationCount = bankAccount.allocations.length;
-  const removedRepaymentCount = affectedDebts.reduce(
-    (acc, debt) => acc + debt.removedRepaymentCount,
-    0,
-  );
-  const deletedParts = [
-    transactionCount
-      ? `${transactionCount} ${transactionCount === 1 ? "transaction" : "transactions"}`
-      : null,
-    allocationCount
-      ? `${allocationCount} ${allocationCount === 1 ? "allocation" : "allocations"}`
-      : null,
-    removedRepaymentCount
-      ? `${removedRepaymentCount} debt ${removedRepaymentCount === 1 ? "repayment" : "repayments"}`
-      : null,
-  ].filter(Boolean);
-
   const hasChangesElsewhere = affectedBuckets.length > 0 || affectedDebts.length > 0;
 
   return (
     <div className="flex flex-col gap-y-3">
-      <p className="flex items-start gap-x-1.5 rounded-md bg-destructive/5 px-3 py-2 text-destructive">
-        <IconTrash className="mt-px size-4 shrink-0" />
-        <span>
-          Deletes "{bankAccount.name}"
-          {deletedParts.length ? ` with its ${deletedParts.join(", ")}` : ""}.
-        </span>
-      </p>
       {hasChangesElsewhere ? (
         <table className="w-full tabular-nums">
           <thead className="text-[0.65rem] tracking-wide text-muted-foreground uppercase">

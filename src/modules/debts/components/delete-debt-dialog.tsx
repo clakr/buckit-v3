@@ -32,7 +32,10 @@ import { InputGroup, InputGroupAddon, InputGroupInput } from "#/components/ui/in
 import { Spinner } from "#/components/ui/spinner";
 import { useAppForm } from "#/integrations/tanstack-form";
 import { bankAccountsQueryOption } from "#/modules/bank-accounts/query-options";
-import { DebtDeletionSummary } from "#/modules/debts/components/debt-deletion-summary";
+import {
+  DebtDeletionSummary,
+  getDebtDeletionDescription,
+} from "#/modules/debts/components/debt-deletion-summary";
 import { validateDeleteDebt } from "#/modules/debts/functions";
 import { useDeleteDebtMutation } from "#/modules/debts/mutations";
 import { debtQueryOption } from "#/modules/debts/query-options";
@@ -167,7 +170,9 @@ export function DeleteDebtDialog() {
         <DialogHeader>
           <DialogTitle>Delete Debt?</DialogTitle>
           <DialogDescription>
-            Permanently delete the debt with "{debt?.name}". This cannot be undone.
+            {status === "success" && debt
+              ? getDebtDeletionDescription({ debt, deleteTransactions })
+              : `Permanently delete the debt with "${debt?.name ?? ""}". This cannot be undone.`}
           </DialogDescription>
         </DialogHeader>
         <div>

@@ -26,7 +26,7 @@ import { bankAccountsQueryOption } from "#/modules/bank-accounts/query-options";
 import { useDeleteBucketMutation } from "../mutations";
 import { bucketQueryOption } from "../query-options";
 import { verifyUserBucketMiddlewareSchema } from "../schemas";
-import { BucketDeletionSummary } from "./bucket-deletion-summary";
+import { BucketDeletionSummary, getBucketDeletionDescription } from "./bucket-deletion-summary";
 
 type StoreState = DialogState & {
   bucketId: Bucket["id"] | null;
@@ -123,8 +123,9 @@ export function DeleteBucketDialog() {
         <DialogHeader>
           <DialogTitle>Delete Bucket?</DialogTitle>
           <DialogDescription>
-            Permanently delete "{bucket?.name}" and everything logged against it. This cannot be
-            undone.
+            {status === "success" && bucket
+              ? getBucketDeletionDescription({ bucket })
+              : `Permanently delete "${bucket?.name ?? ""}" and everything logged against it. This cannot be undone.`}
           </DialogDescription>
         </DialogHeader>
         <div>
