@@ -1,10 +1,12 @@
-import { IconReceipt } from "@tabler/icons-react";
+import { IconPlus, IconReceipt } from "@tabler/icons-react";
 import { Link } from "@tanstack/react-router";
 
 import type { BankAccount } from "#/db/schema";
 
+import { Button } from "#/components/ui/button";
 import {
   Empty,
+  EmptyContent,
   EmptyDescription,
   EmptyHeader,
   EmptyMedia,
@@ -31,9 +33,10 @@ import { DebtStatusBadge } from "./debt-status-badge";
 
 type Props = {
   debt: NonNullable<Awaited<ReturnType<typeof getDebt>>>;
+  onLogRepayment: () => void;
 };
 
-export function DebtLedgerTable({ debt }: Props) {
+export function DebtLedgerTable({ debt, onLogRepayment }: Props) {
   function formatDebtAmount(value: number) {
     return formatCurrency(currencyCodec.encode(value), { currency: debt.currency });
   }
@@ -143,6 +146,12 @@ export function DebtLedgerTable({ debt }: Props) {
                       Log a repayment to start paying down this debt.
                     </EmptyDescription>
                   </EmptyHeader>
+                  <EmptyContent>
+                    <Button onClick={onLogRepayment}>
+                      <IconPlus />
+                      Log Repayment
+                    </Button>
+                  </EmptyContent>
                 </Empty>
               </TableCell>
             </TableRow>

@@ -104,7 +104,7 @@ function RouteComponent() {
         </div>
       </div>
 
-      <DebtLedgerTable debt={debt} />
+      <DebtLedgerTable debt={debt} onLogRepayment={handleOpenLogRepaymentDialog} />
     </Main>
   );
 }
