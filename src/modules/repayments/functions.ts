@@ -16,6 +16,7 @@ import {
   logRepaymentSchema,
   validateRepaymentSourceBankAccountSchema,
 } from "./schemas";
+import { isRepaymentDateBeforeDebt } from "./utils";
 
 export const validateRepaymentSourceBankAccount = createServerFn({
   method: "GET",
@@ -52,7 +53,7 @@ export const getRepaymentDebt = createServerFn({
 
     const debt = await db.query.debts.findFirst({
       where: { id: data.debtId },
-      columns: { direction: true },
+      columns: { direction: true, date: true },
     });
 
     if (!debt) throw new Error("No debt found.");
@@ -159,6 +160,9 @@ export const logRepayment = createServerFn({
     if (!isBalanceValid) throw new Error(balanceMessage);
 
     const debt = await getRepaymentDebt({ data: { debtId: data.debtId } });
+    if (isRepaymentDateBeforeDebt(data.date, debt.date)) {
+      throw new Error("A repayment can't be dated before its debt was recorded.");
+    }
 
     const amount = currencyCodec.decode(data.amount);
 
@@ -259,9 +263,17 @@ export const editRepayment = createServerFn({
     const repayment = await db.query.repayments.findFirst({
       where: { id: data.repaymentId, debtId: data.debtId },
       columns: { id: true },
-      with: { transaction: { columns: { id: true, type: true } } },
+      with: {
+        debt: { columns: { date: true } },
+        transaction: { columns: { id: true, type: true } },
+      },
     });
-    if (!repayment) throw new Error("No repayment found.");
+    // `debt` is only nullable in the relation's type; `debtId` is NOT NULL.
+    if (!repayment?.debt) throw new Error("No repayment found.");
+
+    if (isRepaymentDateBeforeDebt(data.date, repayment.debt.date)) {
+      throw new Error("A repayment can't be dated before its debt was recorded.");
+    }
 
     if (!repayment.transaction) {
       const [updated] = await db

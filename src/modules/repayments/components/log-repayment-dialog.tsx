@@ -1,6 +1,6 @@
 import { IconAlertCircle, IconCalendar } from "@tabler/icons-react";
 import { useQuery } from "@tanstack/react-query";
-import { format } from "date-fns";
+import { format, isBefore, startOfDay } from "date-fns";
 import z from "zod";
 import { create } from "zustand";
 import { useShallow } from "zustand/react/shallow";
@@ -314,7 +314,17 @@ export function LogRepaymentDialog() {
                   );
                 }}
               </form.AppField>
-              <form.AppField name="date">
+              <form.AppField
+                name="date"
+                validators={{
+                  // By calendar day, so a repayment on the day the Debt was recorded is fine
+                  // whatever time of day either was saved with.
+                  onChange: logRepaymentSchema.shape.date.refine(
+                    (value) => !isBefore(value, startOfDay(debt.date)),
+                    `Can't be before the debt was recorded (${format(debt.date, "PPP")}).`,
+                  ),
+                }}
+              >
                 {(field) => {
                   const date = field.state.value;
 
@@ -347,6 +357,7 @@ export function LogRepaymentDialog() {
                           <Calendar
                             mode="single"
                             selected={date}
+                            disabled={{ before: debt.date }}
                             onSelect={(value) => field.handleChange(value ?? new Date())}
                             onDayBlur={field.handleBlur}
                           />
