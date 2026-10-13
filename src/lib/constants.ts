@@ -1,15 +1,15 @@
 import {
   IconArrowsExchange,
   IconBucket,
+  IconBuildingBank,
   IconChartPie,
   IconCredits,
   IconLayoutDashboard,
-  IconWallet,
 } from "@tabler/icons-react";
 
 export const MODULE_ICONS = {
   dashboard: IconLayoutDashboard,
-  accounts: IconWallet,
+  accounts: IconBuildingBank,
   buckets: IconBucket,
   debts: IconCredits,
   transactions: IconArrowsExchange,
