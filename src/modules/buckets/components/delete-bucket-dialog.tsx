@@ -4,7 +4,7 @@ import z from "zod";
 import { create } from "zustand";
 import { useShallow } from "zustand/react/shallow";
 
-import type { BankAccount, Bucket } from "#/db/schema";
+import type { Bucket } from "#/db/schema";
 import type { DialogState } from "#/lib/types";
 
 import { StateTemplate } from "#/components/state-template";
@@ -21,12 +21,12 @@ import { Field, FieldError, FieldGroup, FieldLabel } from "#/components/ui/field
 import { InputGroup, InputGroupAddon, InputGroupInput } from "#/components/ui/input-group";
 import { Spinner } from "#/components/ui/spinner";
 import { useAppForm } from "#/integrations/tanstack-form";
-import { currencyCodec } from "#/lib/codecs";
-import { formatCurrency } from "#/lib/utils";
+import { bankAccountsQueryOption } from "#/modules/bank-accounts/query-options";
 
 import { useDeleteBucketMutation } from "../mutations";
 import { bucketQueryOption } from "../query-options";
 import { verifyUserBucketMiddlewareSchema } from "../schemas";
+import { BucketDeletionSummary } from "./bucket-deletion-summary";
 
 type StoreState = DialogState & {
   bucketId: Bucket["id"] | null;
@@ -55,14 +55,29 @@ export function DeleteBucketDialog() {
   );
 
   // @todo: should distinguish if network error or data not found
-  const {
-    status,
-    refetch,
-    data: bucket,
-  } = useQuery({
+  const bucketQuery = useQuery({
     ...bucketQueryOption(bucketId ?? ""),
     enabled: isOpen,
   });
+  // Every account, not just the bucket's: the summary needs each one's unallocated balance.
+  const bankAccountsQuery = useQuery({
+    ...bankAccountsQueryOption(),
+    enabled: isOpen,
+  });
+
+  const bucket = bucketQuery.data;
+  const bankAccounts = bankAccountsQuery.data ?? [];
+  const statuses = [bucketQuery.status, bankAccountsQuery.status];
+  const status = statuses.includes("error")
+    ? "error"
+    : statuses.includes("pending")
+      ? "pending"
+      : "success";
+
+  function refetch() {
+    if (bucketQuery.isError) bucketQuery.refetch();
+    if (bankAccountsQuery.isError) bankAccountsQuery.refetch();
+  }
 
   const mutation = useDeleteBucketMutation();
 
@@ -102,28 +117,6 @@ export function DeleteBucketDialog() {
     toggleDialog();
   }
 
-  const totalAllocations = bucket?.allocations.length ?? 0;
-  const allocations =
-    bucket?.allocations.reduce<
-      Record<string, { amount: number; currency: BankAccount["currency"] }>
-    >((acc, a) => {
-      if (!a.bankAccount) return acc;
-
-      const name = a.bankAccount?.name;
-      const amount = currencyCodec.encode(a.amount);
-
-      if (name in acc) {
-        acc[name].amount += amount;
-      } else {
-        acc[name] = {
-          amount,
-          currency: a.bankAccount.currency,
-        };
-      }
-
-      return acc;
-    }, {}) ?? {};
-
   return (
     <Dialog open={isOpen} onOpenChange={handleOnOpenChange}>
       <DialogContent>
@@ -139,7 +132,7 @@ export function DeleteBucketDialog() {
             <StateTemplate
               state="loading"
               title="Loading bucket"
-              description="Fetching allocations to review before deletion..."
+              description="Fetching allocations and accounts to review before deletion..."
             />
           ) : null}
           {status === "error" ? (
@@ -152,26 +145,7 @@ export function DeleteBucketDialog() {
           ) : null}
           {status === "success" && bucket ? (
             <div className="flex flex-col gap-y-4">
-              <ul className="list-inside list-disc text-muted-foreground empty:hidden">
-                {totalAllocations ? (
-                  <li>
-                    <b>{totalAllocations}</b> allocations will be permanently deleted. This money
-                    returns to each bank account's unallocated balance:
-                    <ul className="ms-4 list-inside list-disc">
-                      {Object.entries(allocations).map(([name, { amount, currency }]) => (
-                        <li key={name}>
-                          {name} -{" "}
-                          <b className="font-semibold">
-                            {formatCurrency(amount, {
-                              currency,
-                            })}
-                          </b>
-                        </li>
-                      ))}
-                    </ul>
-                  </li>
-                ) : null}
-              </ul>
+              <BucketDeletionSummary bucket={bucket} bankAccounts={bankAccounts} />
               <form
                 id={form.formId}
                 onSubmit={(e) => {
