@@ -87,16 +87,23 @@ export function EditTransactionDialog() {
     validators: {
       onChange: editTransactionSchema,
       onSubmitAsync: async ({ value }) => {
-        const { isValid, message } = await validateEditTransaction({
-          data: {
-            ...value,
-            amount: value.amount,
-          },
-        });
+        try {
+          const { isValid, message } = await validateEditTransaction({
+            data: {
+              ...value,
+              amount: value.amount,
+            },
+          });
 
-        if (!isValid) return message;
+          if (!isValid) return message;
 
-        return undefined;
+          return undefined;
+        } catch (error) {
+          console.error(error);
+
+          // A thrown validator would otherwise be an uncaught rejection that crashes the app.
+          return "Something went wrong while checking this. Please try again.";
+        }
       },
     },
     onSubmit: async ({ value: data }) => {

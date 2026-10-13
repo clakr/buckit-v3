@@ -62,20 +62,27 @@ export function RecordDebtDialog() {
     validators: {
       onChange: recordDebtSchema,
       onSubmitAsync: async ({ value }) => {
-        // Only a funded receivable moves money — nothing to check otherwise.
-        if (value.direction !== "receivable" || !value.bankAccountId) return undefined;
+        try {
+          // Only a funded receivable moves money — nothing to check otherwise.
+          if (value.direction !== "receivable" || !value.bankAccountId) return undefined;
 
-        const { isValid, message } = await validateDebtSourceBankAccount({
-          data: {
-            bankAccountId: value.bankAccountId,
-            currency: value.currency,
-            amount: value.amount,
-          },
-        });
+          const { isValid, message } = await validateDebtSourceBankAccount({
+            data: {
+              bankAccountId: value.bankAccountId,
+              currency: value.currency,
+              amount: value.amount,
+            },
+          });
 
-        if (!isValid) return message;
+          if (!isValid) return message;
 
-        return undefined;
+          return undefined;
+        } catch (error) {
+          console.error(error);
+
+          // A thrown validator would otherwise be an uncaught rejection that crashes the app.
+          return "Something went wrong while checking this. Please try again.";
+        }
       },
     },
     onSubmit: async ({ value: data }) => {

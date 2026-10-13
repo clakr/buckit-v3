@@ -94,13 +94,20 @@ export function LogRepaymentDialog() {
     validators: {
       onChange: logRepaymentSchema,
       onSubmitAsync: async ({ value }) => {
-        const currency = await validateLogRepaymentCurrency({ data: value });
-        if (!currency.isValid) return currency.message;
+        try {
+          const currency = await validateLogRepaymentCurrency({ data: value });
+          if (!currency.isValid) return currency.message;
 
-        const balance = await validateLogRepaymentBalance({ data: value });
-        if (!balance.isValid) return balance.message;
+          const balance = await validateLogRepaymentBalance({ data: value });
+          if (!balance.isValid) return balance.message;
 
-        return undefined;
+          return undefined;
+        } catch (error) {
+          console.error(error);
+
+          // A thrown validator would otherwise be an uncaught rejection that crashes the app.
+          return "Something went wrong while checking this. Please try again.";
+        }
       },
     },
     onSubmit: async ({ value: data }) => {
