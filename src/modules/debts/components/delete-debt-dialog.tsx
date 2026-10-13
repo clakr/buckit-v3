@@ -31,6 +31,8 @@ import {
 import { InputGroup, InputGroupAddon, InputGroupInput } from "#/components/ui/input-group";
 import { Spinner } from "#/components/ui/spinner";
 import { useAppForm } from "#/integrations/tanstack-form";
+import { bankAccountsQueryOption } from "#/modules/bank-accounts/query-options";
+import { DebtDeletionSummary } from "#/modules/debts/components/debt-deletion-summary";
 import { validateDeleteDebt } from "#/modules/debts/functions";
 import { useDeleteDebtMutation } from "#/modules/debts/mutations";
 import { debtQueryOption } from "#/modules/debts/query-options";
@@ -64,14 +66,29 @@ export function DeleteDebtDialog() {
   );
 
   // @todo: should distinguish if network error or data not found
-  const {
-    status,
-    refetch,
-    data: debt,
-  } = useQuery({
+  const debtQuery = useQuery({
     ...debtQueryOption(debtId ?? ""),
     enabled: isOpen,
   });
+  // The summary needs each linked account's current balance.
+  const bankAccountsQuery = useQuery({
+    ...bankAccountsQueryOption(),
+    enabled: isOpen,
+  });
+
+  const debt = debtQuery.data;
+  const bankAccounts = bankAccountsQuery.data ?? [];
+  const statuses = [debtQuery.status, bankAccountsQuery.status];
+  const status = statuses.includes("error")
+    ? "error"
+    : statuses.includes("pending")
+      ? "pending"
+      : "success";
+
+  function refetch() {
+    if (debtQuery.isError) debtQuery.refetch();
+    if (bankAccountsQuery.isError) bankAccountsQuery.refetch();
+  }
 
   const mutation = useDeleteDebtMutation();
 
@@ -133,7 +150,6 @@ export function DeleteDebtDialog() {
     toggleDialog();
   }
 
-  const totalRepayments = debt?.repayments.length ?? 0;
   const totalLinkedTransactions = debt ? getDebtLinkedTransactionIds(debt).length : 0;
   const linkedBankAccountNames = Array.from(
     new Set(
@@ -159,7 +175,7 @@ export function DeleteDebtDialog() {
             <StateTemplate
               state="loading"
               title="Loading debt"
-              description="Fetching repayments and linked transactions to review before deletion..."
+              description="Fetching repayments, linked transactions, and accounts to review before deletion..."
             />
           ) : null}
           {status === "error" ? (
@@ -172,30 +188,11 @@ export function DeleteDebtDialog() {
           ) : null}
           {status === "success" && debt ? (
             <div className="flex flex-col gap-y-4">
-              <ul className="list-inside list-disc text-muted-foreground empty:hidden">
-                {totalRepayments ? (
-                  <li>
-                    <b>{totalRepayments}</b> {totalRepayments === 1 ? "repayment" : "repayments"}{" "}
-                    logged against it will be permanently deleted.
-                  </li>
-                ) : null}
-                {totalLinkedTransactions ? (
-                  deleteTransactions ? (
-                    <li className="font-medium text-destructive">
-                      <b>{totalLinkedTransactions}</b> linked{" "}
-                      {totalLinkedTransactions === 1 ? "transaction" : "transactions"} will be
-                      permanently deleted from {linkedBankAccountsLabel}, changing{" "}
-                      {linkedBankAccountNames.length === 1 ? "its balance" : "their balances"}.
-                    </li>
-                  ) : (
-                    <li>
-                      <b>{totalLinkedTransactions}</b> linked{" "}
-                      {totalLinkedTransactions === 1 ? "transaction stays" : "transactions stay"} in
-                      your account history — no balance changes.
-                    </li>
-                  )
-                ) : null}
-              </ul>
+              <DebtDeletionSummary
+                debt={debt}
+                bankAccounts={bankAccounts}
+                deleteTransactions={deleteTransactions}
+              />
               <form
                 id={form.formId}
                 onSubmit={(e) => {
