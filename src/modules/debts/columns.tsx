@@ -14,6 +14,7 @@ import { getRepaymentDate } from "#/modules/repayments/utils";
 import type { getDebts } from "./functions";
 
 import { DebtActionsDropdownMenu } from "./components/debt-actions-dropdown-menu";
+import { DebtDirectionBadge } from "./components/debt-direction-badge";
 import { DebtStatusBadge } from "./components/debt-status-badge";
 import { getDebtOutstanding, getDebtStatus } from "./utils";
 
@@ -25,18 +26,7 @@ export const INDEX_COLUMNS: ColumnDef<Awaited<ReturnType<typeof getDebts>>[numbe
   },
   {
     accessorKey: "direction",
-    cell: ({ row }) => {
-      const direction = row.original.direction;
-
-      return (
-        <Badge
-          variant={direction === "receivable" ? "default" : "secondary"}
-          className="capitalize"
-        >
-          {direction}
-        </Badge>
-      );
-    },
+    cell: ({ row }) => <DebtDirectionBadge direction={row.original.direction} />,
   },
   {
     id: "status",
