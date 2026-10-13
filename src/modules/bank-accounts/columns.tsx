@@ -52,7 +52,7 @@ export const INDEX_COLUMNS: ColumnDef<Awaited<ReturnType<typeof getBankAccounts>
         currency: row.original.currency,
       });
 
-      return <span className="block text-end font-medium tabular-nums">{value}</span>;
+      return <span className="block text-end font-semibold tabular-nums">{value}</span>;
     },
   },
   {
@@ -168,7 +168,7 @@ export const TRANSACTIONS_COLUMNS: ColumnDef<
     accessorKey: "amount",
     header: () => <div data-currency>Amount</div>,
     cell: ({ row }) => (
-      <span className="block text-end font-medium tabular-nums">
+      <span className="block text-end font-semibold tabular-nums">
         {formatCurrency(currencyCodec.encode(row.original.amount), {
           currency: row.original.bankAccount?.currency,
         })}
@@ -214,7 +214,7 @@ export const ALLOCATIONS_COLUMNS: ColumnDef<
     accessorKey: "amount",
     header: () => <div data-currency>Amount</div>,
     cell: ({ row }) => (
-      <span className="block text-end font-medium tabular-nums">
+      <span className="block text-end font-semibold tabular-nums">
         {formatCurrency(currencyCodec.encode(row.original.amount), {
           currency: row.original.bankAccount?.currency,
         })}

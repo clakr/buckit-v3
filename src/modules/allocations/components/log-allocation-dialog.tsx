@@ -330,9 +330,11 @@ export function LogAllocationDialog() {
                       {currency && unallocated !== null && (
                         <FieldDescription>
                           Available:{" "}
-                          {formatCurrency(currencyCodec.encode(unallocated), {
-                            currency: currency.code,
-                          })}
+                          <span className="font-semibold">
+                            {formatCurrency(currencyCodec.encode(unallocated), {
+                              currency: currency.code,
+                            })}
+                          </span>
                         </FieldDescription>
                       )}
 

@@ -243,20 +243,26 @@ export function LogRepaymentDialog() {
                         (selectedFigures.balance === selectedFigures.unallocated ? (
                           <FieldDescription>
                             Balance{" "}
-                            {formatCurrency(currencyCodec.encode(selectedFigures.balance), {
-                              currency: selected.currency,
-                            })}
+                            <span className="font-semibold">
+                              {formatCurrency(currencyCodec.encode(selectedFigures.balance), {
+                                currency: selected.currency,
+                              })}
+                            </span>
                           </FieldDescription>
                         ) : (
                           <FieldDescription>
                             Balance{" "}
-                            {formatCurrency(currencyCodec.encode(selectedFigures.balance), {
-                              currency: selected.currency,
-                            })}{" "}
+                            <span className="font-semibold">
+                              {formatCurrency(currencyCodec.encode(selectedFigures.balance), {
+                                currency: selected.currency,
+                              })}
+                            </span>{" "}
                             · Unallocated{" "}
-                            {formatCurrency(currencyCodec.encode(selectedFigures.unallocated), {
-                              currency: selected.currency,
-                            })}
+                            <span className="font-semibold">
+                              {formatCurrency(currencyCodec.encode(selectedFigures.unallocated), {
+                                currency: selected.currency,
+                              })}
+                            </span>
                           </FieldDescription>
                         ))}
 

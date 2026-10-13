@@ -128,7 +128,7 @@ function RouteComponent() {
               <CardTitle>Summary</CardTitle>
             </CardHeader>
             <CardContent>
-              <dl className="grid grid-cols-[auto_minmax(0,1fr)] gap-x-4  [&>dt]:text-end">
+              <dl className="grid grid-cols-[auto_minmax(0,1fr)] gap-x-4 [&>dt]:text-end [&>dt]:font-semibold">
                 <dd>Unallocated:</dd>
                 <dt>
                   {formatCurrency(currencyCodec.encode(unallocated), {

@@ -118,7 +118,9 @@ export function BankAccountDeletionSummary({ bankAccount, buckets, linkedDebts }
                 <td className="py-1.5 text-end text-muted-foreground">
                   {formatAccountAmount(bucket.before)}
                 </td>
-                <td className="py-1.5 text-end font-medium">{formatAccountAmount(bucket.after)}</td>
+                <td className="py-1.5 text-end font-semibold">
+                  {formatAccountAmount(bucket.after)}
+                </td>
               </tr>
             ))}
             {affectedDebts.map((debt) => {
@@ -145,7 +147,7 @@ export function BankAccountDeletionSummary({ bankAccount, buckets, linkedDebts }
                       {isStatusChanged ? <DebtStatusBadge status={debt.statusBefore} /> : null}
                     </span>
                   </td>
-                  <td className="py-1.5 text-end font-medium">
+                  <td className="py-1.5 text-end font-semibold">
                     <span className="flex flex-col items-end gap-y-0.5">
                       {formatDebtAmount(debt.outstandingAfter)}
                       {isStatusChanged ? <DebtStatusBadge status={debt.statusAfter} /> : null}

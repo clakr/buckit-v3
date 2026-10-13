@@ -77,7 +77,7 @@ export function BucketDeletionSummary({ bucket, bankAccounts }: Props) {
                     <td className="py-1.5 text-end text-muted-foreground">
                       {formatAccountAmount(account.unallocatedBefore)}
                     </td>
-                    <td className="py-1.5 text-end font-medium">
+                    <td className="py-1.5 text-end font-semibold">
                       {formatAccountAmount(account.unallocatedAfter)}
                     </td>
                   </tr>

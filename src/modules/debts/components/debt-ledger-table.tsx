@@ -101,7 +101,7 @@ export function DebtLedgerTable({ debt, onLogRepayment }: Props) {
             <TableCell className="text-end tabular-nums">
               +{formatDebtAmount(debt.amount)}
             </TableCell>
-            <TableCell className="text-end font-medium tabular-nums">
+            <TableCell className="text-end font-semibold tabular-nums">
               {formatDebtAmount(debt.amount)}
             </TableCell>
             <TableCell />
@@ -124,7 +124,7 @@ export function DebtLedgerTable({ debt, onLogRepayment }: Props) {
                 −{formatDebtAmount(entry.amount)}
               </TableCell>
               {/* Past zero there's nothing outstanding; the footer shows the overpayment. */}
-              <TableCell className="text-end font-medium tabular-nums">
+              <TableCell className="text-end font-semibold tabular-nums">
                 {formatDebtAmount(Math.max(entry.balance, 0))}
               </TableCell>
               <TableCell className="text-end">

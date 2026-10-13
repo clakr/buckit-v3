@@ -116,7 +116,7 @@ export function DebtDeletionSummary({ debt, bankAccounts, deleteTransactions }: 
                 <td className="py-1.5 text-end text-muted-foreground">
                   {formatDebtAmount(account.balanceBefore)}
                 </td>
-                <td className="py-1.5 text-end font-medium">
+                <td className="py-1.5 text-end font-semibold">
                   {formatDebtAmount(account.balanceAfter)}
                 </td>
               </tr>

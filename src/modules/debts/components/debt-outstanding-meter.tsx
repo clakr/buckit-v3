@@ -62,17 +62,17 @@ export function DebtOutstandingMeter({
             <PopoverContent className="w-fit max-w-72" align="end">
               <dl className="grid grid-cols-2 gap-x-4 gap-y-1.5">
                 <dt className="text-muted-foreground">Original amount</dt>
-                <dd className="text-end font-medium tabular-nums">{formatDebtAmount(amount)}</dd>
+                <dd className="text-end font-semibold tabular-nums">{formatDebtAmount(amount)}</dd>
 
                 <dt className="text-muted-foreground">
                   Repaid ({repaymentsCount} repayment{repaymentsCount > 1 ? "s" : null})
                 </dt>
-                <dd className="text-end font-medium tabular-nums">{formatDebtAmount(repaid)}</dd>
+                <dd className="text-end font-semibold tabular-nums">{formatDebtAmount(repaid)}</dd>
 
                 {isOverpaid ? (
                   <>
                     <dt className={toneText}>Overpaid</dt>
-                    <dd className={cn("text-end font-medium tabular-nums", toneText)}>
+                    <dd className={cn("text-end font-semibold tabular-nums", toneText)}>
                       {formatDebtAmount(-outstanding)}
                     </dd>
                   </>
