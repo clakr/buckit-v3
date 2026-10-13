@@ -54,10 +54,14 @@ export function DeleteBucketDialog() {
     })),
   );
 
+  const mutation = useDeleteBucketMutation();
+
+  // Disabled while deleting: the global post-mutation invalidation would otherwise refetch the
+  // just-deleted record, fail its ownership check, and wait out every retry before the dialog closes.
   // @todo: should distinguish if network error or data not found
   const bucketQuery = useQuery({
     ...bucketQueryOption(bucketId ?? ""),
-    enabled: isOpen,
+    enabled: isOpen && !mutation.isPending,
   });
   // Every account, not just the bucket's: the summary needs each one's unallocated balance.
   const bankAccountsQuery = useQuery({
@@ -78,8 +82,6 @@ export function DeleteBucketDialog() {
     if (bucketQuery.isError) bucketQuery.refetch();
     if (bankAccountsQuery.isError) bankAccountsQuery.refetch();
   }
-
-  const mutation = useDeleteBucketMutation();
 
   const deleteSchema = z.object({
     ...verifyUserBucketMiddlewareSchema.shape,

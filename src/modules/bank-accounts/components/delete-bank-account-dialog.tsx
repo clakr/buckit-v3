@@ -57,14 +57,18 @@ export function DeleteBankAccountDialog() {
     })),
   );
 
+  const mutation = useDeleteBankAccountMutation();
+
+  // Disabled while deleting: the global post-mutation invalidation would otherwise refetch the
+  // just-deleted record, fail its ownership check, and wait out every retry before the dialog closes.
   // @todo: should distinguish if network error or data not found
   const bankAccountQuery = useQuery({
     ...bankAccountQueryOption(bankAccountId ?? ""),
-    enabled: isOpen,
+    enabled: isOpen && !mutation.isPending,
   });
   const linkedDebtsQuery = useQuery({
     ...bankAccountLinkedDebtsQueryOption(bankAccountId ?? ""),
-    enabled: isOpen,
+    enabled: isOpen && !mutation.isPending,
   });
   // Every bucket, not just this account's: a bucket's "before" balance spans accounts.
   const bucketsQuery = useQuery({
@@ -87,8 +91,6 @@ export function DeleteBankAccountDialog() {
     if (linkedDebtsQuery.isError) linkedDebtsQuery.refetch();
     if (bucketsQuery.isError) bucketsQuery.refetch();
   }
-
-  const mutation = useDeleteBankAccountMutation();
 
   const deleteSchema = z.object({
     ...verifyUserBankAccountMiddlewareSchema.shape,

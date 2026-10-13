@@ -68,10 +68,14 @@ export function DeleteDebtDialog() {
     })),
   );
 
+  const mutation = useDeleteDebtMutation();
+
+  // Disabled while deleting: the global post-mutation invalidation would otherwise refetch the
+  // just-deleted record, fail its ownership check, and wait out every retry before the dialog closes.
   // @todo: should distinguish if network error or data not found
   const debtQuery = useQuery({
     ...debtQueryOption(debtId ?? ""),
-    enabled: isOpen,
+    enabled: isOpen && !mutation.isPending,
   });
   // The summary needs each linked account's current balance.
   const bankAccountsQuery = useQuery({
@@ -92,8 +96,6 @@ export function DeleteDebtDialog() {
     if (debtQuery.isError) debtQuery.refetch();
     if (bankAccountsQuery.isError) bankAccountsQuery.refetch();
   }
-
-  const mutation = useDeleteDebtMutation();
 
   const deleteSchema = z.object({
     ...deleteDebtSchema.shape,
