@@ -1,8 +1,8 @@
-import { IconBuildingBank, IconCash, IconReceipt } from "@tabler/icons-react";
+import { IconReceipt } from "@tabler/icons-react";
+import { Link } from "@tanstack/react-router";
 
 import type { BankAccount } from "#/db/schema";
 
-import { Badge } from "#/components/ui/badge";
 import {
   Empty,
   EmptyDescription,
@@ -74,7 +74,6 @@ export function DebtLedgerTable({ debt }: Props) {
           <TableRow>
             <TableHead>Date</TableHead>
             <TableHead>Entry</TableHead>
-            <TableHead>Account</TableHead>
             <TableHead className="text-end">Change</TableHead>
             <TableHead className="text-end">Outstanding</TableHead>
             <TableHead />
@@ -87,16 +86,14 @@ export function DebtLedgerTable({ debt }: Props) {
               {debt.direction === "receivable"
                 ? `Lent to ${debt.name}`
                 : `Borrowed from ${debt.name}`}
-              {debt.note ? (
-                <span className="ms-2 font-normal text-muted-foreground">“{debt.note}”</span>
-              ) : null}
-            </TableCell>
-            <TableCell>
+              {/* A payable's creation never touches a Bank Account, so there's nothing to name. */}
               {debt.direction === "receivable" ? (
-                <AccountBadge bankAccount={debt.originatingTransaction?.bankAccount ?? null} />
-              ) : (
-                <span className="text-muted-foreground">—</span>
-              )}
+                <BankAccountMovement
+                  preposition="from"
+                  bankAccount={debt.originatingTransaction?.bankAccount ?? null}
+                />
+              ) : null}
+              {debt.note ? <EntryNote note={debt.note} /> : null}
             </TableCell>
             <TableCell className="text-end tabular-nums">
               +{formatDebtAmount(debt.amount)}
@@ -111,13 +108,14 @@ export function DebtLedgerTable({ debt }: Props) {
             <TableRow key={entry.id}>
               <TableCell>{formatDate(entry.date)}</TableCell>
               <TableCell>
-                Repayment
-                {entry.note ? (
-                  <span className="ms-2 text-muted-foreground">“{entry.note}”</span>
-                ) : null}
-              </TableCell>
-              <TableCell>
-                <AccountBadge bankAccount={entry.bankAccount} />
+                {debt.direction === "receivable"
+                  ? `${debt.name} paid you`
+                  : `You paid ${debt.name}`}
+                <BankAccountMovement
+                  preposition={debt.direction === "receivable" ? "into" : "from"}
+                  bankAccount={entry.bankAccount}
+                />
+                {entry.note ? <EntryNote note={entry.note} /> : null}
               </TableCell>
               <TableCell className="text-end text-emerald-600 tabular-nums">
                 −{formatDebtAmount(entry.amount)}
@@ -134,7 +132,7 @@ export function DebtLedgerTable({ debt }: Props) {
 
           {hasRepayments ? null : (
             <TableRow className="hover:bg-transparent">
-              <TableCell colSpan={6} className="px-0 py-2">
+              <TableCell colSpan={5} className="px-0 py-2">
                 <Empty className="min-h-[15vh] border border-dashed">
                   <EmptyHeader>
                     <EmptyMedia variant="icon">
@@ -153,7 +151,7 @@ export function DebtLedgerTable({ debt }: Props) {
         {hasRepayments ? (
           <TableFooter>
             <TableRow>
-              <TableCell colSpan={3}>
+              <TableCell colSpan={2}>
                 Total repaid across {entries.length} repayment{entries.length === 1 ? "" : "s"} (
                 {progress.toFixed(0)}%)
               </TableCell>
@@ -192,20 +190,29 @@ export function DebtLedgerTable({ debt }: Props) {
   );
 }
 
-function AccountBadge({ bankAccount }: { bankAccount: Pick<BankAccount, "name"> | null }) {
-  if (!bankAccount) {
-    return (
-      <Badge variant="ghost" className="-ms-2 text-muted-foreground">
-        <IconCash />
-        Off-app
-      </Badge>
-    );
-  }
+function BankAccountMovement({
+  preposition,
+  bankAccount,
+}: {
+  preposition: "from" | "into";
+  bankAccount: Pick<BankAccount, "id" | "name"> | null;
+}) {
+  if (!bankAccount) return <span className="font-normal text-muted-foreground"> · off-app</span>;
 
   return (
-    <Badge variant="outline" className="-ms-2">
-      <IconBuildingBank />
-      {bankAccount.name}
-    </Badge>
+    <span className="font-normal text-muted-foreground">
+      {` · ${preposition} `}
+      <Link
+        to="/accounts/$accountId"
+        params={{ accountId: bankAccount.id }}
+        className="underline decoration-dotted underline-offset-4 hover:text-foreground"
+      >
+        {bankAccount.name}
+      </Link>
+    </span>
   );
+}
+
+function EntryNote({ note }: { note: string }) {
+  return <span className="block text-xs font-normal text-muted-foreground">“{note}”</span>;
 }
