@@ -174,7 +174,7 @@ export function DeleteDebtDialog() {
                 ) : null}
                 {totalLinkedTransactions ? (
                   deleteTransactions ? (
-                    <li className="text-destructive">
+                    <li className="font-medium text-destructive">
                       <b>{totalLinkedTransactions}</b> linked{" "}
                       {totalLinkedTransactions === 1 ? "transaction" : "transactions"} will be
                       permanently deleted from {linkedBankAccountsLabel}, changing{" "}
