@@ -14,8 +14,7 @@ export function getRouter() {
     defaultPreload: "intent",
     defaultPreloadStaleTime: 0,
     defaultOnCatch: (error) => {
-      alert("defaultoncatch!");
-      console.log(error);
+      console.error(error);
     },
     defaultErrorComponent: () => <div>error</div>,
     defaultPendingComponent: () => <div>loading...</div>,
