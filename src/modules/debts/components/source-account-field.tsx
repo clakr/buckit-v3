@@ -14,7 +14,6 @@ import {
 import { BankAccountFigures } from "#/modules/bank-accounts/components/bank-account-figures";
 import { useRegisterBankAccountDialogStore } from "#/modules/bank-accounts/components/register-bank-account-dialog";
 import { bankAccountsQueryOption } from "#/modules/bank-accounts/query-options";
-import { getBankAccountUnallocatedBalance } from "#/modules/bank-accounts/utils";
 
 type SourceAccountFieldProps = {
   currency: string;
@@ -35,15 +34,7 @@ export function SourceAccountField({
     enabled: isQueryEnabled,
   });
 
-  const eligibleAccounts = bankAccounts?.filter((account) => {
-    const amount = getBankAccountUnallocatedBalance({
-      startingBalance: account.startingBalance,
-      transactions: account.transactions,
-      allocations: account.allocations,
-    }).unallocated;
-
-    return amount > 0;
-  });
+  const eligibleAccounts = bankAccounts?.filter((account) => account.unallocated > 0);
 
   const noEligibleAccounts = status === "success" && (eligibleAccounts?.length ?? 0) === 0;
   const id = useId();
@@ -82,11 +73,7 @@ export function SourceAccountField({
           <SelectContent alignItemWithTrigger>
             <SelectGroup>
               {eligibleAccounts?.map((account) => {
-                const { balance, unallocated } = getBankAccountUnallocatedBalance({
-                  startingBalance: account.startingBalance,
-                  transactions: account.transactions,
-                  allocations: account.allocations,
-                });
+                const { balance, unallocated } = account;
 
                 return (
                   <SelectItem key={account.id} value={account.id}>

@@ -40,7 +40,6 @@ import { useLogAllocationMutation } from "#/modules/allocations/mutations";
 import { logAllocationSchema } from "#/modules/allocations/schemas";
 import { BankAccountFigures } from "#/modules/bank-accounts/components/bank-account-figures";
 import { bankAccountsQueryOption } from "#/modules/bank-accounts/query-options";
-import { getBankAccountUnallocatedBalance } from "#/modules/bank-accounts/utils";
 import { bucketsQueryOptions } from "#/modules/buckets/query-options";
 import { confirm } from "#/stores/use-confirm";
 
@@ -150,13 +149,7 @@ export function LogAllocationDialog() {
   const currencyCode = selectedBankAccount?.currency;
   const currency = currencyCode && isCurrencyCode(currencyCode) ? getCurrency(currencyCode) : null;
 
-  const unallocated = selectedBankAccount
-    ? getBankAccountUnallocatedBalance({
-        startingBalance: selectedBankAccount.startingBalance,
-        transactions: selectedBankAccount.transactions,
-        allocations: selectedBankAccount.allocations,
-      }).unallocated
-    : null;
+  const unallocated = selectedBankAccount?.unallocated ?? null;
 
   const isAmountDisabled = !bankAccountId || !bucketId;
 
@@ -220,11 +213,7 @@ export function LogAllocationDialog() {
                           <SelectContent>
                             <SelectGroup>
                               {bankAccounts?.map((account) => {
-                                const { balance, unallocated } = getBankAccountUnallocatedBalance({
-                                  startingBalance: account.startingBalance,
-                                  transactions: account.transactions,
-                                  allocations: account.allocations,
-                                });
+                                const { balance, unallocated } = account;
 
                                 return (
                                   <SelectItem key={account.id} value={account.id}>

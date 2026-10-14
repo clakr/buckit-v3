@@ -12,7 +12,6 @@ import { currencyCodec } from "#/lib/codecs";
 import { formatCurrency, formatDateTime, formatToRelative } from "#/lib/utils";
 import { AllocationActionsDropdownMenu } from "#/modules/allocations/components/allocation-actions-dropdown-menu";
 import { BankAccountActionsDropdownMenu } from "#/modules/bank-accounts/components/bank-account-actions-dropdown-menu";
-import { getBankAccountUnallocatedBalance } from "#/modules/bank-accounts/utils";
 import { TransactionActionsDropdownMenu } from "#/modules/transactions/components/transaction-actions-dropdown-menu";
 
 export const INDEX_COLUMNS: ColumnDef<Awaited<ReturnType<typeof getBankAccounts>>[number]>[] = [
@@ -24,31 +23,8 @@ export const INDEX_COLUMNS: ColumnDef<Awaited<ReturnType<typeof getBankAccounts>
   {
     accessorKey: "balance",
     header: () => <div data-currency>Balance</div>,
-    sortingFn: (rowA, rowB) => {
-      const { balance: rowABalance } = getBankAccountUnallocatedBalance({
-        startingBalance: rowA.original.startingBalance,
-        transactions: rowA.original.transactions,
-        allocations: rowA.original.allocations,
-      });
-
-      const { balance: rowBBalance } = getBankAccountUnallocatedBalance({
-        startingBalance: rowB.original.startingBalance,
-        transactions: rowB.original.transactions,
-        allocations: rowB.original.allocations,
-      });
-
-      if (rowABalance === rowBBalance) return 0;
-
-      return rowABalance - rowBBalance;
-    },
     cell: ({ row }) => {
-      const { balance } = getBankAccountUnallocatedBalance({
-        startingBalance: row.original.startingBalance,
-        transactions: row.original.transactions,
-        allocations: row.original.allocations,
-      });
-
-      const value = formatCurrency(currencyCodec.encode(balance), {
+      const value = formatCurrency(currencyCodec.encode(row.original.balance), {
         currency: row.original.currency,
       });
 
@@ -58,31 +34,8 @@ export const INDEX_COLUMNS: ColumnDef<Awaited<ReturnType<typeof getBankAccounts>
   {
     accessorKey: "unallocated",
     header: () => <div data-currency>Unallocated</div>,
-    sortingFn: (rowA, rowB) => {
-      const { unallocated: rowAUnallocated } = getBankAccountUnallocatedBalance({
-        startingBalance: rowA.original.startingBalance,
-        transactions: rowA.original.transactions,
-        allocations: rowA.original.allocations,
-      });
-
-      const { unallocated: rowBUnallocated } = getBankAccountUnallocatedBalance({
-        startingBalance: rowB.original.startingBalance,
-        transactions: rowB.original.transactions,
-        allocations: rowB.original.allocations,
-      });
-
-      if (rowAUnallocated === rowBUnallocated) return 0;
-
-      return rowAUnallocated - rowBUnallocated;
-    },
     cell: ({ row }) => {
-      const { unallocated } = getBankAccountUnallocatedBalance({
-        startingBalance: row.original.startingBalance,
-        transactions: row.original.transactions,
-        allocations: row.original.allocations,
-      });
-
-      const value = formatCurrency(currencyCodec.encode(unallocated), {
+      const value = formatCurrency(currencyCodec.encode(row.original.unallocated), {
         currency: row.original.currency,
       });
 
@@ -95,8 +48,8 @@ export const INDEX_COLUMNS: ColumnDef<Awaited<ReturnType<typeof getBankAccounts>
       <SortableTableHead column={column}>Last Transaction Date</SortableTableHead>
     ),
     sortingFn: (rowA, rowB) => {
-      const dateA = rowA.original.transactions.at(0)?.date;
-      const dateB = rowB.original.transactions.at(0)?.date;
+      const dateA = rowA.original.lastTransactionDate;
+      const dateB = rowB.original.lastTransactionDate;
 
       // no transactions → treat as oldest possible, so it always sorts last when descending
       const timeA = dateA ? dateA.getTime() : Number.NEGATIVE_INFINITY;
@@ -105,8 +58,8 @@ export const INDEX_COLUMNS: ColumnDef<Awaited<ReturnType<typeof getBankAccounts>
       return timeA - timeB;
     },
     cell: ({ row }) => {
-      const firstTransaction = row.original.transactions.at(0);
-      if (!firstTransaction)
+      const { lastTransactionDate } = row.original;
+      if (!lastTransactionDate)
         return (
           <Badge variant="secondary" className="uppercase">
             <IconCircleDashed />
@@ -118,9 +71,9 @@ export const INDEX_COLUMNS: ColumnDef<Awaited<ReturnType<typeof getBankAccounts>
         <Tooltip>
           <TooltipTrigger render={<Badge variant="secondary" className="capitalize" />}>
             <IconCircleDottedLetterH />
-            {formatToRelative(firstTransaction.date)}
+            {formatToRelative(lastTransactionDate)}
           </TooltipTrigger>
-          <TooltipContent>{formatDateTime(firstTransaction.date)}</TooltipContent>
+          <TooltipContent>{formatDateTime(lastTransactionDate)}</TooltipContent>
         </Tooltip>
       );
     },

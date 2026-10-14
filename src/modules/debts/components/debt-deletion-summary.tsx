@@ -5,7 +5,6 @@ import type { getDebt } from "#/modules/debts/functions";
 
 import { currencyCodec } from "#/lib/codecs";
 import { formatCurrency } from "#/lib/utils";
-import { getBankAccountUnallocatedBalance } from "#/modules/bank-accounts/utils";
 import { getDebtLinkedTransactionIds } from "#/modules/debts/utils";
 
 type Props = {
@@ -75,7 +74,7 @@ export function DebtDeletionSummary({ debt, bankAccounts, deleteTransactions }: 
   const affectedBankAccounts = bankAccounts
     .filter((account) => balanceChangeByBankAccountId.has(account.id))
     .map((account) => {
-      const { balance } = getBankAccountUnallocatedBalance(account);
+      const { balance } = account;
 
       return {
         id: account.id,

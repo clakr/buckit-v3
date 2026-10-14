@@ -9,6 +9,7 @@ import { bankAccounts, lower, repayments, transactions } from "#/db/schema";
 import { currencyCodec } from "#/lib/codecs";
 import { ConflictError, NotFoundError } from "#/lib/errors";
 import { authMiddleware } from "#/lib/middlewares";
+import { getBankAccountsWithFigures } from "#/modules/bank-accounts/figures.server";
 import { verifyUserBankAccountMiddleware } from "#/modules/bank-accounts/middlewares";
 import {
   editBankAccountSchema,
@@ -21,42 +22,21 @@ export const getBankAccounts = createServerFn({
 })
   .middleware([authMiddleware])
   .validator(getBankAccountsSchema)
-  .handler(async ({ context, data }) => {
-    const db = getDB(env.db);
-
-    return db.query.bankAccounts.findMany({
-      where: {
-        userId: context.user.id,
-        ...data,
-      },
-      with: {
-        transactions: {
-          orderBy: {
-            date: "desc",
-          },
-          columns: {
-            date: true,
-            type: true,
-            amount: true,
-          },
-        },
-        allocations: {
-          columns: {
-            amount: true,
-          },
-        },
-      },
-    });
-  });
+  .handler(async ({ context, data }) =>
+    getBankAccountsWithFigures(getDB(env.db), {
+      userId: context.user.id,
+      currency: data?.currency,
+    }),
+  );
 
 export const getBankAccount = createServerFn({
   method: "GET",
 })
   .middleware([verifyUserBankAccountMiddleware])
-  .handler(async ({ data }) => {
+  .handler(async ({ context, data }) => {
     const db = getDB(env.db);
 
-    const bankAccount = await db.query.bankAccounts.findFirst({
+    const bankAccountQuery = db.query.bankAccounts.findFirst({
       where: {
         id: data.bankAccountId,
       },
@@ -87,11 +67,24 @@ export const getBankAccount = createServerFn({
       },
     });
 
+    const [bankAccount, [figures]] = await Promise.all([
+      bankAccountQuery,
+      getBankAccountsWithFigures(db, {
+        userId: context.user.id,
+        bankAccountId: data.bankAccountId,
+      }),
+    ]);
+
     // Deleted between the middleware's ownership check and this read.
-    if (!bankAccount)
+    if (!bankAccount || !figures)
       throw new NotFoundError("This account doesn't exist or may have been deleted.");
 
-    return bankAccount;
+    return {
+      ...bankAccount,
+      balance: figures.balance,
+      unallocated: figures.unallocated,
+      totalAllocated: figures.totalAllocated,
+    };
   });
 
 export const validateBankAccountName = createServerFn({

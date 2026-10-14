@@ -15,7 +15,6 @@ import { formatCurrency } from "#/lib/utils";
 import { ALLOCATIONS_COLUMNS, TRANSACTIONS_COLUMNS } from "#/modules/bank-accounts/columns";
 import { useEditBankAccountDialogStore } from "#/modules/bank-accounts/components/edit-bank-account-dialog";
 import { bankAccountQueryOption } from "#/modules/bank-accounts/query-options";
-import { getBankAccountUnallocatedBalance } from "#/modules/bank-accounts/utils";
 
 export const Route = createFileRoute("/_protected/accounts/$accountId")({
   context: ({ params }) => ({
@@ -74,11 +73,7 @@ function RouteComponent() {
 
   const { data: bankAccount } = useSuspenseQuery(bankAccountQueryOptions);
 
-  const { balance, unallocated, totalAllocated } = getBankAccountUnallocatedBalance({
-    startingBalance: bankAccount.startingBalance,
-    transactions: bankAccount.transactions,
-    allocations: bankAccount.allocations,
-  });
+  const { balance, unallocated, totalAllocated } = bankAccount;
 
   function handleOpenEditBankAccountDialog() {
     const state = useEditBankAccountDialogStore.getState();

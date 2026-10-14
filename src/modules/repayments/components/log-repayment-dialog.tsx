@@ -37,7 +37,6 @@ import { currencyCodec } from "#/lib/codecs";
 import { formatCurrency, getCurrency, isCurrencyCode } from "#/lib/utils";
 import { BankAccountFigures } from "#/modules/bank-accounts/components/bank-account-figures";
 import { bankAccountsQueryOption } from "#/modules/bank-accounts/query-options";
-import { getBankAccountUnallocatedBalance } from "#/modules/bank-accounts/utils";
 import { confirm } from "#/stores/use-confirm";
 
 import { validateLogRepaymentBalance, validateLogRepaymentCurrency } from "../functions";
@@ -227,13 +226,6 @@ export function LogRepaymentDialog() {
                   const items = bankAccounts?.map((a) => ({ value: a.id, label: a.name }));
 
                   const selected = bankAccounts?.find((a) => a.id === field.state.value);
-                  const selectedFigures = selected
-                    ? getBankAccountUnallocatedBalance({
-                        startingBalance: selected.startingBalance,
-                        transactions: selected.transactions,
-                        allocations: selected.allocations,
-                      })
-                    : null;
 
                   return (
                     <Field data-invalid={isInvalid}>
@@ -260,11 +252,7 @@ export function LogRepaymentDialog() {
                         <SelectContent>
                           <SelectGroup>
                             {bankAccounts?.map((account) => {
-                              const { balance, unallocated } = getBankAccountUnallocatedBalance({
-                                startingBalance: account.startingBalance,
-                                transactions: account.transactions,
-                                allocations: account.allocations,
-                              });
+                              const { balance, unallocated } = account;
 
                               return (
                                 <SelectItem key={account.id} value={account.id}>
@@ -285,12 +273,11 @@ export function LogRepaymentDialog() {
                       </Select>
 
                       {selected &&
-                        selectedFigures &&
-                        (selectedFigures.balance === selectedFigures.unallocated ? (
+                        (selected.balance === selected.unallocated ? (
                           <FieldDescription>
                             Balance{" "}
                             <span className="font-semibold">
-                              {formatCurrency(currencyCodec.encode(selectedFigures.balance), {
+                              {formatCurrency(currencyCodec.encode(selected.balance), {
                                 currency: selected.currency,
                               })}
                             </span>
@@ -299,13 +286,13 @@ export function LogRepaymentDialog() {
                           <FieldDescription>
                             Balance{" "}
                             <span className="font-semibold">
-                              {formatCurrency(currencyCodec.encode(selectedFigures.balance), {
+                              {formatCurrency(currencyCodec.encode(selected.balance), {
                                 currency: selected.currency,
                               })}
                             </span>{" "}
                             · Unallocated{" "}
                             <span className="font-semibold">
-                              {formatCurrency(currencyCodec.encode(selectedFigures.unallocated), {
+                              {formatCurrency(currencyCodec.encode(selected.unallocated), {
                                 currency: selected.currency,
                               })}
                             </span>

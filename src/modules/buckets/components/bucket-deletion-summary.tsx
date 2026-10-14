@@ -5,7 +5,6 @@ import type { getBucket } from "#/modules/buckets/functions";
 
 import { currencyCodec } from "#/lib/codecs";
 import { formatCurrency } from "#/lib/utils";
-import { getBankAccountUnallocatedBalance } from "#/modules/bank-accounts/utils";
 
 type Props = {
   bucket: NonNullable<Awaited<ReturnType<typeof getBucket>>>;
@@ -35,7 +34,7 @@ export function BucketDeletionSummary({ bucket, bankAccounts }: Props) {
   const affectedBankAccounts = bankAccounts
     .filter((account) => releasedByBankAccountId.has(account.id))
     .map((account) => {
-      const { unallocated } = getBankAccountUnallocatedBalance(account);
+      const { unallocated } = account;
 
       return {
         id: account.id,
