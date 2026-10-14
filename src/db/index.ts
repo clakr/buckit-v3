@@ -5,3 +5,5 @@ import { relations } from "#/db/schema";
 export function getDB(db: AnyD1Database) {
   return drizzle(db, { relations });
 }
+
+export type DB = ReturnType<typeof getDB>;
