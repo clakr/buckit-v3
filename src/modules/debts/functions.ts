@@ -98,6 +98,7 @@ async function checkDebtSourceBankAccount(
   if (!account) {
     return {
       isValid: false,
+      isSourceInvalid: true,
       message: "The source account is invalid for this debt.",
     };
   }
@@ -159,13 +160,20 @@ export const recordDebt = createServerFn({
       return debt;
     }
 
-    const { isValid, message } = await checkDebtSourceBankAccount(db, context.user.id, {
-      bankAccountId: data.bankAccountId,
-      currency: data.currency,
-      amount: data.amount,
-    });
+    const { isValid, isSourceInvalid, message } = await checkDebtSourceBankAccount(
+      db,
+      context.user.id,
+      {
+        bankAccountId: data.bankAccountId,
+        currency: data.currency,
+        amount: data.amount,
+      },
+    );
 
-    if (!isValid) throw new InsufficientFundsError(message);
+    // An unusable source account isn't a shortfall: wrong currency, missing, or not the user's.
+    if (!isValid) {
+      throw isSourceInvalid ? new NotFoundError(message) : new InsufficientFundsError(message);
+    }
 
     const transactionId = uuidv7();
 
