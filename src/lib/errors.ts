@@ -21,12 +21,18 @@ export class ConflictError extends AppError {
   override name = "ConflictError";
 }
 
+/** A write that would take a Bank Account's Unallocated below zero. */
+export class InsufficientFundsError extends AppError {
+  override name = "InsufficientFundsError";
+}
+
 // Keyed by a literal `name` rather than `constructor.name`, which minification mangles.
 const APP_ERRORS = {
   AppError,
   UnauthorizedError,
   NotFoundError,
   ConflictError,
+  InsufficientFundsError,
 };
 
 // Without this a thrown AppError reaches the client as a plain Error, so `instanceof` fails.
