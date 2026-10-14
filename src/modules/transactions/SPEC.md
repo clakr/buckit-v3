@@ -24,7 +24,7 @@ No `updatedAt` column and no `bucketId` column — same reasoning as Bank Accoun
 
 ### Balance Contribution
 
-A Transaction's `type` determines its sign in the Balance formula: `Balance = startingBalance + Σ(income amounts) − Σ(expense amounts)`, computed on read via `getBankAccountUnallocatedBalance` (`src/modules/bank-accounts/utils.ts`). Transaction itself has no derived/stored balance field.
+A Transaction's `type` determines its sign in the Balance formula: `Balance = startingBalance + Σ(income amounts) − Σ(expense amounts)`, computed on read by the Bank Account figures module (`getBankAccountFigures` in `src/modules/bank-accounts/utils.ts`, fed SQL totals by `src/modules/bank-accounts/figures.server.ts`). Transaction itself has no derived/stored balance field.
 
 ### No Currency of Its Own
 
@@ -36,7 +36,7 @@ Amount is stored in minor units of the owning Bank Account's currency (`currency
 
 ### `Unallocated ≥ 0` Invariant
 
-Enforced on every mutation that could reduce a Bank Account's Unallocated balance: `validateLogTransaction` (log, expense only), `validateEditTransaction` (edit, recomputes with the edited amount/type substituted in), and `validateDeleteTransaction` (delete, recomputes with the transaction removed). All three call the same `getBankAccountUnallocatedBalance` used by Allocation's validators — the single shared seam for this rule across the app.
+Enforced on every mutation that could reduce a Bank Account's Unallocated balance: `validateLogTransaction` (log, expense only), `validateEditTransaction` (edit, recomputes with the edited amount/type substituted in), and `validateDeleteTransaction` (delete, recomputes with the transaction removed). All three delegate to `checkUnallocated` (`src/modules/bank-accounts/figures.server.ts`), the same check Allocation, Debt and Repayment use — the single place this rule lives. Each write runs its check in-process right before writing and throws `InsufficientFundsError` on failure.
 
 ### Delete Uses Plain Confirmation, Not Typed Confirmation
 

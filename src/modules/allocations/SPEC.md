@@ -24,7 +24,7 @@ No `updatedAt` column — same reasoning as every other entity in this app (no s
 
 ### `Unallocated ≥ 0` Invariant
 
-Enforced on every mutation that could reduce a Bank Account's Unallocated balance: `validateLogAllocationAmount` (log) and `validateEditAllocationAmount` (edit, recomputes with the edited amount substituted in). Both are called twice — once client-side as an async form validator (debounced 500ms), once server-side inside `logAllocation`/`editAllocation` itself, so the check can't be bypassed by calling the server function directly. Delete needs no guard: removing an Allocation only ever increases Unallocated. This is the same invariant, and largely the same shared seam (`getBankAccountUnallocatedBalance`), that Transaction's mutations enforce — see `transactions/SPEC.md`.
+Enforced on every mutation that could reduce a Bank Account's Unallocated balance: `validateLogAllocationAmount` (log) and `validateEditAllocationAmount` (edit, recomputes with the edited amount substituted in). Each check runs twice — once client-side through the validator server function as an async form validator (debounced 500ms), once in-process inside `logAllocation`/`editAllocation` itself (throwing `InsufficientFundsError`), so it can't be bypassed by calling the write directly. Delete needs no guard: removing an Allocation only ever increases Unallocated. This is the same invariant, and the same check (`checkUnallocated` in `src/modules/bank-accounts/figures.server.ts`), that Transaction's mutations enforce — see `transactions/SPEC.md`.
 
 ### No Currency of Its Own
 

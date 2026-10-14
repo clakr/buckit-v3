@@ -54,7 +54,7 @@ Name must be unique per user, case-insensitive (compared via `lower()`), trimmed
 
 ## Gaps Identified This Session (Deliberate, Not Bugs)
 
-- **No shared subtotal utility.** Unlike Bank Account's `getBankAccountUnallocatedBalance` (a pure function reused by both a server validator and the UI columns), the Bucket's per-currency subtotal is computed inline inside `columns.tsx` only. Deliberately not extracted: project convention is to wait until a calculation is needed in three or more places before pulling it into a shared file.
+- **No shared subtotal utility.** Unlike Bank Account's figures module (`getBankAccountFigures`, shared by every read and never-negative check), the Bucket's per-currency subtotal is computed inline inside `columns.tsx` only. Deliberately not extracted: project convention is to wait until a calculation is needed in three or more places before pulling it into a shared file.
 - **Subtotal column is unsortable.** Sorting it correctly requires converting each row's per-currency amounts using a current exchange rate, computed row-by-row — an efficient, well-designed approach for that conversion hasn't been built yet. Left unsortable rather than shipping a naive/slow version.
 - **Bucket detail page has no aggregate summary.** It's a flat Allocations table today, matching the Bank Account detail page's Allocations table but without the equivalent balance/unallocated/total summary header Bank Account shows. Deliberately deferred until the summary's design (what to show, per-currency handling) is worked out, rather than bolting one on ad hoc.
 
