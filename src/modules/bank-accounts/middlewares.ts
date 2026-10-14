@@ -2,6 +2,7 @@ import { createMiddleware } from "@tanstack/react-start";
 import { env } from "cloudflare:workers";
 
 import { getDB } from "#/db";
+import { NotFoundError } from "#/lib/errors";
 import { authMiddleware } from "#/lib/middlewares";
 import { verifyUserBankAccountMiddlewareSchema } from "#/modules/bank-accounts/schemas";
 
@@ -20,7 +21,8 @@ export const verifyUserBankAccountMiddleware = createMiddleware({
       },
     });
 
-    if (!result) throw new Error("No bank account is linked to this user");
+    // Someone else's account reads as missing too, so an ID can't be probed for existence.
+    if (!result) throw new NotFoundError("This account doesn't exist or may have been deleted.");
 
     return next();
   });

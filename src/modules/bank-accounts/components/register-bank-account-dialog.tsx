@@ -18,6 +18,7 @@ import { Field, FieldError, FieldGroup, FieldLabel } from "#/components/ui/field
 import { InputGroup, InputGroupAddon, InputGroupInput } from "#/components/ui/input-group";
 import { Spinner } from "#/components/ui/spinner";
 import { useAppForm } from "#/integrations/tanstack-form";
+import { AppError } from "#/lib/errors";
 import { validateBankAccountName } from "#/modules/bank-accounts/functions";
 import { useRegisterBankAccountMutation } from "#/modules/bank-accounts/mutations";
 import { registerBankAccountSchema } from "#/modules/bank-accounts/schemas";
@@ -124,11 +125,16 @@ export function RegisterBankAccountDialog() {
                           data,
                         });
 
-                        if (!isValid) throw new Error(message);
+                        if (!isValid) context.addIssue({ code: "custom", message });
                       } catch (error) {
+                        console.error(error);
+
                         context.addIssue({
                           code: "custom",
-                          message: error instanceof Error ? error.message : String(error),
+                          message:
+                            error instanceof AppError
+                              ? error.message
+                              : "Couldn't check this name. Please try again.",
                         });
                       }
                     },

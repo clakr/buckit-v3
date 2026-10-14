@@ -10,17 +10,12 @@ import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "#/componen
 import { DataTable } from "#/components/ui/data-table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "#/components/ui/tabs";
 import { currencyCodec } from "#/lib/codecs";
+import { NotFoundError } from "#/lib/errors";
 import { formatCurrency } from "#/lib/utils";
 import { ALLOCATIONS_COLUMNS, TRANSACTIONS_COLUMNS } from "#/modules/bank-accounts/columns";
 import { useEditBankAccountDialogStore } from "#/modules/bank-accounts/components/edit-bank-account-dialog";
 import { bankAccountQueryOption } from "#/modules/bank-accounts/query-options";
 import { getBankAccountUnallocatedBalance } from "#/modules/bank-accounts/utils";
-
-class BankAccountNotFoundError extends Error {
-  constructor() {
-    super();
-  }
-}
 
 export const Route = createFileRoute("/_protected/accounts/$accountId")({
   context: ({ params }) => ({
@@ -41,14 +36,14 @@ export const Route = createFileRoute("/_protected/accounts/$accountId")({
     </Main>
   ),
   errorComponent: ({ error, reset }) => {
-    if (error instanceof BankAccountNotFoundError)
+    if (error instanceof NotFoundError)
       return (
         <Main>
           <Heading className="capitalize">Account</Heading>
           <StateTemplate
             state="error"
             title="Account not found"
-            description="This account doesn't exist or may have been deleted."
+            description={error.message}
             content={
               <Button variant="secondary" render={<Link to=".." />}>
                 Go back to accounts
@@ -78,7 +73,6 @@ function RouteComponent() {
   const { bankAccountQueryOptions } = Route.useRouteContext();
 
   const { data: bankAccount } = useSuspenseQuery(bankAccountQueryOptions);
-  if (!bankAccount) throw new BankAccountNotFoundError();
 
   const { balance, unallocated, totalAllocated } = getBankAccountUnallocatedBalance({
     startingBalance: bankAccount.startingBalance,

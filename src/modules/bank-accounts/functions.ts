@@ -7,6 +7,7 @@ import { z } from "zod";
 import { getDB } from "#/db";
 import { bankAccounts, lower, repayments, transactions } from "#/db/schema";
 import { currencyCodec } from "#/lib/codecs";
+import { ConflictError, NotFoundError } from "#/lib/errors";
 import { authMiddleware } from "#/lib/middlewares";
 import { verifyUserBankAccountMiddleware } from "#/modules/bank-accounts/middlewares";
 import {
@@ -86,7 +87,11 @@ export const getBankAccount = createServerFn({
       },
     });
 
-    return bankAccount ?? null;
+    // Deleted between the middleware's ownership check and this read.
+    if (!bankAccount)
+      throw new NotFoundError("This account doesn't exist or may have been deleted.");
+
+    return bankAccount;
   });
 
 export const validateBankAccountName = createServerFn({
@@ -133,7 +138,7 @@ export const registerBankAccount = createServerFn({
       data: data.name,
     });
 
-    if (!isValid) throw new Error(message);
+    if (!isValid) throw new ConflictError(message);
 
     return db
       .insert(bankAccounts)
@@ -192,7 +197,7 @@ export const editBankAccount = createServerFn({
       data,
     });
 
-    if (!isValid) throw new Error(message);
+    if (!isValid) throw new ConflictError(message);
 
     return db
       .update(bankAccounts)

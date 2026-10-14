@@ -21,6 +21,7 @@ import { Field, FieldError, FieldGroup, FieldLabel } from "#/components/ui/field
 import { InputGroup, InputGroupAddon, InputGroupInput } from "#/components/ui/input-group";
 import { Spinner } from "#/components/ui/spinner";
 import { useAppForm } from "#/integrations/tanstack-form";
+import { AppError, NotFoundError } from "#/lib/errors";
 import { validateEditBankAccountName } from "#/modules/bank-accounts/functions";
 import { useEditBankAccountMutation } from "#/modules/bank-accounts/mutations";
 import { bankAccountQueryOption } from "#/modules/bank-accounts/query-options";
@@ -53,9 +54,9 @@ export function EditBankAccountDialog() {
     })),
   );
 
-  // @todo: should distinguish if network error or data not found
   const {
     status,
+    error,
     refetch,
     data: bankAccount,
   } = useQuery({
@@ -121,7 +122,19 @@ export function EditBankAccountDialog() {
               description="Fetching account details..."
             />
           ) : null}
-          {status === "error" ? (
+          {status === "error" && error instanceof NotFoundError ? (
+            <StateTemplate
+              state="error"
+              title="Account not found"
+              description={error.message}
+              content={
+                <Button variant="secondary" onClick={closeDialog}>
+                  Close
+                </Button>
+              }
+            />
+          ) : null}
+          {status === "error" && !(error instanceof NotFoundError) ? (
             <StateTemplate
               state="error"
               title="Could not load account"
@@ -129,7 +142,7 @@ export function EditBankAccountDialog() {
               content={<Button onClick={() => refetch()}>Retry</Button>}
             />
           ) : null}
-          {status === "success" && bankAccount ? (
+          {status === "success" ? (
             <form
               id={form.formId}
               onSubmit={(e) => {
@@ -155,11 +168,16 @@ export function EditBankAccountDialog() {
                             },
                           });
 
-                          if (!isValid) throw new Error(message);
+                          if (!isValid) context.addIssue({ code: "custom", message });
                         } catch (error) {
+                          console.error(error);
+
                           context.addIssue({
                             code: "custom",
-                            message: error instanceof Error ? error.message : String(error),
+                            message:
+                              error instanceof AppError
+                                ? error.message
+                                : "Couldn't check this name. Please try again.",
                           });
                         }
                       },

@@ -133,7 +133,7 @@ export const INDEX_COLUMNS: ColumnDef<Awaited<ReturnType<typeof getBankAccounts>
 ];
 
 export const TRANSACTIONS_COLUMNS: ColumnDef<
-  NonNullable<Awaited<ReturnType<typeof getBankAccount>>>["transactions"][number]
+  Awaited<ReturnType<typeof getBankAccount>>["transactions"][number]
 >[] = [
   {
     accessorKey: "date",
@@ -186,7 +186,7 @@ export const TRANSACTIONS_COLUMNS: ColumnDef<
 ];
 
 export const ALLOCATIONS_COLUMNS: ColumnDef<
-  NonNullable<Awaited<ReturnType<typeof getBankAccount>>>["allocations"][number]
+  Awaited<ReturnType<typeof getBankAccount>>["allocations"][number]
 >[] = [
   {
     accessorKey: "date",

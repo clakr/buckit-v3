@@ -10,7 +10,7 @@ import { DebtStatusBadge } from "#/modules/debts/components/debt-status-badge";
 import { getDebtOutstanding, getDebtStatus } from "#/modules/debts/utils";
 
 type Props = {
-  bankAccount: NonNullable<Awaited<ReturnType<typeof getBankAccount>>>;
+  bankAccount: Awaited<ReturnType<typeof getBankAccount>>;
   buckets: Awaited<ReturnType<typeof getBuckets>>;
   linkedDebts: Awaited<ReturnType<typeof getBankAccountLinkedDebts>>;
 };

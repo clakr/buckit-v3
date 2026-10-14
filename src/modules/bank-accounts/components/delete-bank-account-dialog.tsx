@@ -21,6 +21,7 @@ import { Field, FieldError, FieldGroup, FieldLabel } from "#/components/ui/field
 import { InputGroup, InputGroupAddon, InputGroupInput } from "#/components/ui/input-group";
 import { Spinner } from "#/components/ui/spinner";
 import { useAppForm } from "#/integrations/tanstack-form";
+import { NotFoundError } from "#/lib/errors";
 import {
   BankAccountDeletionSummary,
   getBankAccountDeletionDescription,
@@ -60,8 +61,7 @@ export function DeleteBankAccountDialog() {
   const mutation = useDeleteBankAccountMutation();
 
   // Disabled while deleting: the global post-mutation invalidation would otherwise refetch the
-  // just-deleted record, fail its ownership check, and wait out every retry before the dialog closes.
-  // @todo: should distinguish if network error or data not found
+  // just-deleted record and flash "Account not found" before the dialog closes.
   const bankAccountQuery = useQuery({
     ...bankAccountQueryOption(bankAccountId ?? ""),
     enabled: isOpen && !mutation.isPending,
@@ -85,6 +85,10 @@ export function DeleteBankAccountDialog() {
     : statuses.includes("pending")
       ? "pending"
       : "success";
+  // Already gone, e.g. deleted in another tab: retrying can't bring it back.
+  const notFoundError = [bankAccountQuery.error, linkedDebtsQuery.error].find(
+    (error): error is NotFoundError => error instanceof NotFoundError,
+  );
 
   function refetch() {
     if (bankAccountQuery.isError) bankAccountQuery.refetch();
@@ -147,7 +151,19 @@ export function DeleteBankAccountDialog() {
               description="Fetching transactions, allocations, buckets, and debts to review before deletion..."
             />
           ) : null}
-          {status === "error" ? (
+          {status === "error" && notFoundError ? (
+            <StateTemplate
+              state="error"
+              title="Account not found"
+              description={notFoundError.message}
+              content={
+                <Button variant="secondary" onClick={closeDialog}>
+                  Close
+                </Button>
+              }
+            />
+          ) : null}
+          {status === "error" && !notFoundError ? (
             <StateTemplate
               state="error"
               title="Could not load account"
