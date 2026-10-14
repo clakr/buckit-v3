@@ -2,7 +2,11 @@ import { queryOptions } from "@tanstack/react-query";
 
 import type { BankAccount } from "#/db/schema";
 
-import { getBankAccount, getBankAccounts } from "#/modules/bank-accounts/functions";
+import {
+  getBankAccount,
+  getBankAccountDeletionImpact,
+  getBankAccounts,
+} from "#/modules/bank-accounts/functions";
 
 export function bankAccountsQueryOption(params?: { currency?: BankAccount["currency"] }) {
   return queryOptions({
@@ -16,6 +20,18 @@ export function bankAccountQueryOption(bankAccountId: BankAccount["id"]) {
     queryKey: ["bank-accounts", bankAccountId],
     queryFn: () =>
       getBankAccount({
+        data: {
+          bankAccountId,
+        },
+      }),
+  });
+}
+
+export function bankAccountDeletionImpactQueryOption(bankAccountId: BankAccount["id"]) {
+  return queryOptions({
+    queryKey: ["bank-accounts", bankAccountId, "deletion-impact"],
+    queryFn: () =>
+      getBankAccountDeletionImpact({
         data: {
           bankAccountId,
         },

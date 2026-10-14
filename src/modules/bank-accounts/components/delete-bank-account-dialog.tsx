@@ -27,10 +27,8 @@ import {
   getBankAccountDeletionDescription,
 } from "#/modules/bank-accounts/components/bank-account-deletion-summary";
 import { useDeleteBankAccountMutation } from "#/modules/bank-accounts/mutations";
-import { bankAccountQueryOption } from "#/modules/bank-accounts/query-options";
+import { bankAccountDeletionImpactQueryOption } from "#/modules/bank-accounts/query-options";
 import { verifyUserBankAccountMiddlewareSchema } from "#/modules/bank-accounts/schemas";
-import { bucketsQueryOptions } from "#/modules/buckets/query-options";
-import { bankAccountLinkedDebtsQueryOption } from "#/modules/debts/query-options";
 
 type StoreState = DialogState & {
   bankAccountId: BankAccount["id"] | null;
@@ -62,39 +60,18 @@ export function DeleteBankAccountDialog() {
 
   // Disabled while deleting: the global post-mutation invalidation would otherwise refetch the
   // just-deleted record and flash "Account not found" before the dialog closes.
-  const bankAccountQuery = useQuery({
-    ...bankAccountQueryOption(bankAccountId ?? ""),
+  const {
+    status,
+    error,
+    refetch,
+    data: impact,
+  } = useQuery({
+    ...bankAccountDeletionImpactQueryOption(bankAccountId ?? ""),
     enabled: isOpen && !mutation.isPending,
   });
-  const linkedDebtsQuery = useQuery({
-    ...bankAccountLinkedDebtsQueryOption(bankAccountId ?? ""),
-    enabled: isOpen && !mutation.isPending,
-  });
-  // Every bucket, not just this account's: a bucket's "before" balance spans accounts.
-  const bucketsQuery = useQuery({
-    ...bucketsQueryOptions,
-    enabled: isOpen,
-  });
-
-  const bankAccount = bankAccountQuery.data;
-  const linkedDebts = linkedDebtsQuery.data ?? [];
-  const buckets = bucketsQuery.data ?? [];
-  const statuses = [bankAccountQuery.status, linkedDebtsQuery.status, bucketsQuery.status];
-  const status = statuses.includes("error")
-    ? "error"
-    : statuses.includes("pending")
-      ? "pending"
-      : "success";
   // Already gone, e.g. deleted in another tab: retrying can't bring it back.
-  const notFoundError = [bankAccountQuery.error, linkedDebtsQuery.error].find(
-    (error): error is NotFoundError => error instanceof NotFoundError,
-  );
-
-  function refetch() {
-    if (bankAccountQuery.isError) bankAccountQuery.refetch();
-    if (linkedDebtsQuery.isError) linkedDebtsQuery.refetch();
-    if (bucketsQuery.isError) bucketsQuery.refetch();
-  }
+  const notFoundError = error instanceof NotFoundError ? error : null;
+  const bankAccount = impact?.bankAccount;
 
   const deleteSchema = z.object({
     ...verifyUserBankAccountMiddlewareSchema.shape,
@@ -138,9 +115,9 @@ export function DeleteBankAccountDialog() {
         <DialogHeader>
           <DialogTitle>Delete Account?</DialogTitle>
           <DialogDescription>
-            {status === "success" && bankAccount
-              ? getBankAccountDeletionDescription({ bankAccount, linkedDebts })
-              : `Permanently delete "${bankAccount?.name ?? ""}" and everything logged against it. This cannot be undone.`}
+            {status === "success"
+              ? getBankAccountDeletionDescription({ impact })
+              : "Permanently delete this account and everything logged against it. This cannot be undone."}
           </DialogDescription>
         </DialogHeader>
         <div>
@@ -171,13 +148,9 @@ export function DeleteBankAccountDialog() {
               content={<Button onClick={() => refetch()}>Retry</Button>}
             />
           ) : null}
-          {status === "success" && bankAccount ? (
+          {status === "success" ? (
             <div className="flex flex-col gap-y-4">
-              <BankAccountDeletionSummary
-                bankAccount={bankAccount}
-                buckets={buckets}
-                linkedDebts={linkedDebts}
-              />
+              <BankAccountDeletionSummary impact={impact} />
               <form
                 id={form.formId}
                 onSubmit={(e) => {
@@ -196,7 +169,9 @@ export function DeleteBankAccountDialog() {
 
                       return (
                         <Field data-invalid={isInvalid}>
-                          <FieldLabel htmlFor={id}>Type "{bankAccount.name}" to confirm</FieldLabel>
+                          <FieldLabel htmlFor={id}>
+                            Type "{impact.bankAccount.name}" to confirm
+                          </FieldLabel>
 
                           <InputGroup>
                             <InputGroupInput

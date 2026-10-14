@@ -49,41 +49,6 @@ export const getDebts = createServerFn({
   });
 
 // Debts a Bank Account's deletion would touch: funded from it, or repaid through it.
-export const getBankAccountLinkedDebts = createServerFn({
-  method: "GET",
-})
-  .middleware([verifyUserBankAccountMiddleware])
-  .handler(async ({ context, data }) => {
-    const db = getDB(env.db);
-
-    return db.query.debts.findMany({
-      where: {
-        userId: context.user.id,
-        OR: [
-          { originatingTransaction: { bankAccountId: data.bankAccountId } },
-          { repayments: { transaction: { bankAccountId: data.bankAccountId } } },
-        ],
-      },
-      columns: {
-        id: true,
-        name: true,
-        direction: true,
-        amount: true,
-        currency: true,
-        forgivenAt: true,
-      },
-      with: {
-        originatingTransaction: { columns: { bankAccountId: true } },
-        repayments: {
-          columns: { amount: true },
-          with: {
-            transaction: { columns: { amount: true, bankAccountId: true } },
-          },
-        },
-      },
-    });
-  });
-
 async function checkDebtSourceBankAccount(
   db: DB,
   userId: string,

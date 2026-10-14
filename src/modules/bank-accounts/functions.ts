@@ -1,14 +1,18 @@
 import { createServerFn } from "@tanstack/react-start";
 import { env } from "cloudflare:workers";
-import { and, eq, inArray, ne } from "drizzle-orm";
+import { and, eq, ne } from "drizzle-orm";
 import { uuidv7 } from "uuidv7";
 import { z } from "zod";
 
 import { getDB } from "#/db";
-import { bankAccounts, lower, repayments, transactions } from "#/db/schema";
+import { bankAccounts, lower } from "#/db/schema";
 import { currencyCodec } from "#/lib/codecs";
 import { ConflictError, NotFoundError } from "#/lib/errors";
 import { authMiddleware } from "#/lib/middlewares";
+import {
+  deleteBankAccountWithCascade,
+  loadBankAccountDeletionImpact,
+} from "#/modules/bank-accounts/deletion.server";
 import { getBankAccountsWithFigures } from "#/modules/bank-accounts/figures.server";
 import { verifyUserBankAccountMiddleware } from "#/modules/bank-accounts/middlewares";
 import {
@@ -201,30 +205,20 @@ export const editBankAccount = createServerFn({
       .returning();
   });
 
+export const getBankAccountDeletionImpact = createServerFn({
+  method: "GET",
+})
+  .middleware([verifyUserBankAccountMiddleware])
+  .handler(async ({ context, data }) =>
+    loadBankAccountDeletionImpact(getDB(env.db), context.user.id, data.bankAccountId),
+  );
+
 export const deleteBankAccount = createServerFn({
   method: "POST",
 })
   .middleware([verifyUserBankAccountMiddleware])
   .handler(async ({ data }) => {
-    const db = getDB(env.db);
-
-    // The cascade to `transactions` only nulls a repayment's `transactionId`, which would
-    // leave a row with no amount of its own. Drop it instead, so the Debt's outstanding
-    // goes back up; an origination is left to `SET NULL`, orphaning the Debt.
-    const [, deleted] = await db.batch([
-      db
-        .delete(repayments)
-        .where(
-          inArray(
-            repayments.transactionId,
-            db
-              .select({ id: transactions.id })
-              .from(transactions)
-              .where(eq(transactions.bankAccountId, data.bankAccountId)),
-          ),
-        ),
-      db.delete(bankAccounts).where(eq(bankAccounts.id, data.bankAccountId)).returning(),
-    ]);
+    const [, deleted] = await deleteBankAccountWithCascade(getDB(env.db), data.bankAccountId);
 
     return deleted;
   });
