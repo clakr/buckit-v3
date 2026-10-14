@@ -10,6 +10,7 @@ import {
   type BankAccount,
   type Transaction,
 } from "#/db/schema";
+import { NotFoundError } from "#/lib/errors";
 import {
   getBankAccountFigures,
   type BankAccountFigures,
@@ -222,6 +223,9 @@ export async function checkUnallocated(
     excludeTransactionIds,
     excludeAllocationIds,
   });
+
+  // Missing and someone else's look the same, and neither may pass as affordable.
+  if (!rows.length) throw new NotFoundError("This account doesn't exist or may have been deleted.");
 
   for (const row of rows) {
     const totals = {

@@ -1,13 +1,18 @@
+import type { z } from "zod";
+
 import { createServerFn } from "@tanstack/react-start";
 import { env } from "cloudflare:workers";
 import { eq } from "drizzle-orm";
 import { uuidv7 } from "uuidv7";
 
+import type { DB } from "#/db";
+
 import { getDB } from "#/db";
 import { debts, repayments, transactions } from "#/db/schema";
 import { currencyCodec } from "#/lib/codecs";
+import { InsufficientFundsError, NotFoundError } from "#/lib/errors";
+import { checkUnallocated } from "#/modules/bank-accounts/figures.server";
 import { verifyUserBankAccountMiddleware } from "#/modules/bank-accounts/middlewares";
-import { getBankAccountUnallocatedBalance } from "#/modules/bank-accounts/utils";
 import { editTransaction, validateEditTransaction } from "#/modules/transactions/functions";
 
 import { verifyUserDebtMiddleware } from "../debts/middlewares";
@@ -87,77 +92,66 @@ export const validateLogRepaymentCurrency = createServerFn({
     });
   });
 
+async function checkLogRepaymentBalance(
+  db: DB,
+  userId: string,
+  data: z.output<typeof logRepaymentSchema>,
+) {
+  // No Bank Account picked: no money is moving, so there's no balance to check.
+  if (!data.bankAccountId) return { isValid: true, message: "ok" };
+
+  const debt = await db.query.debts.findFirst({
+    where: { id: data.debtId },
+    columns: { direction: true },
+  });
+
+  if (!debt) throw new NotFoundError("This debt doesn't exist or may have been deleted.");
+
+  const check = await checkUnallocated(db, userId, {
+    kind: "add-transaction",
+    bankAccountId: data.bankAccountId,
+    type: debt.direction === "receivable" ? "income" : "expense",
+    amount: currencyCodec.decode(data.amount),
+  });
+
+  if (!check.ok) {
+    return {
+      isValid: false,
+      message:
+        "This repayment would result in a negative unallocated balance. Adjust the amount or add more income first.",
+    };
+  }
+
+  return { isValid: true, message: "ok" };
+}
+
 export const validateLogRepaymentBalance = createServerFn({
   method: "GET",
 })
   .middleware([verifyUserDebtMiddleware])
   .validator(logRepaymentSchema)
-  .handler(async ({ context, data }) => {
-    const db = getDB(env.db);
-
-    const debt = await db.query.debts.findFirst({
-      where: { id: data.debtId },
-      columns: { direction: true },
-    });
-    if (!debt) {
-      return { isValid: false, message: "No debt found." };
-    }
-
-    // No Bank Account picked — no money is moving, so there's no balance to check.
-    if (!data.bankAccountId) {
-      return { isValid: true, message: "ok" };
-    }
-
-    // A `receivable` repayment is income — it can never push the account negative.
-    if (debt.direction === "receivable") {
-      return { isValid: true, message: "ok" };
-    }
-
-    const bankAccount = await db.query.bankAccounts.findFirst({
-      where: { id: data.bankAccountId, userId: context.user.id },
-      columns: { startingBalance: true },
-      with: {
-        transactions: { columns: { type: true, amount: true } },
-        allocations: { columns: { amount: true } },
-      },
-    });
-    if (!bankAccount) {
-      return { isValid: false, message: "No account found." };
-    }
-
-    const { unallocated } = getBankAccountUnallocatedBalance({
-      startingBalance: bankAccount.startingBalance,
-      transactions: bankAccount.transactions,
-      allocations: bankAccount.allocations,
-    });
-
-    if (unallocated - currencyCodec.decode(data.amount) < 0) {
-      return {
-        isValid: false,
-        message:
-          "This repayment would result in a negative unallocated balance. Adjust the amount or add more income first.",
-      };
-    }
-
-    return { isValid: true, message: "ok" };
-  });
+  .handler(async ({ context, data }) =>
+    checkLogRepaymentBalance(getDB(env.db), context.user.id, data),
+  );
 
 export const logRepayment = createServerFn({
   method: "POST",
 })
   .middleware([verifyUserDebtMiddleware])
   .validator(logRepaymentSchema)
-  .handler(async ({ data }) => {
+  .handler(async ({ context, data }) => {
     const db = getDB(env.db);
 
     const { isValid: isCurrencyValid, message: currencyMessage } =
       await validateLogRepaymentCurrency({ data });
     if (!isCurrencyValid) throw new Error(currencyMessage);
 
-    const { isValid: isBalanceValid, message: balanceMessage } = await validateLogRepaymentBalance({
+    const { isValid: isBalanceValid, message: balanceMessage } = await checkLogRepaymentBalance(
+      db,
+      context.user.id,
       data,
-    });
-    if (!isBalanceValid) throw new Error(balanceMessage);
+    );
+    if (!isBalanceValid) throw new InsufficientFundsError(balanceMessage);
 
     const debt = await getRepaymentDebt({ data: { debtId: data.debtId } });
     if (isRepaymentDateBeforeDebt(data.date, debt.date)) {

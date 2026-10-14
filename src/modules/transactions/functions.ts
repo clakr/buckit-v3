@@ -1,15 +1,20 @@
+import type { z } from "zod";
+
 import { createServerFn } from "@tanstack/react-start";
 import { env } from "cloudflare:workers";
 import { eq } from "drizzle-orm";
 import { uuidv7 } from "uuidv7";
 
+import type { DB } from "#/db";
+
 import { getDB } from "#/db";
-import { transactions } from "#/db/schema";
+import { transactions, type Transaction } from "#/db/schema";
 import { currencyCodec } from "#/lib/codecs";
+import { InsufficientFundsError, NotFoundError } from "#/lib/errors";
 import { authMiddleware } from "#/lib/middlewares";
 import { formatCurrency } from "#/lib/utils";
+import { checkUnallocated } from "#/modules/bank-accounts/figures.server";
 import { verifyUserBankAccountMiddleware } from "#/modules/bank-accounts/middlewares";
-import { getBankAccountUnallocatedBalance } from "#/modules/bank-accounts/utils";
 import { verifyUserTransactionMiddleware } from "#/modules/transactions/middlewares";
 import { editTransactionSchema, logTransactionSchema } from "#/modules/transactions/schemas";
 
@@ -36,74 +41,44 @@ export const getTransaction = createServerFn({
     return transaction ?? null;
   });
 
+const NEGATIVE_UNALLOCATED_MESSAGE =
+  "This change would result in a negative unallocated balance. Adjust the amount or add more income first.";
+
+async function checkLogTransaction(
+  db: DB,
+  userId: string,
+  data: z.output<typeof logTransactionSchema>,
+) {
+  const check = await checkUnallocated(db, userId, {
+    kind: "add-transaction",
+    bankAccountId: data.bankAccountId,
+    type: data.type,
+    amount: currencyCodec.decode(data.amount),
+  });
+
+  if (!check.ok) return { isValid: false, message: NEGATIVE_UNALLOCATED_MESSAGE };
+
+  return { isValid: true, message: "ok" };
+}
+
 export const validateLogTransaction = createServerFn({
   method: "GET",
 })
   .middleware([verifyUserBankAccountMiddleware])
   .validator(logTransactionSchema)
-  .handler(async ({ data }) => {
-    const db = getDB(env.db);
-
-    const bankAccount = await db.query.bankAccounts.findFirst({
-      columns: {
-        startingBalance: true,
-      },
-      where: {
-        id: data.bankAccountId,
-      },
-      with: {
-        transactions: {
-          columns: {
-            id: true,
-            type: true,
-            amount: true,
-          },
-        },
-        allocations: {
-          columns: {
-            amount: true,
-          },
-        },
-      },
-    });
-
-    if (!bankAccount) {
-      return {
-        isValid: false,
-        message: "No account found.",
-      };
-    }
-
-    const { unallocated } = getBankAccountUnallocatedBalance({
-      startingBalance: bankAccount.startingBalance,
-      transactions: bankAccount.transactions,
-      allocations: bankAccount.allocations,
-    });
-
-    if (data.type === "expense" && unallocated - currencyCodec.decode(data.amount) < 0) {
-      return {
-        isValid: false,
-        message:
-          "This change would result in a negative unallocated balance. Adjust the amount or add more income first.",
-      };
-    }
-
-    return { isValid: true, message: "ok" };
-  });
+  .handler(async ({ context, data }) => checkLogTransaction(getDB(env.db), context.user.id, data));
 
 export const logTransaction = createServerFn({
   method: "POST",
 })
   .middleware([verifyUserBankAccountMiddleware])
   .validator(logTransactionSchema)
-  .handler(async ({ data }) => {
+  .handler(async ({ context, data }) => {
     const db = getDB(env.db);
 
-    const { isValid, message } = await validateLogTransaction({
-      data,
-    });
+    const { isValid, message } = await checkLogTransaction(db, context.user.id, data);
 
-    if (!isValid) throw new Error(message);
+    if (!isValid) throw new InsufficientFundsError(message);
 
     return db
       .insert(transactions)
@@ -118,98 +93,41 @@ export const logTransaction = createServerFn({
       .returning();
   });
 
+async function checkEditTransaction(
+  db: DB,
+  userId: string,
+  data: z.output<typeof editTransactionSchema>,
+) {
+  const check = await checkUnallocated(db, userId, {
+    kind: "replace-transaction",
+    transactionId: data.transactionId,
+    type: data.type,
+    amount: currencyCodec.decode(data.amount),
+  });
+
+  if (!check.ok) return { isValid: false, message: NEGATIVE_UNALLOCATED_MESSAGE };
+
+  return { isValid: true, message: "ok" };
+}
+
 export const validateEditTransaction = createServerFn({
   method: "GET",
 })
   .middleware([verifyUserTransactionMiddleware])
   .validator(editTransactionSchema)
-  .handler(async ({ data }) => {
-    const db = getDB(env.db);
-
-    const transaction = await db.query.transactions.findFirst({
-      where: {
-        id: data.transactionId,
-      },
-      with: {
-        bankAccount: {
-          columns: {
-            startingBalance: true,
-          },
-          with: {
-            transactions: {
-              columns: {
-                id: true,
-                type: true,
-                amount: true,
-              },
-            },
-            allocations: {
-              columns: {
-                amount: true,
-              },
-            },
-          },
-        },
-      },
-    });
-
-    if (!transaction) {
-      return {
-        isValid: false,
-        message: "No transaction found.",
-      };
-    }
-
-    if (!transaction.bankAccount) {
-      return {
-        isValid: false,
-        message: "No account found.",
-      };
-    }
-
-    const transactionsMap = new Map(transaction.bankAccount.transactions.map((t) => [t.id, t]));
-    const targetTransaction = transactionsMap.get(data.transactionId);
-
-    if (!targetTransaction) {
-      return {
-        isValid: false,
-        message: "No transaction found.",
-      };
-    }
-
-    targetTransaction.amount = currencyCodec.decode(data.amount);
-    targetTransaction.type = data.type;
-
-    const { unallocated } = getBankAccountUnallocatedBalance({
-      startingBalance: transaction.bankAccount.startingBalance,
-      transactions: Array.from(transactionsMap.values()),
-      allocations: transaction.bankAccount.allocations,
-    });
-
-    if (unallocated < 0) {
-      return {
-        isValid: false,
-        message:
-          "This change would result in a negative unallocated balance. Adjust the amount or add more income first.",
-      };
-    }
-
-    return { isValid: true, message: "ok" };
-  });
+  .handler(async ({ context, data }) => checkEditTransaction(getDB(env.db), context.user.id, data));
 
 export const editTransaction = createServerFn({
   method: "POST",
 })
   .middleware([verifyUserTransactionMiddleware])
   .validator(editTransactionSchema)
-  .handler(async ({ data }) => {
+  .handler(async ({ context, data }) => {
     const db = getDB(env.db);
 
-    const { isValid, message } = await validateEditTransaction({
-      data,
-    });
+    const { isValid, message } = await checkEditTransaction(db, context.user.id, data);
 
-    if (!isValid) throw new Error(message);
+    if (!isValid) throw new InsufficientFundsError(message);
 
     return db
       .update(transactions)
@@ -223,71 +141,36 @@ export const editTransaction = createServerFn({
       .returning();
   });
 
+function checkDeleteTransaction(db: DB, userId: string, transactionId: Transaction["id"]) {
+  return checkUnallocated(db, userId, {
+    kind: "remove-transactions",
+    transactionIds: [transactionId],
+  });
+}
+
+const DELETE_NEGATIVE_UNALLOCATED_MESSAGE =
+  "This would leave a negative unallocated balance. Adjust allocations first.";
+
 export const validateDeleteTransaction = createServerFn({
   method: "GET",
 })
   .middleware([verifyUserTransactionMiddleware])
-  .handler(async ({ data }) => {
+  .handler(async ({ context, data }) => {
     const db = getDB(env.db);
 
-    const transaction = await db.query.transactions.findFirst({
-      where: {
-        id: data.transactionId,
-      },
-      with: {
-        bankAccount: {
-          columns: {
-            startingBalance: true,
-            currency: true,
-          },
-          with: {
-            transactions: {
-              columns: {
-                id: true,
-                type: true,
-                amount: true,
-              },
-            },
-            allocations: {
-              columns: {
-                amount: true,
-              },
-            },
-          },
-        },
-      },
-    });
+    const [check, transaction] = await Promise.all([
+      checkDeleteTransaction(db, context.user.id, data.transactionId),
+      db.query.transactions.findFirst({
+        columns: { type: true, amount: true },
+        where: { id: data.transactionId },
+        with: { bankAccount: { columns: { currency: true } } },
+      }),
+    ]);
 
-    if (!transaction) {
-      return {
-        isValid: false,
-        message: "No transaction found.",
-      };
-    }
+    if (!check.ok) return { isValid: false, message: DELETE_NEGATIVE_UNALLOCATED_MESSAGE };
 
-    if (!transaction.bankAccount) {
-      return {
-        isValid: false,
-        message: "No account found.",
-      };
-    }
-
-    const transactionsMap = new Map(transaction.bankAccount.transactions.map((t) => [t.id, t]));
-
-    transactionsMap.delete(data.transactionId);
-
-    const { unallocated } = getBankAccountUnallocatedBalance({
-      startingBalance: transaction.bankAccount.startingBalance,
-      transactions: Array.from(transactionsMap.values()),
-      allocations: transaction.bankAccount.allocations,
-    });
-
-    if (unallocated < 0) {
-      return {
-        isValid: false,
-        message: `This would leave a negative unallocated balance. Adjust allocations first.`,
-      };
-    }
+    if (!transaction?.bankAccount)
+      throw new NotFoundError("This transaction doesn't exist or may have been deleted.");
 
     const amount = formatCurrency(currencyCodec.encode(transaction.amount), {
       currency: transaction.bankAccount.currency,
@@ -303,14 +186,12 @@ export const deleteTransaction = createServerFn({
   method: "POST",
 })
   .middleware([verifyUserTransactionMiddleware])
-  .handler(async ({ data }) => {
+  .handler(async ({ context, data }) => {
     const db = getDB(env.db);
 
-    const { isValid, message } = await validateDeleteTransaction({
-      data,
-    });
+    const check = await checkDeleteTransaction(db, context.user.id, data.transactionId);
 
-    if (!isValid) throw new Error(message);
+    if (!check.ok) throw new InsufficientFundsError(DELETE_NEGATIVE_UNALLOCATED_MESSAGE);
 
     return db.delete(transactions).where(eq(transactions.id, data.transactionId)).returning();
   });
