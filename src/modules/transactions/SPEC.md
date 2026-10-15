@@ -40,7 +40,7 @@ Enforced on every mutation that could reduce a Bank Account's Unallocated balanc
 
 ### Delete Uses Plain Confirmation, Not Typed Confirmation
 
-Unlike Bank Account and Bucket deletion (per ADR 0001/0002: typed confirmation — re-type the entity's name — because those deletes cascade and destroy other records), Transaction deletion uses the app's plain `confirm()` Yes/No dialog. **This is intentional and correct, not an inconsistency**: nothing references a Transaction as a parent, so deleting one has no cascade — exactly the condition the ADRs use to justify the stronger gate for Bank Account/Bucket. `validateDeleteTransaction` still computes and surfaces a specific message (the type and formatted amount that will be removed, or a rejection if it would leave Unallocated negative) before the confirm dialog opens.
+Unlike Bank Account and Bucket deletion (per ADR 0001/0002: typed confirmation — re-type the entity's name — because those deletes cascade and destroy other records), Transaction deletion uses the app's plain `confirm()` Yes/No dialog. **This is intentional and correct, not an inconsistency**: deleting one destroys no independent history — the condition the ADRs use to justify the stronger gate for Bank Account/Bucket. Since Debts, two things can point at a Transaction, and neither changes that: a repayment backed by it is the same money recorded twice, so it is deleted in the same D1 batch (the FK's `SET NULL` would otherwise leave a blank, zero-amount row in the Debt's ledger, and the Debt's outstanding goes back up); a Debt it funded survives with no source account (the FK's `SET NULL`), same as story 25 in `docs/specs/debt-module.md`. `validateDeleteTransaction` still computes and surfaces a specific message before the confirm dialog opens: the type and formatted amount that will be removed, plus either consequence above, or a rejection if it would leave Unallocated negative.
 
 ### No Standalone List/Search View
 
@@ -48,12 +48,12 @@ Transactions are only ever viewed embedded in a Bank Account's detail page (`TRA
 
 ## Features
 
-| #   | Feature            | Status                                                                                          |
-| --- | ------------------ | ----------------------------------------------------------------------------------------------- |
-| 1   | Log Transaction    | **Implemented and correct.** Enforces `Unallocated ≥ 0` for expenses.                           |
-| 2   | View Transaction   | **Implemented and correct**, embedded in the owning Bank Account's detail page only.            |
-| 3   | Edit Transaction   | **Implemented and correct.** Recomputes `Unallocated` with the edit applied before allowing it. |
-| 4   | Delete Transaction | **Implemented and correct.** Hard delete, no cascade, plain confirmation (see above).           |
+| #   | Feature            | Status                                                                                                 |
+| --- | ------------------ | ------------------------------------------------------------------------------------------------------ |
+| 1   | Log Transaction    | **Implemented and correct.** Enforces `Unallocated ≥ 0` for expenses.                                  |
+| 2   | View Transaction   | **Implemented and correct**, embedded in the owning Bank Account's detail page only.                   |
+| 3   | Edit Transaction   | **Implemented and correct.** Recomputes `Unallocated` with the edit applied before allowing it.        |
+| 4   | Delete Transaction | **Implemented and correct.** Hard delete, plain confirmation; removes a backing repayment (see above). |
 
 ## Fixed During This Session
 
@@ -63,7 +63,7 @@ Three small correctness bugs were found and fixed while writing this spec:
 - **`schemas.ts` — amount bound didn't match its own error message.** `amount: z.coerce.number().min(1, "Amount must be greater than 0.")` actually required the amount to be ≥ 1 whole currency unit, silently rejecting valid sub-unit amounts (e.g. ₱0.50) the error message claimed were fine. Changed the bound to `.min(0.01, ...)`.
 - **`forms.tsx` — copy-pasted `aria-labelledby`.** The amount field's input pointed `aria-labelledby` at `"startingBalance-error"` (a leftover from the bank-accounts starting-balance field) instead of its own error id. Fixed to reference the field's own `errorId`.
 
-No ADR was written for the delete-confirmation asymmetry noted above — it's a direct, unsurprising consequence of "no cascade," not an independent trade-off.
+No ADR was written for the delete-confirmation asymmetry noted above — it's a direct, unsurprising consequence of deleting no independent history, not an independent trade-off.
 
 ## Future Considerations
 
