@@ -29,7 +29,7 @@ A Bucket can receive Allocations from Bank Accounts in different currencies. The
 
 ### Name Uniqueness
 
-Name must be unique per user, case-insensitive (compared via `lower()`), trimmed — same pattern as Bank Account. Enforced today only on create, via the dialog's async validator (`validateBucketName`) calling the server; the DB has a plain (case-sensitive) `unique(userId, name)` constraint as a backstop, the same (accepted) inconsistency between app-level case-insensitive checks and a case-sensitive DB constraint that Bank Account had until 2026-10-15, when it gained a unique index on `(user_id, lower(name))`. Bucket names can follow the same additive index if this inconsistency starts to matter.
+Name must be unique per user, case-insensitive (compared via `lower()`), trimmed — same pattern as Bank Account. Enforced on create and edit; the edit check excludes the bucket's own current name, so changing only its case is allowed. One check, `checkBucketName` in `functions.ts`, serves the dialogs (through the `validateBucketName` server function, which takes an optional `bucketId` to exclude) and the writes, which call it in-process. The database enforces the same rule with a unique index on `(user_id, lower(name))` (migration `20261015050303_bucket_name_case_insensitive`), so two simultaneous requests can't both create "Trip" and "trip"; a write the index rejects throws the same `ConflictError` as a failed check. The older case-sensitive `unique(userId, name)` constraint stays: dropping a table-level constraint needs a table rebuild, and on D1 dropping `buckets` would cascade-delete every Allocation.
 
 ### Deletion Is Destructive, Not Blocked
 

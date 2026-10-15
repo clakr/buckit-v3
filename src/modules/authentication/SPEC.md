@@ -65,7 +65,7 @@ Schema exists but is currently unused end-to-end: nothing in this app writes or 
 
 ### Identity Middleware Is Separate From Ownership Middleware
 
-`authMiddleware` (`lib/middlewares.ts`) does exactly one thing: call `auth.api.getSession()` and throw `Error("UNAUTHORIZED")` if there's no Session, otherwise pass the Session through as context. It performs no resource-ownership checks. Every other module layers its own `verifyUser<Entity>Middleware` on top of this (e.g. `verifyUserBucketMiddleware`, `verifyUserAllocationMiddleware`) to confirm the _specific record_ being touched belongs to `context.user.id`. This split is correct and consistent across the codebase — Authentication's job stops at "who is this," never "do they own this."
+`authMiddleware` (`lib/middlewares.ts`) does exactly one thing: call `auth.api.getSession()` and throw `UnauthorizedError` (`src/lib/errors.ts`) if there's no Session, otherwise pass the Session through as context. It performs no resource-ownership checks. Every other module layers its own `verifyUser<Entity>Middleware` on top of this (e.g. `verifyUserBucketMiddleware`, `verifyUserAllocationMiddleware`) to confirm the _specific record_ being touched belongs to `context.user.id`. This split is correct and consistent across the codebase — Authentication's job stops at "who is this," never "do they own this."
 
 ### Route Guarding Pattern
 
