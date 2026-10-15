@@ -23,6 +23,7 @@ import {
   InputGroupText,
 } from "#/components/ui/input-group";
 import { useAppForm } from "#/integrations/tanstack-form";
+import { AppError } from "#/lib/errors";
 import { getCurrency, isCurrencyCode } from "#/lib/utils";
 import { validateLogTransaction } from "#/modules/transactions/functions";
 import { useLogTransactionMutation } from "#/modules/transactions/mutations";
@@ -85,7 +86,9 @@ export function LogTransactionDialog() {
           console.error(error);
 
           // A thrown validator would otherwise be an uncaught rejection that crashes the app.
-          return "Something went wrong while checking this. Please try again.";
+          return error instanceof AppError
+            ? error.message
+            : "Something went wrong while checking this. Please try again.";
         }
       },
     },

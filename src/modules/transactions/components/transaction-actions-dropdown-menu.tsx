@@ -10,6 +10,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "#/components/ui/dropdown-menu";
+import { AppError } from "#/lib/errors";
 import { useEditTransactionDialogStore } from "#/modules/transactions/components/edit-transaction-dialog";
 import { validateDeleteTransaction } from "#/modules/transactions/functions";
 import { useDeleteTransactionMutation } from "#/modules/transactions/mutations";
@@ -30,11 +31,25 @@ export function TransactionActionsDropdownMenu({ transactionId }: Props) {
   const mutation = useDeleteTransactionMutation();
 
   async function handleDeleteTransaction() {
-    const { isValid, message } = await validateDeleteTransaction({
-      data: {
-        transactionId,
-      },
-    });
+    let check: Awaited<ReturnType<typeof validateDeleteTransaction>>;
+    try {
+      check = await validateDeleteTransaction({ data: { transactionId } });
+    } catch (error) {
+      console.error(error);
+
+      // Rejecting here would leave the click with no feedback at all.
+      await confirm("Can't Delete This Transaction", {
+        description:
+          error instanceof AppError
+            ? error.message
+            : "We couldn't check this transaction. Please try again.",
+        confirmLabel: "Got it",
+      });
+
+      return;
+    }
+
+    const { isValid, message } = check;
 
     if (!isValid) {
       await confirm("Can't Delete This Transaction", {

@@ -38,7 +38,11 @@ export const getTransaction = createServerFn({
       },
     });
 
-    return transaction ?? null;
+    // Deleted between the middleware's ownership check and this read.
+    if (!transaction)
+      throw new NotFoundError("This transaction doesn't exist or may have been deleted.");
+
+    return transaction;
   });
 
 const NEGATIVE_UNALLOCATED_MESSAGE =

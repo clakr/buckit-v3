@@ -1,4 +1,4 @@
-import { IconAlertCircle, IconFileDescription } from "@tabler/icons-react";
+import { IconAlertCircle } from "@tabler/icons-react";
 import { useQuery } from "@tanstack/react-query";
 import z from "zod";
 import { create } from "zustand";
@@ -27,6 +27,7 @@ import {
 } from "#/components/ui/input-group";
 import { useAppForm } from "#/integrations/tanstack-form";
 import { currencyCodec } from "#/lib/codecs";
+import { AppError, NotFoundError } from "#/lib/errors";
 import { getCurrency, isCurrencyCode } from "#/lib/utils";
 import { validateEditTransaction } from "#/modules/transactions/functions";
 import { useEditTransactionMutation } from "#/modules/transactions/mutations";
@@ -62,6 +63,7 @@ export function EditTransactionDialog() {
 
   const {
     status,
+    error,
     refetch,
     data: transaction,
   } = useQuery({
@@ -99,7 +101,9 @@ export function EditTransactionDialog() {
           console.error(error);
 
           // A thrown validator would otherwise be an uncaught rejection that crashes the app.
-          return "Something went wrong while checking this. Please try again.";
+          return error instanceof AppError
+            ? error.message
+            : "Something went wrong while checking this. Please try again.";
         }
       },
     },
@@ -148,7 +152,19 @@ export function EditTransactionDialog() {
               description="Fetching transaction details..."
             />
           ) : null}
-          {status === "error" ? (
+          {status === "error" && error instanceof NotFoundError ? (
+            <StateTemplate
+              state="error"
+              title="Transaction not found"
+              description={error.message}
+              content={
+                <Button variant="secondary" onClick={closeDialog}>
+                  Close
+                </Button>
+              }
+            />
+          ) : null}
+          {status === "error" && !(error instanceof NotFoundError) ? (
             <StateTemplate
               state="error"
               title="Could not load transaction"
@@ -156,7 +172,7 @@ export function EditTransactionDialog() {
               content={<Button onClick={() => refetch()}>Retry</Button>}
             />
           ) : null}
-          {status === "success" && transaction ? (
+          {status === "success" ? (
             <form
               id={form.formId}
               onSubmit={(e) => {
@@ -245,17 +261,8 @@ export function EditTransactionDialog() {
               </FieldGroup>
             </form>
           ) : null}
-          {/* @todo: handle empty data better */}
-          {status === "success" && !transaction ? (
-            <StateTemplate
-              state="empty"
-              title="Transaction not found"
-              description="This transaction doesn't exist or may have been deleted."
-              icon={<IconFileDescription />}
-            />
-          ) : null}
         </div>
-        {status === "success" && transaction ? (
+        {status === "success" ? (
           <DialogFooter>
             <form.AppForm>
               <form.Button form={form.formId}>Edit Transaction</form.Button>
