@@ -8,7 +8,7 @@ import { uuidv7 } from "uuidv7";
 import type { DB } from "#/db";
 
 import { getDB } from "#/db";
-import { transactions, type Transaction } from "#/db/schema";
+import { repayments, transactions, type Transaction } from "#/db/schema";
 import { currencyCodec } from "#/lib/codecs";
 import { InsufficientFundsError, NotFoundError } from "#/lib/errors";
 import { authMiddleware } from "#/lib/middlewares";
@@ -155,6 +155,28 @@ function checkDeleteTransaction(db: DB, userId: string, transactionId: Transacti
 const DELETE_NEGATIVE_UNALLOCATED_MESSAGE =
   "This would leave a negative unallocated balance. Adjust allocations first.";
 
+// What deleting a Transaction takes with it. The FK only nulls a repayment's `transactionId`, which
+// would leave a blank, zero-amount row in the Debt's ledger; the repayment goes too, so the Debt's
+// outstanding goes back up. A Debt it funded survives with no source account (the FK's SET NULL).
+function loadTransactionDeletionImpact(db: DB, transactionId: Transaction["id"]) {
+  return Promise.all([
+    db.query.transactions.findFirst({
+      columns: { type: true, amount: true },
+      where: { id: transactionId },
+      with: { bankAccount: { columns: { currency: true } } },
+    }),
+    db.query.repayments.findFirst({
+      columns: { id: true },
+      where: { transactionId },
+      with: { debt: { columns: { name: true } } },
+    }),
+    db.query.debts.findFirst({
+      columns: { name: true },
+      where: { originatingTransactionId: transactionId },
+    }),
+  ]);
+}
+
 export const validateDeleteTransaction = createServerFn({
   method: "GET",
 })
@@ -162,13 +184,9 @@ export const validateDeleteTransaction = createServerFn({
   .handler(async ({ context, data }) => {
     const db = getDB(env.db);
 
-    const [check, transaction] = await Promise.all([
+    const [check, [transaction, repayment, fundedDebt]] = await Promise.all([
       checkDeleteTransaction(db, context.user.id, data.transactionId),
-      db.query.transactions.findFirst({
-        columns: { type: true, amount: true },
-        where: { id: data.transactionId },
-        with: { bankAccount: { columns: { currency: true } } },
-      }),
+      loadTransactionDeletionImpact(db, data.transactionId),
     ]);
 
     if (!check.ok) return { isValid: false, message: DELETE_NEGATIVE_UNALLOCATED_MESSAGE };
@@ -180,9 +198,16 @@ export const validateDeleteTransaction = createServerFn({
       currency: transaction.bankAccount.currency,
     });
 
+    const consequences = [
+      repayment?.debt
+        ? ` Its repayment on ${repayment.debt.name}'s debt will be removed too, so the outstanding goes back up.`
+        : "",
+      fundedDebt ? ` ${fundedDebt.name}'s debt will stay, with no source account.` : "",
+    ].join("");
+
     return {
       isValid: true,
-      message: `This ${transaction.type} of ${amount} will be permanently removed.`,
+      message: `This ${transaction.type} of ${amount} will be permanently removed.${consequences}`,
     };
   });
 
@@ -197,7 +222,12 @@ export const deleteTransaction = createServerFn({
 
     if (!check.ok) throw new InsufficientFundsError(DELETE_NEGATIVE_UNALLOCATED_MESSAGE);
 
-    return db.delete(transactions).where(eq(transactions.id, data.transactionId)).returning();
+    const [, deleted] = await db.batch([
+      db.delete(repayments).where(eq(repayments.transactionId, data.transactionId)),
+      db.delete(transactions).where(eq(transactions.id, data.transactionId)).returning(),
+    ]);
+
+    return deleted;
   });
 
 export const getTransactions = createServerFn({
