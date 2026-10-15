@@ -174,6 +174,7 @@ export function EditTransactionDialog() {
                   {(field) => (
                     <field.AmountInput
                       label="Amount"
+                      min={0.01}
                       currency={transaction.bankAccount?.currency}
                       locked={transaction.locks.amount}
                     />

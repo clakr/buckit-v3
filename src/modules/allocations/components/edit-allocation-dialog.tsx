@@ -169,7 +169,11 @@ export function EditAllocationDialog() {
                   }}
                 >
                   {(field) => (
-                    <field.AmountInput label="Amount" currency={allocation.bankAccount?.currency} />
+                    <field.AmountInput
+                      label="Amount"
+                      min={0.01}
+                      currency={allocation.bankAccount?.currency}
+                    />
                   )}
                 </form.AppField>
                 <form.AppField name="date">

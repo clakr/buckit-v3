@@ -146,7 +146,9 @@ export function EditRepaymentDialog() {
           >
             <FieldGroup>
               <form.AppField name="amount">
-                {(field) => <field.AmountInput label="Amount" currency={debt.currency} />}
+                {(field) => (
+                  <field.AmountInput label="Amount" min={0.01} currency={debt.currency} />
+                )}
               </form.AppField>
               <form.AppField
                 name="date"

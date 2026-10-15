@@ -23,8 +23,8 @@ type Props = {
 } & Omit<ComponentProps<typeof InputGroupInput>, "type" | "id" | "value" | "onChange" | "onBlur">;
 
 // A money amount in one currency: symbol, number input, code. Shows a spinner in place of the code
-// while an async validator runs. Any input prop passes through; the defaults below suit today's
-// amount schemas (`.min(0.01)`, whole cents), so pass `min`/`step` for a schema that differs.
+// while an async validator runs. Any input prop passes through. There's no default `min`: each
+// caller passes the floor its schema sets, so the browser and the form agree.
 export default function AmountInput({
   label,
   currency,
@@ -53,7 +53,6 @@ export default function AmountInput({
         </InputGroupAddon>
         <InputGroupInput
           placeholder="0.00"
-          min={0.01}
           step={0.01}
           required
           {...rest}

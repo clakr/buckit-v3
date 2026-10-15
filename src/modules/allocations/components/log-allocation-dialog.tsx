@@ -263,6 +263,7 @@ export function LogAllocationDialog() {
                 {(field) => (
                   <field.AmountInput
                     label="Amount"
+                    min={0.01}
                     currency={currencyCode}
                     disabled={isAmountDisabled || !currency}
                     description={

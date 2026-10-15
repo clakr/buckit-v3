@@ -122,7 +122,9 @@ export function LogTransactionDialog() {
                 )}
               </form.AppField>
               <form.AppField name="amount">
-                {(field) => <field.AmountInput label="Amount" currency={account.currency} />}
+                {(field) => (
+                  <field.AmountInput label="Amount" min={0.01} currency={account.currency} />
+                )}
               </form.AppField>
               <form.AppField name="date">
                 {(field) => <field.Datepicker label="Date" />}

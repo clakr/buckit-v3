@@ -162,6 +162,7 @@ export function EditDebtDialog() {
                   {(field) => (
                     <field.AmountInput
                       label="Amount"
+                      min={0.01}
                       currency={debt.currency}
                       locked={isAmountLocked}
                       description={
