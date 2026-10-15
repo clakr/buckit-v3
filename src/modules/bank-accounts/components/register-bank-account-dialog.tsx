@@ -1,4 +1,3 @@
-import { IconCheck, IconExclamationCircle } from "@tabler/icons-react";
 import z from "zod";
 import { create } from "zustand";
 import { useShallow } from "zustand/react/shallow";
@@ -16,9 +15,8 @@ import {
 } from "#/components/ui/dialog";
 import { Field, FieldError, FieldGroup, FieldLabel } from "#/components/ui/field";
 import { InputGroup, InputGroupAddon, InputGroupInput } from "#/components/ui/input-group";
-import { Spinner } from "#/components/ui/spinner";
 import { useAppForm } from "#/integrations/tanstack-form";
-import { AppError } from "#/lib/errors";
+import { refineNameAvailability } from "#/lib/name-availability";
 import { validateBankAccountName } from "#/modules/bank-accounts/functions";
 import { useRegisterBankAccountMutation } from "#/modules/bank-accounts/mutations";
 import { registerBankAccountSchema } from "#/modules/bank-accounts/schemas";
@@ -117,67 +115,11 @@ export function RegisterBankAccountDialog() {
                 validators={{
                   onChangeAsyncDebounceMs: 500,
                   onChangeAsync: registerBankAccountSchema.shape.name.superRefine(
-                    async (data, context) => {
-                      if (!data) return;
-
-                      try {
-                        const { isValid, message } = await validateBankAccountName({
-                          data: { name: data },
-                        });
-
-                        if (!isValid) context.addIssue({ code: "custom", message });
-                      } catch (error) {
-                        console.error(error);
-
-                        context.addIssue({
-                          code: "custom",
-                          message:
-                            error instanceof AppError
-                              ? error.message
-                              : "Couldn't check this name. Please try again.",
-                        });
-                      }
-                    },
+                    refineNameAvailability((name) => validateBankAccountName({ data: { name } })),
                   ),
                 }}
               >
-                {(field) => {
-                  const isInvalid = field.state.meta.isTouched && !field.state.meta.isValid;
-
-                  const id = field.name;
-                  const errorId = `${id}-error`;
-
-                  return (
-                    <Field data-invalid={isInvalid}>
-                      <FieldLabel htmlFor={id}>Name</FieldLabel>
-
-                      <InputGroup>
-                        <InputGroupInput
-                          type="text"
-                          id={id}
-                          value={field.state.value}
-                          onChange={(e) => field.handleChange(e.target.value)}
-                          onBlur={field.handleBlur}
-                          aria-invalid={isInvalid ? true : undefined}
-                          aria-labelledby={isInvalid ? errorId : undefined}
-                          maxLength={100}
-                        />
-                        {field.state.meta.isTouched ? (
-                          <InputGroupAddon align="inline-end">
-                            {field.state.meta.isValidating ? (
-                              <Spinner />
-                            ) : field.state.meta.isValid ? (
-                              <IconCheck />
-                            ) : (
-                              <IconExclamationCircle />
-                            )}
-                          </InputGroupAddon>
-                        ) : null}
-                      </InputGroup>
-                      {isInvalid && <FieldError id={errorId} errors={field.state.meta.errors} />}
-                    </Field>
-                  );
-                }}
+                {(field) => <field.ValidatedInput label="Name" maxLength={100} />}
               </form.AppField>
               <Field>
                 <FieldLabel htmlFor="startingBalance">Starting Balance</FieldLabel>

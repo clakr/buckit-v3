@@ -1,4 +1,3 @@
-import { IconCheck, IconExclamationCircle } from "@tabler/icons-react";
 import { useQuery } from "@tanstack/react-query";
 import z from "zod";
 import { create } from "zustand";
@@ -17,9 +16,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "#/components/ui/dialog";
-import { Field, FieldError, FieldGroup, FieldLabel } from "#/components/ui/field";
-import { InputGroup, InputGroupAddon, InputGroupInput } from "#/components/ui/input-group";
-import { Spinner } from "#/components/ui/spinner";
+import { FieldGroup } from "#/components/ui/field";
 import { useAppForm } from "#/integrations/tanstack-form";
 import { NotFoundError } from "#/lib/errors";
 import {
@@ -161,47 +158,12 @@ export function DeleteBankAccountDialog() {
               >
                 <FieldGroup>
                   <form.AppField name="name">
-                    {(field) => {
-                      const isInvalid = field.state.meta.isTouched && !field.state.meta.isValid;
-
-                      const id = field.name;
-                      const errorId = `${id}-error`;
-
-                      return (
-                        <Field data-invalid={isInvalid}>
-                          <FieldLabel htmlFor={id}>
-                            Type "{impact.bankAccount.name}" to confirm
-                          </FieldLabel>
-
-                          <InputGroup>
-                            <InputGroupInput
-                              type="text"
-                              id={id}
-                              value={field.state.value}
-                              onChange={(e) => field.handleChange(e.target.value)}
-                              onBlur={field.handleBlur}
-                              aria-invalid={isInvalid ? true : undefined}
-                              aria-labelledby={isInvalid ? errorId : undefined}
-                              maxLength={100}
-                            />
-                            {field.state.meta.isTouched ? (
-                              <InputGroupAddon align="inline-end">
-                                {field.state.meta.isValidating ? (
-                                  <Spinner />
-                                ) : field.state.meta.isValid ? (
-                                  <IconCheck />
-                                ) : (
-                                  <IconExclamationCircle />
-                                )}
-                              </InputGroupAddon>
-                            ) : null}
-                          </InputGroup>
-                          {isInvalid && (
-                            <FieldError id={errorId} errors={field.state.meta.errors} />
-                          )}
-                        </Field>
-                      );
-                    }}
+                    {(field) => (
+                      <field.ValidatedInput
+                        label={`Type "${impact.bankAccount.name}" to confirm`}
+                        maxLength={100}
+                      />
+                    )}
                   </form.AppField>
                 </FieldGroup>
               </form>
