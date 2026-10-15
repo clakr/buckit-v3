@@ -30,6 +30,9 @@ A user-defined savings category that receives money via Allocations from one or 
 **Subtotal**:
 The sum of a Bucket's Allocations whose source Bank Accounts share one currency. A Bucket has one Subtotal per currency it holds and never a single total, since there is no cross-currency conversion.
 
+**Linked Transaction**:
+A Transaction a Debt depends on: a `receivable`'s origination, or a repayment logged through a Bank Account. Its type, and an origination's amount, are fixed by the Debt, and a repayment's can't be dated before its Debt — whether it's edited from the Bank Account or from the Debt. Deleting one removes its repayment; a Debt it funded survives with no source account.
+
 **Allocation**:
 Money earmarked from a Bank Account toward a Bucket. Does not leave the Bank Account's Balance, but reduces its Unallocated amount.
 

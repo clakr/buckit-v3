@@ -38,6 +38,23 @@ Amount is stored in minor units of the owning Bank Account's currency (`currency
 
 Enforced on every mutation that could reduce a Bank Account's Unallocated balance: `validateLogTransaction` (log, expense only), `validateEditTransaction` (edit, recomputes with the edited amount/type substituted in), and `validateDeleteTransaction` (delete, recomputes with the transaction removed). All three delegate to `checkUnallocated` (`src/modules/bank-accounts/figures.server.ts`), the same check Allocation, Debt and Repayment use — the single place this rule lives. Each write runs its check in-process right before writing and throws `InsufficientFundsError` on failure.
 
+### Linked Transactions Follow Their Debt's Rules
+
+A Linked Transaction (see `CONTEXT.md`) is edited and deleted under its Debt's rules, from whichever page. The rules live in one module, `linked.server.ts`:
+
+- `checkTransactionEdit` rejects, with `ConflictError`:
+  - changing a Linked Transaction's type;
+  - changing an origination's amount;
+  - dating a repayment before its Debt.
+
+  It then runs the usual `Unallocated` check.
+
+- `editTransaction`, `validateEditTransaction`, `editRepayment` and `validateEditRepayment` all call it in-process.
+- `getTransaction` returns the link and which fields it locks. The Edit dialog disables those fields and says why.
+- `deleteLinkedTransaction` and `isRepaymentBackedBy` apply the "repayment goes with its Transaction" rule for both Transaction and Bank Account deletes.
+
+Creating links (`recordDebt`, `logRepayment`) and `deleteDebt`'s "also delete the Transactions" stay in the Debts module, since those are Debt actions.
+
 ### Delete Uses Plain Confirmation, Not Typed Confirmation
 
 Unlike Bank Account and Bucket deletion (per ADR 0001/0002: typed confirmation — re-type the entity's name — because those deletes cascade and destroy other records), Transaction deletion uses the app's plain `confirm()` Yes/No dialog. **This is intentional and correct, not an inconsistency**: deleting one destroys no independent history — the condition the ADRs use to justify the stronger gate for Bank Account/Bucket. Since Debts, two things can point at a Transaction, and neither changes that: a repayment backed by it is the same money recorded twice, so it is deleted in the same D1 batch (the FK's `SET NULL` would otherwise leave a blank, zero-amount row in the Debt's ledger, and the Debt's outstanding goes back up); a Debt it funded survives with no source account (the FK's `SET NULL`), same as story 25 in `docs/specs/debt-module.md`. `validateDeleteTransaction` still computes and surfaces a specific message before the confirm dialog opens: the type and formatted amount that will be removed, plus either consequence above, or a rejection if it would leave Unallocated negative.
@@ -48,12 +65,12 @@ Transactions are only ever viewed embedded in a Bank Account's detail page (`TRA
 
 ## Features
 
-| #   | Feature            | Status                                                                                                 |
-| --- | ------------------ | ------------------------------------------------------------------------------------------------------ |
-| 1   | Log Transaction    | **Implemented and correct.** Enforces `Unallocated ≥ 0` for expenses.                                  |
-| 2   | View Transaction   | **Implemented and correct**, embedded in the owning Bank Account's detail page only.                   |
-| 3   | Edit Transaction   | **Implemented and correct.** Recomputes `Unallocated` with the edit applied before allowing it.        |
-| 4   | Delete Transaction | **Implemented and correct.** Hard delete, plain confirmation; removes a backing repayment (see above). |
+| #   | Feature            | Status                                                                                                                                |
+| --- | ------------------ | ------------------------------------------------------------------------------------------------------------------------------------- |
+| 1   | Log Transaction    | **Implemented and correct.** Enforces `Unallocated ≥ 0` for expenses.                                                                 |
+| 2   | View Transaction   | **Implemented and correct**, embedded in the owning Bank Account's detail page only.                                                  |
+| 3   | Edit Transaction   | **Implemented and correct.** Recomputes `Unallocated` with the edit applied; a Linked Transaction keeps its Debt's rules (see above). |
+| 4   | Delete Transaction | **Implemented and correct.** Hard delete, plain confirmation; removes a backing repayment (see above).                                |
 
 ## Fixed During This Session
 
