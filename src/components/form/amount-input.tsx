@@ -49,7 +49,8 @@ export default function AmountInput({ label, currency, disabled, locked, descrip
           type="number"
           id={id}
           placeholder="0.00"
-          min={0}
+          // Same floor as every amount schema (`.min(0.01)`), so the browser and the form agree.
+          min={0.01}
           step={0.01}
           required
           disabled={locked || disabled}
