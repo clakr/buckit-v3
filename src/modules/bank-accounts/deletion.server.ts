@@ -4,6 +4,7 @@ import type { DB } from "#/db";
 
 import { bankAccounts, debts, repayments, transactions, type BankAccount } from "#/db/schema";
 import { NotFoundError } from "#/lib/errors";
+import { getBucketsWithFigures } from "#/modules/buckets/figures.server";
 import { getDebtOutstanding, getDebtStatus, type DebtStatus } from "#/modules/debts/utils";
 
 // The cascade rules of a Bank Account delete, as SQL, so the preview and the delete read the
@@ -80,16 +81,7 @@ export async function loadBankAccountDeletionImpact(
         .from(repayments)
         .where(isRemovedRepayment(db, bankAccountId)),
       db.select({ id: debts.id }).from(debts).where(isOrphanedDebt(db, bankAccountId)),
-      db.query.buckets.findMany({
-        where: { userId, allocations: { bankAccountId } },
-        columns: { id: true, name: true },
-        with: {
-          allocations: {
-            columns: { amount: true, bankAccountId: true },
-            with: { bankAccount: { columns: { currency: true } } },
-          },
-        },
-      }),
+      getBucketsWithFigures(db, { userId, allocatedFrom: bankAccountId }),
     ]);
 
   if (!bankAccount) throw new NotFoundError("This account doesn't exist or may have been deleted.");
@@ -120,12 +112,12 @@ export async function loadBankAccountDeletionImpact(
     removedRepaymentCount: removedRepaymentIds.size,
     // A Bucket can hold several currencies; only its balance in this account's currency moves.
     buckets: affectedBuckets.map((bucket) => {
-      const before = bucket.allocations
-        .filter((a) => a.bankAccount?.currency === bankAccount.currency)
-        .reduce((acc, a) => acc + a.amount, 0);
-      const released = bucket.allocations
-        .filter((a) => a.bankAccountId === bankAccountId)
-        .reduce((acc, a) => acc + a.amount, 0);
+      const before =
+        bucket.subtotals.find((subtotal) => subtotal.currency === bankAccount.currency)?.amount ??
+        0;
+      const released =
+        bucket.allocatedByBankAccount.find((allocated) => allocated.bankAccountId === bankAccountId)
+          ?.amount ?? 0;
 
       return { id: bucket.id, name: bucket.name, before, after: before - released };
     }),
