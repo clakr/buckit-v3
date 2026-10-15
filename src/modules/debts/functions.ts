@@ -14,6 +14,7 @@ import { InsufficientFundsError, NotFoundError } from "#/lib/errors";
 import { authMiddleware } from "#/lib/middlewares";
 import { checkUnallocated } from "#/modules/bank-accounts/figures.server";
 import { verifyUserBankAccountMiddleware } from "#/modules/bank-accounts/middlewares";
+import { findOwnedBankAccount } from "#/modules/bank-accounts/ownership.server";
 import {
   deleteDebtSchema,
   editDebtSchema,
@@ -48,16 +49,14 @@ export const getDebts = createServerFn({
     });
   });
 
-// Debts a Bank Account's deletion would touch: funded from it, or repaid through it.
 async function checkDebtSourceBankAccount(
   db: DB,
   userId: string,
   data: z.output<typeof validateDebtSourceBankAccountSchema>,
 ) {
-  // Scoped to the user too: `recordDebt` has no bank-account middleware of its own.
-  const account = await db.query.bankAccounts.findFirst({
-    where: { id: data.bankAccountId, currency: data.currency, userId },
-    columns: { id: true },
+  // `recordDebt` has no bank-account middleware of its own, so this is its ownership check.
+  const account = await findOwnedBankAccount(db, userId, data.bankAccountId, {
+    currency: data.currency,
   });
 
   if (!account) {

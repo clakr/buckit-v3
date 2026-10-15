@@ -3,8 +3,10 @@ import { env } from "cloudflare:workers";
 import { and, eq } from "drizzle-orm";
 
 import { getDB } from "#/db";
-import { bankAccounts, transactions } from "#/db/schema";
+import { transactions } from "#/db/schema";
+import { NotFoundError } from "#/lib/errors";
 import { authMiddleware } from "#/lib/middlewares";
+import { isOwnedThroughBankAccount } from "#/modules/bank-accounts/ownership.server";
 import { verifyUserTransactionMiddlewareSchema } from "#/modules/transactions/schemas";
 
 export const verifyUserTransactionMiddleware = createMiddleware({
@@ -15,14 +17,20 @@ export const verifyUserTransactionMiddleware = createMiddleware({
   .server(async ({ next, context, data }) => {
     const db = getDB(env.db);
 
-    const result = await db
-      .select()
-      .from(bankAccounts)
-      .innerJoin(transactions, eq(bankAccounts.id, transactions.bankAccountId))
-      .where(and(eq(transactions.id, data.transactionId), eq(bankAccounts.userId, context.user.id)))
+    const [result] = await db
+      .select({ id: transactions.id })
+      .from(transactions)
+      .where(
+        and(
+          eq(transactions.id, data.transactionId),
+          isOwnedThroughBankAccount(db, context.user.id, transactions.bankAccountId),
+        ),
+      )
       .limit(1);
 
-    if (result.length === 0) throw new Error("No transaction is linked to this user");
+    // Someone else's reads as missing too, so an ID can't be probed for existence.
+    if (!result)
+      throw new NotFoundError("This transaction doesn't exist or may have been deleted.");
 
     return next();
   });
