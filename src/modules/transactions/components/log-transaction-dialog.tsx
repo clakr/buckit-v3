@@ -1,4 +1,3 @@
-import { IconAlertCircle } from "@tabler/icons-react";
 import z from "zod";
 import { create } from "zustand";
 import { useShallow } from "zustand/react/shallow";
@@ -6,7 +5,6 @@ import { useShallow } from "zustand/react/shallow";
 import type { BankAccount } from "#/db/schema";
 import type { DialogState } from "#/lib/types";
 
-import { Alert, AlertDescription, AlertTitle } from "#/components/ui/alert";
 import {
   Dialog,
   DialogContent,
@@ -23,9 +21,7 @@ import {
   InputGroupText,
 } from "#/components/ui/input-group";
 import { useAppForm } from "#/integrations/tanstack-form";
-import { AppError } from "#/lib/errors";
 import { getCurrency, isCurrencyCode } from "#/lib/utils";
-import { validateLogTransaction } from "#/modules/transactions/functions";
 import { useLogTransactionMutation } from "#/modules/transactions/mutations";
 import { logTransactionSchema, transactionTypeEnum } from "#/modules/transactions/schemas";
 import { confirm } from "#/stores/use-confirm";
@@ -70,27 +66,6 @@ export function LogTransactionDialog() {
     defaultValues,
     validators: {
       onChange: logTransactionSchema,
-      onSubmitAsync: async ({ value }) => {
-        try {
-          const { isValid, message } = await validateLogTransaction({
-            data: {
-              ...value,
-              amount: value.amount,
-            },
-          });
-
-          if (!isValid) return message;
-
-          return undefined;
-        } catch (error) {
-          console.error(error);
-
-          // A thrown validator would otherwise be an uncaught rejection that crashes the app.
-          return error instanceof AppError
-            ? error.message
-            : "Something went wrong while checking this. Please try again.";
-        }
-      },
     },
     onSubmit: async ({ value: data }) => {
       try {
@@ -205,17 +180,6 @@ export function LogTransactionDialog() {
               <form.AppField name="note">
                 {(field) => <field.Textarea label="Note (optional)" placeholder="Add a note..." />}
               </form.AppField>
-              <form.Subscribe selector={(state) => state.errorMap.onSubmit}>
-                {(error) =>
-                  error ? (
-                    <Alert variant="destructive" className="max-w-md">
-                      <IconAlertCircle />
-                      <AlertTitle>Log Transaction failed</AlertTitle>
-                      <AlertDescription>{error}</AlertDescription>
-                    </Alert>
-                  ) : null
-                }
-              </form.Subscribe>
             </FieldGroup>
           </form>
         </div>

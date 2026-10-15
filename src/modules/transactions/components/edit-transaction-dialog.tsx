@@ -1,4 +1,3 @@
-import { IconAlertCircle } from "@tabler/icons-react";
 import { useQuery } from "@tanstack/react-query";
 import z from "zod";
 import { create } from "zustand";
@@ -8,7 +7,6 @@ import type { Transaction } from "#/db/schema";
 import type { DialogState } from "#/lib/types";
 
 import { StateTemplate } from "#/components/state-template";
-import { Alert, AlertDescription, AlertTitle } from "#/components/ui/alert";
 import { Button } from "#/components/ui/button";
 import {
   Dialog,
@@ -27,9 +25,8 @@ import {
 } from "#/components/ui/input-group";
 import { useAppForm } from "#/integrations/tanstack-form";
 import { currencyCodec } from "#/lib/codecs";
-import { AppError, NotFoundError } from "#/lib/errors";
+import { NotFoundError } from "#/lib/errors";
 import { getCurrency, isCurrencyCode } from "#/lib/utils";
-import { validateEditTransaction } from "#/modules/transactions/functions";
 import { useEditTransactionMutation } from "#/modules/transactions/mutations";
 import { transactionQueryOption } from "#/modules/transactions/query-options";
 import { editTransactionSchema, transactionTypeEnum } from "#/modules/transactions/schemas";
@@ -85,27 +82,6 @@ export function EditTransactionDialog() {
     defaultValues,
     validators: {
       onChange: editTransactionSchema,
-      onSubmitAsync: async ({ value }) => {
-        try {
-          const { isValid, message } = await validateEditTransaction({
-            data: {
-              ...value,
-              amount: value.amount,
-            },
-          });
-
-          if (!isValid) return message;
-
-          return undefined;
-        } catch (error) {
-          console.error(error);
-
-          // A thrown validator would otherwise be an uncaught rejection that crashes the app.
-          return error instanceof AppError
-            ? error.message
-            : "Something went wrong while checking this. Please try again.";
-        }
-      },
     },
     onSubmit: async ({ value: data }) => {
       try {
@@ -265,17 +241,6 @@ export function EditTransactionDialog() {
                     <field.Textarea label="Note (optional)" placeholder="Add a note..." />
                   )}
                 </form.AppField>
-                <form.Subscribe selector={(state) => state.errorMap.onSubmit}>
-                  {(error) =>
-                    error ? (
-                      <Alert variant="destructive" className="max-w-md">
-                        <IconAlertCircle />
-                        <AlertTitle>Edit Transaction failed</AlertTitle>
-                        <AlertDescription>{error}</AlertDescription>
-                      </Alert>
-                    ) : null
-                  }
-                </form.Subscribe>
               </FieldGroup>
             </form>
           ) : null}

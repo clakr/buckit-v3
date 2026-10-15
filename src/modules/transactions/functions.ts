@@ -60,30 +60,6 @@ export const getTransaction = createServerFn({
     };
   });
 
-async function checkLogTransaction(
-  db: DB,
-  userId: string,
-  data: z.output<typeof logTransactionSchema>,
-) {
-  const check = await checkUnallocated(db, userId, {
-    kind: "add-transaction",
-    bankAccountId: data.bankAccountId,
-    type: data.type,
-    amount: currencyCodec.decode(data.amount),
-  });
-
-  if (!check.ok) return { isValid: false, message: NEGATIVE_UNALLOCATED_MESSAGE };
-
-  return { isValid: true, message: "ok" };
-}
-
-export const validateLogTransaction = createServerFn({
-  method: "GET",
-})
-  .middleware([verifyUserBankAccountMiddleware])
-  .validator(logTransactionSchema)
-  .handler(async ({ context, data }) => checkLogTransaction(getDB(env.db), context.user.id, data));
-
 export const logTransaction = createServerFn({
   method: "POST",
 })
@@ -91,10 +67,17 @@ export const logTransaction = createServerFn({
   .validator(logTransactionSchema)
   .handler(async ({ context, data }) => {
     const db = getDB(env.db);
+    const amount = currencyCodec.decode(data.amount);
 
-    const { isValid, message } = await checkLogTransaction(db, context.user.id, data);
+    // The write is the check: its error reaches the dialog's failure toast with this message.
+    const check = await checkUnallocated(db, context.user.id, {
+      kind: "add-transaction",
+      bankAccountId: data.bankAccountId,
+      type: data.type,
+      amount,
+    });
 
-    if (!isValid) throw new InsufficientFundsError(message);
+    if (!check.ok) throw new InsufficientFundsError(NEGATIVE_UNALLOCATED_MESSAGE);
 
     return db
       .insert(transactions)
@@ -102,7 +85,7 @@ export const logTransaction = createServerFn({
         id: uuidv7(),
         bankAccountId: data.bankAccountId,
         type: data.type,
-        amount: currencyCodec.decode(data.amount),
+        amount,
         date: data.date,
         note: data.note,
       })
@@ -118,21 +101,6 @@ function toTransactionEdit(data: z.output<typeof editTransactionSchema>): Transa
     note: data.note,
   };
 }
-
-export const validateEditTransaction = createServerFn({
-  method: "GET",
-})
-  .middleware([verifyUserTransactionMiddleware])
-  .validator(editTransactionSchema)
-  .handler(async ({ context, data }) => {
-    const check = await checkTransactionEdit(
-      getDB(env.db),
-      context.user.id,
-      toTransactionEdit(data),
-    );
-
-    return check.ok ? { isValid: true, message: "ok" } : { isValid: false, message: check.message };
-  });
 
 export const editTransaction = createServerFn({
   method: "POST",
