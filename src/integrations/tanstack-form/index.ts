@@ -7,6 +7,7 @@ const Textarea = lazy(() => import("#/components/form/textarea"));
 const RadioGroup = lazy(() => import("#/components/form/radio-group"));
 const Select = lazy(() => import("#/components/form/select"));
 const Datepicker = lazy(() => import("#/components/form/datepicker"));
+const ValidatedInput = lazy(() => import("#/components/form/validated-input"));
 
 export const { fieldContext, formContext, useFieldContext, useFormContext } =
   createFormHookContexts();
@@ -14,7 +15,7 @@ export const { fieldContext, formContext, useFieldContext, useFormContext } =
 export const { useAppForm, withFieldGroup } = createFormHook({
   fieldContext,
   formContext,
-  fieldComponents: { Input, Textarea, RadioGroup, Select, Datepicker },
+  fieldComponents: { Input, ValidatedInput, Textarea, RadioGroup, Select, Datepicker },
   formComponents: {
     Button,
   },
