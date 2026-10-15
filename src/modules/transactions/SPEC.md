@@ -36,7 +36,7 @@ Amount is stored in minor units of the owning Bank Account's currency (`currency
 
 ### `Unallocated ≥ 0` Invariant
 
-Enforced on every mutation that could reduce a Bank Account's Unallocated balance: `validateLogTransaction` (log, expense only), `validateEditTransaction` (edit, recomputes with the edited amount/type substituted in), and `validateDeleteTransaction` (delete, recomputes with the transaction removed). All three delegate to `checkUnallocated` (`src/modules/bank-accounts/figures.server.ts`), the same check Allocation, Debt and Repayment use — the single place this rule lives. Each write runs its check in-process right before writing and throws `InsufficientFundsError` on failure.
+Enforced on every mutation that could reduce a Bank Account's Unallocated balance: `logTransaction` (expense only), `editTransaction` (recomputes with the edited amount/type substituted in, via `checkTransactionEdit`), and `deleteTransaction` (recomputes with the transaction removed). All three delegate to `checkUnallocated` (`src/modules/bank-accounts/figures.server.ts`), the same check Allocation, Debt and Repayment use — the single place this rule lives. **The write is the check:** each runs it in-process right before writing and throws `InsufficientFundsError`. The Log and Edit dialogs have no separate pre-submit check; a rejected write shows its reason in the failure toast and the dialog stays open with the user's input. Delete keeps `validateDeleteTransaction`, because the confirm dialog needs its preview (what will be removed, or why it can't be) before the user confirms.
 
 ### Linked Transactions Follow Their Debt's Rules
 
@@ -49,7 +49,7 @@ A Linked Transaction (see `CONTEXT.md`) is edited and deleted under its Debt's r
 
   It then runs the usual `Unallocated` check.
 
-- `editTransaction`, `validateEditTransaction`, `editRepayment` and `validateEditRepayment` all call it in-process.
+- `editTransaction`, `editRepayment` and `validateEditRepayment` all call it in-process.
 - `getTransaction` returns the link and which fields it locks. The Edit dialog disables those fields and says why.
 - `deleteLinkedTransaction` and `isRepaymentBackedBy` apply the "repayment goes with its Transaction" rule for both Transaction and Bank Account deletes.
 

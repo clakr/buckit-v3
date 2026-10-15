@@ -25,7 +25,7 @@ No `updatedAt` column — considered and deliberately deferred (see Design Decis
 
 ### Never Negative
 
-A Bank Account's `Balance` must never go negative. This is enforced today for every mutation that could reduce it (`validateLogTransaction`, `validateEditTransaction`, `validateDeleteTransaction`, `validateEditAllocationAmount`) by checking `Unallocated ≥ 0`, since `Unallocated ≤ Balance` always holds. The rule is uniform across every Bank Account — there is no account type or flag that permits overdraft. Anything that needs to represent a negative or liability position (an IOU, a credit card balance) belongs in the future Debt module instead, not as a Bank Account.
+A Bank Account's `Balance` must never go negative. This is enforced today for every mutation that could reduce it (`logTransaction`, `editTransaction`, `deleteTransaction`, the Allocation writes, and the Debt and Repayment writes, each checking in-process before it writes) by checking `Unallocated ≥ 0`, since `Unallocated ≤ Balance` always holds. The rule is uniform across every Bank Account — there is no account type or flag that permits overdraft. Anything that needs to represent a negative or liability position (an IOU, a credit card balance) belongs in the future Debt module instead, not as a Bank Account.
 
 ### Ownership Cascade
 
