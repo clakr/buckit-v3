@@ -1,0 +1,1 @@
+CREATE UNIQUE INDEX `buckets_user_id_lower_name_unique` ON `buckets` (`user_id`,lower("name"));

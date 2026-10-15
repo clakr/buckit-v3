@@ -130,7 +130,11 @@ export const buckets = sqliteTable(
       .default(sql`(cast(unixepoch('subsecond') * 1000 as integer))`)
       .notNull(),
   },
-  (t) => [unique().on(t.userId, t.name)],
+  (t) => [
+    unique().on(t.userId, t.name),
+    // Same reasoning as `bank_accounts`: dropping `buckets` would cascade-delete its Allocations.
+    uniqueIndex("buckets_user_id_lower_name_unique").on(t.userId, lower(t.name)),
+  ],
 );
 
 export const transactions = sqliteTable("transactions", {
