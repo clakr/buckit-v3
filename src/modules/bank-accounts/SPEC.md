@@ -29,7 +29,7 @@ A Bank Account's `Balance` must never go negative. This is enforced today for ev
 
 ### Ownership Cascade
 
-`userId` lives only on BankAccount. Transactions and Allocations derive the user through `bankAccountId → BankAccount.userId`, enforced by `verifyUserBankAccountMiddleware` on every server function that touches a specific account.
+`userId` lives only on BankAccount. Transactions and Allocations derive the user through `bankAccountId → BankAccount.userId`. That rule is applied in one place, `src/modules/bank-accounts/ownership.server.ts`: `findOwnedBankAccount` (used by `verifyUserBankAccountMiddleware` and by the Debt and Repayment source-account checks, since `recordDebt` and `logRepayment` have no bank-account middleware of their own) and `isOwnedThroughBankAccount` (used by the Transaction and Allocation middlewares). A missing record and someone else's record both throw `NotFoundError`, so an ID can't be probed for existence and a not-found isn't retried.
 
 ### Starting Balance Stored on Account
 
