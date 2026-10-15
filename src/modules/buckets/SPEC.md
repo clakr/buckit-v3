@@ -25,7 +25,7 @@ A Bucket only ever accumulates or gives back earmarked money — there is no sch
 
 ### No Currency of Its Own
 
-A Bucket can receive Allocations from Bank Accounts in different currencies. There is no cross-currency conversion or a single "total" — subtotals are grouped and displayed per source currency (verified in `columns.tsx`; see bank-accounts `SPEC.md`'s "Verified During This Spec Pass" note, which checked the same thing from the other side).
+A Bucket can receive Allocations from Bank Accounts in different currencies. There is no cross-currency conversion or a single "total" — Subtotals are grouped and displayed per source currency (computed by the Bucket figures module, `figures.server.ts`; see bank-accounts `SPEC.md`'s "Verified During This Spec Pass" note, which checked the same thing from the other side).
 
 ### Name Uniqueness
 
@@ -54,9 +54,9 @@ Name must be unique per user, case-insensitive (compared via `lower()`), trimmed
 
 ## Gaps Identified This Session (Deliberate, Not Bugs)
 
-- **No shared subtotal utility.** Unlike Bank Account's figures module (`getBankAccountFigures`, shared by every read and never-negative check), the Bucket's per-currency subtotal is computed inline inside `columns.tsx` only. Deliberately not extracted: project convention is to wait until a calculation is needed in three or more places before pulling it into a shared file.
+- ~~**No shared subtotal utility.**~~ **Resolved 2026-10-15.** By then the sum was repeated in three places (the list's Subtotal cell, the Bucket delete preview, the Bank Account delete preview), so it moved into the Bucket figures module, `figures.server.ts`. `getBucketsWithFigures(db, { userId, bucketId?, allocatedFrom? })` returns each Bucket with its Subtotals (one per currency, sorted by currency code) and what it holds from each Bank Account, from one grouped query scoped to the user. `getBuckets` returns Subtotals instead of raw Allocation rows; `getBucket` keeps its rows (the detail table needs them) and adds both figures.
 - **Subtotal column is unsortable.** Sorting it correctly requires converting each row's per-currency amounts using a current exchange rate, computed row-by-row — an efficient, well-designed approach for that conversion hasn't been built yet. Left unsortable rather than shipping a naive/slow version.
-- **Bucket detail page has no aggregate summary.** It's a flat Allocations table today, matching the Bank Account detail page's Allocations table but without the equivalent balance/unallocated/total summary header Bank Account shows. Deliberately deferred until the summary's design (what to show, per-currency handling) is worked out, rather than bolting one on ad hoc.
+- **Bucket detail page has no aggregate summary.** It's a flat Allocations table today, matching the Bank Account detail page's Allocations table but without the equivalent balance/unallocated/total summary header Bank Account shows. Deliberately deferred until the summary's design (what to show, per-currency handling) is worked out, rather than bolting one on ad hoc. When it is, its figures can come from the Bucket figures module, which `getBucket` already returns.
 
 ## Future Considerations
 

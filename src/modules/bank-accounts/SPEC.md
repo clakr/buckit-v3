@@ -83,5 +83,5 @@ Not building this now. When it is built: **a transfer must only be allowed betwe
 
 ## Verified During This Spec Pass
 
-- Cross-currency allocation was suspected as a bug (a Bucket has no currency of its own and can receive Allocations from Bank Accounts in different currencies) — checked `src/modules/buckets/columns.tsx`: subtotals are correctly grouped and displayed per source currency. **Not a bug.**
+- Cross-currency allocation was suspected as a bug (a Bucket has no currency of its own and can receive Allocations from Bank Accounts in different currencies) — checked `src/modules/buckets/columns.tsx` (since 2026-10-15, `src/modules/buckets/figures.server.ts`): subtotals are correctly grouped and displayed per source currency. **Not a bug.**
 - The `Unallocated ≥ 0` invariant is consistently enforced across every mutation that could violate it (log/edit/delete transaction, log/edit allocation). `deleteAllocation` has no guard because deleting an allocation only ever increases `Unallocated` — correctly needs none.

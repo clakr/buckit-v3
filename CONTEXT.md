@@ -25,7 +25,10 @@ A Bank Account's current holdings: `startingBalance + Σ income transactions −
 The portion of a Bank Account's Balance not yet earmarked to any Bucket: `Balance − Σ allocation amounts`. Must never go negative; enforced on every Transaction and Allocation mutation (log, edit, delete).
 
 **Bucket**:
-A user-defined savings category that receives money via Allocations from one or more Bank Accounts. Has no currency of its own — displays subtotals grouped per source currency. Money only ever enters a Bucket (via Allocation) or leaves it (by editing/deleting an Allocation) — a Bucket is never spent from directly. Transactions always attach to a Bank Account, never to a Bucket; this is a permanent boundary, not a gap. See the planned `Goal` entity below for target/progress tracking.
+A user-defined savings category that receives money via Allocations from one or more Bank Accounts. Has no currency of its own — displays one Subtotal per source currency. Money only ever enters a Bucket (via Allocation) or leaves it (by editing/deleting an Allocation) — a Bucket is never spent from directly. Transactions always attach to a Bank Account, never to a Bucket; this is a permanent boundary, not a gap. See the planned `Goal` entity below for target/progress tracking.
+
+**Subtotal**:
+The sum of a Bucket's Allocations whose source Bank Accounts share one currency. A Bucket has one Subtotal per currency it holds and never a single total, since there is no cross-currency conversion.
 
 **Allocation**:
 Money earmarked from a Bank Account toward a Bucket. Does not leave the Bank Account's Balance, but reduces its Unallocated amount.
