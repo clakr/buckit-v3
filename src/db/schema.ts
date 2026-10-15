@@ -5,6 +5,7 @@ import {
   integer,
   index,
   unique,
+  uniqueIndex,
   type AnySQLiteColumn,
 } from "drizzle-orm/sqlite-core";
 
@@ -108,7 +109,13 @@ export const bankAccounts = sqliteTable(
       .default(sql`(cast(unixepoch('subsecond') * 1000 as integer))`)
       .notNull(),
   },
-  (t) => [unique().on(t.userId, t.name)],
+  (t) => [
+    unique().on(t.userId, t.name),
+    // The name rule is case-insensitive. Added beside the constraint above rather than replacing
+    // it: dropping a table-level constraint needs a table rebuild, and D1's foreign keys would
+    // cascade-delete every Transaction and Allocation when the old table is dropped.
+    uniqueIndex("bank_accounts_user_id_lower_name_unique").on(t.userId, lower(t.name)),
+  ],
 );
 
 export const buckets = sqliteTable(

@@ -1,0 +1,1 @@
+CREATE UNIQUE INDEX `bank_accounts_user_id_lower_name_unique` ON `bank_accounts` (`user_id`,lower("name"));
