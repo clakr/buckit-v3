@@ -19,11 +19,12 @@ import {
 import { FieldGroup } from "#/components/ui/field";
 import { useAppForm } from "#/integrations/tanstack-form";
 import { currencyCodec } from "#/lib/codecs";
-import { AppError, NotFoundError } from "#/lib/errors";
-import { validateEditAllocationAmount } from "#/modules/allocations/functions";
+import { NotFoundError } from "#/lib/errors";
+import { formatCurrency } from "#/lib/utils";
 import { useEditAllocationMutation } from "#/modules/allocations/mutations";
 import { allocationQueryOption } from "#/modules/allocations/query-options";
 import { editAllocationSchema } from "#/modules/allocations/schemas";
+import { describeInsufficientUnallocated } from "#/modules/allocations/utils";
 import { confirm } from "#/stores/use-confirm";
 
 type StoreState = DialogState & {
@@ -157,28 +158,15 @@ export function EditAllocationDialog() {
                 <form.AppField
                   name="amount"
                   validators={{
-                    onChangeAsyncDebounceMs: 500,
-                    onChangeAsync: editAllocationSchema.shape.amount.superRefine(
-                      async (data, context) => {
-                        try {
-                          const { isValid, message } = await validateEditAllocationAmount({
-                            data: { allocationId: allocation.id, amount: data },
-                          });
-
-                          if (!isValid) context.addIssue({ code: "custom", message });
-                        } catch (error) {
-                          console.error(error);
-
-                          context.addIssue({
-                            code: "custom",
-                            message:
-                              error instanceof AppError
-                                ? error.message
-                                : "Couldn't check this amount. Please try again.",
-                          });
-                        }
-                      },
-                    ),
+                    onChange: ({ value }) =>
+                      currencyCodec.decode(Number(value)) > allocation.available
+                        ? {
+                            message: describeInsufficientUnallocated({
+                              bankAccount: allocation.bankAccount,
+                              available: allocation.available,
+                            }),
+                          }
+                        : undefined,
                   }}
                 >
                   {(field) => (
@@ -188,7 +176,17 @@ export function EditAllocationDialog() {
                       step={0.01}
                       required
                       placeholder="0.00"
-                      currency={allocation.bankAccount?.currency}
+                      currency={allocation.bankAccount.currency}
+                      description={
+                        <>
+                          Available:{" "}
+                          <span className="font-semibold">
+                            {formatCurrency(currencyCodec.encode(allocation.available), {
+                              currency: allocation.bankAccount.currency,
+                            })}
+                          </span>
+                        </>
+                      }
                     />
                   )}
                 </form.AppField>

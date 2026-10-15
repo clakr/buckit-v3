@@ -6,21 +6,11 @@ export const verifyUserAllocationMiddlewareSchema = z.looseObject({
   allocationId: z.string().min(1, "No allocation ID provided"),
 });
 
-export const validateLogAllocationAmountSchema = z.object({
-  ...verifyUserBankAccountMiddlewareSchema.shape,
-  amount: z.coerce.number().min(0.01, "Amount must be greater than 0."),
-});
-
 export const logAllocationSchema = z.strictObject({
   ...verifyUserBankAccountMiddlewareSchema.shape,
   date: z.date(),
   note: z.string(),
   bucketId: z.string().min(1, "No bucket ID provided"),
-  amount: z.coerce.number().min(0.01, "Amount must be greater than 0."),
-});
-
-export const validateEditAllocationAmountSchema = z.object({
-  ...verifyUserAllocationMiddlewareSchema.shape,
   amount: z.coerce.number().min(0.01, "Amount must be greater than 0."),
 });
 

@@ -29,11 +29,10 @@ import {
 } from "#/components/ui/select";
 import { useAppForm } from "#/integrations/tanstack-form";
 import { currencyCodec } from "#/lib/codecs";
-import { AppError } from "#/lib/errors";
 import { formatCurrency, getCurrency, isCurrencyCode } from "#/lib/utils";
-import { validateLogAllocationAmount } from "#/modules/allocations/functions";
 import { useLogAllocationMutation } from "#/modules/allocations/mutations";
 import { logAllocationSchema } from "#/modules/allocations/schemas";
+import { describeInsufficientUnallocated } from "#/modules/allocations/utils";
 import { BankAccountFigures } from "#/modules/bank-accounts/components/bank-account-figures";
 import { bankAccountsQueryOption } from "#/modules/bank-accounts/query-options";
 import { bucketsQueryOptions } from "#/modules/buckets/query-options";
@@ -143,10 +142,15 @@ export function LogAllocationDialog() {
 
   if (!data) return null;
 
-  const selectedBankAccount =
-    data.source === "bank-account"
-      ? data.account
-      : bankAccounts?.find((a) => a.id === bankAccountId);
+  // Validators run before the next render, so they look the account up by the form's current value
+  // rather than reading `selectedBankAccount`.
+  function findBankAccount(id: string) {
+    if (data?.source === "bank-account") return data.account;
+
+    return bankAccounts?.find((a) => a.id === id);
+  }
+
+  const selectedBankAccount = findBankAccount(bankAccountId);
 
   const currencyCode = selectedBankAccount?.currency;
   const currency = currencyCode && isCurrencyCode(currencyCode) ? getCurrency(currencyCode) : null;
@@ -263,34 +267,19 @@ export function LogAllocationDialog() {
                   validators={{
                     // From a bucket, the account is picked after the amount may already be in.
                     onChangeListenTo: ["bankAccountId"],
-                    onChangeAsyncDebounceMs: 500,
-                    onChangeAsync: logAllocationSchema.shape.amount.superRefine(
-                      async (value, context) => {
-                        const currentBankAccountId = form.getFieldValue("bankAccountId");
-                        if (!currentBankAccountId) return;
+                    onChange: ({ value }) => {
+                      const bankAccount = findBankAccount(form.getFieldValue("bankAccountId"));
+                      if (!bankAccount) return undefined;
 
-                        try {
-                          const { isValid, message } = await validateLogAllocationAmount({
-                            data: {
-                              bankAccountId: currentBankAccountId,
-                              amount: value,
-                            },
-                          });
-
-                          if (!isValid) context.addIssue({ code: "custom", message });
-                        } catch (error) {
-                          console.error(error);
-
-                          context.addIssue({
-                            code: "custom",
-                            message:
-                              error instanceof AppError
-                                ? error.message
-                                : "Couldn't check this amount. Please try again.",
-                          });
-                        }
-                      },
-                    ),
+                      return currencyCodec.decode(Number(value)) > bankAccount.unallocated
+                        ? {
+                            message: describeInsufficientUnallocated({
+                              bankAccount,
+                              available: bankAccount.unallocated,
+                            }),
+                          }
+                        : undefined;
+                    },
                   }}
                 >
                   {(field) => (

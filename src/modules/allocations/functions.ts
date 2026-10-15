@@ -10,16 +10,18 @@ import { allocations } from "#/db/schema";
 import { currencyCodec } from "#/lib/codecs";
 import { InsufficientFundsError, NotFoundError } from "#/lib/errors";
 import { authMiddleware } from "#/lib/middlewares";
-import { formatCurrency } from "#/lib/utils";
 import { verifyUserAllocationMiddleware } from "#/modules/allocations/middlewares";
 import {
   editAllocationSchema,
   getAllocationsSchema,
   logAllocationSchema,
-  validateEditAllocationAmountSchema,
-  validateLogAllocationAmountSchema,
 } from "#/modules/allocations/schemas";
-import { checkUnallocated, type BankAccountChange } from "#/modules/bank-accounts/figures.server";
+import { describeInsufficientUnallocated } from "#/modules/allocations/utils";
+import {
+  checkUnallocated,
+  getBankAccountsWithFigures,
+  type BankAccountChange,
+} from "#/modules/bank-accounts/figures.server";
 import { verifyUserBankAccountMiddleware } from "#/modules/bank-accounts/middlewares";
 import { verifyUserBucketMiddleware } from "#/modules/buckets/middlewares";
 
@@ -27,27 +29,33 @@ export const getAllocation = createServerFn({
   method: "GET",
 })
   .middleware([verifyUserAllocationMiddleware])
-  .handler(async ({ data }) => {
+  .handler(async ({ context, data }) => {
     const db = getDB(env.db);
 
     const allocation = await db.query.allocations.findFirst({
       where: {
         id: data.allocationId,
       },
-      with: {
-        bankAccount: {
-          columns: {
-            currency: true,
-          },
-        },
-      },
     });
 
+    const [figures] = allocation
+      ? await getBankAccountsWithFigures(db, {
+          userId: context.user.id,
+          bankAccountId: allocation.bankAccountId,
+        })
+      : [];
+
     // Gone between the ownership check and this read.
-    if (!allocation)
+    if (!allocation || !figures)
       throw new NotFoundError("This allocation doesn't exist or may have been deleted.");
 
-    return allocation;
+    // The most this Allocation can be: what's unallocated, counting it as returned. The same
+    // figure `checkAllocationAmount` rejects an edit against.
+    return {
+      ...allocation,
+      bankAccount: { name: figures.name, currency: figures.currency },
+      available: figures.unallocated + allocation.amount,
+    };
   });
 
 type AllocationAmountChange = Extract<
@@ -60,36 +68,14 @@ type AllocationAmountChange = Extract<
 async function checkAllocationAmount(db: DB, userId: string, change: AllocationAmountChange) {
   const check = await checkUnallocated(db, userId, change);
 
-  if (!check.ok) {
-    return {
-      isValid: false,
-      message: `Insufficient unallocated balance in ${check.bankAccount.name}. Available: ${formatCurrency(
-        currencyCodec.encode(check.available),
-        {
-          currency: check.bankAccount.currency,
-        },
-      )}`,
-    };
-  }
-
-  return {
-    isValid: true,
-    message: "ok",
-  };
+  if (!check.ok)
+    throw new InsufficientFundsError(
+      describeInsufficientUnallocated({
+        bankAccount: check.bankAccount,
+        available: check.available,
+      }),
+    );
 }
-
-export const validateLogAllocationAmount = createServerFn({
-  method: "GET",
-})
-  .middleware([verifyUserBankAccountMiddleware])
-  .validator(validateLogAllocationAmountSchema)
-  .handler(async ({ context, data }) =>
-    checkAllocationAmount(getDB(env.db), context.user.id, {
-      kind: "add-allocation",
-      bankAccountId: data.bankAccountId,
-      amount: currencyCodec.decode(data.amount),
-    }),
-  );
 
 export const logAllocation = createServerFn({
   method: "POST",
@@ -99,13 +85,11 @@ export const logAllocation = createServerFn({
   .handler(async ({ context, data }) => {
     const db = getDB(env.db);
 
-    const { isValid, message } = await checkAllocationAmount(db, context.user.id, {
+    await checkAllocationAmount(db, context.user.id, {
       kind: "add-allocation",
       bankAccountId: data.bankAccountId,
       amount: currencyCodec.decode(data.amount),
     });
-
-    if (!isValid) throw new InsufficientFundsError(message);
 
     return db
       .insert(allocations)
@@ -120,19 +104,6 @@ export const logAllocation = createServerFn({
       .returning();
   });
 
-export const validateEditAllocationAmount = createServerFn({
-  method: "GET",
-})
-  .middleware([verifyUserAllocationMiddleware])
-  .validator(validateEditAllocationAmountSchema)
-  .handler(async ({ context, data }) =>
-    checkAllocationAmount(getDB(env.db), context.user.id, {
-      kind: "replace-allocation",
-      allocationId: data.allocationId,
-      amount: currencyCodec.decode(data.amount),
-    }),
-  );
-
 export const editAllocation = createServerFn({
   method: "POST",
 })
@@ -141,13 +112,11 @@ export const editAllocation = createServerFn({
   .handler(async ({ context, data }) => {
     const db = getDB(env.db);
 
-    const { isValid, message } = await checkAllocationAmount(db, context.user.id, {
+    await checkAllocationAmount(db, context.user.id, {
       kind: "replace-allocation",
       allocationId: data.allocationId,
       amount: currencyCodec.decode(data.amount),
     });
-
-    if (!isValid) throw new InsufficientFundsError(message);
 
     return db
       .update(allocations)
