@@ -10,7 +10,6 @@ import { getDB } from "#/db";
 import { transactions, type Transaction } from "#/db/schema";
 import { currencyCodec } from "#/lib/codecs";
 import { ConflictError, InsufficientFundsError, NotFoundError } from "#/lib/errors";
-import { authMiddleware } from "#/lib/middlewares";
 import { formatCurrency } from "#/lib/utils";
 import { checkUnallocated } from "#/modules/bank-accounts/figures.server";
 import { verifyUserBankAccountMiddleware } from "#/modules/bank-accounts/middlewares";
@@ -183,27 +182,4 @@ export const deleteTransaction = createServerFn({
     const [, deleted] = await deleteLinkedTransaction(db, data.transactionId);
 
     return deleted;
-  });
-
-export const getTransactions = createServerFn({
-  method: "GET",
-})
-  .middleware([authMiddleware])
-  .handler(async ({ context }) => {
-    const db = getDB(env.db);
-
-    return db.query.transactions.findMany({
-      where: {
-        bankAccount: {
-          userId: context.user.id,
-        },
-      },
-      with: {
-        bankAccount: {
-          columns: {
-            name: true,
-          },
-        },
-      },
-    });
   });

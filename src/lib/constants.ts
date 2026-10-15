@@ -1,8 +1,6 @@
 import {
-  IconArrowsExchange,
   IconBucket,
   IconBuildingBank,
-  IconChartPie,
   IconCredits,
   IconLayoutDashboard,
 } from "@tabler/icons-react";
@@ -12,8 +10,6 @@ export const MODULE_ICONS = {
   accounts: IconBuildingBank,
   buckets: IconBucket,
   debts: IconCredits,
-  transactions: IconArrowsExchange,
-  allocations: IconChartPie,
 } as const;
 
 export const CURRENCIES = [

@@ -19,7 +19,7 @@ export function allocationQueryOption(allocationId: Allocation["id"]) {
   });
 }
 
-export function allocationsQueryOption(scope: z.input<typeof getAllocationsSchema> = {}) {
+export function allocationsQueryOption(scope: z.input<typeof getAllocationsSchema>) {
   return queryOptions({
     queryKey: ["allocations", scope],
     queryFn: () => getAllocations({ data: scope }),

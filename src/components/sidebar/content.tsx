@@ -54,26 +54,6 @@ export function SidebarContent() {
               }
             />
           </SidebarMenuItem>
-          <SidebarMenuItem>
-            <SidebarMenuButton
-              render={
-                <Link to="/transactions" activeProps={{ "data-active": true }}>
-                  <MODULE_ICONS.transactions />
-                  Transactions
-                </Link>
-              }
-            />
-          </SidebarMenuItem>
-          <SidebarMenuItem>
-            <SidebarMenuButton
-              render={
-                <Link to="/allocations" activeProps={{ "data-active": true }}>
-                  <MODULE_ICONS.allocations />
-                  Allocations
-                </Link>
-              }
-            />
-          </SidebarMenuItem>
         </SidebarMenu>
       </SidebarGroup>
     </UISidebarContent>
