@@ -18,7 +18,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "#/components/ui/dialog";
-import { Field, FieldError, FieldGroup, FieldLabel } from "#/components/ui/field";
+import { Field, FieldDescription, FieldError, FieldGroup, FieldLabel } from "#/components/ui/field";
 import {
   InputGroup,
   InputGroupAddon,
@@ -190,9 +190,17 @@ export function EditTransactionDialog() {
                         label: type,
                         value: type,
                       }))}
+                      disabled={transaction.locks.type}
                     />
                   )}
                 </form.AppField>
+                {transaction.link ? (
+                  <FieldDescription>
+                    {transaction.link.kind === "repayment"
+                      ? `This is a repayment on ${transaction.link.debtName}'s debt, so its type is fixed and it can't be dated before the debt.`
+                      : `This funded ${transaction.link.debtName}'s debt, so its type and amount are fixed. To correct the amount, delete the debt and record it again.`}
+                  </FieldDescription>
+                ) : null}
                 <form.AppField name="amount">
                   {(field) => {
                     const isInvalid = field.state.meta.isTouched && !field.state.meta.isValid;
@@ -209,7 +217,7 @@ export function EditTransactionDialog() {
                     if (!currency) return null;
 
                     return (
-                      <Field data-invalid={isInvalid}>
+                      <Field data-invalid={isInvalid} data-disabled={transaction.locks.amount}>
                         <FieldLabel htmlFor={id}>Amount</FieldLabel>
 
                         <InputGroup>
@@ -223,6 +231,7 @@ export function EditTransactionDialog() {
                             min={0}
                             step={0.01}
                             required
+                            disabled={transaction.locks.amount}
                             value={field.state.value as string}
                             onChange={(e) => field.handleChange(e.target.value)}
                             onBlur={field.handleBlur}
@@ -240,7 +249,16 @@ export function EditTransactionDialog() {
                   }}
                 </form.AppField>
                 <form.AppField name="date">
-                  {(field) => <field.Datepicker label="Date" />}
+                  {(field) => (
+                    <field.Datepicker
+                      label="Date"
+                      disabled={
+                        transaction.link?.kind === "repayment"
+                          ? { before: transaction.link.debtDate }
+                          : undefined
+                      }
+                    />
+                  )}
                 </form.AppField>
                 <form.AppField name="note">
                   {(field) => (
