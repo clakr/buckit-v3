@@ -6,6 +6,7 @@ import { bankAccounts, debts, repayments, transactions, type BankAccount } from 
 import { NotFoundError } from "#/lib/errors";
 import { getBucketsWithFigures } from "#/modules/buckets/figures.server";
 import { getDebtOutstanding, getDebtStatus, type DebtStatus } from "#/modules/debts/utils";
+import { isRepaymentBackedBy } from "#/modules/transactions/linked.server";
 
 // The cascade rules of a Bank Account delete, as SQL, so the preview and the delete read the
 // same definition of what goes.
@@ -17,11 +18,10 @@ function selectBankAccountTransactionIds(db: DB, bankAccountId: BankAccount["id"
     .where(eq(transactions.bankAccountId, bankAccountId));
 }
 
-// The FK cascade to `transactions` only nulls a repayment's `transactionId`, which would leave
-// a row with no amount of its own. These are deleted instead, so the Debt's outstanding goes
-// back up.
+// A repayment goes with its Transaction (see `isRepaymentBackedBy`), so the Debt's outstanding
+// goes back up.
 function isRemovedRepayment(db: DB, bankAccountId: BankAccount["id"]) {
-  return inArray(repayments.transactionId, selectBankAccountTransactionIds(db, bankAccountId));
+  return isRepaymentBackedBy(selectBankAccountTransactionIds(db, bankAccountId));
 }
 
 // An origination is left to the FK's `SET NULL`, so its Debt survives without a source account.
