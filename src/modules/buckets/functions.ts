@@ -6,6 +6,7 @@ import { z } from "zod";
 
 import { getDB } from "#/db";
 import { buckets, lower } from "#/db/schema";
+import { ConflictError, NotFoundError } from "#/lib/errors";
 import { authMiddleware } from "#/lib/middlewares";
 import { verifyUserBucketMiddleware } from "#/modules/buckets/middlewares";
 import { editBucketSchema, setUpBucketSchema } from "#/modules/buckets/schemas";
@@ -60,7 +61,10 @@ export const getBucket = createServerFn({
       },
     });
 
-    return bucket ?? null;
+    // Deleted between the middleware's ownership check and this read.
+    if (!bucket) throw new NotFoundError("This bucket doesn't exist or may have been deleted.");
+
+    return bucket;
   });
 
 export const validateBucketName = createServerFn({
@@ -107,7 +111,7 @@ export const setUpBucket = createServerFn({
       data: data.name,
     });
 
-    if (!isValid) throw new Error(message);
+    if (!isValid) throw new ConflictError(message);
 
     return db
       .insert(buckets)
@@ -164,7 +168,7 @@ export const editBucket = createServerFn({
       data,
     });
 
-    if (!isValid) throw new Error(message);
+    if (!isValid) throw new ConflictError(message);
 
     return db
       .update(buckets)

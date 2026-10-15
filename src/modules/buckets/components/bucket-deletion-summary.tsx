@@ -7,7 +7,7 @@ import { currencyCodec } from "#/lib/codecs";
 import { formatCurrency } from "#/lib/utils";
 
 type Props = {
-  bucket: NonNullable<Awaited<ReturnType<typeof getBucket>>>;
+  bucket: Awaited<ReturnType<typeof getBucket>>;
   bankAccounts: Awaited<ReturnType<typeof getBankAccounts>>;
 };
 

@@ -21,6 +21,7 @@ import { Field, FieldError, FieldGroup, FieldLabel } from "#/components/ui/field
 import { InputGroup, InputGroupAddon, InputGroupInput } from "#/components/ui/input-group";
 import { Spinner } from "#/components/ui/spinner";
 import { useAppForm } from "#/integrations/tanstack-form";
+import { AppError, NotFoundError } from "#/lib/errors";
 import { validateEditBucketName } from "#/modules/buckets/functions";
 import { useEditBucketMutation } from "#/modules/buckets/mutations";
 import { bucketQueryOption } from "#/modules/buckets/query-options";
@@ -53,9 +54,9 @@ export function EditBucketDialog() {
     })),
   );
 
-  // @todo: should distinguish if network error or data not found
   const {
     status,
+    error,
     refetch,
     data: bucket,
   } = useQuery({
@@ -121,7 +122,19 @@ export function EditBucketDialog() {
               description="Fetching bucket details..."
             />
           ) : null}
-          {status === "error" ? (
+          {status === "error" && error instanceof NotFoundError ? (
+            <StateTemplate
+              state="error"
+              title="Bucket not found"
+              description={error.message}
+              content={
+                <Button variant="secondary" onClick={closeDialog}>
+                  Close
+                </Button>
+              }
+            />
+          ) : null}
+          {status === "error" && !(error instanceof NotFoundError) ? (
             <StateTemplate
               state="error"
               title="Could not load bucket"
@@ -129,7 +142,7 @@ export function EditBucketDialog() {
               content={<Button onClick={() => refetch()}>Retry</Button>}
             />
           ) : null}
-          {status === "success" && bucket ? (
+          {status === "success" ? (
             <form
               id={form.formId}
               onSubmit={(e) => {
@@ -155,11 +168,16 @@ export function EditBucketDialog() {
                             },
                           });
 
-                          if (!isValid) throw new Error(message);
+                          if (!isValid) context.addIssue({ code: "custom", message });
                         } catch (error) {
+                          console.error(error);
+
                           context.addIssue({
                             code: "custom",
-                            message: error instanceof Error ? error.message : String(error),
+                            message:
+                              error instanceof AppError
+                                ? error.message
+                                : "Couldn't check this name. Please try again.",
                           });
                         }
                       },

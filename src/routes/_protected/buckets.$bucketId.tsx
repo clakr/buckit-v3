@@ -7,15 +7,10 @@ import { Main } from "#/components/main";
 import { StateTemplate } from "#/components/state-template";
 import { Button } from "#/components/ui/button";
 import { DataTable } from "#/components/ui/data-table";
+import { NotFoundError } from "#/lib/errors";
 import { ALLOCATIONS_COLUMNS } from "#/modules/buckets/columns";
 import { useEditBucketDialogStore } from "#/modules/buckets/components/edit-bucket-dialog";
 import { bucketQueryOption } from "#/modules/buckets/query-options";
-
-class BucketNotFoundError extends Error {
-  constructor() {
-    super();
-  }
-}
 
 export const Route = createFileRoute("/_protected/buckets/$bucketId")({
   context: ({ params }) => ({
@@ -36,14 +31,14 @@ export const Route = createFileRoute("/_protected/buckets/$bucketId")({
     </Main>
   ),
   errorComponent: ({ error, reset }) => {
-    if (error instanceof BucketNotFoundError)
+    if (error instanceof NotFoundError)
       return (
         <Main>
           <Heading className="capitalize">Bucket</Heading>
           <StateTemplate
             state="error"
             title="Bucket not found"
-            description="This bucket doesn't exist or may have been deleted."
+            description={error.message}
             content={
               <Button variant="secondary" render={<Link to=".." />}>
                 Go back to buckets
@@ -73,7 +68,6 @@ function RouteComponent() {
   const { bucketQueryOptions } = Route.useRouteContext();
 
   const { data: bucket } = useSuspenseQuery(bucketQueryOptions);
-  if (!bucket) throw new BucketNotFoundError();
 
   function handleOpenEditBucketDialog() {
     const state = useEditBucketDialogStore.getState();

@@ -21,6 +21,7 @@ import { Field, FieldError, FieldGroup, FieldLabel } from "#/components/ui/field
 import { InputGroup, InputGroupAddon, InputGroupInput } from "#/components/ui/input-group";
 import { Spinner } from "#/components/ui/spinner";
 import { useAppForm } from "#/integrations/tanstack-form";
+import { NotFoundError } from "#/lib/errors";
 import { bankAccountsQueryOption } from "#/modules/bank-accounts/query-options";
 
 import { useDeleteBucketMutation } from "../mutations";
@@ -57,8 +58,7 @@ export function DeleteBucketDialog() {
   const mutation = useDeleteBucketMutation();
 
   // Disabled while deleting: the global post-mutation invalidation would otherwise refetch the
-  // just-deleted record, fail its ownership check, and wait out every retry before the dialog closes.
-  // @todo: should distinguish if network error or data not found
+  // just-deleted record and flash "Bucket not found" before the dialog closes.
   const bucketQuery = useQuery({
     ...bucketQueryOption(bucketId ?? ""),
     enabled: isOpen && !mutation.isPending,
@@ -69,6 +69,8 @@ export function DeleteBucketDialog() {
     enabled: isOpen,
   });
 
+  // Already gone, e.g. deleted in another tab: retrying can't bring it back.
+  const notFoundError = bucketQuery.error instanceof NotFoundError ? bucketQuery.error : null;
   const bucket = bucketQuery.data;
   const bankAccounts = bankAccountsQuery.data ?? [];
   const statuses = [bucketQuery.status, bankAccountsQuery.status];
@@ -127,7 +129,7 @@ export function DeleteBucketDialog() {
           <DialogDescription>
             {status === "success" && bucket
               ? getBucketDeletionDescription({ bucket })
-              : `Permanently delete "${bucket?.name ?? ""}" and everything logged against it. This cannot be undone.`}
+              : "Permanently delete this bucket and its allocations. This cannot be undone."}
           </DialogDescription>
         </DialogHeader>
         <div>
@@ -138,7 +140,19 @@ export function DeleteBucketDialog() {
               description="Fetching allocations and accounts to review before deletion..."
             />
           ) : null}
-          {status === "error" ? (
+          {status === "error" && notFoundError ? (
+            <StateTemplate
+              state="error"
+              title="Bucket not found"
+              description={notFoundError.message}
+              content={
+                <Button variant="secondary" onClick={closeDialog}>
+                  Close
+                </Button>
+              }
+            />
+          ) : null}
+          {status === "error" && !notFoundError ? (
             <StateTemplate
               state="error"
               title="Could not load bucket"

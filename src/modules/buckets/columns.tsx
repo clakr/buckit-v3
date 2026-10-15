@@ -72,7 +72,7 @@ export const INDEX_COLUMNS: ColumnDef<Awaited<ReturnType<typeof getBuckets>>[num
 ];
 
 export const ALLOCATIONS_COLUMNS: ColumnDef<
-  NonNullable<Awaited<ReturnType<typeof getBucket>>>["allocations"][number]
+  Awaited<ReturnType<typeof getBucket>>["allocations"][number]
 >[] = [
   {
     accessorKey: "date",
