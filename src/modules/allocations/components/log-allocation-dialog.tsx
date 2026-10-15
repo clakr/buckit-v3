@@ -264,6 +264,9 @@ export function LogAllocationDialog() {
                   <field.AmountInput
                     label="Amount"
                     min={0.01}
+                    step={0.01}
+                    required
+                    placeholder="0.00"
                     currency={currencyCode}
                     disabled={isAmountDisabled || !currency}
                     description={

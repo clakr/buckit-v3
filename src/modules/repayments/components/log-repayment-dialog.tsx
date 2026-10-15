@@ -163,7 +163,14 @@ export function LogRepaymentDialog() {
             <FieldGroup>
               <form.AppField name="amount">
                 {(field) => (
-                  <field.AmountInput label="Amount" min={0.01} currency={debt.currency} />
+                  <field.AmountInput
+                    label="Amount"
+                    min={0.01}
+                    step={0.01}
+                    required
+                    placeholder="0.00"
+                    currency={debt.currency}
+                  />
                 )}
               </form.AppField>
               <form.AppField name="bankAccountId">

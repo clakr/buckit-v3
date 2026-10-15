@@ -123,7 +123,14 @@ export function LogTransactionDialog() {
               </form.AppField>
               <form.AppField name="amount">
                 {(field) => (
-                  <field.AmountInput label="Amount" min={0.01} currency={account.currency} />
+                  <field.AmountInput
+                    label="Amount"
+                    min={0.01}
+                    step={0.01}
+                    required
+                    placeholder="0.00"
+                    currency={account.currency}
+                  />
                 )}
               </form.AppField>
               <form.AppField name="date">
