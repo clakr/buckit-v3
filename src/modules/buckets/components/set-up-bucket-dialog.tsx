@@ -107,7 +107,7 @@ export function SetUpBucketDialog() {
 
                     try {
                       const { isValid, message } = await validateBucketName({
-                        data,
+                        data: { name: data },
                       });
 
                       if (!isValid) context.addIssue({ code: "custom", message });

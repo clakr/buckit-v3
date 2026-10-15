@@ -22,7 +22,7 @@ import { InputGroup, InputGroupAddon, InputGroupInput } from "#/components/ui/in
 import { Spinner } from "#/components/ui/spinner";
 import { useAppForm } from "#/integrations/tanstack-form";
 import { AppError, NotFoundError } from "#/lib/errors";
-import { validateEditBucketName } from "#/modules/buckets/functions";
+import { validateBucketName } from "#/modules/buckets/functions";
 import { useEditBucketMutation } from "#/modules/buckets/mutations";
 import { bucketQueryOption } from "#/modules/buckets/query-options";
 import { editBucketSchema } from "#/modules/buckets/schemas";
@@ -161,7 +161,7 @@ export function EditBucketDialog() {
                         if (!data) return;
 
                         try {
-                          const { isValid, message } = await validateEditBucketName({
+                          const { isValid, message } = await validateBucketName({
                             data: {
                               bucketId: bucket.id,
                               name: data,
