@@ -17,16 +17,9 @@ import {
   DialogHeader,
   DialogTitle,
 } from "#/components/ui/dialog";
-import { Field, FieldError, FieldGroup, FieldLabel } from "#/components/ui/field";
-import {
-  InputGroup,
-  InputGroupAddon,
-  InputGroupInput,
-  InputGroupText,
-} from "#/components/ui/input-group";
+import { FieldGroup } from "#/components/ui/field";
 import { useAppForm } from "#/integrations/tanstack-form";
 import { currencyCodec } from "#/lib/codecs";
-import { getCurrency, isCurrencyCode } from "#/lib/utils";
 import { confirm } from "#/stores/use-confirm";
 
 import { validateEditRepayment } from "../functions";
@@ -130,7 +123,6 @@ export function EditRepaymentDialog() {
   if (!debt || !repayment) return null;
 
   const bankAccount = repayment.transaction?.bankAccount ?? null;
-  const currency = isCurrencyCode(debt.currency) ? getCurrency(debt.currency) : undefined;
 
   return (
     <Dialog open={isOpen} onOpenChange={handleOnOpenChange}>
@@ -154,42 +146,7 @@ export function EditRepaymentDialog() {
           >
             <FieldGroup>
               <form.AppField name="amount">
-                {(field) => {
-                  const isInvalid = field.state.meta.isTouched && !field.state.meta.isValid;
-
-                  const id = field.name;
-                  const errorId = `${id}-error`;
-
-                  return (
-                    <Field data-invalid={isInvalid}>
-                      <FieldLabel htmlFor={id}>Amount</FieldLabel>
-
-                      <InputGroup>
-                        <InputGroupAddon>
-                          <InputGroupText>{currency?.symbol}</InputGroupText>
-                        </InputGroupAddon>
-                        <InputGroupInput
-                          type="number"
-                          id={id}
-                          placeholder="0.00"
-                          min={0}
-                          step={0.01}
-                          required
-                          value={field.state.value as string}
-                          onChange={(e) => field.handleChange(e.target.value)}
-                          onBlur={field.handleBlur}
-                          aria-invalid={isInvalid ? true : undefined}
-                          aria-labelledby={isInvalid ? errorId : undefined}
-                        />
-                        <InputGroupAddon align="inline-end">
-                          <InputGroupText>{debt.currency}</InputGroupText>
-                        </InputGroupAddon>
-                      </InputGroup>
-
-                      {isInvalid && <FieldError id={errorId} errors={field.state.meta.errors} />}
-                    </Field>
-                  );
-                }}
+                {(field) => <field.AmountInput label="Amount" currency={debt.currency} />}
               </form.AppField>
               <form.AppField
                 name="date"

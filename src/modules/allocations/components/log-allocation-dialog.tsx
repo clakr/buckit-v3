@@ -16,13 +16,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "#/components/ui/dialog";
-import { Field, FieldDescription, FieldError, FieldGroup, FieldLabel } from "#/components/ui/field";
-import {
-  InputGroup,
-  InputGroupAddon,
-  InputGroupInput,
-  InputGroupText,
-} from "#/components/ui/input-group";
+import { Field, FieldError, FieldGroup, FieldLabel } from "#/components/ui/field";
 import {
   Select,
   SelectContent,
@@ -31,7 +25,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "#/components/ui/select";
-import { Spinner } from "#/components/ui/spinner";
 import { useAppForm } from "#/integrations/tanstack-form";
 import { currencyCodec } from "#/lib/codecs";
 import { formatCurrency, getCurrency, isCurrencyCode } from "#/lib/utils";
@@ -267,60 +260,25 @@ export function LogAllocationDialog() {
                   ),
                 }}
               >
-                {(field) => {
-                  const isInvalid = field.state.meta.isTouched && !field.state.meta.isValid;
-
-                  const id = field.name;
-                  const errorId = `${id}-error`;
-
-                  const isDisabled = isAmountDisabled || !currency;
-
-                  return (
-                    <Field data-invalid={isInvalid}>
-                      <FieldLabel htmlFor={id}>Amount</FieldLabel>
-
-                      <InputGroup>
-                        <InputGroupAddon>
-                          <InputGroupText>{currency?.symbol ?? "—"}</InputGroupText>
-                        </InputGroupAddon>
-                        <InputGroupInput
-                          type="number"
-                          id={field.name}
-                          placeholder="0.00"
-                          min={0}
-                          step={0.01}
-                          required
-                          disabled={isDisabled}
-                          value={field.state.value as string}
-                          onChange={(e) => field.handleChange(e.target.value)}
-                          onBlur={field.handleBlur}
-                          aria-invalid={isInvalid ? true : undefined}
-                          aria-labelledby={isInvalid ? errorId : undefined}
-                        />
-                        <InputGroupAddon align="inline-end">
-                          {field.state.meta.isValidating ? (
-                            <Spinner />
-                          ) : (
-                            <InputGroupText>{currency?.code ?? ""}</InputGroupText>
-                          )}
-                        </InputGroupAddon>
-                      </InputGroup>
-
-                      {currency && unallocated !== null && (
-                        <FieldDescription>
+                {(field) => (
+                  <field.AmountInput
+                    label="Amount"
+                    currency={currencyCode}
+                    disabled={isAmountDisabled || !currency}
+                    description={
+                      currency && unallocated !== null ? (
+                        <>
                           Available:{" "}
                           <span className="font-semibold">
                             {formatCurrency(currencyCodec.encode(unallocated), {
                               currency: currency.code,
                             })}
                           </span>
-                        </FieldDescription>
-                      )}
-
-                      {isInvalid && <FieldError id={errorId} errors={field.state.meta.errors} />}
-                    </Field>
-                  );
-                }}
+                        </>
+                      ) : undefined
+                    }
+                  />
+                )}
               </form.AppField>
               {data.source === "bank-account" ? (
                 <form.AppField name="bucketId">

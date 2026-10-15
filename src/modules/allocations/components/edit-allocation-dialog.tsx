@@ -18,17 +18,9 @@ import {
   DialogHeader,
   DialogTitle,
 } from "#/components/ui/dialog";
-import { Field, FieldError, FieldGroup, FieldLabel } from "#/components/ui/field";
-import {
-  InputGroup,
-  InputGroupAddon,
-  InputGroupInput,
-  InputGroupText,
-} from "#/components/ui/input-group";
-import { Spinner } from "#/components/ui/spinner";
+import { FieldGroup } from "#/components/ui/field";
 import { useAppForm } from "#/integrations/tanstack-form";
 import { currencyCodec } from "#/lib/codecs";
-import { getCurrency, isCurrencyCode } from "#/lib/utils";
 import { validateEditAllocationAmount } from "#/modules/allocations/functions";
 import { useEditAllocationMutation } from "#/modules/allocations/mutations";
 import { allocationQueryOption } from "#/modules/allocations/query-options";
@@ -176,54 +168,9 @@ export function EditAllocationDialog() {
                     ),
                   }}
                 >
-                  {(field) => {
-                    const isInvalid = field.state.meta.isTouched && !field.state.meta.isValid;
-
-                    const id = field.name;
-                    const errorId = `${id}-error`;
-
-                    const accountCurrency = allocation.bankAccount?.currency ?? "PHP";
-
-                    const validated = isCurrencyCode(accountCurrency);
-                    if (!validated) return null;
-
-                    const currency = getCurrency(accountCurrency);
-                    if (!currency) return null;
-
-                    return (
-                      <Field data-invalid={isInvalid}>
-                        <FieldLabel htmlFor={id}>Amount</FieldLabel>
-
-                        <InputGroup>
-                          <InputGroupAddon>
-                            <InputGroupText>{currency.symbol}</InputGroupText>
-                          </InputGroupAddon>
-                          <InputGroupInput
-                            type="number"
-                            id={field.name}
-                            placeholder="0.00"
-                            min={0}
-                            step={0.01}
-                            required
-                            value={field.state.value as string}
-                            onChange={(e) => field.handleChange(e.target.value)}
-                            onBlur={field.handleBlur}
-                            aria-invalid={isInvalid ? true : undefined}
-                            aria-labelledby={isInvalid ? errorId : undefined}
-                          />
-                          <InputGroupAddon align="inline-end">
-                            {field.state.meta.isValidating ? (
-                              <Spinner />
-                            ) : (
-                              <InputGroupText>{currency.code}</InputGroupText>
-                            )}
-                          </InputGroupAddon>
-                        </InputGroup>
-
-                        {isInvalid && <FieldError id={errorId} errors={field.state.meta.errors} />}
-                      </Field>
-                    );
-                  }}
+                  {(field) => (
+                    <field.AmountInput label="Amount" currency={allocation.bankAccount?.currency} />
+                  )}
                 </form.AppField>
                 <form.AppField name="date">
                   {(field) => <field.Datepicker label="Date" />}

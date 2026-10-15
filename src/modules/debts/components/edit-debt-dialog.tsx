@@ -1,4 +1,4 @@
-import { IconFileDescription, IconLock } from "@tabler/icons-react";
+import { IconFileDescription } from "@tabler/icons-react";
 import { useQuery } from "@tanstack/react-query";
 import z from "zod";
 import { create } from "zustand";
@@ -18,16 +18,9 @@ import {
   DialogHeader,
   DialogTitle,
 } from "#/components/ui/dialog";
-import { Field, FieldDescription, FieldError, FieldGroup, FieldLabel } from "#/components/ui/field";
-import {
-  InputGroup,
-  InputGroupAddon,
-  InputGroupInput,
-  InputGroupText,
-} from "#/components/ui/input-group";
+import { FieldGroup } from "#/components/ui/field";
 import { useAppForm } from "#/integrations/tanstack-form";
 import { currencyCodec } from "#/lib/codecs";
-import { getCurrency, isCurrencyCode } from "#/lib/utils";
 import { useEditDebtMutation } from "#/modules/debts/mutations";
 import { debtQueryOption } from "#/modules/debts/query-options";
 import { editDebtSchema } from "#/modules/debts/schemas";
@@ -166,59 +159,18 @@ export function EditDebtDialog() {
                   {(field) => <field.Input label="Counterparty Name" maxLength={100} required />}
                 </form.AppField>
                 <form.AppField name="amount">
-                  {(field) => {
-                    const isInvalid = field.state.meta.isTouched && !field.state.meta.isValid;
-
-                    const id = field.name;
-                    const errorId = `${id}-error`;
-                    const descriptionId = `${id}-description`;
-
-                    const currency = isCurrencyCode(debt.currency)
-                      ? getCurrency(debt.currency)
-                      : undefined;
-
-                    return (
-                      <Field data-invalid={isInvalid} data-disabled={isAmountLocked}>
-                        <FieldLabel htmlFor={id}>Amount</FieldLabel>
-
-                        <InputGroup>
-                          <InputGroupAddon>
-                            {isAmountLocked ? (
-                              <IconLock />
-                            ) : (
-                              <InputGroupText>{currency?.symbol}</InputGroupText>
-                            )}
-                          </InputGroupAddon>
-                          <InputGroupInput
-                            type="number"
-                            id={id}
-                            placeholder="0.00"
-                            min={0.01}
-                            step={0.01}
-                            required
-                            disabled={isAmountLocked}
-                            value={field.state.value as string}
-                            onChange={(e) => field.handleChange(e.target.value)}
-                            onBlur={field.handleBlur}
-                            aria-invalid={isInvalid ? true : undefined}
-                            aria-labelledby={isInvalid ? errorId : undefined}
-                            aria-describedby={isAmountLocked ? descriptionId : undefined}
-                          />
-                          <InputGroupAddon align="inline-end">
-                            <InputGroupText>{debt.currency}</InputGroupText>
-                          </InputGroupAddon>
-                        </InputGroup>
-
-                        {isAmountLocked ? (
-                          <FieldDescription id={descriptionId}>
-                            A receivable's amount is locked once recorded. To correct it, delete
-                            this debt and record it again.
-                          </FieldDescription>
-                        ) : null}
-                        {isInvalid && <FieldError id={errorId} errors={field.state.meta.errors} />}
-                      </Field>
-                    );
-                  }}
+                  {(field) => (
+                    <field.AmountInput
+                      label="Amount"
+                      currency={debt.currency}
+                      locked={isAmountLocked}
+                      description={
+                        isAmountLocked
+                          ? "A receivable's amount is locked once recorded. To correct it, delete this debt and record it again."
+                          : undefined
+                      }
+                    />
+                  )}
                 </form.AppField>
                 <form.AppField name="date">
                   {(field) => <field.Datepicker label="Date" />}

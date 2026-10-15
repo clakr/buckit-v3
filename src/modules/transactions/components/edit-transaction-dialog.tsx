@@ -16,17 +16,10 @@ import {
   DialogHeader,
   DialogTitle,
 } from "#/components/ui/dialog";
-import { Field, FieldDescription, FieldError, FieldGroup, FieldLabel } from "#/components/ui/field";
-import {
-  InputGroup,
-  InputGroupAddon,
-  InputGroupInput,
-  InputGroupText,
-} from "#/components/ui/input-group";
+import { FieldDescription, FieldGroup } from "#/components/ui/field";
 import { useAppForm } from "#/integrations/tanstack-form";
 import { currencyCodec } from "#/lib/codecs";
 import { NotFoundError } from "#/lib/errors";
-import { getCurrency, isCurrencyCode } from "#/lib/utils";
 import { useEditTransactionMutation } from "#/modules/transactions/mutations";
 import { transactionQueryOption } from "#/modules/transactions/query-options";
 import { editTransactionSchema, transactionTypeEnum } from "#/modules/transactions/schemas";
@@ -178,51 +171,13 @@ export function EditTransactionDialog() {
                   </FieldDescription>
                 ) : null}
                 <form.AppField name="amount">
-                  {(field) => {
-                    const isInvalid = field.state.meta.isTouched && !field.state.meta.isValid;
-
-                    const id = field.name;
-                    const errorId = `${id}-error`;
-
-                    const accountCurrency = transaction.bankAccount?.currency ?? "PHP";
-
-                    const validated = isCurrencyCode(accountCurrency);
-                    if (!validated) return null;
-
-                    const currency = getCurrency(accountCurrency);
-                    if (!currency) return null;
-
-                    return (
-                      <Field data-invalid={isInvalid} data-disabled={transaction.locks.amount}>
-                        <FieldLabel htmlFor={id}>Amount</FieldLabel>
-
-                        <InputGroup>
-                          <InputGroupAddon>
-                            <InputGroupText>{currency.symbol}</InputGroupText>
-                          </InputGroupAddon>
-                          <InputGroupInput
-                            type="number"
-                            id={field.name}
-                            placeholder="0.00"
-                            min={0}
-                            step={0.01}
-                            required
-                            disabled={transaction.locks.amount}
-                            value={field.state.value as string}
-                            onChange={(e) => field.handleChange(e.target.value)}
-                            onBlur={field.handleBlur}
-                            aria-invalid={isInvalid ? true : undefined}
-                            aria-labelledby={isInvalid ? errorId : undefined}
-                          />
-                          <InputGroupAddon align="inline-end">
-                            <InputGroupText>{currency.code}</InputGroupText>
-                          </InputGroupAddon>
-                        </InputGroup>
-
-                        {isInvalid && <FieldError id={errorId} errors={field.state.meta.errors} />}
-                      </Field>
-                    );
-                  }}
+                  {(field) => (
+                    <field.AmountInput
+                      label="Amount"
+                      currency={transaction.bankAccount?.currency}
+                      locked={transaction.locks.amount}
+                    />
+                  )}
                 </form.AppField>
                 <form.AppField name="date">
                   {(field) => (

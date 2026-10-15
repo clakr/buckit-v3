@@ -13,15 +13,8 @@ import {
   DialogHeader,
   DialogTitle,
 } from "#/components/ui/dialog";
-import { Field, FieldError, FieldGroup, FieldLabel } from "#/components/ui/field";
-import {
-  InputGroup,
-  InputGroupAddon,
-  InputGroupInput,
-  InputGroupText,
-} from "#/components/ui/input-group";
+import { FieldGroup } from "#/components/ui/field";
 import { useAppForm } from "#/integrations/tanstack-form";
-import { getCurrency, isCurrencyCode } from "#/lib/utils";
 import { useLogTransactionMutation } from "#/modules/transactions/mutations";
 import { logTransactionSchema, transactionTypeEnum } from "#/modules/transactions/schemas";
 import { confirm } from "#/stores/use-confirm";
@@ -129,50 +122,7 @@ export function LogTransactionDialog() {
                 )}
               </form.AppField>
               <form.AppField name="amount">
-                {(field) => {
-                  const isInvalid = field.state.meta.isTouched && !field.state.meta.isValid;
-
-                  const id = field.name;
-                  const errorId = `${id}-error`;
-
-                  const accountCurrency = account.currency;
-
-                  const validated = isCurrencyCode(accountCurrency);
-                  if (!validated) return null;
-
-                  const currency = getCurrency(accountCurrency);
-                  if (!currency) return null;
-
-                  return (
-                    <Field data-invalid={isInvalid}>
-                      <FieldLabel htmlFor={id}>Amount</FieldLabel>
-
-                      <InputGroup>
-                        <InputGroupAddon>
-                          <InputGroupText>{currency.symbol}</InputGroupText>
-                        </InputGroupAddon>
-                        <InputGroupInput
-                          type="number"
-                          id={field.name}
-                          placeholder="0.00"
-                          min={0}
-                          step={0.01}
-                          required
-                          value={field.state.value as string}
-                          onChange={(e) => field.handleChange(e.target.value)}
-                          onBlur={field.handleBlur}
-                          aria-invalid={isInvalid ? true : undefined}
-                          aria-labelledby={isInvalid ? errorId : undefined}
-                        />
-                        <InputGroupAddon align="inline-end">
-                          <InputGroupText>{currency.code}</InputGroupText>
-                        </InputGroupAddon>
-                      </InputGroup>
-
-                      {isInvalid && <FieldError id={errorId} errors={field.state.meta.errors} />}
-                    </Field>
-                  );
-                }}
+                {(field) => <field.AmountInput label="Amount" currency={account.currency} />}
               </form.AppField>
               <form.AppField name="date">
                 {(field) => <field.Datepicker label="Date" />}
