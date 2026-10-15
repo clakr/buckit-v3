@@ -28,6 +28,7 @@ import {
   FieldLabel,
 } from "#/components/ui/field";
 import { useAppForm } from "#/integrations/tanstack-form";
+import { NotFoundError } from "#/lib/errors";
 import { bankAccountsQueryOption } from "#/modules/bank-accounts/query-options";
 import {
   DebtDeletionSummary,
@@ -68,8 +69,7 @@ export function DeleteDebtDialog() {
   const mutation = useDeleteDebtMutation();
 
   // Disabled while deleting: the global post-mutation invalidation would otherwise refetch the
-  // just-deleted record, fail its ownership check, and wait out every retry before the dialog closes.
-  // @todo: should distinguish if network error or data not found
+  // just-deleted record and flash "not found" before the dialog closes.
   const debtQuery = useQuery({
     ...debtQueryOption(debtId ?? ""),
     enabled: isOpen && !mutation.isPending,
@@ -171,7 +171,7 @@ export function DeleteDebtDialog() {
           <DialogDescription>
             {status === "success" && debt
               ? getDebtDeletionDescription({ debt, deleteTransactions })
-              : `Permanently delete the debt with "${debt?.name ?? ""}". This cannot be undone.`}
+              : "Permanently delete this debt and its repayments. This cannot be undone."}
           </DialogDescription>
         </DialogHeader>
         <div>
@@ -182,7 +182,19 @@ export function DeleteDebtDialog() {
               description="Fetching repayments, linked transactions, and accounts to review before deletion..."
             />
           ) : null}
-          {status === "error" ? (
+          {status === "error" && debtQuery.error instanceof NotFoundError ? (
+            <StateTemplate
+              state="error"
+              title="Debt not found"
+              description={debtQuery.error.message}
+              content={
+                <Button variant="secondary" onClick={closeDialog}>
+                  Close
+                </Button>
+              }
+            />
+          ) : null}
+          {status === "error" && !(debtQuery.error instanceof NotFoundError) ? (
             <StateTemplate
               state="error"
               title="Could not load debt"

@@ -10,7 +10,7 @@ import type { DB } from "#/db";
 import { getDB } from "#/db";
 import { debts, transactions } from "#/db/schema";
 import { currencyCodec } from "#/lib/codecs";
-import { InsufficientFundsError, NotFoundError } from "#/lib/errors";
+import { ConflictError, InsufficientFundsError, NotFoundError } from "#/lib/errors";
 import { authMiddleware } from "#/lib/middlewares";
 import { checkUnallocated } from "#/modules/bank-accounts/figures.server";
 import { verifyUserBankAccountMiddleware } from "#/modules/bank-accounts/middlewares";
@@ -204,7 +204,9 @@ export const getDebt = createServerFn({
       },
     });
 
-    return debt ?? null;
+    if (!debt) throw new NotFoundError("This debt doesn't exist or may have been deleted.");
+
+    return debt;
   });
 
 export const editDebt = createServerFn({
@@ -220,7 +222,7 @@ export const editDebt = createServerFn({
       columns: { direction: true },
     });
 
-    if (!debt) throw new Error("No debt is linked to this user");
+    if (!debt) throw new NotFoundError("This debt doesn't exist or may have been deleted.");
 
     if (debt.direction === "receivable" && data.amount !== undefined) {
       throw new Error("A receivable debt's amount can't be changed.");
@@ -326,11 +328,14 @@ export const forgiveDebt = createServerFn({
         },
       },
     });
-    if (!debt) throw new Error("No debt is linked to this user");
+    if (!debt) throw new NotFoundError("This debt doesn't exist or may have been deleted.");
 
+    // Reachable from a stale list (e.g. another tab forgave or settled it), so the toast says why.
     const status = getDebtStatus(debt);
-    if (status === "forgiven") throw new Error("This debt is already forgiven.");
-    if (status === "settled") throw new Error("A settled debt has nothing left to forgive.");
+    if (status === "forgiven") throw new ConflictError("This debt is already forgiven.");
+    if (status === "settled") {
+      throw new ConflictError("A settled debt has nothing left to forgive.");
+    }
 
     const [updated] = await db
       .update(debts)

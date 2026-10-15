@@ -6,16 +6,11 @@ import { Heading } from "#/components/heading";
 import { Main } from "#/components/main";
 import { StateTemplate } from "#/components/state-template";
 import { Button } from "#/components/ui/button";
+import { NotFoundError } from "#/lib/errors";
 import { DebtLedgerTable } from "#/modules/debts/components/debt-ledger-table";
 import { useEditDebtDialogStore } from "#/modules/debts/components/edit-debt-dialog";
 import { debtQueryOption } from "#/modules/debts/query-options";
 import { useLogRepaymentDialogStore } from "#/modules/repayments/components/log-repayment-dialog";
-
-class DebtNotFoundError extends Error {
-  constructor() {
-    super();
-  }
-}
 
 export const Route = createFileRoute("/_protected/debts/$debtId")({
   context: ({ params }) => ({
@@ -36,14 +31,14 @@ export const Route = createFileRoute("/_protected/debts/$debtId")({
     </Main>
   ),
   errorComponent: ({ error, reset }) => {
-    if (error instanceof DebtNotFoundError)
+    if (error instanceof NotFoundError)
       return (
         <Main>
           <Heading className="capitalize">Debt</Heading>
           <StateTemplate
             state="error"
             title="Debt not found"
-            description="This debt doesn't exist or may have been deleted."
+            description={error.message}
             content={
               <Button variant="secondary" render={<Link to=".." />}>
                 Go back to debts
@@ -72,19 +67,18 @@ function RouteComponent() {
   const { debtQueryOptions } = Route.useRouteContext();
 
   const { data: debt } = useSuspenseQuery(debtQueryOptions);
-  if (!debt) throw new DebtNotFoundError();
 
   function handleOpenLogRepaymentDialog() {
     const state = useLogRepaymentDialogStore.getState();
 
-    state.setDebt(debt!);
+    state.setDebt(debt);
     state.openDialog();
   }
 
   function handleOpenEditDebtDialog() {
     const state = useEditDebtDialogStore.getState();
 
-    state.setDebtId(debt!.id);
+    state.setDebtId(debt.id);
     state.openDialog();
   }
 

@@ -1,4 +1,3 @@
-import { IconFileDescription } from "@tabler/icons-react";
 import { useQuery } from "@tanstack/react-query";
 import z from "zod";
 import { create } from "zustand";
@@ -21,6 +20,7 @@ import {
 import { FieldGroup } from "#/components/ui/field";
 import { useAppForm } from "#/integrations/tanstack-form";
 import { currencyCodec } from "#/lib/codecs";
+import { NotFoundError } from "#/lib/errors";
 import { useEditDebtMutation } from "#/modules/debts/mutations";
 import { debtQueryOption } from "#/modules/debts/query-options";
 import { editDebtSchema } from "#/modules/debts/schemas";
@@ -54,6 +54,7 @@ export function EditDebtDialog() {
 
   const {
     status,
+    error,
     refetch,
     data: debt,
   } = useQuery({
@@ -137,7 +138,19 @@ export function EditDebtDialog() {
               description="Fetching debt details..."
             />
           ) : null}
-          {status === "error" ? (
+          {status === "error" && error instanceof NotFoundError ? (
+            <StateTemplate
+              state="error"
+              title="Debt not found"
+              description={error.message}
+              content={
+                <Button variant="secondary" onClick={closeDialog}>
+                  Close
+                </Button>
+              }
+            />
+          ) : null}
+          {status === "error" && !(error instanceof NotFoundError) ? (
             <StateTemplate
               state="error"
               title="Could not load debt"
@@ -145,7 +158,7 @@ export function EditDebtDialog() {
               content={<Button onClick={() => refetch()}>Retry</Button>}
             />
           ) : null}
-          {status === "success" && debt ? (
+          {status === "success" ? (
             <form
               id={form.formId}
               onSubmit={(e) => {
@@ -187,16 +200,8 @@ export function EditDebtDialog() {
               </FieldGroup>
             </form>
           ) : null}
-          {status === "success" && !debt ? (
-            <StateTemplate
-              state="empty"
-              title="Debt not found"
-              description="This debt doesn't exist or may have been deleted."
-              icon={<IconFileDescription />}
-            />
-          ) : null}
         </div>
-        {status === "success" && debt ? (
+        {status === "success" ? (
           <DialogFooter>
             <form.AppForm>
               <form.Button form={form.formId}>Edit Debt</form.Button>
