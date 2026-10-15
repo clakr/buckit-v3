@@ -34,6 +34,10 @@ An Allocation's amount is stored in minor units of the owning Bank Account's cur
 
 Unlike Transaction (embedded only in its Bank Account's detail page), an Allocation is embedded in **two** places: the Bucket detail page (a flat table) and the Bank Account detail page (an "Allocations" tab alongside "Transactions"). Both read through this module: `getAllocations({ bucketId?, bankAccountId? })` returns the user's Allocations, each with its Bank Account's `id`/`name`/`currency` and its Bucket's `id`/`name`, and `getAllocationColumns({ omit })` gives one column set minus the parent the page already shows. Scoping always goes through the user's own Bank Accounts, so someone else's Bucket or Bank Account reads as an empty list (the page's own query has already shown "not found"). There is no standalone, cross-account/cross-bucket Allocation list today. See Future Considerations.
 
+### Logging Starts From Either Parent
+
+The Log dialog opens from a Bank Account's menu or a Bucket's menu, and callers pass only that side's id (`{ from: "bank-account", bankAccountId }` or `{ from: "bucket", bucketId }`). That side stays fixed; the dialog shows a picker for the other. It loads the user's Bank Accounts (with figures) and Buckets itself, whichever side it opened from, so the account's Available always comes from the live list. While either list loads it shows a loading state; if one fails, "Could not load …" with Retry; if the fixed side was deleted meanwhile, "Bank account not found" or "Bucket not found" with Close.
+
 ### Reassignment Is Not Supported — By Design
 
 `editAllocationSchema` only accepts `amount`, `date`, and `note`. There is no way to move an existing Allocation to a different Bucket or fund it from a different Bank Account after creation — the only path is delete, then log a new one. This is a permanent boundary, not a gap: it mirrors Bucket's "edit is name-only" precedent, and re-parenting an Allocation is really "undo this earmark, make a new one," which delete + log already covers without a dedicated flow.
