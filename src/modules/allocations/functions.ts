@@ -1,5 +1,3 @@
-import type { z } from "zod";
-
 import { createServerFn } from "@tanstack/react-start";
 import { env } from "cloudflare:workers";
 import { eq } from "drizzle-orm";
@@ -10,7 +8,7 @@ import type { DB } from "#/db";
 import { getDB } from "#/db";
 import { allocations } from "#/db/schema";
 import { currencyCodec } from "#/lib/codecs";
-import { InsufficientFundsError } from "#/lib/errors";
+import { InsufficientFundsError, NotFoundError } from "#/lib/errors";
 import { authMiddleware } from "#/lib/middlewares";
 import { formatCurrency } from "#/lib/utils";
 import { verifyUserAllocationMiddleware } from "#/modules/allocations/middlewares";
@@ -20,7 +18,7 @@ import {
   validateEditAllocationAmountSchema,
   validateLogAllocationAmountSchema,
 } from "#/modules/allocations/schemas";
-import { checkUnallocated } from "#/modules/bank-accounts/figures.server";
+import { checkUnallocated, type BankAccountChange } from "#/modules/bank-accounts/figures.server";
 import { verifyUserBankAccountMiddleware } from "#/modules/bank-accounts/middlewares";
 import { verifyUserBucketMiddleware } from "#/modules/buckets/middlewares";
 
@@ -44,19 +42,22 @@ export const getAllocation = createServerFn({
       },
     });
 
-    return allocation ?? null;
+    // Gone between the ownership check and this read.
+    if (!allocation)
+      throw new NotFoundError("This allocation doesn't exist or may have been deleted.");
+
+    return allocation;
   });
 
-async function checkLogAllocationAmount(
-  db: DB,
-  userId: string,
-  data: Pick<z.output<typeof logAllocationSchema>, "bankAccountId" | "amount">,
-) {
-  const check = await checkUnallocated(db, userId, {
-    kind: "add-allocation",
-    bankAccountId: data.bankAccountId,
-    amount: currencyCodec.decode(data.amount),
-  });
+type AllocationAmountChange = Extract<
+  BankAccountChange,
+  { kind: "add-allocation" | "replace-allocation" }
+>;
+
+// "Available" is what the account can still set aside, counting an edited Allocation as returned,
+// so it's the most this Allocation can be.
+async function checkAllocationAmount(db: DB, userId: string, change: AllocationAmountChange) {
+  const check = await checkUnallocated(db, userId, change);
 
   if (!check.ok) {
     return {
@@ -82,7 +83,11 @@ export const validateLogAllocationAmount = createServerFn({
   .middleware([verifyUserBankAccountMiddleware])
   .validator(validateLogAllocationAmountSchema)
   .handler(async ({ context, data }) =>
-    checkLogAllocationAmount(getDB(env.db), context.user.id, data),
+    checkAllocationAmount(getDB(env.db), context.user.id, {
+      kind: "add-allocation",
+      bankAccountId: data.bankAccountId,
+      amount: currencyCodec.decode(data.amount),
+    }),
   );
 
 export const logAllocation = createServerFn({
@@ -93,7 +98,11 @@ export const logAllocation = createServerFn({
   .handler(async ({ context, data }) => {
     const db = getDB(env.db);
 
-    const { isValid, message } = await checkLogAllocationAmount(db, context.user.id, data);
+    const { isValid, message } = await checkAllocationAmount(db, context.user.id, {
+      kind: "add-allocation",
+      bankAccountId: data.bankAccountId,
+      amount: currencyCodec.decode(data.amount),
+    });
 
     if (!isValid) throw new InsufficientFundsError(message);
 
@@ -110,37 +119,17 @@ export const logAllocation = createServerFn({
       .returning();
   });
 
-async function checkEditAllocationAmount(
-  db: DB,
-  userId: string,
-  data: Pick<z.output<typeof editAllocationSchema>, "allocationId" | "amount">,
-) {
-  const check = await checkUnallocated(db, userId, {
-    kind: "replace-allocation",
-    allocationId: data.allocationId,
-    amount: currencyCodec.decode(data.amount),
-  });
-
-  if (!check.ok) {
-    return {
-      isValid: false,
-      message: "Insufficient allocation amount.",
-    };
-  }
-
-  return {
-    isValid: true,
-    message: "ok",
-  };
-}
-
 export const validateEditAllocationAmount = createServerFn({
   method: "GET",
 })
   .middleware([verifyUserAllocationMiddleware])
   .validator(validateEditAllocationAmountSchema)
   .handler(async ({ context, data }) =>
-    checkEditAllocationAmount(getDB(env.db), context.user.id, data),
+    checkAllocationAmount(getDB(env.db), context.user.id, {
+      kind: "replace-allocation",
+      allocationId: data.allocationId,
+      amount: currencyCodec.decode(data.amount),
+    }),
   );
 
 export const editAllocation = createServerFn({
@@ -151,7 +140,11 @@ export const editAllocation = createServerFn({
   .handler(async ({ context, data }) => {
     const db = getDB(env.db);
 
-    const { isValid, message } = await checkEditAllocationAmount(db, context.user.id, data);
+    const { isValid, message } = await checkAllocationAmount(db, context.user.id, {
+      kind: "replace-allocation",
+      allocationId: data.allocationId,
+      amount: currencyCodec.decode(data.amount),
+    });
 
     if (!isValid) throw new InsufficientFundsError(message);
 
