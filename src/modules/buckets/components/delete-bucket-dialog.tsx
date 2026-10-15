@@ -22,10 +22,9 @@ import { InputGroup, InputGroupAddon, InputGroupInput } from "#/components/ui/in
 import { Spinner } from "#/components/ui/spinner";
 import { useAppForm } from "#/integrations/tanstack-form";
 import { NotFoundError } from "#/lib/errors";
-import { bankAccountsQueryOption } from "#/modules/bank-accounts/query-options";
 
 import { useDeleteBucketMutation } from "../mutations";
-import { bucketQueryOption } from "../query-options";
+import { bucketDeletionImpactQueryOption } from "../query-options";
 import { verifyUserBucketMiddlewareSchema } from "../schemas";
 import { BucketDeletionSummary, getBucketDeletionDescription } from "./bucket-deletion-summary";
 
@@ -59,31 +58,18 @@ export function DeleteBucketDialog() {
 
   // Disabled while deleting: the global post-mutation invalidation would otherwise refetch the
   // just-deleted record and flash "Bucket not found" before the dialog closes.
-  const bucketQuery = useQuery({
-    ...bucketQueryOption(bucketId ?? ""),
+  const {
+    status,
+    error,
+    refetch,
+    data: impact,
+  } = useQuery({
+    ...bucketDeletionImpactQueryOption(bucketId ?? ""),
     enabled: isOpen && !mutation.isPending,
   });
-  // Every account, not just the bucket's: the summary needs each one's unallocated balance.
-  const bankAccountsQuery = useQuery({
-    ...bankAccountsQueryOption(),
-    enabled: isOpen,
-  });
-
   // Already gone, e.g. deleted in another tab: retrying can't bring it back.
-  const notFoundError = bucketQuery.error instanceof NotFoundError ? bucketQuery.error : null;
-  const bucket = bucketQuery.data;
-  const bankAccounts = bankAccountsQuery.data ?? [];
-  const statuses = [bucketQuery.status, bankAccountsQuery.status];
-  const status = statuses.includes("error")
-    ? "error"
-    : statuses.includes("pending")
-      ? "pending"
-      : "success";
-
-  function refetch() {
-    if (bucketQuery.isError) bucketQuery.refetch();
-    if (bankAccountsQuery.isError) bankAccountsQuery.refetch();
-  }
+  const notFoundError = error instanceof NotFoundError ? error : null;
+  const bucket = impact?.bucket;
 
   const deleteSchema = z.object({
     ...verifyUserBucketMiddlewareSchema.shape,
@@ -127,8 +113,8 @@ export function DeleteBucketDialog() {
         <DialogHeader>
           <DialogTitle>Delete Bucket?</DialogTitle>
           <DialogDescription>
-            {status === "success" && bucket
-              ? getBucketDeletionDescription({ bucket })
+            {status === "success"
+              ? getBucketDeletionDescription({ impact })
               : "Permanently delete this bucket and its allocations. This cannot be undone."}
           </DialogDescription>
         </DialogHeader>
@@ -160,9 +146,9 @@ export function DeleteBucketDialog() {
               content={<Button onClick={() => refetch()}>Retry</Button>}
             />
           ) : null}
-          {status === "success" && bucket ? (
+          {status === "success" ? (
             <div className="flex flex-col gap-y-4">
-              <BucketDeletionSummary bucket={bucket} bankAccounts={bankAccounts} />
+              <BucketDeletionSummary impact={impact} />
               <form
                 id={form.formId}
                 onSubmit={(e) => {
@@ -181,7 +167,9 @@ export function DeleteBucketDialog() {
 
                       return (
                         <Field data-invalid={isInvalid}>
-                          <FieldLabel htmlFor={id}>Type "{bucket.name}" to confirm</FieldLabel>
+                          <FieldLabel htmlFor={id}>
+                            Type "{impact.bucket.name}" to confirm
+                          </FieldLabel>
 
                           <InputGroup>
                             <InputGroupInput

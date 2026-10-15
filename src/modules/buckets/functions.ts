@@ -11,6 +11,7 @@ import { getDB } from "#/db";
 import { buckets, lower } from "#/db/schema";
 import { ConflictError, NotFoundError } from "#/lib/errors";
 import { authMiddleware } from "#/lib/middlewares";
+import { loadBucketDeletionImpact } from "#/modules/buckets/deletion.server";
 import { getBucketsWithFigures } from "#/modules/buckets/figures.server";
 import { verifyUserBucketMiddleware } from "#/modules/buckets/middlewares";
 import {
@@ -42,10 +43,10 @@ export const getBucket = createServerFn({
   method: "GET",
 })
   .middleware([verifyUserBucketMiddleware])
-  .handler(async ({ context, data }) => {
+  .handler(async ({ data }) => {
     const db = getDB(env.db);
 
-    const bucketQuery = db.query.buckets.findFirst({
+    const bucket = await db.query.buckets.findFirst({
       where: {
         id: data.bucketId,
       },
@@ -63,20 +64,10 @@ export const getBucket = createServerFn({
       },
     });
 
-    const [bucket, [figures]] = await Promise.all([
-      bucketQuery,
-      getBucketsWithFigures(db, { userId: context.user.id, bucketId: data.bucketId }),
-    ]);
-
     // Deleted between the middleware's ownership check and this read.
-    if (!bucket || !figures)
-      throw new NotFoundError("This bucket doesn't exist or may have been deleted.");
+    if (!bucket) throw new NotFoundError("This bucket doesn't exist or may have been deleted.");
 
-    return {
-      ...bucket,
-      subtotals: figures.subtotals,
-      allocatedByBankAccount: figures.allocatedByBankAccount,
-    };
+    return bucket;
   });
 
 const NAME_TAKEN_MESSAGE = "A bucket with this name already exists.";
@@ -181,6 +172,14 @@ export const editBucket = createServerFn({
       throw error;
     }
   });
+
+export const getBucketDeletionImpact = createServerFn({
+  method: "GET",
+})
+  .middleware([verifyUserBucketMiddleware])
+  .handler(async ({ context, data }) =>
+    loadBucketDeletionImpact(getDB(env.db), context.user.id, data.bucketId),
+  );
 
 export const deleteBucket = createServerFn({
   method: "POST",

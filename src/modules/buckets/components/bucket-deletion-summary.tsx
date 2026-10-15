@@ -1,20 +1,18 @@
 import { IconBuildingBank } from "@tabler/icons-react";
 
-import type { getBankAccounts } from "#/modules/bank-accounts/functions";
-import type { getBucket } from "#/modules/buckets/functions";
+import type { getBucketDeletionImpact } from "#/modules/buckets/functions";
 
 import { currencyCodec } from "#/lib/codecs";
 import { formatCurrency } from "#/lib/utils";
 
 type Props = {
-  bucket: Awaited<ReturnType<typeof getBucket>>;
-  bankAccounts: Awaited<ReturnType<typeof getBankAccounts>>;
+  impact: Awaited<ReturnType<typeof getBucketDeletionImpact>>;
 };
 
 // The dialog's description: what goes with the bucket, so the summary below only has to
 // cover what survives but changes.
-export function getBucketDeletionDescription({ bucket }: Pick<Props, "bucket">) {
-  const allocationCount = bucket.allocations.length;
+export function getBucketDeletionDescription({ impact }: Props) {
+  const { bucket, allocationCount } = impact;
 
   return `Permanently delete "${bucket.name}"${allocationCount ? ` with its ${allocationCount} ${allocationCount === 1 ? "allocation" : "allocations"}` : ""}. This cannot be undone.`;
 }
@@ -22,28 +20,10 @@ export function getBucketDeletionDescription({ bucket }: Pick<Props, "bucket">) 
 // Same shape as `BankAccountDeletionSummary`: what survives but changes. Here that's only
 // each account's unallocated balance — the money stays in the account, it just stops
 // being earmarked.
-export function BucketDeletionSummary({ bucket, bankAccounts }: Props) {
-  const releasedByBankAccountId = new Map(
-    bucket.allocatedByBankAccount.map((allocated) => [allocated.bankAccountId, allocated.amount]),
-  );
-
-  const affectedBankAccounts = bankAccounts
-    .filter((account) => releasedByBankAccountId.has(account.id))
-    .map((account) => {
-      const { unallocated } = account;
-
-      return {
-        id: account.id,
-        name: account.name,
-        currency: account.currency,
-        unallocatedBefore: unallocated,
-        unallocatedAfter: unallocated + (releasedByBankAccountId.get(account.id) ?? 0),
-      };
-    });
-
+export function BucketDeletionSummary({ impact }: Props) {
   return (
     <div className="flex flex-col gap-y-3">
-      {affectedBankAccounts.length ? (
+      {impact.bankAccounts.length ? (
         <>
           <table className="w-full tabular-nums">
             <thead className="text-[0.65rem] tracking-wide text-muted-foreground uppercase">
@@ -54,7 +34,7 @@ export function BucketDeletionSummary({ bucket, bankAccounts }: Props) {
               </tr>
             </thead>
             <tbody className="divide-y">
-              {affectedBankAccounts.map((account) => {
+              {impact.bankAccounts.map((account) => {
                 function formatAccountAmount(value: number) {
                   return formatCurrency(currencyCodec.encode(value), {
                     currency: account.currency,
