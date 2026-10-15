@@ -22,7 +22,7 @@ import { InputGroup, InputGroupAddon, InputGroupInput } from "#/components/ui/in
 import { Spinner } from "#/components/ui/spinner";
 import { useAppForm } from "#/integrations/tanstack-form";
 import { AppError, NotFoundError } from "#/lib/errors";
-import { validateEditBankAccountName } from "#/modules/bank-accounts/functions";
+import { validateBankAccountName } from "#/modules/bank-accounts/functions";
 import { useEditBankAccountMutation } from "#/modules/bank-accounts/mutations";
 import { bankAccountQueryOption } from "#/modules/bank-accounts/query-options";
 import { editBankAccountSchema } from "#/modules/bank-accounts/schemas";
@@ -161,7 +161,7 @@ export function EditBankAccountDialog() {
                         if (!data) return;
 
                         try {
-                          const { isValid, message } = await validateEditBankAccountName({
+                          const { isValid, message } = await validateBankAccountName({
                             data: {
                               bankAccountId: bankAccount.id,
                               name: data,

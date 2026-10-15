@@ -1,8 +1,11 @@
+import type { z } from "zod";
+
 import { createServerFn } from "@tanstack/react-start";
 import { env } from "cloudflare:workers";
 import { and, eq, ne } from "drizzle-orm";
 import { uuidv7 } from "uuidv7";
-import { z } from "zod";
+
+import type { DB } from "#/db";
 
 import { getDB } from "#/db";
 import { bankAccounts, lower } from "#/db/schema";
@@ -19,6 +22,7 @@ import {
   editBankAccountSchema,
   getBankAccountsSchema,
   registerBankAccountSchema,
+  validateBankAccountNameSchema,
 } from "#/modules/bank-accounts/schemas";
 
 export const getBankAccounts = createServerFn({
@@ -91,37 +95,53 @@ export const getBankAccount = createServerFn({
     };
   });
 
+const NAME_TAKEN_MESSAGE = "An account with this name already exists.";
+
+// Unique per user, case-insensitive, trimmed (the schemas trim). Renaming an account leaves its
+// own current name out of the comparison.
+async function checkBankAccountName(
+  db: DB,
+  userId: string,
+  { name, bankAccountId }: z.output<typeof validateBankAccountNameSchema>,
+) {
+  const [taken] = await db
+    .select({ id: bankAccounts.id })
+    .from(bankAccounts)
+    .where(
+      and(
+        eq(bankAccounts.userId, userId),
+        eq(lower(bankAccounts.name), name.toLowerCase()),
+        bankAccountId ? ne(bankAccounts.id, bankAccountId) : undefined,
+      ),
+    )
+    .limit(1);
+
+  if (taken) return { isValid: false, message: NAME_TAKEN_MESSAGE };
+
+  return { isValid: true, message: "ok" };
+}
+
+// Two requests can both pass the check before either writes; the database's unique index then
+// rejects the second, which reads the same as a failed check.
+function isBankAccountNameTakenError(error: unknown) {
+  for (let cause = error; cause instanceof Error; cause = cause.cause) {
+    if (
+      cause.message.includes("UNIQUE constraint failed") &&
+      (cause.message.includes("bank_accounts_user_id_lower_name_unique") ||
+        cause.message.includes("bank_accounts.name"))
+    )
+      return true;
+  }
+
+  return false;
+}
+
 export const validateBankAccountName = createServerFn({
   method: "GET",
 })
   .middleware([authMiddleware])
-  .validator(z.string().trim())
-  .handler(async ({ context, data }) => {
-    const db = getDB(env.db);
-
-    const result = await db
-      .select({
-        id: bankAccounts.id,
-        name: bankAccounts.name,
-      })
-      .from(bankAccounts)
-      .where(
-        and(
-          eq(bankAccounts.userId, context.session.userId),
-          eq(lower(bankAccounts.name), data.toLowerCase()),
-        ),
-      )
-      .limit(1);
-
-    if (result.length > 0) {
-      return {
-        isValid: false,
-        message: "An account with this name already exists.",
-      };
-    }
-
-    return { isValid: true, message: "ok" };
-  });
+  .validator(validateBankAccountNameSchema)
+  .handler(async ({ context, data }) => checkBankAccountName(getDB(env.db), context.user.id, data));
 
 export const registerBankAccount = createServerFn({
   method: "POST",
@@ -131,55 +151,28 @@ export const registerBankAccount = createServerFn({
   .handler(async ({ context, data }) => {
     const db = getDB(env.db);
 
-    const { isValid, message } = await validateBankAccountName({
-      data: data.name,
+    const { isValid, message } = await checkBankAccountName(db, context.user.id, {
+      name: data.name,
     });
 
     if (!isValid) throw new ConflictError(message);
 
-    return db
-      .insert(bankAccounts)
-      .values({
-        id: uuidv7(),
-        userId: context.session.userId,
-        name: data.name,
-        currency: data.currency,
-        startingBalance: currencyCodec.decode(data.startingBalance),
-      })
-      .returning();
-  });
+    try {
+      return await db
+        .insert(bankAccounts)
+        .values({
+          id: uuidv7(),
+          userId: context.user.id,
+          name: data.name,
+          currency: data.currency,
+          startingBalance: currencyCodec.decode(data.startingBalance),
+        })
+        .returning();
+    } catch (error) {
+      if (isBankAccountNameTakenError(error)) throw new ConflictError(NAME_TAKEN_MESSAGE);
 
-export const validateEditBankAccountName = createServerFn({
-  method: "GET",
-})
-  .middleware([verifyUserBankAccountMiddleware])
-  .validator(editBankAccountSchema)
-  .handler(async ({ context, data }) => {
-    const db = getDB(env.db);
-
-    const result = await db
-      .select({
-        id: bankAccounts.id,
-        name: bankAccounts.name,
-      })
-      .from(bankAccounts)
-      .where(
-        and(
-          eq(bankAccounts.userId, context.session.userId),
-          eq(lower(bankAccounts.name), data.name.toLowerCase()),
-          ne(bankAccounts.id, data.bankAccountId),
-        ),
-      )
-      .limit(1);
-
-    if (result.length > 0) {
-      return {
-        isValid: false,
-        message: "An account with this name already exists.",
-      };
+      throw error;
     }
-
-    return { isValid: true, message: "ok" };
   });
 
 export const editBankAccount = createServerFn({
@@ -187,22 +180,26 @@ export const editBankAccount = createServerFn({
 })
   .middleware([verifyUserBankAccountMiddleware])
   .validator(editBankAccountSchema)
-  .handler(async ({ data }) => {
+  .handler(async ({ context, data }) => {
     const db = getDB(env.db);
 
-    const { isValid, message } = await validateEditBankAccountName({
-      data,
-    });
+    const { isValid, message } = await checkBankAccountName(db, context.user.id, data);
 
     if (!isValid) throw new ConflictError(message);
 
-    return db
-      .update(bankAccounts)
-      .set({
-        name: data.name,
-      })
-      .where(eq(bankAccounts.id, data.bankAccountId))
-      .returning();
+    try {
+      return await db
+        .update(bankAccounts)
+        .set({
+          name: data.name,
+        })
+        .where(eq(bankAccounts.id, data.bankAccountId))
+        .returning();
+    } catch (error) {
+      if (isBankAccountNameTakenError(error)) throw new ConflictError(NAME_TAKEN_MESSAGE);
+
+      throw error;
+    }
   });
 
 export const getBankAccountDeletionImpact = createServerFn({

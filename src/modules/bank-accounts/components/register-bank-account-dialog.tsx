@@ -122,7 +122,7 @@ export function RegisterBankAccountDialog() {
 
                       try {
                         const { isValid, message } = await validateBankAccountName({
-                          data,
+                          data: { name: data },
                         });
 
                         if (!isValid) context.addIssue({ code: "custom", message });

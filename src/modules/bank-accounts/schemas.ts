@@ -25,6 +25,12 @@ export const editBankAccountSchema = z.strictObject({
     .max(100, "Name must be 100 characters or fewer"),
 });
 
+// `bankAccountId` is the account being renamed, left out of the comparison with its own name.
+export const validateBankAccountNameSchema = z.object({
+  name: registerBankAccountSchema.shape.name,
+  bankAccountId: z.string().optional(),
+});
+
 export const getBankAccountsSchema = z
   .object({ currency: z.enum(CURRENCIES_CODES).optional() })
   .optional();
