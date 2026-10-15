@@ -1,4 +1,4 @@
-import type { ReactNode } from "react";
+import type { ComponentProps, ReactNode } from "react";
 
 import { IconLock } from "@tabler/icons-react";
 
@@ -17,16 +17,22 @@ type Props = {
   label: string;
   /** The currency code the amount is in; unknown or not yet chosen shows a placeholder. */
   currency: string | null | undefined;
-  /** Not usable yet, e.g. until an account is picked. */
-  disabled?: boolean;
   /** Fixed for good: disabled, with a lock in place of the currency symbol. Say why in `description`. */
   locked?: boolean;
   description?: ReactNode;
-};
+} & Omit<ComponentProps<typeof InputGroupInput>, "type" | "id" | "value" | "onChange" | "onBlur">;
 
 // A money amount in one currency: symbol, number input, code. Shows a spinner in place of the code
-// while an async validator runs.
-export default function AmountInput({ label, currency, disabled, locked, description }: Props) {
+// while an async validator runs. Any input prop passes through; the defaults below suit today's
+// amount schemas (`.min(0.01)`, whole cents), so pass `min`/`step` for a schema that differs.
+export default function AmountInput({
+  label,
+  currency,
+  locked,
+  description,
+  disabled,
+  ...rest
+}: Props) {
   const field = useFieldContext<string | number>();
 
   const isInvalid = field.state.meta.isTouched && !field.state.meta.isValid;
@@ -46,13 +52,13 @@ export default function AmountInput({ label, currency, disabled, locked, descrip
           {locked ? <IconLock /> : <InputGroupText>{known?.symbol ?? "—"}</InputGroupText>}
         </InputGroupAddon>
         <InputGroupInput
-          type="number"
-          id={id}
           placeholder="0.00"
-          // Same floor as every amount schema (`.min(0.01)`), so the browser and the form agree.
           min={0.01}
           step={0.01}
           required
+          {...rest}
+          type="number"
+          id={id}
           disabled={locked || disabled}
           value={field.state.value}
           onChange={(e) => field.handleChange(e.target.value)}
