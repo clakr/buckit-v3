@@ -10,10 +10,10 @@ import type { DB } from "#/db";
 import { getDB } from "#/db";
 import { debts, repayments, transactions } from "#/db/schema";
 import { currencyCodec } from "#/lib/codecs";
-import { InsufficientFundsError, NotFoundError } from "#/lib/errors";
+import { ConflictError, InsufficientFundsError, NotFoundError } from "#/lib/errors";
 import { checkUnallocated } from "#/modules/bank-accounts/figures.server";
 import { findOwnedBankAccount } from "#/modules/bank-accounts/ownership.server";
-import { editTransaction, validateEditTransaction } from "#/modules/transactions/functions";
+import { checkTransactionEdit, updateTransaction } from "#/modules/transactions/linked.server";
 
 import { verifyUserDebtMiddleware } from "../debts/middlewares";
 import { editRepaymentSchema, logRepaymentSchema } from "./schemas";
@@ -201,7 +201,7 @@ export const validateEditRepayment = createServerFn({
 })
   .middleware([verifyUserDebtMiddleware])
   .validator(editRepaymentSchema)
-  .handler(async ({ data }) => {
+  .handler(async ({ context, data }) => {
     const db = getDB(env.db);
 
     // Scoped by `debtId` too — the middleware only proves the Debt is the user's.
@@ -219,15 +219,15 @@ export const validateEditRepayment = createServerFn({
       return { isValid: true, message: "ok" };
     }
 
-    return validateEditTransaction({
-      data: {
-        transactionId: repayment.transaction.id,
-        type: repayment.transaction.type,
-        amount: data.amount,
-        date: data.date,
-        note: data.note,
-      },
+    const check = await checkTransactionEdit(db, context.user.id, {
+      transactionId: repayment.transaction.id,
+      type: repayment.transaction.type,
+      amount: currencyCodec.decode(data.amount),
+      date: data.date,
+      note: data.note,
     });
+
+    return check.ok ? { isValid: true, message: "ok" } : { isValid: false, message: check.message };
   });
 
 export const editRepayment = createServerFn({
@@ -235,7 +235,7 @@ export const editRepayment = createServerFn({
 })
   .middleware([verifyUserDebtMiddleware])
   .validator(editRepaymentSchema)
-  .handler(async ({ data }) => {
+  .handler(async ({ context, data }) => {
     const db = getDB(env.db);
 
     const repayment = await db.query.repayments.findFirst({
@@ -267,17 +267,24 @@ export const editRepayment = createServerFn({
       return updated;
     }
 
-    // The Transaction is the source of truth, so the edit lands there — through the
-    // Transaction module's own edit path, which re-checks the Balance.
-    await editTransaction({
-      data: {
-        transactionId: repayment.transaction.id,
-        type: repayment.transaction.type,
-        amount: data.amount,
-        date: data.date,
-        note: data.note,
-      },
-    });
+    // The Transaction is the source of truth, so the edit lands there, under the same Linked
+    // Transaction rules and Unallocated check as an edit from the account page.
+    const edit = {
+      transactionId: repayment.transaction.id,
+      type: repayment.transaction.type,
+      amount: currencyCodec.decode(data.amount),
+      date: data.date,
+      note: data.note,
+    };
+    const check = await checkTransactionEdit(db, context.user.id, edit);
+
+    if (!check.ok) {
+      throw check.reason === "linked"
+        ? new ConflictError(check.message)
+        : new InsufficientFundsError(check.message);
+    }
+
+    await updateTransaction(db, edit);
 
     return repayment;
   });
