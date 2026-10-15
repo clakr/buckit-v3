@@ -1,4 +1,3 @@
-import { IconAlertCircle, IconFileDescription } from "@tabler/icons-react";
 import { useQuery } from "@tanstack/react-query";
 import z from "zod";
 import { create } from "zustand";
@@ -8,7 +7,6 @@ import type { Allocation } from "#/db/schema";
 import type { DialogState } from "#/lib/types";
 
 import { StateTemplate } from "#/components/state-template";
-import { Alert, AlertDescription, AlertTitle } from "#/components/ui/alert";
 import { Button } from "#/components/ui/button";
 import {
   Dialog,
@@ -21,6 +19,7 @@ import {
 import { FieldGroup } from "#/components/ui/field";
 import { useAppForm } from "#/integrations/tanstack-form";
 import { currencyCodec } from "#/lib/codecs";
+import { AppError, NotFoundError } from "#/lib/errors";
 import { validateEditAllocationAmount } from "#/modules/allocations/functions";
 import { useEditAllocationMutation } from "#/modules/allocations/mutations";
 import { allocationQueryOption } from "#/modules/allocations/query-options";
@@ -55,6 +54,7 @@ export function EditAllocationDialog() {
 
   const {
     status,
+    error,
     refetch,
     data: allocation,
   } = useQuery({
@@ -124,7 +124,19 @@ export function EditAllocationDialog() {
               description="Fetching allocation details..."
             />
           ) : null}
-          {status === "error" ? (
+          {status === "error" && error instanceof NotFoundError ? (
+            <StateTemplate
+              state="error"
+              title="Allocation not found"
+              description={error.message}
+              content={
+                <Button variant="secondary" onClick={closeDialog}>
+                  Close
+                </Button>
+              }
+            />
+          ) : null}
+          {status === "error" && !(error instanceof NotFoundError) ? (
             <StateTemplate
               state="error"
               title="Could not load allocation"
@@ -132,7 +144,7 @@ export function EditAllocationDialog() {
               content={<Button onClick={() => refetch()}>Retry</Button>}
             />
           ) : null}
-          {status === "success" && allocation ? (
+          {status === "success" ? (
             <form
               id={form.formId}
               onSubmit={(e) => {
@@ -150,18 +162,19 @@ export function EditAllocationDialog() {
                       async (data, context) => {
                         try {
                           const { isValid, message } = await validateEditAllocationAmount({
-                            data: {
-                              allocationId: allocation.id,
-                              bankAccountId: allocation.bankAccountId,
-                              amount: data,
-                            },
+                            data: { allocationId: allocation.id, amount: data },
                           });
 
-                          if (!isValid) throw new Error(message);
+                          if (!isValid) context.addIssue({ code: "custom", message });
                         } catch (error) {
+                          console.error(error);
+
                           context.addIssue({
                             code: "custom",
-                            message: error instanceof Error ? error.message : String(error),
+                            message:
+                              error instanceof AppError
+                                ? error.message
+                                : "Couldn't check this amount. Please try again.",
                           });
                         }
                       },
@@ -187,31 +200,11 @@ export function EditAllocationDialog() {
                     <field.Textarea label="Note (optional)" placeholder="Add a note..." />
                   )}
                 </form.AppField>
-                <form.Subscribe selector={(state) => state.errorMap.onSubmit}>
-                  {(error) =>
-                    error ? (
-                      <Alert variant="destructive" className="max-w-md">
-                        <IconAlertCircle />
-                        <AlertTitle>Edit Allocation failed</AlertTitle>
-                        <AlertDescription>{error}</AlertDescription>
-                      </Alert>
-                    ) : null
-                  }
-                </form.Subscribe>
               </FieldGroup>
             </form>
           ) : null}
-          {/* @todo: handle empty data better */}
-          {status === "success" && !allocation ? (
-            <StateTemplate
-              state="empty"
-              title="Allocation not found"
-              description="This allocation doesn't exist or may have been deleted."
-              icon={<IconFileDescription />}
-            />
-          ) : null}
         </div>
-        {status === "success" && allocation ? (
+        {status === "success" ? (
           <DialogFooter>
             <form.AppForm>
               <form.Button form={form.formId}>Edit Allocation</form.Button>
