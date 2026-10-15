@@ -33,7 +33,7 @@ export function BankAccountActionsDropdownMenu({ account }: Props) {
   function handleOpenLogAllocationDialog() {
     const state = useLogAllocationDialogStore.getState();
 
-    state.setData({ source: "bank-account", account });
+    state.setStart({ from: "bank-account", bankAccountId: account.id });
     state.openDialog();
   }
 

@@ -4,9 +4,8 @@ import z from "zod";
 import { create } from "zustand";
 import { useShallow } from "zustand/react/shallow";
 
-import type { Bucket } from "#/db/schema";
+import type { BankAccount, Bucket } from "#/db/schema";
 import type { DialogState } from "#/lib/types";
-import type { getBankAccounts } from "#/modules/bank-accounts/functions";
 
 import { StateTemplate } from "#/components/state-template";
 import { Button } from "#/components/ui/button";
@@ -38,13 +37,14 @@ import { bankAccountsQueryOption } from "#/modules/bank-accounts/query-options";
 import { bucketsQueryOptions } from "#/modules/buckets/query-options";
 import { confirm } from "#/stores/use-confirm";
 
-export type Data =
-  | { source: "bank-account"; account: Awaited<ReturnType<typeof getBankAccounts>>[number] }
-  | { source: "bucket"; bucket: Bucket };
+/** The side the dialog was opened from, which stays fixed; the other side is picked. */
+export type LogAllocationStart =
+  | { from: "bank-account"; bankAccountId: BankAccount["id"] }
+  | { from: "bucket"; bucketId: Bucket["id"] };
 
 type StoreState = DialogState & {
-  data: Data | null;
-  setData: (data: Data) => void;
+  start: LogAllocationStart | null;
+  setStart: (start: LogAllocationStart) => void;
 };
 
 export const useLogAllocationDialogStore = create<StoreState>()((set) => ({
@@ -53,26 +53,26 @@ export const useLogAllocationDialogStore = create<StoreState>()((set) => ({
   closeDialog: () => set({ isOpen: false }),
   toggleDialog: () => set((state) => ({ isOpen: !state.isOpen })),
 
-  data: null,
-  setData: (data) => set({ data }),
+  start: null,
+  setStart: (start) => set({ start }),
 }));
 
 export function LogAllocationDialog() {
-  const { isOpen, closeDialog, toggleDialog, data } = useLogAllocationDialogStore(
+  const { isOpen, closeDialog, toggleDialog, start } = useLogAllocationDialogStore(
     useShallow((state) => ({
       isOpen: state.isOpen,
       closeDialog: state.closeDialog,
       toggleDialog: state.toggleDialog,
 
-      data: state.data,
+      start: state.start,
     })),
   );
 
   const mutation = useLogAllocationMutation();
 
   const defaultValues: z.input<typeof logAllocationSchema> = {
-    bankAccountId: data?.source === "bank-account" ? data.account.id : "",
-    bucketId: data?.source === "bucket" ? data.bucket.id : "",
+    bankAccountId: start?.from === "bank-account" ? start.bankAccountId : "",
+    bucketId: start?.from === "bucket" ? start.bucketId : "",
     amount: 0,
     date: new Date(),
     note: "",
@@ -84,12 +84,7 @@ export function LogAllocationDialog() {
     data: buckets,
   } = useQuery({
     ...bucketsQueryOptions,
-    enabled: isOpen && data?.source === "bank-account",
-    select: (buckets) =>
-      buckets.map((b) => ({
-        value: b.id,
-        label: b.name,
-      })),
+    enabled: isOpen && start !== null,
   });
 
   const {
@@ -98,7 +93,7 @@ export function LogAllocationDialog() {
     data: bankAccounts,
   } = useQuery({
     ...bankAccountsQueryOption(),
-    enabled: isOpen && data?.source === "bucket",
+    enabled: isOpen && start !== null,
   });
 
   const form = useAppForm({
@@ -140,15 +135,19 @@ export function LogAllocationDialog() {
     toggleDialog();
   }
 
-  if (!data) return null;
+  if (!start) return null;
 
-  // Validators run before the next render, so they look the account up by the form's current value
-  // rather than reading `selectedBankAccount`.
+  // Both sides come from the live lists, whichever side the dialog was opened from, so the
+  // account's Available is never a copy taken when it opened. Validators run before the next
+  // render, so they look the account up by the form's current value.
   function findBankAccount(id: string) {
-    if (data?.source === "bank-account") return data.account;
-
     return bankAccounts?.find((a) => a.id === id);
   }
+
+  const fixedName =
+    start.from === "bank-account"
+      ? findBankAccount(start.bankAccountId)?.name
+      : buckets?.find((b) => b.id === start.bucketId)?.name;
 
   const selectedBankAccount = findBankAccount(bankAccountId);
 
@@ -159,33 +158,69 @@ export function LogAllocationDialog() {
 
   const isAmountDisabled = !bankAccountId || !bucketId;
 
-  // The form can't be filled in without the list it picks from.
-  const optionsError =
-    data.source === "bank-account"
-      ? bucketsStatus === "error" && { noun: "buckets", retry: refetchBuckets }
-      : bankAccountsStatus === "error" && { noun: "bank accounts", retry: refetchBankAccounts };
+  const isPending = bankAccountsStatus === "pending" || bucketsStatus === "pending";
+
+  // The form can't be filled in without the lists it picks from.
+  const loadError =
+    bankAccountsStatus === "error"
+      ? { noun: "bank accounts", retry: refetchBankAccounts }
+      : bucketsStatus === "error"
+        ? { noun: "buckets", retry: refetchBuckets }
+        : null;
+
+  const isLoaded = bankAccountsStatus === "success" && bucketsStatus === "success";
+
+  // Deleted since the menu that opened the dialog was drawn.
+  const isFixedSideGone = isLoaded && fixedName === undefined;
+
+  const isReady = isLoaded && !isFixedSideGone;
 
   return (
     <Dialog open={isOpen} onOpenChange={handleOnOpenChange}>
       <DialogContent>
         <DialogHeader>
           <DialogTitle>Allocate Money</DialogTitle>
-          <DialogDescription>
-            {data.source === "bank-account"
-              ? `Move money from ${data.account.name} into a bucket.`
-              : `Move money into ${data.bucket.name} from a bank account.`}
-          </DialogDescription>
+          {isReady ? (
+            <DialogDescription>
+              {start.from === "bank-account"
+                ? `Move money from ${fixedName} into a bucket.`
+                : `Move money into ${fixedName} from a bank account.`}
+            </DialogDescription>
+          ) : null}
         </DialogHeader>
         <div>
-          {optionsError ? (
+          {isPending && !loadError ? (
             <StateTemplate
-              state="error"
-              title={`Could not load ${optionsError.noun}`}
-              description={`We weren't able to retrieve your ${optionsError.noun}. Please check your connection and try again.`}
-              content={<Button onClick={() => optionsError.retry()}>Retry</Button>}
+              state="loading"
+              title="Loading"
+              description="Fetching your bank accounts and buckets..."
             />
           ) : null}
-          {optionsError ? null : (
+          {loadError ? (
+            <StateTemplate
+              state="error"
+              title={`Could not load ${loadError.noun}`}
+              description={`We weren't able to retrieve your ${loadError.noun}. Please check your connection and try again.`}
+              content={<Button onClick={() => loadError.retry()}>Retry</Button>}
+            />
+          ) : null}
+          {isFixedSideGone ? (
+            <StateTemplate
+              state="error"
+              title={start.from === "bank-account" ? "Bank account not found" : "Bucket not found"}
+              description={
+                start.from === "bank-account"
+                  ? "This account doesn't exist or may have been deleted."
+                  : "This bucket doesn't exist or may have been deleted."
+              }
+              content={
+                <Button variant="secondary" onClick={closeDialog}>
+                  Close
+                </Button>
+              }
+            />
+          ) : null}
+          {isReady ? (
             <form
               id={form.formId}
               onSubmit={(e) => {
@@ -197,7 +232,7 @@ export function LogAllocationDialog() {
               <FieldGroup>
                 {/* Reads as a sentence. From a bucket: "From BPI, set aside ₱500" (the amount needs
                   the account's currency). From an account: "Set aside ₱500 into Emergency". */}
-                {data.source === "bucket" ? (
+                {start.from === "bucket" ? (
                   <form.AppField name="bankAccountId">
                     {(field) => {
                       const isInvalid = field.state.meta.isTouched && !field.state.meta.isValid;
@@ -205,10 +240,7 @@ export function LogAllocationDialog() {
                       const id = field.name;
                       const errorId = `${id}-error`;
 
-                      const disabled =
-                        bankAccountsStatus !== "success" ||
-                        !bankAccounts ||
-                        bankAccounts.length === 0;
+                      const disabled = !bankAccounts?.length;
 
                       const items = bankAccounts?.map((a) => ({ value: a.id, label: a.name }));
 
@@ -306,17 +338,21 @@ export function LogAllocationDialog() {
                     />
                   )}
                 </form.AppField>
-                {data.source === "bank-account" ? (
+                {start.from === "bank-account" ? (
                   <form.AppField name="bucketId">
-                    {(field) => (
-                      <field.Select
-                        label="Bucket"
-                        items={buckets}
-                        disabled={bucketsStatus !== "success" || !buckets || buckets.length === 0}
-                        placeholder="Select bucket"
-                        options={buckets ?? []}
-                      />
-                    )}
+                    {(field) => {
+                      const options = buckets?.map((b) => ({ value: b.id, label: b.name })) ?? [];
+
+                      return (
+                        <field.Select
+                          label="Bucket"
+                          items={options}
+                          disabled={!options.length}
+                          placeholder="Select bucket"
+                          options={options}
+                        />
+                      );
+                    }}
                   </form.AppField>
                 ) : null}
                 <form.AppField name="date">
@@ -329,15 +365,15 @@ export function LogAllocationDialog() {
                 </form.AppField>
               </FieldGroup>
             </form>
-          )}
+          ) : null}
         </div>
-        {optionsError ? null : (
+        {isReady ? (
           <DialogFooter>
             <form.AppForm>
               <form.Button form={form.formId}>Allocate Money</form.Button>
             </form.AppForm>
           </DialogFooter>
-        )}
+        ) : null}
       </DialogContent>
     </Dialog>
   );

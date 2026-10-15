@@ -27,7 +27,7 @@ export function BucketActionsDropdownMenu({ bucket }: Props) {
   function handleOpenLogAllocationDialog() {
     const state = useLogAllocationDialogStore.getState();
 
-    state.setData({ source: "bucket", bucket });
+    state.setStart({ from: "bucket", bucketId });
     state.openDialog();
   }
 
