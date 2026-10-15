@@ -8,16 +8,21 @@ import { StateTemplate } from "#/components/state-template";
 import { Button } from "#/components/ui/button";
 import { DataTable } from "#/components/ui/data-table";
 import { NotFoundError } from "#/lib/errors";
-import { ALLOCATIONS_COLUMNS } from "#/modules/buckets/columns";
+import { getAllocationColumns } from "#/modules/allocations/columns";
+import { allocationsQueryOption } from "#/modules/allocations/query-options";
 import { useEditBucketDialogStore } from "#/modules/buckets/components/edit-bucket-dialog";
 import { bucketQueryOption } from "#/modules/buckets/query-options";
 
 export const Route = createFileRoute("/_protected/buckets/$bucketId")({
   context: ({ params }) => ({
     bucketQueryOptions: bucketQueryOption(params.bucketId),
+    allocationsQueryOptions: allocationsQueryOption({ bucketId: params.bucketId }),
   }),
-  loader: async ({ context: { queryClient, bucketQueryOptions } }) => {
-    return queryClient.query(bucketQueryOptions);
+  loader: async ({ context: { queryClient, bucketQueryOptions, allocationsQueryOptions } }) => {
+    return Promise.all([
+      queryClient.query(bucketQueryOptions),
+      queryClient.query(allocationsQueryOptions),
+    ]);
   },
   pendingComponent: () => (
     <Main>
@@ -65,9 +70,10 @@ export const Route = createFileRoute("/_protected/buckets/$bucketId")({
 
 function RouteComponent() {
   const { bucketId } = Route.useParams();
-  const { bucketQueryOptions } = Route.useRouteContext();
+  const { bucketQueryOptions, allocationsQueryOptions } = Route.useRouteContext();
 
   const { data: bucket } = useSuspenseQuery(bucketQueryOptions);
+  const { data: allocations } = useSuspenseQuery(allocationsQueryOptions);
 
   function handleOpenEditBucketDialog() {
     const state = useEditBucketDialogStore.getState();
@@ -87,8 +93,8 @@ function RouteComponent() {
       </div>
 
       <DataTable
-        columns={ALLOCATIONS_COLUMNS}
-        data={bucket.allocations}
+        columns={getAllocationColumns({ omit: "bucket" })}
+        data={allocations}
         initialSorting={[{ id: "date", desc: true }]}
       />
     </Main>

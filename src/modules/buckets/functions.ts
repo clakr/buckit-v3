@@ -50,18 +50,6 @@ export const getBucket = createServerFn({
       where: {
         id: data.bucketId,
       },
-      with: {
-        allocations: {
-          with: {
-            bankAccount: {
-              columns: {
-                name: true,
-                currency: true,
-              },
-            },
-          },
-        },
-      },
     });
 
     // Deleted between the middleware's ownership check and this read.

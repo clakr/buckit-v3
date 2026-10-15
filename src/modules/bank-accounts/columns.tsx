@@ -2,7 +2,7 @@ import type { ColumnDef } from "@tanstack/react-table";
 
 import { IconCircleDashed, IconCircleDottedLetterH } from "@tabler/icons-react";
 
-import type { Allocation, Bucket, Transaction } from "#/db/schema";
+import type { Transaction } from "#/db/schema";
 import type { getBankAccount, getBankAccounts } from "#/modules/bank-accounts/functions";
 
 import { SortableTableHead } from "#/components/table/sortable-table-head";
@@ -10,7 +10,6 @@ import { Badge } from "#/components/ui/badge";
 import { Tooltip, TooltipContent, TooltipTrigger } from "#/components/ui/tooltip";
 import { currencyCodec } from "#/lib/codecs";
 import { formatCurrency, formatDateTime, formatToRelative } from "#/lib/utils";
-import { AllocationActionsDropdownMenu } from "#/modules/allocations/components/allocation-actions-dropdown-menu";
 import { BankAccountActionsDropdownMenu } from "#/modules/bank-accounts/components/bank-account-actions-dropdown-menu";
 import { TransactionActionsDropdownMenu } from "#/modules/transactions/components/transaction-actions-dropdown-menu";
 
@@ -135,51 +134,5 @@ export const TRANSACTIONS_COLUMNS: ColumnDef<
     accessorKey: "actions",
     header: "",
     cell: ({ row }) => <TransactionActionsDropdownMenu transactionId={row.original.id} />,
-  },
-];
-
-export const ALLOCATIONS_COLUMNS: ColumnDef<
-  Awaited<ReturnType<typeof getBankAccount>>["allocations"][number]
->[] = [
-  {
-    accessorKey: "date",
-    header: ({ column }) => <SortableTableHead column={column}>Date</SortableTableHead>,
-    cell: ({ getValue }) => {
-      const date = getValue<Allocation["date"]>();
-
-      return (
-        <Tooltip>
-          <TooltipTrigger render={<Badge variant="secondary" className="capitalize" />}>
-            <IconCircleDottedLetterH />
-            {formatToRelative(date)}
-          </TooltipTrigger>
-          <TooltipContent>{formatDateTime(date)}</TooltipContent>
-        </Tooltip>
-      );
-    },
-  },
-  {
-    accessorKey: "bucket.name",
-    header: "Bucket",
-    cell: ({ getValue }) => <span className="font-semibold">{getValue<Bucket["name"]>()}</span>,
-  },
-  {
-    accessorKey: "amount",
-    header: () => <div data-currency>Amount</div>,
-    cell: ({ row }) => (
-      <span className="block text-end font-semibold tabular-nums">
-        {formatCurrency(currencyCodec.encode(row.original.amount), {
-          currency: row.original.bankAccount?.currency,
-        })}
-      </span>
-    ),
-  },
-  {
-    accessorKey: "note",
-  },
-  {
-    accessorKey: "actions",
-    header: "",
-    cell: ({ row }) => <AllocationActionsDropdownMenu allocationId={row.original.id} />,
   },
 ];

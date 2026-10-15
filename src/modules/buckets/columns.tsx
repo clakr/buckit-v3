@@ -2,15 +2,13 @@ import type { ColumnDef } from "@tanstack/react-table";
 
 import { IconCircleDottedLetterH } from "@tabler/icons-react";
 
-import type { Allocation } from "#/db/schema";
-import type { getBucket, getBuckets } from "#/modules/buckets/functions";
+import type { getBuckets } from "#/modules/buckets/functions";
 
 import { SortableTableHead } from "#/components/table/sortable-table-head";
 import { Badge } from "#/components/ui/badge";
 import { Tooltip, TooltipContent, TooltipTrigger } from "#/components/ui/tooltip";
 import { currencyCodec } from "#/lib/codecs";
 import { formatCurrency, formatDateTime, formatToRelative } from "#/lib/utils";
-import { AllocationActionsDropdownMenu } from "#/modules/allocations/components/allocation-actions-dropdown-menu";
 import { BucketActionsDropdownMenu } from "#/modules/buckets/components/buckets-actions-dropdown-menu";
 
 export const INDEX_COLUMNS: ColumnDef<Awaited<ReturnType<typeof getBuckets>>[number]>[] = [
@@ -53,56 +51,5 @@ export const INDEX_COLUMNS: ColumnDef<Awaited<ReturnType<typeof getBuckets>>[num
     accessorKey: "actions",
     header: "",
     cell: ({ row }) => <BucketActionsDropdownMenu bucket={row.original} />,
-  },
-];
-
-export const ALLOCATIONS_COLUMNS: ColumnDef<
-  Awaited<ReturnType<typeof getBucket>>["allocations"][number]
->[] = [
-  {
-    accessorKey: "date",
-    header: ({ column }) => <SortableTableHead column={column}>Date</SortableTableHead>,
-    cell: ({ getValue }) => {
-      const date = getValue<Allocation["date"]>();
-
-      return (
-        <Tooltip>
-          <TooltipTrigger render={<Badge variant="secondary" className="capitalize" />}>
-            <IconCircleDottedLetterH />
-            {formatToRelative(date)}
-          </TooltipTrigger>
-          <TooltipContent>{formatDateTime(date)}</TooltipContent>
-        </Tooltip>
-      );
-    },
-  },
-  {
-    accessorKey: "bankAccount.name",
-    header: "Bank Account",
-    cell: ({ row }) => (
-      <span className="flex items-center gap-x-2 font-semibold">
-        {row.original.bankAccount?.name}
-        <Badge>{row.original.bankAccount?.currency}</Badge>
-      </span>
-    ),
-  },
-  {
-    accessorKey: "amount",
-    header: () => <div data-currency>Amount</div>,
-    cell: ({ row }) => (
-      <span className="block text-end font-semibold tabular-nums">
-        {formatCurrency(currencyCodec.encode(row.original.amount), {
-          currency: row.original.bankAccount?.currency,
-        })}
-      </span>
-    ),
-  },
-  {
-    accessorKey: "note",
-  },
-  {
-    accessorKey: "actions",
-    header: "",
-    cell: ({ row }) => <AllocationActionsDropdownMenu allocationId={row.original.id} />,
   },
 ];

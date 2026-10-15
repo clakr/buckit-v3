@@ -30,3 +30,9 @@ export const editAllocationSchema = z.strictObject({
   note: z.string(),
   amount: z.coerce.number().min(0.01, "Amount must be greater than 0."),
 });
+
+// Neither: all of the user's Allocations. Either or both narrow it.
+export const getAllocationsSchema = z.object({
+  bucketId: z.string().optional(),
+  bankAccountId: z.string().optional(),
+});

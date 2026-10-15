@@ -12,16 +12,24 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "#/components/ui/tabs";
 import { currencyCodec } from "#/lib/codecs";
 import { NotFoundError } from "#/lib/errors";
 import { formatCurrency } from "#/lib/utils";
-import { ALLOCATIONS_COLUMNS, TRANSACTIONS_COLUMNS } from "#/modules/bank-accounts/columns";
+import { getAllocationColumns } from "#/modules/allocations/columns";
+import { allocationsQueryOption } from "#/modules/allocations/query-options";
+import { TRANSACTIONS_COLUMNS } from "#/modules/bank-accounts/columns";
 import { useEditBankAccountDialogStore } from "#/modules/bank-accounts/components/edit-bank-account-dialog";
 import { bankAccountQueryOption } from "#/modules/bank-accounts/query-options";
 
 export const Route = createFileRoute("/_protected/accounts/$accountId")({
   context: ({ params }) => ({
     bankAccountQueryOptions: bankAccountQueryOption(params.accountId),
+    allocationsQueryOptions: allocationsQueryOption({ bankAccountId: params.accountId }),
   }),
-  loader: async ({ context: { queryClient, bankAccountQueryOptions } }) => {
-    return queryClient.query(bankAccountQueryOptions);
+  loader: async ({
+    context: { queryClient, bankAccountQueryOptions, allocationsQueryOptions },
+  }) => {
+    return Promise.all([
+      queryClient.query(bankAccountQueryOptions),
+      queryClient.query(allocationsQueryOptions),
+    ]);
   },
   pendingComponent: () => (
     <Main>
@@ -69,9 +77,10 @@ export const Route = createFileRoute("/_protected/accounts/$accountId")({
 
 function RouteComponent() {
   const { accountId } = Route.useParams();
-  const { bankAccountQueryOptions } = Route.useRouteContext();
+  const { bankAccountQueryOptions, allocationsQueryOptions } = Route.useRouteContext();
 
   const { data: bankAccount } = useSuspenseQuery(bankAccountQueryOptions);
+  const { data: allocations } = useSuspenseQuery(allocationsQueryOptions);
 
   const { balance, unallocated, totalAllocated } = bankAccount;
 
@@ -107,8 +116,8 @@ function RouteComponent() {
           </TabsContent>
           <TabsContent value="allocations">
             <DataTable
-              columns={ALLOCATIONS_COLUMNS}
-              data={bankAccount.allocations}
+              columns={getAllocationColumns({ omit: "bankAccount" })}
+              data={allocations}
               initialSorting={[{ id: "date", desc: true }]}
             />
           </TabsContent>

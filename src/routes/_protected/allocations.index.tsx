@@ -1,10 +1,10 @@
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
 
-import { allocationsQueryOptions } from "#/modules/allocations/query-options";
+import { allocationsQueryOption } from "#/modules/allocations/query-options";
 
 export const Route = createFileRoute("/_protected/allocations/")({
-  context: () => ({ allocationsQueryOptions }),
+  context: () => ({ allocationsQueryOptions: allocationsQueryOption() }),
   loader: async ({ context: { queryClient, allocationsQueryOptions } }) => {
     return queryClient.query(allocationsQueryOptions);
   },

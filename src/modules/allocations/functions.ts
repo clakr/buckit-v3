@@ -14,6 +14,7 @@ import { formatCurrency } from "#/lib/utils";
 import { verifyUserAllocationMiddleware } from "#/modules/allocations/middlewares";
 import {
   editAllocationSchema,
+  getAllocationsSchema,
   logAllocationSchema,
   validateEditAllocationAmountSchema,
   validateLogAllocationAmountSchema,
@@ -169,11 +170,16 @@ export const deleteAllocation = createServerFn({
     return db.delete(allocations).where(eq(allocations.id, data.allocationId)).returning();
   });
 
+/**
+ * The user's Allocations, optionally for one Bucket or one Bank Account. Every row carries both
+ * parents, so any page can show either. Someone else's Bucket or Bank Account reads as empty.
+ */
 export const getAllocations = createServerFn({
   method: "GET",
 })
   .middleware([authMiddleware])
-  .handler(async ({ context }) => {
+  .validator(getAllocationsSchema)
+  .handler(async ({ context, data }) => {
     const db = getDB(env.db);
 
     return db.query.allocations.findMany({
@@ -181,10 +187,20 @@ export const getAllocations = createServerFn({
         bankAccount: {
           userId: context.user.id,
         },
+        ...(data.bucketId ? { bucketId: data.bucketId } : {}),
+        ...(data.bankAccountId ? { bankAccountId: data.bankAccountId } : {}),
       },
       with: {
         bankAccount: {
           columns: {
+            id: true,
+            name: true,
+            currency: true,
+          },
+        },
+        bucket: {
+          columns: {
+            id: true,
             name: true,
           },
         },

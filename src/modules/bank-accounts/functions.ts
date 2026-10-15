@@ -58,20 +58,6 @@ export const getBankAccount = createServerFn({
             },
           },
         },
-        allocations: {
-          with: {
-            bucket: {
-              columns: {
-                name: true,
-              },
-            },
-            bankAccount: {
-              columns: {
-                currency: true,
-              },
-            },
-          },
-        },
       },
     });
 

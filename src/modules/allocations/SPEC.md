@@ -32,7 +32,7 @@ An Allocation's amount is stored in minor units of the owning Bank Account's cur
 
 ### Visible From Both Parents, No Standalone View
 
-Unlike Transaction (embedded only in its Bank Account's detail page), an Allocation is embedded in **two** places: the Bucket detail page (a flat table, `ALLOCATIONS_COLUMNS` in `buckets/columns.tsx`) and the Bank Account detail page (an "Allocations" tab alongside "Transactions", `ALLOCATIONS_COLUMNS` in `bank-accounts/columns.tsx` — a separate column-def despite the shared name). There is no standalone, cross-account/cross-bucket Allocation list today. See Future Considerations.
+Unlike Transaction (embedded only in its Bank Account's detail page), an Allocation is embedded in **two** places: the Bucket detail page (a flat table) and the Bank Account detail page (an "Allocations" tab alongside "Transactions"). Both read through this module: `getAllocations({ bucketId?, bankAccountId? })` returns the user's Allocations, each with its Bank Account's `id`/`name`/`currency` and its Bucket's `id`/`name`, and `getAllocationColumns({ omit })` gives one column set minus the parent the page already shows. Scoping always goes through the user's own Bank Accounts, so someone else's Bucket or Bank Account reads as an empty list (the page's own query has already shown "not found"). There is no standalone, cross-account/cross-bucket Allocation list today. See Future Considerations.
 
 ### Reassignment Is Not Supported — By Design
 
