@@ -58,7 +58,7 @@ _Not new work — recapped here so this file stays a complete behavioral referen
 
 ## Testing Decisions
 
-Deferred, for the same reason already recorded in `docs/specs/bank-account-crud.md`, `docs/specs/bucket-crud.md`, and `docs/specs/transaction-list-and-transfer.md`: no test harness exists yet anywhere in this repo (`vitest` is a dependency but unconfigured — no config, no test files, no D1-test-runner infrastructure for server functions like `getAllocations`, which calls `getDB(env.db)` via `cloudflare:workers`). Nothing here needs its own seam beyond that infrastructure question: `getAllocations` is a plain filtered read, same shape as `getBankAccounts`/`getBuckets`, with no new validation logic to isolate — logging/editing from the unified list reuses `validateLogAllocationAmount`/`validateEditAllocationAmount` unchanged.
+Deferred, for the same reason already recorded in `docs/specs/bank-account-crud.md`, `docs/specs/bucket-crud.md`, and `docs/specs/transaction-list-and-transfer.md`: no test harness exists yet anywhere in this repo (`vitest` is a dependency but unconfigured — no config, no test files, no D1-test-runner infrastructure for server functions like `getAllocations`, which calls `getDB(env.db)` via `cloudflare:workers`). Nothing here needs its own seam beyond that infrastructure question: `getAllocations` is a plain filtered read, same shape as `getBankAccounts`/`getBuckets`, with no new validation logic to isolate — logging/editing from the unified list reuses the dialogs' local Available check and the writes' in-process check unchanged.
 
 ## Out of Scope
 
