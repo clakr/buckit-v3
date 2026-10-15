@@ -29,7 +29,7 @@ A Bucket can receive Allocations from Bank Accounts in different currencies. The
 
 ### Name Uniqueness
 
-Name must be unique per user, case-insensitive (compared via `lower()`), trimmed — same pattern as Bank Account. Enforced today only on create, via the dialog's async validator (`validateBucketName`) calling the server; the DB has a plain (case-sensitive) `unique(userId, name)` constraint as a backstop, matching Bank Account's existing (accepted) inconsistency between app-level case-insensitive checks and a case-sensitive DB constraint.
+Name must be unique per user, case-insensitive (compared via `lower()`), trimmed — same pattern as Bank Account. Enforced today only on create, via the dialog's async validator (`validateBucketName`) calling the server; the DB has a plain (case-sensitive) `unique(userId, name)` constraint as a backstop, the same (accepted) inconsistency between app-level case-insensitive checks and a case-sensitive DB constraint that Bank Account had until 2026-10-15, when it gained a unique index on `(user_id, lower(name))`. Bucket names can follow the same additive index if this inconsistency starts to matter.
 
 ### Deletion Is Destructive, Not Blocked
 
