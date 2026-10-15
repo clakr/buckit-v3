@@ -12,42 +12,12 @@ import { debts, repayments, transactions } from "#/db/schema";
 import { currencyCodec } from "#/lib/codecs";
 import { InsufficientFundsError, NotFoundError } from "#/lib/errors";
 import { checkUnallocated } from "#/modules/bank-accounts/figures.server";
-import { verifyUserBankAccountMiddleware } from "#/modules/bank-accounts/middlewares";
+import { findOwnedBankAccount } from "#/modules/bank-accounts/ownership.server";
 import { editTransaction, validateEditTransaction } from "#/modules/transactions/functions";
 
 import { verifyUserDebtMiddleware } from "../debts/middlewares";
-import {
-  editRepaymentSchema,
-  logRepaymentSchema,
-  validateRepaymentSourceBankAccountSchema,
-} from "./schemas";
+import { editRepaymentSchema, logRepaymentSchema } from "./schemas";
 import { isRepaymentDateBeforeDebt } from "./utils";
-
-export const validateRepaymentSourceBankAccount = createServerFn({
-  method: "GET",
-})
-  .middleware([verifyUserBankAccountMiddleware])
-  .validator(validateRepaymentSourceBankAccountSchema)
-  .handler(async ({ data }) => {
-    const db = getDB(env.db);
-
-    const account = await db.query.bankAccounts.findFirst({
-      where: {
-        id: data.bankAccountId,
-        currency: data.currency,
-      },
-      columns: { id: true },
-    });
-
-    if (!account) {
-      return {
-        isValid: false,
-        message: "The selected account's currency doesn't match this debt.",
-      };
-    }
-
-    return { isValid: true, message: "ok" };
-  });
 
 export const getRepaymentDebt = createServerFn({
   method: "GET",
@@ -66,31 +36,41 @@ export const getRepaymentDebt = createServerFn({
     return debt;
   });
 
+async function checkLogRepaymentCurrency(
+  db: DB,
+  userId: string,
+  data: z.output<typeof logRepaymentSchema>,
+) {
+  // No Bank Account picked: a pure record, nothing to match currencies against.
+  if (!data.bankAccountId) return { isValid: true, message: "ok" };
+
+  // `logRepayment` has no bank-account middleware of its own, so this is its ownership check.
+  const [debt, account] = await Promise.all([
+    db.query.debts.findFirst({ where: { id: data.debtId }, columns: { currency: true } }),
+    findOwnedBankAccount(db, userId, data.bankAccountId),
+  ]);
+
+  if (!debt) throw new NotFoundError("This debt doesn't exist or may have been deleted.");
+  if (!account) throw new NotFoundError("This account doesn't exist or may have been deleted.");
+
+  if (account.currency !== debt.currency) {
+    return {
+      isValid: false,
+      message: "The selected account's currency doesn't match this debt.",
+    };
+  }
+
+  return { isValid: true, message: "ok" };
+}
+
 export const validateLogRepaymentCurrency = createServerFn({
   method: "GET",
 })
   .middleware([verifyUserDebtMiddleware])
   .validator(logRepaymentSchema)
-  .handler(async ({ data }) => {
-    const db = getDB(env.db);
-
-    const debt = await db.query.debts.findFirst({
-      where: { id: data.debtId },
-      columns: { currency: true },
-    });
-    if (!debt) {
-      return { isValid: false, message: "No debt found." };
-    }
-
-    // No Bank Account picked — this repayment is a pure record, nothing to match currencies against.
-    if (!data.bankAccountId) {
-      return { isValid: true, message: "ok" };
-    }
-
-    return validateRepaymentSourceBankAccount({
-      data: { bankAccountId: data.bankAccountId, currency: debt.currency },
-    });
-  });
+  .handler(async ({ context, data }) =>
+    checkLogRepaymentCurrency(getDB(env.db), context.user.id, data),
+  );
 
 async function checkLogRepaymentBalance(
   db: DB,
@@ -142,9 +122,13 @@ export const logRepayment = createServerFn({
   .handler(async ({ context, data }) => {
     const db = getDB(env.db);
 
-    const { isValid: isCurrencyValid, message: currencyMessage } =
-      await validateLogRepaymentCurrency({ data });
-    if (!isCurrencyValid) throw new Error(currencyMessage);
+    const { isValid: isCurrencyValid, message: currencyMessage } = await checkLogRepaymentCurrency(
+      db,
+      context.user.id,
+      data,
+    );
+    // An unusable source account isn't a shortfall, same as `recordDebt`'s.
+    if (!isCurrencyValid) throw new NotFoundError(currencyMessage);
 
     const { isValid: isBalanceValid, message: balanceMessage } = await checkLogRepaymentBalance(
       db,
