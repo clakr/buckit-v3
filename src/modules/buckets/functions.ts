@@ -11,6 +11,7 @@ import { getDB } from "#/db";
 import { buckets, lower } from "#/db/schema";
 import { ConflictError, NotFoundError } from "#/lib/errors";
 import { authMiddleware } from "#/lib/middlewares";
+import { getBucketsWithFigures } from "#/modules/buckets/figures.server";
 import { verifyUserBucketMiddleware } from "#/modules/buckets/middlewares";
 import {
   editBucketSchema,
@@ -23,34 +24,28 @@ export const getBuckets = createServerFn({
 })
   .middleware([authMiddleware])
   .handler(async ({ context }) => {
-    const db = getDB(env.db);
-
-    return db.query.buckets.findMany({
-      where: {
-        userId: context.user.id,
-      },
-      with: {
-        allocations: {
-          with: {
-            bankAccount: {
-              columns: {
-                currency: true,
-              },
-            },
-          },
-        },
-      },
+    const bucketsWithFigures = await getBucketsWithFigures(getDB(env.db), {
+      userId: context.user.id,
     });
+
+    // The list shows Subtotals only; what each Bank Account holds is for one Bucket's reads.
+    return bucketsWithFigures.map((bucket) => ({
+      id: bucket.id,
+      userId: bucket.userId,
+      name: bucket.name,
+      createdAt: bucket.createdAt,
+      subtotals: bucket.subtotals,
+    }));
   });
 
 export const getBucket = createServerFn({
   method: "GET",
 })
   .middleware([verifyUserBucketMiddleware])
-  .handler(async ({ data }) => {
+  .handler(async ({ context, data }) => {
     const db = getDB(env.db);
 
-    const bucket = await db.query.buckets.findFirst({
+    const bucketQuery = db.query.buckets.findFirst({
       where: {
         id: data.bucketId,
       },
@@ -68,10 +63,20 @@ export const getBucket = createServerFn({
       },
     });
 
-    // Deleted between the middleware's ownership check and this read.
-    if (!bucket) throw new NotFoundError("This bucket doesn't exist or may have been deleted.");
+    const [bucket, [figures]] = await Promise.all([
+      bucketQuery,
+      getBucketsWithFigures(db, { userId: context.user.id, bucketId: data.bucketId }),
+    ]);
 
-    return bucket;
+    // Deleted between the middleware's ownership check and this read.
+    if (!bucket || !figures)
+      throw new NotFoundError("This bucket doesn't exist or may have been deleted.");
+
+    return {
+      ...bucket,
+      subtotals: figures.subtotals,
+      allocatedByBankAccount: figures.allocatedByBankAccount,
+    };
   });
 
 const NAME_TAKEN_MESSAGE = "A bucket with this name already exists.";

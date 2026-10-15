@@ -23,24 +23,9 @@ export const INDEX_COLUMNS: ColumnDef<Awaited<ReturnType<typeof getBuckets>>[num
     accessorKey: "subtotal",
     header: () => <div data-currency>Subtotal</div>,
     cell: ({ row }) => {
-      const accumulatedPerCurrency = row.original.allocations.reduce<Record<string, number>>(
-        (acc, a) => {
-          if (!a.bankAccount) return acc;
-
-          if (a.bankAccount.currency in acc) {
-            acc[a.bankAccount.currency] += a.amount;
-          } else {
-            acc[a.bankAccount.currency] = a.amount;
-          }
-
-          return acc;
-        },
-        {},
-      );
-
-      const subtotals = Object.entries(accumulatedPerCurrency)
-        .map(([currency, value]) =>
-          formatCurrency(currencyCodec.encode(value), {
+      const subtotals = row.original.subtotals
+        .map(({ currency, amount }) =>
+          formatCurrency(currencyCodec.encode(amount), {
             currency,
           }),
         )

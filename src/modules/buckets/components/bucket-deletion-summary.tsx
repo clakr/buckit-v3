@@ -23,13 +23,9 @@ export function getBucketDeletionDescription({ bucket }: Pick<Props, "bucket">) 
 // each account's unallocated balance — the money stays in the account, it just stops
 // being earmarked.
 export function BucketDeletionSummary({ bucket, bankAccounts }: Props) {
-  const releasedByBankAccountId = new Map<string, number>();
-  for (const allocation of bucket.allocations) {
-    releasedByBankAccountId.set(
-      allocation.bankAccountId,
-      (releasedByBankAccountId.get(allocation.bankAccountId) ?? 0) + allocation.amount,
-    );
-  }
+  const releasedByBankAccountId = new Map(
+    bucket.allocatedByBankAccount.map((allocated) => [allocated.bankAccountId, allocated.amount]),
+  );
 
   const affectedBankAccounts = bankAccounts
     .filter((account) => releasedByBankAccountId.has(account.id))
