@@ -14,10 +14,7 @@ export const debtDirectionEnum = z.enum(
 export const recordDebtSchema = z.object({
   direction: debtDirectionEnum,
   currency: z.enum(CURRENCIES_CODES),
-  amount: z.coerce
-    .number()
-    .min(0.01, "Amount must be greater than 0.")
-    .default(0),
+  amount: z.coerce.number().min(0.01, "Amount must be greater than 0.").default(0),
   name: z
     .string()
     .trim()
@@ -26,12 +23,6 @@ export const recordDebtSchema = z.object({
   bankAccountId: z.string().optional(),
   date: z.date(),
   note: z.string().trim(),
-});
-
-export const validateDebtSourceBankAccountSchema = z.object({
-  bankAccountId: z.string().min(1, "No bank account ID provided"),
-  currency: z.enum(CURRENCIES_CODES),
-  amount: z.coerce.number().min(0, "Amount cannot be negative."),
 });
 
 // `direction` is deliberately absent — it's fixed once a Debt is created. `amount` is
@@ -44,10 +35,7 @@ export const editDebtSchema = z.strictObject({
     .trim()
     .min(1, "Name is required")
     .max(100, "Name must be 100 characters or fewer"),
-  amount: z.coerce
-    .number()
-    .min(0.01, "Amount must be greater than 0.")
-    .optional(),
+  amount: z.coerce.number().min(0.01, "Amount must be greater than 0.").optional(),
   date: z.date(),
   note: z.string().trim(),
 });

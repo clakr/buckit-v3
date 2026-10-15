@@ -1,4 +1,3 @@
-import { IconAlertCircle } from "@tabler/icons-react";
 import { useSelector } from "@tanstack/react-form";
 import { useQuery } from "@tanstack/react-query";
 import z from "zod";
@@ -9,7 +8,6 @@ import type { Debt } from "#/db/schema";
 import type { DialogState } from "#/lib/types";
 
 import { StateTemplate } from "#/components/state-template";
-import { Alert, AlertDescription, AlertTitle } from "#/components/ui/alert";
 import { Button } from "#/components/ui/button";
 import { Checkbox } from "#/components/ui/checkbox";
 import {
@@ -24,6 +22,7 @@ import {
   Field,
   FieldContent,
   FieldDescription,
+  FieldError,
   FieldGroup,
   FieldLabel,
 } from "#/components/ui/field";
@@ -32,13 +31,16 @@ import { NotFoundError } from "#/lib/errors";
 import { bankAccountsQueryOption } from "#/modules/bank-accounts/query-options";
 import {
   DebtDeletionSummary,
+  findDeleteTransactionsShortfall,
   getDebtDeletionDescription,
 } from "#/modules/debts/components/debt-deletion-summary";
-import { validateDeleteDebt } from "#/modules/debts/functions";
 import { useDeleteDebtMutation } from "#/modules/debts/mutations";
 import { debtQueryOption } from "#/modules/debts/query-options";
 import { deleteDebtSchema } from "#/modules/debts/schemas";
-import { getDebtLinkedTransactionIds } from "#/modules/debts/utils";
+import {
+  describeDeleteTransactionsShortfall,
+  getDebtLinkedTransactionIds,
+} from "#/modules/debts/utils";
 
 type StoreState = DialogState & {
   debtId: Debt["id"] | null;
@@ -111,22 +113,6 @@ export function DeleteDebtDialog() {
     defaultValues,
     validators: {
       onChange: deleteSchema,
-      onSubmitAsync: async ({ value }) => {
-        try {
-          const { isValid, message } = await validateDeleteDebt({
-            data: { debtId: value.debtId, deleteTransactions: value.deleteTransactions },
-          });
-
-          if (!isValid) return message;
-
-          return undefined;
-        } catch (error) {
-          console.error(error);
-
-          // A thrown validator would otherwise be an uncaught rejection that crashes the app.
-          return "Something went wrong while checking this. Please try again.";
-        }
-      },
     },
     onSubmit: async ({ value }) => {
       try {
@@ -219,17 +205,34 @@ export function DeleteDebtDialog() {
               >
                 <FieldGroup>
                   {totalLinkedTransactions ? (
-                    <form.AppField name="deleteTransactions">
+                    <form.AppField
+                      name="deleteTransactions"
+                      validators={{
+                        onChange: ({ value }) => {
+                          if (!value) return undefined;
+
+                          const shortfall = findDeleteTransactionsShortfall({ debt, bankAccounts });
+
+                          return shortfall
+                            ? { message: describeDeleteTransactionsShortfall(shortfall) }
+                            : undefined;
+                        },
+                      }}
+                    >
                       {(field) => {
                         const id = field.name;
+                        const errorId = `${id}-error`;
+                        const isInvalid = !field.state.meta.isValid;
 
                         return (
-                          <Field orientation="horizontal">
+                          <Field orientation="horizontal" data-invalid={isInvalid}>
                             <Checkbox
                               id={id}
                               checked={field.state.value}
                               onCheckedChange={(checked) => field.handleChange(checked)}
                               onBlur={field.handleBlur}
+                              aria-invalid={isInvalid ? true : undefined}
+                              aria-describedby={isInvalid ? errorId : undefined}
                             />
                             <FieldContent>
                               <FieldLabel htmlFor={id}>
@@ -240,6 +243,9 @@ export function DeleteDebtDialog() {
                                 Removes real money movement from {linkedBankAccountsLabel}. Only
                                 check this to undo a debt recorded by mistake.
                               </FieldDescription>
+                              {isInvalid && (
+                                <FieldError id={errorId} errors={field.state.meta.errors} />
+                              )}
                             </FieldContent>
                           </Field>
                         );
@@ -254,17 +260,6 @@ export function DeleteDebtDialog() {
                       />
                     )}
                   </form.AppField>
-                  <form.Subscribe selector={(state) => state.errorMap.onSubmit}>
-                    {(error) =>
-                      error ? (
-                        <Alert variant="destructive" className="max-w-md">
-                          <IconAlertCircle />
-                          <AlertTitle>Delete Debt failed</AlertTitle>
-                          <AlertDescription>{error}</AlertDescription>
-                        </Alert>
-                      ) : null
-                    }
-                  </form.Subscribe>
                 </FieldGroup>
               </form>
             </div>

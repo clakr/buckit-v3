@@ -34,19 +34,14 @@ export function getDebtDeletionDescription({
   return `Permanently delete the debt with "${debt.name}"${deletedRecords.length ? ` with its ${deletedRecords.join(" and ")}` : ""}. This cannot be undone.`;
 }
 
-// Same shape as `BankAccountDeletionSummary`: what survives but changes. Here that's each
-// linked account's balance, and only when the linked Transactions are deleted too —
-// keeping them changes nothing outside the Debt.
-export function DebtDeletionSummary({ debt, bankAccounts, deleteTransactions }: Props) {
-  function formatDebtAmount(value: number) {
-    return formatCurrency(currencyCodec.encode(value), { currency: debt.currency });
-  }
-
-  // The linked Transactions' types follow the fixed direction → cash-flow mapping: a
-  // receivable's origination is an `expense` and its repayments are `income`; a payable's
-  // repayments are `expense`. Deleting income lowers a balance; deleting an expense raises it.
+// What deleting the Debt's linked Transactions does to each linked account's Balance, by account id.
+// The linked Transactions' types follow the fixed direction → cash-flow mapping: a receivable's
+// origination is an `expense` and its repayments are `income`; a payable's repayments are
+// `expense`. Deleting income lowers a balance; deleting an expense raises it.
+function getLinkedTransactions(debt: Props["debt"]) {
   const repaymentBalanceSign = debt.direction === "receivable" ? -1 : 1;
-  const linkedTransactions = [
+
+  return [
     ...(debt.originatingTransaction?.bankAccount
       ? [{ bankAccount: debt.originatingTransaction.bankAccount, balanceChange: debt.amount }]
       : []),
@@ -61,7 +56,11 @@ export function DebtDeletionSummary({ debt, bankAccounts, deleteTransactions }: 
         : [],
     ),
   ];
+}
 
+function getBalanceChangeByBankAccountId(
+  linkedTransactions: ReturnType<typeof getLinkedTransactions>,
+) {
   const balanceChangeByBankAccountId = new Map<string, number>();
   for (const transaction of linkedTransactions) {
     balanceChangeByBankAccountId.set(
@@ -70,6 +69,37 @@ export function DebtDeletionSummary({ debt, bankAccounts, deleteTransactions }: 
         transaction.balanceChange,
     );
   }
+
+  return balanceChangeByBankAccountId;
+}
+
+/**
+ * The first linked account that deleting the linked Transactions would leave with a negative
+ * Unallocated: the same rule `deleteDebt` enforces, checked from the figures already loaded.
+ */
+export function findDeleteTransactionsShortfall({
+  debt,
+  bankAccounts,
+}: Pick<Props, "debt" | "bankAccounts">) {
+  const balanceChangeByBankAccountId = getBalanceChangeByBankAccountId(getLinkedTransactions(debt));
+
+  return bankAccounts.find((account) => {
+    const balanceChange = balanceChangeByBankAccountId.get(account.id);
+
+    return balanceChange !== undefined && account.unallocated + balanceChange < 0;
+  });
+}
+
+// Same shape as `BankAccountDeletionSummary`: what survives but changes. Here that's each
+// linked account's balance, and only when the linked Transactions are deleted too —
+// keeping them changes nothing outside the Debt.
+export function DebtDeletionSummary({ debt, bankAccounts, deleteTransactions }: Props) {
+  function formatDebtAmount(value: number) {
+    return formatCurrency(currencyCodec.encode(value), { currency: debt.currency });
+  }
+
+  const linkedTransactions = getLinkedTransactions(debt);
+  const balanceChangeByBankAccountId = getBalanceChangeByBankAccountId(linkedTransactions);
 
   const affectedBankAccounts = bankAccounts
     .filter((account) => balanceChangeByBankAccountId.has(account.id))

@@ -1,5 +1,5 @@
-import { IconAlertCircle } from "@tabler/icons-react";
 import { useSelector } from "@tanstack/react-form";
+import { useQuery } from "@tanstack/react-query";
 import z from "zod";
 import { create } from "zustand";
 import { useShallow } from "zustand/react/shallow";
@@ -7,7 +7,6 @@ import { useShallow } from "zustand/react/shallow";
 import type { DialogState } from "#/lib/types";
 
 import { CurrencyCombobox } from "#/components/currency-combobox";
-import { Alert, AlertDescription, AlertTitle } from "#/components/ui/alert";
 import {
   Dialog,
   DialogContent,
@@ -19,9 +18,11 @@ import {
 import { Field, FieldError, FieldGroup, FieldLabel } from "#/components/ui/field";
 import { InputGroup, InputGroupAddon, InputGroupInput } from "#/components/ui/input-group";
 import { useAppForm } from "#/integrations/tanstack-form";
+import { currencyCodec } from "#/lib/codecs";
+import { bankAccountsQueryOption } from "#/modules/bank-accounts/query-options";
 import { SourceAccountField } from "#/modules/debts/components/source-account-field";
-import { validateDebtSourceBankAccount } from "#/modules/debts/functions";
 import { useRecordDebtMutation } from "#/modules/debts/mutations";
+import { describeInsufficientSourceAccount } from "#/modules/debts/utils";
 import { confirm } from "#/stores/use-confirm";
 
 import { debtDirectionEnum, recordDebtSchema } from "../schemas";
@@ -57,29 +58,6 @@ export function RecordDebtDialog() {
     defaultValues,
     validators: {
       onChange: recordDebtSchema,
-      onSubmitAsync: async ({ value }) => {
-        try {
-          // Only a funded receivable moves money — nothing to check otherwise.
-          if (value.direction !== "receivable" || !value.bankAccountId) return undefined;
-
-          const { isValid, message } = await validateDebtSourceBankAccount({
-            data: {
-              bankAccountId: value.bankAccountId,
-              currency: value.currency,
-              amount: value.amount,
-            },
-          });
-
-          if (!isValid) return message;
-
-          return undefined;
-        } catch (error) {
-          console.error(error);
-
-          // A thrown validator would otherwise be an uncaught rejection that crashes the app.
-          return "Something went wrong while checking this. Please try again.";
-        }
-      },
     },
     onSubmit: async ({ value: data }) => {
       try {
@@ -97,6 +75,15 @@ export function RecordDebtDialog() {
 
   const currency = useSelector(form.store, (state) => state.values.currency);
   const direction = useSelector(form.store, (state) => state.values.direction);
+
+  const bankAccountsQuery = useQuery({
+    ...bankAccountsQueryOption({ currency }),
+    enabled: isOpen && direction === "receivable",
+  });
+
+  function findSourceAccount(bankAccountId: string | undefined) {
+    return bankAccountsQuery.data?.find((account) => account.id === bankAccountId);
+  }
 
   async function handleOnOpenChange(open: boolean) {
     if (!open && form.state.isDirty) {
@@ -173,7 +160,27 @@ export function RecordDebtDialog() {
                       )}
                     </form.AppField>
                   </InputGroupAddon>
-                  <form.AppField name="amount">
+                  <form.AppField
+                    name="amount"
+                    validators={{
+                      // The source account can be picked, or cleared by a currency change,
+                      // after the amount is in.
+                      onChangeListenTo: ["bankAccountId"],
+                      onChange: ({ value }) => {
+                        const bankAccount = findSourceAccount(form.getFieldValue("bankAccountId"));
+                        if (!bankAccount) return undefined;
+
+                        return currencyCodec.decode(Number(value)) > bankAccount.unallocated
+                          ? {
+                              message: describeInsufficientSourceAccount({
+                                bankAccount,
+                                available: bankAccount.unallocated,
+                              }),
+                            }
+                          : undefined;
+                      },
+                    }}
+                  >
                     {(field) => {
                       const isInvalid = field.state.meta.isTouched && !field.state.meta.isValid;
 
@@ -189,13 +196,13 @@ export function RecordDebtDialog() {
                           onChange={(e) => field.handleChange(e.target.value)}
                           onBlur={field.handleBlur}
                           aria-invalid={isInvalid ? true : undefined}
-                          aria-labelledby={isInvalid ? "startingBalance-error" : undefined}
+                          aria-labelledby={isInvalid ? "amount-error" : undefined}
                         />
                       );
                     }}
                   </form.AppField>
                 </InputGroup>
-                <form.Subscribe selector={(state) => state.errorMap.onChange?.amount}>
+                <form.Subscribe selector={(state) => state.fieldMeta.amount?.errors}>
                   {(amountErrors) => <FieldError id="amount-error" errors={amountErrors} />}
                 </form.Subscribe>
               </Field>
@@ -204,7 +211,7 @@ export function RecordDebtDialog() {
                   {(field) => (
                     <SourceAccountField
                       currency={currency}
-                      isQueryEnabled={isOpen && direction === "receivable"}
+                      bankAccountsQuery={bankAccountsQuery}
                       bankAccountId={field.state.value}
                       onBankAccountIdChange={field.handleChange}
                     />
@@ -221,17 +228,6 @@ export function RecordDebtDialog() {
               <form.AppField name="note">
                 {(field) => <field.Textarea label="Note (optional)" placeholder="Add a note..." />}
               </form.AppField>
-              <form.Subscribe selector={(state) => state.errorMap.onSubmit}>
-                {(error) =>
-                  error ? (
-                    <Alert variant="destructive" className="max-w-md">
-                      <IconAlertCircle />
-                      <AlertTitle>Record Debt failed</AlertTitle>
-                      <AlertDescription>{error}</AlertDescription>
-                    </Alert>
-                  ) : null
-                }
-              </form.Subscribe>
             </FieldGroup>
           </form>
         </div>

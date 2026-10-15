@@ -1,5 +1,8 @@
-import { useQuery } from "@tanstack/react-query";
+import type { UseQueryResult } from "@tanstack/react-query";
+
 import { useId } from "react";
+
+import type { getBankAccounts } from "#/modules/bank-accounts/functions";
 
 import { Button } from "#/components/ui/button";
 import { Field, FieldDescription, FieldError, FieldLabel } from "#/components/ui/field";
@@ -13,26 +16,25 @@ import {
 } from "#/components/ui/select";
 import { BankAccountFigures } from "#/modules/bank-accounts/components/bank-account-figures";
 import { useRegisterBankAccountDialogStore } from "#/modules/bank-accounts/components/register-bank-account-dialog";
-import { bankAccountsQueryOption } from "#/modules/bank-accounts/query-options";
 
 type SourceAccountFieldProps = {
   currency: string;
-  isQueryEnabled: boolean;
+  /** The user's accounts in `currency`, with figures; the dialog checks the amount against them. */
+  bankAccountsQuery: Pick<
+    UseQueryResult<Awaited<ReturnType<typeof getBankAccounts>>>,
+    "status" | "data" | "refetch"
+  >;
   bankAccountId: string | undefined;
   onBankAccountIdChange: (bankAccountId: string | undefined) => void;
 };
 
 export function SourceAccountField({
   currency,
-  isQueryEnabled,
+  bankAccountsQuery,
   bankAccountId,
   onBankAccountIdChange,
 }: SourceAccountFieldProps) {
-  // @todo: should distinguish if network error or data not found
-  const { status, data: bankAccounts } = useQuery({
-    ...bankAccountsQueryOption({ currency }),
-    enabled: isQueryEnabled,
-  });
+  const { status, data: bankAccounts, refetch } = bankAccountsQuery;
 
   const eligibleAccounts = bankAccounts?.filter((account) => account.unallocated > 0);
 
@@ -47,13 +49,20 @@ export function SourceAccountField({
   }
 
   return (
-    <Field data-invalid={noEligibleAccounts}>
+    <Field data-invalid={noEligibleAccounts || status === "error"}>
       <FieldLabel htmlFor={id}>Funding Source</FieldLabel>
       <FieldDescription>
         Optional — leave empty if this isn't coming out of a tracked account.
       </FieldDescription>
 
-      {noEligibleAccounts ? (
+      {status === "error" ? (
+        <>
+          <FieldError>Could not load your {currency} accounts.</FieldError>
+          <Button type="button" variant="outline" onClick={() => refetch()}>
+            Retry
+          </Button>
+        </>
+      ) : noEligibleAccounts ? (
         <>
           <FieldError>No {currency} accounts with available balance.</FieldError>
           <Button type="button" variant="outline" onClick={openRegisterBankAccountDialog}>

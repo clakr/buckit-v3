@@ -1,11 +1,10 @@
-import type { z } from "zod";
-
 import { createServerFn } from "@tanstack/react-start";
 import { env } from "cloudflare:workers";
 import { eq, inArray, sql } from "drizzle-orm";
 import { uuidv7 } from "uuidv7";
 
 import type { DB } from "#/db";
+import type { Debt } from "#/db/schema";
 
 import { getDB } from "#/db";
 import { debts, transactions } from "#/db/schema";
@@ -13,17 +12,16 @@ import { currencyCodec } from "#/lib/codecs";
 import { ConflictError, InsufficientFundsError, NotFoundError } from "#/lib/errors";
 import { authMiddleware } from "#/lib/middlewares";
 import { checkUnallocated } from "#/modules/bank-accounts/figures.server";
-import { verifyUserBankAccountMiddleware } from "#/modules/bank-accounts/middlewares";
 import { findOwnedBankAccount } from "#/modules/bank-accounts/ownership.server";
-import {
-  deleteDebtSchema,
-  editDebtSchema,
-  recordDebtSchema,
-  validateDebtSourceBankAccountSchema,
-} from "#/modules/debts/schemas";
+import { deleteDebtSchema, editDebtSchema, recordDebtSchema } from "#/modules/debts/schemas";
 
 import { verifyUserDebtMiddleware } from "./middlewares";
-import { getDebtLinkedTransactionIds, getDebtStatus } from "./utils";
+import {
+  describeDeleteTransactionsShortfall,
+  describeInsufficientSourceAccount,
+  getDebtLinkedTransactionIds,
+  getDebtStatus,
+} from "./utils";
 
 export const getDebts = createServerFn({
   method: "GET",
@@ -49,51 +47,36 @@ export const getDebts = createServerFn({
     });
   });
 
+// `recordDebt` has no bank-account middleware of its own, so this is its ownership check too.
 async function checkDebtSourceBankAccount(
   db: DB,
   userId: string,
-  data: z.output<typeof validateDebtSourceBankAccountSchema>,
+  data: { bankAccountId: string; currency: Debt["currency"]; amount: Debt["amount"] },
 ) {
-  // `recordDebt` has no bank-account middleware of its own, so this is its ownership check.
   const account = await findOwnedBankAccount(db, userId, data.bankAccountId, {
     currency: data.currency,
   });
 
-  if (!account) {
-    return {
-      isValid: false,
-      isSourceInvalid: true,
-      message: "The source account is invalid for this debt.",
-    };
-  }
+  // An unusable source account isn't a shortfall: wrong currency, missing, or not the user's.
+  if (!account) throw new NotFoundError("The source account is invalid for this debt.");
 
   // Funding a receivable is an `expense`, under the same never-negative rule as any other.
   const check = await checkUnallocated(db, userId, {
     kind: "add-transaction",
     bankAccountId: data.bankAccountId,
     type: "expense",
-    amount: currencyCodec.decode(data.amount),
+    amount: data.amount,
   });
 
   if (!check.ok) {
-    return {
-      isValid: false,
-      message:
-        "This loan would result in a negative unallocated balance. Adjust the amount or pick another account.",
-    };
+    throw new InsufficientFundsError(
+      describeInsufficientSourceAccount({
+        bankAccount: check.bankAccount,
+        available: check.available,
+      }),
+    );
   }
-
-  return { isValid: true, message: "ok" };
 }
-
-export const validateDebtSourceBankAccount = createServerFn({
-  method: "GET",
-})
-  .middleware([verifyUserBankAccountMiddleware])
-  .validator(validateDebtSourceBankAccountSchema)
-  .handler(async ({ context, data }) =>
-    checkDebtSourceBankAccount(getDB(env.db), context.user.id, data),
-  );
 
 export const recordDebt = createServerFn({
   method: "POST",
@@ -124,20 +107,11 @@ export const recordDebt = createServerFn({
       return debt;
     }
 
-    const { isValid, isSourceInvalid, message } = await checkDebtSourceBankAccount(
-      db,
-      context.user.id,
-      {
-        bankAccountId: data.bankAccountId,
-        currency: data.currency,
-        amount: data.amount,
-      },
-    );
-
-    // An unusable source account isn't a shortfall: wrong currency, missing, or not the user's.
-    if (!isValid) {
-      throw isSourceInvalid ? new NotFoundError(message) : new InsufficientFundsError(message);
-    }
+    await checkDebtSourceBankAccount(db, context.user.id, {
+      bankAccountId: data.bankAccountId,
+      currency: data.currency,
+      amount,
+    });
 
     const transactionId = uuidv7();
 
@@ -242,52 +216,6 @@ export const editDebt = createServerFn({
     return updated;
   });
 
-// The debt's linked Transactions are resolved before anything is deleted: the `debts` row's
-// cascade takes its `repayments` rows, and with them the repayment → Transaction links.
-async function checkDeleteDebt(db: DB, userId: string, data: z.output<typeof deleteDebtSchema>) {
-  // Keeping the linked Transactions never changes a Balance: nothing to check.
-  if (!data.deleteTransactions) return { isValid: true, message: "ok", transactionIds: [] };
-
-  const debt = await db.query.debts.findFirst({
-    where: { id: data.debtId },
-    columns: { originatingTransactionId: true },
-    with: { repayments: { columns: { transactionId: true } } },
-  });
-
-  if (!debt) throw new NotFoundError("This debt doesn't exist or may have been deleted.");
-
-  const transactionIds = getDebtLinkedTransactionIds(debt);
-
-  // Several linked Transactions can share a Bank Account, so each account is checked once
-  // with all of them removed: e.g. a receivable's repayment (income) leaving Savings can
-  // push it below what's allocated from it.
-  const check = await checkUnallocated(db, userId, {
-    kind: "remove-transactions",
-    transactionIds,
-  });
-
-  if (!check.ok) {
-    return {
-      isValid: false,
-      message: `Deleting the linked transactions would leave "${check.bankAccount.name}" with a negative unallocated balance. Adjust its allocations first, or keep the transactions.`,
-      transactionIds,
-    };
-  }
-
-  return { isValid: true, message: "ok", transactionIds };
-}
-
-export const validateDeleteDebt = createServerFn({
-  method: "GET",
-})
-  .middleware([verifyUserDebtMiddleware])
-  .validator(deleteDebtSchema)
-  .handler(async ({ context, data }) => {
-    const { isValid, message } = await checkDeleteDebt(getDB(env.db), context.user.id, data);
-
-    return { isValid, message };
-  });
-
 export const deleteDebt = createServerFn({
   method: "POST",
 })
@@ -296,13 +224,36 @@ export const deleteDebt = createServerFn({
   .handler(async ({ context, data }) => {
     const db = getDB(env.db);
 
-    const { isValid, message, transactionIds } = await checkDeleteDebt(db, context.user.id, data);
-
-    if (!isValid) throw new InsufficientFundsError(message);
-
     const deleteDebtQuery = db.delete(debts).where(eq(debts.id, data.debtId)).returning();
 
+    // Keeping the linked Transactions never changes a Balance: nothing to check.
+    if (!data.deleteTransactions) return deleteDebtQuery;
+
+    // Resolved before anything is deleted: the `debts` row's cascade takes its `repayments`
+    // rows, and with them the repayment → Transaction links.
+    const debt = await db.query.debts.findFirst({
+      where: { id: data.debtId },
+      columns: { originatingTransactionId: true },
+      with: { repayments: { columns: { transactionId: true } } },
+    });
+
+    if (!debt) throw new NotFoundError("This debt doesn't exist or may have been deleted.");
+
+    const transactionIds = getDebtLinkedTransactionIds(debt);
+
     if (!transactionIds.length) return deleteDebtQuery;
+
+    // Several linked Transactions can share a Bank Account, so each account is checked once
+    // with all of them removed: e.g. a receivable's repayment (income) leaving Savings can
+    // push it below what's allocated from it.
+    const check = await checkUnallocated(db, context.user.id, {
+      kind: "remove-transactions",
+      transactionIds,
+    });
+
+    if (!check.ok) {
+      throw new InsufficientFundsError(describeDeleteTransactionsShortfall(check.bankAccount));
+    }
 
     const [, deleted] = await db.batch([
       db.delete(transactions).where(inArray(transactions.id, transactionIds)),
