@@ -1,6 +1,6 @@
 import { createServerFn } from "@tanstack/react-start";
 import { env } from "cloudflare:workers";
-import { eq, inArray, sql } from "drizzle-orm";
+import { eq, inArray } from "drizzle-orm";
 import { uuidv7 } from "uuidv7";
 
 import type { DB } from "#/db";
@@ -15,37 +15,19 @@ import { checkUnallocated } from "#/modules/bank-accounts/figures.server";
 import { findOwnedBankAccount } from "#/modules/bank-accounts/ownership.server";
 import { deleteDebtSchema, editDebtSchema, recordDebtSchema } from "#/modules/debts/schemas";
 
+import { getDebtsWithFigures } from "./figures.server";
 import { verifyUserDebtMiddleware } from "./middlewares";
 import {
   describeDeleteTransactionsShortfall,
   describeInsufficientSourceAccount,
   getDebtLinkedTransactionIds,
-  getDebtStatus,
 } from "./utils";
 
 export const getDebts = createServerFn({
   method: "GET",
 })
   .middleware([authMiddleware])
-  .handler(async ({ context }) => {
-    const db = getDB(env.db);
-
-    return db.query.debts.findMany({
-      where: {
-        userId: context.user.id,
-      },
-      with: {
-        repayments: {
-          orderBy: { createdAt: "desc" },
-          with: {
-            transaction: {
-              columns: { amount: true, date: true },
-            },
-          },
-        },
-      },
-    });
-  });
+  .handler(async ({ context }) => getDebtsWithFigures(getDB(env.db), { userId: context.user.id }));
 
 // `recordDebt` has no bank-account middleware of its own, so this is its ownership check too.
 async function checkDebtSourceBankAccount(
@@ -147,35 +129,10 @@ export const getDebt = createServerFn({
   method: "GET",
 })
   .middleware([verifyUserDebtMiddleware])
-  .handler(async ({ data }) => {
-    const db = getDB(env.db);
-
-    const debt = await db.query.debts.findFirst({
-      where: {
-        id: data.debtId,
-      },
-      with: {
-        originatingTransaction: {
-          columns: { id: true },
-          with: { bankAccount: { columns: { id: true, name: true } } },
-        },
-        repayments: {
-          // Oldest first, by the effective date: the linked Transaction's date wins
-          // over the repayment's own (only set when there's no Transaction).
-          orderBy: (repayment, { asc }) => [
-            asc(
-              sql`coalesce((select ${transactions.date} from ${transactions} where ${transactions.id} = ${repayment.transactionId}), ${repayment.date})`,
-            ),
-            asc(repayment.createdAt),
-          ],
-          with: {
-            transaction: {
-              columns: { amount: true, date: true, note: true },
-              with: { bankAccount: { columns: { id: true, name: true } } },
-            },
-          },
-        },
-      },
+  .handler(async ({ context, data }) => {
+    const [debt] = await getDebtsWithFigures(getDB(env.db), {
+      userId: context.user.id,
+      debtIds: [data.debtId],
     });
 
     if (!debt) throw new NotFoundError("This debt doesn't exist or may have been deleted.");
@@ -267,24 +224,18 @@ export const forgiveDebt = createServerFn({
   method: "POST",
 })
   .middleware([verifyUserDebtMiddleware])
-  .handler(async ({ data }) => {
+  .handler(async ({ context, data }) => {
     const db = getDB(env.db);
 
-    const debt = await db.query.debts.findFirst({
-      where: { id: data.debtId },
-      columns: { amount: true, forgivenAt: true },
-      with: {
-        repayments: {
-          with: { transaction: { columns: { amount: true } } },
-        },
-      },
+    const [debt] = await getDebtsWithFigures(db, {
+      userId: context.user.id,
+      debtIds: [data.debtId],
     });
     if (!debt) throw new NotFoundError("This debt doesn't exist or may have been deleted.");
 
     // Reachable from a stale list (e.g. another tab forgave or settled it), so the toast says why.
-    const status = getDebtStatus(debt);
-    if (status === "forgiven") throw new ConflictError("This debt is already forgiven.");
-    if (status === "settled") {
+    if (debt.status === "forgiven") throw new ConflictError("This debt is already forgiven.");
+    if (debt.status === "settled") {
       throw new ConflictError("A settled debt has nothing left to forgive.");
     }
 

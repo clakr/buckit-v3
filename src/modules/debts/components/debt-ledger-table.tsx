@@ -24,11 +24,9 @@ import {
 import { currencyCodec } from "#/lib/codecs";
 import { cn, formatCurrency, formatDate } from "#/lib/utils";
 import { RepaymentActionsDropdownMenu } from "#/modules/repayments/components/repayment-actions-dropdown-menu";
-import { getRepaymentAmount, getRepaymentDate } from "#/modules/repayments/utils";
 
 import type { getDebt } from "../functions";
 
-import { getDebtOutstanding, getDebtStatus } from "../utils";
 import { DebtStatusBadge } from "./debt-status-badge";
 
 type Props = {
@@ -41,25 +39,16 @@ export function DebtLedgerTable({ debt, onLogRepayment }: Props) {
     return formatCurrency(currencyCodec.encode(value), { currency: debt.currency });
   }
 
-  const outstanding = getDebtOutstanding({ amount: debt.amount, repayments: debt.repayments });
-  const repaid = debt.amount - outstanding;
+  const { outstanding, repaid } = debt;
   const progress = debt.amount === 0 ? 0 : (repaid / debt.amount) * 100;
 
   // `getDebt` returns repayments oldest first, so the running balance reads
   // top-to-bottom like a statement.
   let balance = debt.amount;
   const entries = debt.repayments.map((repayment) => {
-    const amount = getRepaymentAmount(repayment);
-    balance -= amount;
+    balance -= repayment.amount;
 
-    return {
-      id: repayment.id,
-      date: getRepaymentDate(repayment) ?? repayment.createdAt,
-      amount,
-      note: repayment.transaction?.note ?? repayment.note,
-      bankAccount: repayment.transaction?.bankAccount ?? null,
-      balance,
-    };
+    return { ...repayment, balance };
   });
 
   const hasRepayments = entries.length > 0;
@@ -67,7 +56,7 @@ export function DebtLedgerTable({ debt, onLogRepayment }: Props) {
   return (
     <div className="flex flex-col gap-y-3">
       <p className="flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
-        <DebtStatusBadge status={getDebtStatus(debt)} />
+        <DebtStatusBadge status={debt.status} />
         <span className="capitalize">{debt.direction}</span>·<span>{debt.currency}</span>·
         <span>Recorded {formatDate(debt.date)}</span>
       </p>
@@ -91,10 +80,7 @@ export function DebtLedgerTable({ debt, onLogRepayment }: Props) {
                 : `Borrowed from ${debt.name}`}
               {/* A payable's creation never touches a Bank Account, so there's nothing to name. */}
               {debt.direction === "receivable" ? (
-                <BankAccountMovement
-                  preposition="from"
-                  bankAccount={debt.originatingTransaction?.bankAccount ?? null}
-                />
+                <BankAccountMovement preposition="from" bankAccount={debt.originatingBankAccount} />
               ) : null}
               {debt.note ? <EntryNote note={debt.note} /> : null}
             </TableCell>

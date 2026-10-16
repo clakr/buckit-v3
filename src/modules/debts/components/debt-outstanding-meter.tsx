@@ -11,6 +11,7 @@ type Props = {
   amount: Debt["amount"];
   // Negative when overpaid.
   outstanding: number;
+  repaid: number;
   repaymentsCount: number;
   formatDebtAmount: (value: number) => string;
 };
@@ -22,10 +23,10 @@ export function DebtOutstandingMeter({
   direction,
   amount,
   outstanding,
+  repaid,
   repaymentsCount,
   formatDebtAmount,
 }: Props) {
-  const repaid = amount - outstanding;
   const isOverpaid = outstanding < 0;
   const isReceivable = direction === "receivable";
 

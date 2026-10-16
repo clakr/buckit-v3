@@ -2,7 +2,7 @@ import { IconCircleCheck, IconHeartHandshake, IconHourglass } from "@tabler/icon
 
 import { Badge } from "#/components/ui/badge";
 
-import type { getDebtStatus } from "../utils";
+import type { DebtStatus } from "../figures.server";
 
 const STATUS_VARIANTS = {
   open: "outline",
@@ -16,7 +16,7 @@ const STATUS_ICONS = {
   forgiven: IconHeartHandshake,
 } as const;
 
-export function DebtStatusBadge({ status }: { status: ReturnType<typeof getDebtStatus> }) {
+export function DebtStatusBadge({ status }: { status: DebtStatus }) {
   const Icon = STATUS_ICONS[status];
 
   return (

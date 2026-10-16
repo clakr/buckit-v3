@@ -25,7 +25,6 @@ import { confirm } from "#/stores/use-confirm";
 import { validateEditRepayment } from "../functions";
 import { useEditRepaymentMutation } from "../mutations";
 import { editRepaymentSchema } from "../schemas";
-import { getRepaymentAmount, getRepaymentDate } from "../utils";
 
 type DebtWithRepayments = NonNullable<Awaited<ReturnType<typeof getDebt>>>;
 
@@ -65,9 +64,9 @@ export function EditRepaymentDialog() {
   const defaultValues: z.input<typeof editRepaymentSchema> = {
     debtId: debt?.id ?? "",
     repaymentId: repayment?.id ?? "",
-    amount: currencyCodec.encode(repayment ? getRepaymentAmount(repayment) : 0),
-    date: (repayment ? getRepaymentDate(repayment) : undefined) ?? new Date(),
-    note: repayment?.transaction?.note ?? repayment?.note ?? "",
+    amount: currencyCodec.encode(repayment?.amount ?? 0),
+    date: repayment?.date ?? new Date(),
+    note: repayment?.note ?? "",
   };
 
   const form = useAppForm({
@@ -122,7 +121,7 @@ export function EditRepaymentDialog() {
 
   if (!debt || !repayment) return null;
 
-  const bankAccount = repayment.transaction?.bankAccount ?? null;
+  const { bankAccount } = repayment;
 
   return (
     <Dialog open={isOpen} onOpenChange={handleOnOpenChange}>

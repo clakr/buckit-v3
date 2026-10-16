@@ -33,14 +33,12 @@ import {
   DebtDeletionSummary,
   findDeleteTransactionsShortfall,
   getDebtDeletionDescription,
+  getDebtLinkedTransactions,
 } from "#/modules/debts/components/debt-deletion-summary";
 import { useDeleteDebtMutation } from "#/modules/debts/mutations";
 import { debtQueryOption } from "#/modules/debts/query-options";
 import { deleteDebtSchema } from "#/modules/debts/schemas";
-import {
-  describeDeleteTransactionsShortfall,
-  getDebtLinkedTransactionIds,
-} from "#/modules/debts/utils";
+import { describeDeleteTransactionsShortfall } from "#/modules/debts/utils";
 
 type StoreState = DialogState & {
   debtId: Debt["id"] | null;
@@ -138,16 +136,11 @@ export function DeleteDebtDialog() {
     toggleDialog();
   }
 
-  const totalLinkedTransactions = debt ? getDebtLinkedTransactionIds(debt).length : 0;
-  const linkedBankAccountNames = Array.from(
-    new Set(
-      [
-        debt?.originatingTransaction?.bankAccount?.name,
-        ...(debt?.repayments.map((r) => r.transaction?.bankAccount?.name) ?? []),
-      ].filter((name) => name !== undefined),
-    ),
-  );
-  const linkedBankAccountsLabel = linkedBankAccountNames.map((name) => `"${name}"`).join(", ");
+  const linkedTransactions = debt ? getDebtLinkedTransactions(debt) : [];
+  const totalLinkedTransactions = linkedTransactions.length;
+  const linkedBankAccountsLabel = [...new Set(linkedTransactions.map((t) => t.bankAccount.name))]
+    .map((name) => `"${name}"`)
+    .join(", ");
 
   return (
     <Dialog open={isOpen} onOpenChange={handleOnOpenChange}>

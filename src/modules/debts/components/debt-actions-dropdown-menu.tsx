@@ -16,7 +16,6 @@ import { confirm } from "#/stores/use-confirm";
 import type { getDebts } from "../functions";
 
 import { useForgiveDebtMutation, useUnforgiveDebtMutation } from "../mutations";
-import { getDebtStatus } from "../utils";
 import { useDeleteDebtDialogStore } from "./delete-debt-dialog";
 import { useEditDebtDialogStore } from "./edit-debt-dialog";
 
@@ -28,7 +27,7 @@ export function DebtActionsDropdownMenu({ debt }: Props) {
   const forgiveMutation = useForgiveDebtMutation();
   const unforgiveMutation = useUnforgiveDebtMutation();
 
-  const status = getDebtStatus(debt);
+  const { status } = debt;
 
   function handleOpenLogRepaymentDialog() {
     const state = useLogRepaymentDialogStore.getState();

@@ -2,37 +2,6 @@ import type { BankAccount, Debt, Repayment } from "#/db/schema";
 
 import { currencyCodec } from "#/lib/codecs";
 import { formatCurrency } from "#/lib/utils";
-import { getRepaymentAmount } from "#/modules/repayments/utils";
-
-export function getDebtOutstanding({
-  amount,
-  repayments,
-}: {
-  amount: Debt["amount"];
-  repayments: Parameters<typeof getRepaymentAmount>[0][];
-}) {
-  const totalRepaid = repayments.reduce((acc, r) => acc + getRepaymentAmount(r), 0);
-
-  return amount - totalRepaid;
-}
-
-// Computed on read, never stored — a stored status would go stale the moment a repayment
-// disappears through an unrelated code path (e.g. a Bank Account deletion).
-export type DebtStatus = "open" | "settled" | "forgiven";
-
-export function getDebtStatus({
-  amount,
-  forgivenAt,
-  repayments,
-}: {
-  amount: Debt["amount"];
-  forgivenAt: Debt["forgivenAt"];
-  repayments: Parameters<typeof getRepaymentAmount>[0][];
-}): DebtStatus {
-  if (forgivenAt) return "forgiven";
-
-  return getDebtOutstanding({ amount, repayments }) <= 0 ? "settled" : "open";
-}
 
 // Every Transaction a Debt links to: its origination (if any) plus each repayment's.
 export function getDebtLinkedTransactionIds({

@@ -7,7 +7,6 @@ import { Badge } from "#/components/ui/badge";
 import { Tooltip, TooltipContent, TooltipTrigger } from "#/components/ui/tooltip";
 import { currencyCodec } from "#/lib/codecs";
 import { formatCurrency, formatDateTime, formatToRelative } from "#/lib/utils";
-import { getRepaymentDate } from "#/modules/repayments/utils";
 
 import type { getDebts } from "./functions";
 
@@ -16,7 +15,6 @@ import { DebtDirectionBadge } from "./components/debt-direction-badge";
 import { DebtOutstandingMeter } from "./components/debt-outstanding-meter";
 import { DebtStatusBadge } from "./components/debt-status-badge";
 import { ForgivenOutstanding } from "./components/forgiven-outstanding";
-import { getDebtOutstanding, getDebtStatus } from "./utils";
 
 export const INDEX_COLUMNS: ColumnDef<Awaited<ReturnType<typeof getDebts>>[number]>[] = [
   {
@@ -31,13 +29,13 @@ export const INDEX_COLUMNS: ColumnDef<Awaited<ReturnType<typeof getDebts>>[numbe
   {
     id: "status",
     header: "Status",
-    cell: ({ row }) => <DebtStatusBadge status={getDebtStatus(row.original)} />,
+    cell: ({ row }) => <DebtStatusBadge status={row.original.status} />,
   },
   {
     accessorKey: "outstanding",
     header: () => <div data-currency>Outstanding</div>,
     cell: ({ row }) => {
-      const outstanding = getDebtOutstanding(row.original);
+      const { outstanding } = row.original;
 
       function formatDebtAmount(value: number) {
         return formatCurrency(currencyCodec.encode(value), { currency: row.original.currency });
@@ -57,6 +55,7 @@ export const INDEX_COLUMNS: ColumnDef<Awaited<ReturnType<typeof getDebts>>[numbe
           direction={row.original.direction}
           amount={row.original.amount}
           outstanding={outstanding}
+          repaid={row.original.repaid}
           repaymentsCount={row.original.repayments.length}
           formatDebtAmount={formatDebtAmount}
         />
@@ -69,8 +68,7 @@ export const INDEX_COLUMNS: ColumnDef<Awaited<ReturnType<typeof getDebts>>[numbe
       <SortableTableHead column={column}>Last Repayment Date</SortableTableHead>
     ),
     cell: ({ row }) => {
-      const lastRepayment = row.original.repayments[0];
-      const lastRepaymentDate = lastRepayment ? getRepaymentDate(lastRepayment) : undefined;
+      const { lastRepaymentDate } = row.original;
 
       if (!lastRepaymentDate) {
         return (

@@ -5,7 +5,6 @@ import type { getDebt } from "#/modules/debts/functions";
 
 import { currencyCodec } from "#/lib/codecs";
 import { formatCurrency } from "#/lib/utils";
-import { getDebtLinkedTransactionIds } from "#/modules/debts/utils";
 
 type Props = {
   debt: NonNullable<Awaited<ReturnType<typeof getDebt>>>;
@@ -20,7 +19,7 @@ export function getDebtDeletionDescription({
   deleteTransactions,
 }: Pick<Props, "debt" | "deleteTransactions">) {
   const repaymentCount = debt.repayments.length;
-  const transactionCount = getDebtLinkedTransactionIds(debt).length;
+  const transactionCount = getDebtLinkedTransactions(debt).length;
 
   const deletedRecords = [
     repaymentCount
@@ -38,28 +37,21 @@ export function getDebtDeletionDescription({
 // The linked Transactions' types follow the fixed direction → cash-flow mapping: a receivable's
 // origination is an `expense` and its repayments are `income`; a payable's repayments are
 // `expense`. Deleting income lowers a balance; deleting an expense raises it.
-function getLinkedTransactions(debt: Props["debt"]) {
+export function getDebtLinkedTransactions(debt: Props["debt"]) {
   const repaymentBalanceSign = debt.direction === "receivable" ? -1 : 1;
 
   return [
-    ...(debt.originatingTransaction?.bankAccount
-      ? [{ bankAccount: debt.originatingTransaction.bankAccount, balanceChange: debt.amount }]
+    ...(debt.originatingBankAccount
+      ? [{ bankAccount: debt.originatingBankAccount, balanceChange: debt.amount }]
       : []),
-    ...debt.repayments.flatMap((repayment) =>
-      repayment.transaction?.bankAccount
-        ? [
-            {
-              bankAccount: repayment.transaction.bankAccount,
-              balanceChange: repaymentBalanceSign * repayment.transaction.amount,
-            },
-          ]
-        : [],
+    ...debt.repayments.flatMap(({ bankAccount, amount }) =>
+      bankAccount ? [{ bankAccount, balanceChange: repaymentBalanceSign * amount }] : [],
     ),
   ];
 }
 
 function getBalanceChangeByBankAccountId(
-  linkedTransactions: ReturnType<typeof getLinkedTransactions>,
+  linkedTransactions: ReturnType<typeof getDebtLinkedTransactions>,
 ) {
   const balanceChangeByBankAccountId = new Map<string, number>();
   for (const transaction of linkedTransactions) {
@@ -81,7 +73,9 @@ export function findDeleteTransactionsShortfall({
   debt,
   bankAccounts,
 }: Pick<Props, "debt" | "bankAccounts">) {
-  const balanceChangeByBankAccountId = getBalanceChangeByBankAccountId(getLinkedTransactions(debt));
+  const balanceChangeByBankAccountId = getBalanceChangeByBankAccountId(
+    getDebtLinkedTransactions(debt),
+  );
 
   return bankAccounts.find((account) => {
     const balanceChange = balanceChangeByBankAccountId.get(account.id);
@@ -98,7 +92,7 @@ export function DebtDeletionSummary({ debt, bankAccounts, deleteTransactions }: 
     return formatCurrency(currencyCodec.encode(value), { currency: debt.currency });
   }
 
-  const linkedTransactions = getLinkedTransactions(debt);
+  const linkedTransactions = getDebtLinkedTransactions(debt);
   const balanceChangeByBankAccountId = getBalanceChangeByBankAccountId(linkedTransactions);
 
   const affectedBankAccounts = bankAccounts

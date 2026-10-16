@@ -5,7 +5,11 @@ import type { DB } from "#/db";
 import { bankAccounts, debts, repayments, transactions, type BankAccount } from "#/db/schema";
 import { NotFoundError } from "#/lib/errors";
 import { getBucketsWithFigures } from "#/modules/buckets/figures.server";
-import { getDebtOutstanding, getDebtStatus, type DebtStatus } from "#/modules/debts/utils";
+import {
+  getDebtsWithFigures,
+  withoutRepayments,
+  type DebtStatus,
+} from "#/modules/debts/figures.server";
 import { isRepaymentBackedBy } from "#/modules/transactions/linked.server";
 
 // The cascade rules of a Bank Account delete, as SQL, so the preview and the delete read the
@@ -93,16 +97,7 @@ export async function loadBankAccountDeletionImpact(
   ];
 
   const affectedDebts = affectedDebtIds.length
-    ? await db.query.debts.findMany({
-        where: { userId, id: { in: affectedDebtIds } },
-        columns: { id: true, name: true, currency: true, amount: true, forgivenAt: true },
-        with: {
-          repayments: {
-            columns: { id: true, amount: true },
-            with: { transaction: { columns: { amount: true } } },
-          },
-        },
-      })
+    ? await getDebtsWithFigures(db, { userId, debtIds: affectedDebtIds })
     : [];
 
   return {
@@ -122,19 +117,16 @@ export async function loadBankAccountDeletionImpact(
       return { id: bucket.id, name: bucket.name, before, after: before - released };
     }),
     debts: affectedDebts.map((debt) => {
-      const debtAfter = {
-        ...debt,
-        repayments: debt.repayments.filter((r) => !removedRepaymentIds.has(r.id)),
-      };
+      const debtAfter = withoutRepayments(debt, removedRepaymentIds);
 
       return {
         id: debt.id,
         name: debt.name,
         currency: debt.currency,
-        outstandingBefore: getDebtOutstanding(debt),
-        outstandingAfter: getDebtOutstanding(debtAfter),
-        statusBefore: getDebtStatus(debt),
-        statusAfter: getDebtStatus(debtAfter),
+        outstandingBefore: debt.outstanding,
+        outstandingAfter: debtAfter.outstanding,
+        statusBefore: debt.status,
+        statusAfter: debtAfter.status,
         isOrphaned: orphanedDebtIds.has(debt.id),
       };
     }),
