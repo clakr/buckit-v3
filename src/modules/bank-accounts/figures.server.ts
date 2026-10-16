@@ -199,20 +199,18 @@ function describeChange(db: DB, change: BankAccountChange): ChangeScope {
   }
 }
 
-/**
- * Whether a change keeps Unallocated at or above zero on every Bank Account it touches.
- * `userId` scopes the lookup, so a caller can't learn whether someone else's account can afford
- * an amount.
- */
-export async function checkUnallocated(
-  db: DB,
-  userId: string,
-  change: BankAccountChange,
-): Promise<UnallocatedCheck> {
-  // Income only ever raises Unallocated.
-  if (change.kind === "add-transaction" && change.type === "income") return { ok: true };
-  if (change.kind === "remove-transactions" && !change.transactionIds.length) return { ok: true };
+function toTotals(row: Awaited<ReturnType<typeof loadBankAccountTotals>>[number]) {
+  return {
+    startingBalance: row.startingBalance,
+    incomeTotal: row.incomeTotal,
+    expenseTotal: row.expenseTotal,
+    allocatedTotal: row.allocatedTotal,
+  };
+}
 
+// Each touched account's figures without the rows the change replaces or removes, and with the
+// change applied. Both the check and the preview read these, so they can't disagree.
+async function loadChangedFigures(db: DB, userId: string, change: BankAccountChange) {
   const { scope, excludeTransactionIds, excludeAllocationIds, pending } = describeChange(
     db,
     change,
@@ -227,22 +225,64 @@ export async function checkUnallocated(
   // Missing and someone else's look the same, and neither may pass as affordable.
   if (!rows.length) throw new NotFoundError("This account doesn't exist or may have been deleted.");
 
-  for (const row of rows) {
-    const totals = {
-      startingBalance: row.startingBalance,
-      incomeTotal: row.incomeTotal,
-      expenseTotal: row.expenseTotal,
-      allocatedTotal: row.allocatedTotal,
-    };
+  return rows.map((row) => ({
+    bankAccount: { id: row.id, name: row.name, currency: row.currency },
+    /** What the change could use: Unallocated before its additions. */
+    available: getBankAccountFigures(toTotals(row)).unallocated,
+    after: getBankAccountFigures(toTotals(row), pending),
+  }));
+}
 
-    if (getBankAccountFigures(totals, pending).unallocated < 0) {
-      return {
-        ok: false,
-        bankAccount: { id: row.id, name: row.name, currency: row.currency },
-        available: getBankAccountFigures(totals).unallocated,
-      };
-    }
+/**
+ * Whether a change keeps Unallocated at or above zero on every Bank Account it touches.
+ * `userId` scopes the lookup, so a caller can't learn whether someone else's account can afford
+ * an amount.
+ */
+export async function checkUnallocated(
+  db: DB,
+  userId: string,
+  change: BankAccountChange,
+): Promise<UnallocatedCheck> {
+  // Income only ever raises Unallocated.
+  if (change.kind === "add-transaction" && change.type === "income") return { ok: true };
+  if (change.kind === "remove-transactions" && !change.transactionIds.length) return { ok: true };
+
+  const changed = await loadChangedFigures(db, userId, change);
+  const shortfall = changed.find(({ after }) => after.unallocated < 0);
+
+  if (shortfall) {
+    return { ok: false, bankAccount: shortfall.bankAccount, available: shortfall.available };
   }
 
   return { ok: true };
+}
+
+export type BankAccountChangePreview = {
+  bankAccount: Pick<BankAccount, "id" | "name" | "currency">;
+  before: BankAccountFigures;
+  after: BankAccountFigures;
+}[];
+
+/** Every Bank Account a change touches, with its figures now and once the change is made. */
+export async function previewBankAccountChange(
+  db: DB,
+  userId: string,
+  change: BankAccountChange,
+): Promise<BankAccountChangePreview> {
+  const [changed, current] = await Promise.all([
+    loadChangedFigures(db, userId, change),
+    loadBankAccountTotals(db, {
+      scope: and(eq(bankAccounts.userId, userId), describeChange(db, change).scope),
+    }),
+  ]);
+
+  return changed.map(({ bankAccount, after }) => {
+    const row = current.find((account) => account.id === bankAccount.id);
+
+    return {
+      bankAccount,
+      before: row ? getBankAccountFigures(toTotals(row)) : after,
+      after,
+    };
+  });
 }
