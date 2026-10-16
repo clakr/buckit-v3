@@ -36,9 +36,15 @@ A Transaction a Debt depends on: a `receivable`'s origination, or a repayment lo
 **Allocation**:
 Money earmarked from a Bank Account toward a Bucket. Does not leave the Bank Account's Balance, but reduces its Unallocated amount.
 
-**Debt** (creation implemented; repayments, forgiveness, and deletion not yet built):
+**Debt**:
 A record of money owed to or by another person, referenced only by a free-text counterparty name — there is no dedicated Counterparty/Contact entity. Has a permanent `direction`: `receivable` (owed _to_ the User) or `payable` (owed _by_ the User). Deliberately separate from Bank Account: a Bank Account's Balance can never go negative, so credit/liability/IOU tracking belongs here instead. Touches Bank Account **asymmetrically by direction**: a `receivable` can optionally be tied to a single source Bank Account at creation, immediately debiting it as a real Transaction — picking one is optional, so a receivable can also be recorded with no Bank Account at all (cash lent, or money that moved outside this app); a `payable` never has a Bank Account at creation, which only enters the picture once repayment begins. Either direction's repayments — many, partial, over time — can likewise optionally be tied to a Bank Account: picking one records the repayment as a real Transaction; leaving it empty keeps the repayment a pure record against the Debt, same reasoning as a `payable`'s creation. Has its own `currency` (unlike Transaction/Allocation, which always inherit one from a Bank Account), since a `payable` has no Bank Account to inherit from at creation. Can be manually forgiven — an all-or-nothing, reversible write-off of whatever remains outstanding, independent of how much was actually repaid. See [`docs/specs/debt-module.md`](docs/specs/debt-module.md) for the full resolved design.
 _Avoid_: modeling the counterparty as its own entity (Contact, Person); assuming a `receivable` always has a source Bank Account — it's optional; funding a single Debt from more than one Bank Account at once — considered and rejected as not worth the complexity, see the spec's Further Notes.
+
+**Repayment**:
+A payment against a Debt: an amount, date and optional note. Logged through a Bank Account, its Linked Transaction holds those values and moves the money; logged without one, the repayment holds them itself as a pure record. Readers only ever see the resolved values (`src/modules/debts/figures.server.ts`).
+
+**Outstanding**:
+What's left of a Debt: its amount minus every Repayment. Computed on read, never stored. Goes negative when overpaid, which isn't an error. Forgiving a Debt doesn't change it; the Debt's status says it was written off.
 
 **Goal** (planned, not yet implemented):
 A future entity for target/progress tracking on top of savings (e.g. "$5,000 toward a trip"). Undesigned beyond one open fork: whether it ends up as a column added directly to `buckets` (e.g. a nullable `targetAmount`) or as a wholly separate model/table referencing one or more Buckets. Do not assume either shape until this is actually designed.
