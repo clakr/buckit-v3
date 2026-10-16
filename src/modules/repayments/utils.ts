@@ -1,5 +1,8 @@
 const DAY_IN_MS = 24 * 60 * 60 * 1000;
 
+export const REPAYMENT_BEFORE_DEBT_MESSAGE =
+  "A repayment can't be dated before its debt was recorded.";
+
 /**
  * Server-side backstop for "a repayment can't predate its Debt". The dialogs compare
  * calendar days in the user's timezone, which the server doesn't know. Whatever the

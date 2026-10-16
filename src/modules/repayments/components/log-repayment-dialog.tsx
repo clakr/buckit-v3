@@ -9,6 +9,7 @@ import type { Debt } from "#/db/schema";
 import type { DialogState } from "#/lib/types";
 
 import { Alert, AlertDescription, AlertTitle } from "#/components/ui/alert";
+import { Button } from "#/components/ui/button";
 import {
   Dialog,
   DialogContent,
@@ -73,8 +74,11 @@ export function LogRepaymentDialog() {
     note: "",
   };
 
-  // @todo: handle error
-  const { status, data: bankAccounts } = useQuery({
+  const {
+    status,
+    data: bankAccounts,
+    refetch,
+  } = useQuery({
     ...bankAccountsQueryOption({ currency: debt?.currency }),
     enabled: isOpen,
   });
@@ -194,43 +198,52 @@ export function LogRepaymentDialog() {
                         Optional — leave empty if this isn't a real money movement.
                       </FieldDescription>
 
-                      <Select
-                        items={items}
-                        value={field.state.value ?? ""}
-                        onValueChange={(value) => field.handleChange((value as string) || null)}
-                        disabled={disabled}
-                      >
-                        <SelectTrigger
-                          id={id}
-                          className="w-full"
-                          onBlur={field.handleBlur}
-                          aria-invalid={isInvalid ? true : undefined}
-                          aria-labelledby={isInvalid ? errorId : undefined}
+                      {status === "error" ? (
+                        <>
+                          <FieldError>Could not load your {debt.currency} accounts.</FieldError>
+                          <Button type="button" variant="outline" onClick={() => refetch()}>
+                            Retry
+                          </Button>
+                        </>
+                      ) : (
+                        <Select
+                          items={items}
+                          value={field.state.value ?? ""}
+                          onValueChange={(value) => field.handleChange((value as string) || null)}
+                          disabled={disabled}
                         >
-                          <SelectValue placeholder="No bank account" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectGroup>
-                            {bankAccounts?.map((account) => {
-                              const { balance, unallocated } = account;
+                          <SelectTrigger
+                            id={id}
+                            className="w-full"
+                            onBlur={field.handleBlur}
+                            aria-invalid={isInvalid ? true : undefined}
+                            aria-labelledby={isInvalid ? errorId : undefined}
+                          >
+                            <SelectValue placeholder="No bank account" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectGroup>
+                              {bankAccounts?.map((account) => {
+                                const { balance, unallocated } = account;
 
-                              return (
-                                <SelectItem key={account.id} value={account.id}>
-                                  <div className="flex w-full flex-col items-start gap-0.5">
-                                    <span className="font-medium">{account.name}</span>
-                                    <BankAccountFigures
-                                      balance={balance}
-                                      unallocated={unallocated}
-                                      currency={account.currency}
-                                      className="text-[11px]"
-                                    />
-                                  </div>
-                                </SelectItem>
-                              );
-                            })}
-                          </SelectGroup>
-                        </SelectContent>
-                      </Select>
+                                return (
+                                  <SelectItem key={account.id} value={account.id}>
+                                    <div className="flex w-full flex-col items-start gap-0.5">
+                                      <span className="font-medium">{account.name}</span>
+                                      <BankAccountFigures
+                                        balance={balance}
+                                        unallocated={unallocated}
+                                        currency={account.currency}
+                                        className="text-[11px]"
+                                      />
+                                    </div>
+                                  </SelectItem>
+                                );
+                              })}
+                            </SelectGroup>
+                          </SelectContent>
+                        </Select>
+                      )}
 
                       {selected &&
                         (selected.balance === selected.unallocated ? (

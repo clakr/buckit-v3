@@ -4,7 +4,10 @@ import type { DB } from "#/db";
 
 import { repayments, transactions, type Debt, type Transaction } from "#/db/schema";
 import { checkUnallocated } from "#/modules/bank-accounts/figures.server";
-import { isRepaymentDateBeforeDebt } from "#/modules/repayments/utils";
+import {
+  isRepaymentDateBeforeDebt,
+  REPAYMENT_BEFORE_DEBT_MESSAGE,
+} from "#/modules/repayments/utils";
 
 // A Linked Transaction is one a Debt depends on: a receivable's origination, or a repayment logged
 // through a Bank Account. The Debt fixes parts of it, whichever page it's edited or deleted from.
@@ -75,7 +78,7 @@ function checkLinkRules(
     return `This transaction funded ${link.debt.name}'s debt, so its amount can't change. To correct it, delete the debt and record it again.`;
 
   if (link.kind === "repayment" && isRepaymentDateBeforeDebt(edit.date, link.debt.date))
-    return "A repayment can't be dated before its debt was recorded.";
+    return REPAYMENT_BEFORE_DEBT_MESSAGE;
 
   return null;
 }

@@ -18,7 +18,7 @@ import { checkTransactionEdit, updateTransaction } from "#/modules/transactions/
 import { verifyUserDebtMiddleware } from "../debts/middlewares";
 import { getLinkedTransactionType } from "../debts/utils";
 import { editRepaymentSchema, logRepaymentSchema } from "./schemas";
-import { isRepaymentDateBeforeDebt } from "./utils";
+import { isRepaymentDateBeforeDebt, REPAYMENT_BEFORE_DEBT_MESSAGE } from "./utils";
 
 export const getRepaymentDebt = createServerFn({
   method: "GET",
@@ -32,7 +32,7 @@ export const getRepaymentDebt = createServerFn({
       columns: { direction: true, date: true },
     });
 
-    if (!debt) throw new Error("No debt found.");
+    if (!debt) throw new NotFoundError("This debt doesn't exist or may have been deleted.");
 
     return debt;
   });
@@ -140,7 +140,7 @@ export const logRepayment = createServerFn({
 
     const debt = await getRepaymentDebt({ data: { debtId: data.debtId } });
     if (isRepaymentDateBeforeDebt(data.date, debt.date)) {
-      throw new Error("A repayment can't be dated before its debt was recorded.");
+      throw new ConflictError(REPAYMENT_BEFORE_DEBT_MESSAGE);
     }
 
     const amount = currencyCodec.decode(data.amount);
@@ -248,10 +248,12 @@ export const editRepayment = createServerFn({
       },
     });
     // `debt` is only nullable in the relation's type; `debtId` is NOT NULL.
-    if (!repayment?.debt) throw new Error("No repayment found.");
+    if (!repayment?.debt) {
+      throw new NotFoundError("This repayment doesn't exist or may have been deleted.");
+    }
 
     if (isRepaymentDateBeforeDebt(data.date, repayment.debt.date)) {
-      throw new Error("A repayment can't be dated before its debt was recorded.");
+      throw new ConflictError(REPAYMENT_BEFORE_DEBT_MESSAGE);
     }
 
     if (!repayment.transaction) {
