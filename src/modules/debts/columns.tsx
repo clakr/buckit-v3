@@ -63,7 +63,10 @@ export const INDEX_COLUMNS: ColumnDef<Awaited<ReturnType<typeof getDebts>>[numbe
     },
   },
   {
-    accessorKey: "lastRepaymentDate",
+    id: "lastRepaymentDate",
+    // `undefined`, not `null`, so a Debt with no repayments stays last whichever way it's sorted.
+    accessorFn: (debt) => debt.lastRepaymentDate ?? undefined,
+    sortUndefined: "last",
     header: ({ column }) => (
       <SortableTableHead column={column}>Last Repayment Date</SortableTableHead>
     ),
