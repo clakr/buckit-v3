@@ -1,4 +1,3 @@
-import { IconAlertCircle } from "@tabler/icons-react";
 import { format, isBefore, startOfDay } from "date-fns";
 import z from "zod";
 import { create } from "zustand";
@@ -8,7 +7,6 @@ import type { Repayment } from "#/db/schema";
 import type { DialogState } from "#/lib/types";
 import type { getDebt } from "#/modules/debts/functions";
 
-import { Alert, AlertDescription, AlertTitle } from "#/components/ui/alert";
 import {
   Dialog,
   DialogContent,
@@ -22,7 +20,6 @@ import { useAppForm } from "#/integrations/tanstack-form";
 import { currencyCodec } from "#/lib/codecs";
 import { confirm } from "#/stores/use-confirm";
 
-import { validateEditRepayment } from "../functions";
 import { useEditRepaymentMutation } from "../mutations";
 import { editRepaymentSchema } from "../schemas";
 
@@ -73,20 +70,6 @@ export function EditRepaymentDialog() {
     defaultValues,
     validators: {
       onChange: editRepaymentSchema,
-      onSubmitAsync: async ({ value }) => {
-        try {
-          const { isValid, message } = await validateEditRepayment({ data: value });
-
-          if (!isValid) return message;
-
-          return undefined;
-        } catch (error) {
-          console.error(error);
-
-          // A thrown validator would otherwise be an uncaught rejection that crashes the app.
-          return "Something went wrong while checking this. Please try again.";
-        }
-      },
     },
     onSubmit: async ({ value: data }) => {
       try {
@@ -172,17 +155,6 @@ export function EditRepaymentDialog() {
               <form.AppField name="note">
                 {(field) => <field.Textarea label="Note (optional)" placeholder="Add a note..." />}
               </form.AppField>
-              <form.Subscribe selector={(state) => state.errorMap.onSubmit}>
-                {(error) =>
-                  error ? (
-                    <Alert variant="destructive" className="max-w-md">
-                      <IconAlertCircle />
-                      <AlertTitle>Edit Repayment failed</AlertTitle>
-                      <AlertDescription>{error}</AlertDescription>
-                    </Alert>
-                  ) : null
-                }
-              </form.Subscribe>
             </FieldGroup>
           </form>
         </div>

@@ -1,4 +1,3 @@
-import { IconAlertCircle } from "@tabler/icons-react";
 import { useQuery } from "@tanstack/react-query";
 import { format, isBefore, startOfDay } from "date-fns";
 import z from "zod";
@@ -8,7 +7,6 @@ import { useShallow } from "zustand/react/shallow";
 import type { Debt } from "#/db/schema";
 import type { DialogState } from "#/lib/types";
 
-import { Alert, AlertDescription, AlertTitle } from "#/components/ui/alert";
 import { Button } from "#/components/ui/button";
 import {
   Dialog,
@@ -32,11 +30,12 @@ import { currencyCodec } from "#/lib/codecs";
 import { formatCurrency } from "#/lib/utils";
 import { BankAccountFigures } from "#/modules/bank-accounts/components/bank-account-figures";
 import { bankAccountsQueryOption } from "#/modules/bank-accounts/query-options";
+import { getLinkedTransactionType } from "#/modules/debts/utils";
 import { confirm } from "#/stores/use-confirm";
 
-import { validateLogRepaymentBalance, validateLogRepaymentCurrency } from "../functions";
 import { useLogRepaymentMutation } from "../mutations";
 import { logRepaymentSchema } from "../schemas";
+import { describeInsufficientRepaymentAccount } from "../utils";
 
 type StoreState = DialogState & {
   debt: Debt | null;
@@ -87,22 +86,6 @@ export function LogRepaymentDialog() {
     defaultValues,
     validators: {
       onChange: logRepaymentSchema,
-      onSubmitAsync: async ({ value }) => {
-        try {
-          const currency = await validateLogRepaymentCurrency({ data: value });
-          if (!currency.isValid) return currency.message;
-
-          const balance = await validateLogRepaymentBalance({ data: value });
-          if (!balance.isValid) return balance.message;
-
-          return undefined;
-        } catch (error) {
-          console.error(error);
-
-          // A thrown validator would otherwise be an uncaught rejection that crashes the app.
-          return "Something went wrong while checking this. Please try again.";
-        }
-      },
     },
     onSubmit: async ({ value: data }) => {
       if (debt?.forgivenAt) {
@@ -148,6 +131,9 @@ export function LogRepaymentDialog() {
 
   if (!debt) return null;
 
+  // Money only leaves the account on a payable; a receivable's repayment can't overdraw it.
+  const isPayingOut = getLinkedTransactionType(debt.direction, "repayment") === "expense";
+
   return (
     <Dialog open={isOpen} onOpenChange={handleOnOpenChange}>
       <DialogContent>
@@ -165,7 +151,30 @@ export function LogRepaymentDialog() {
             }}
           >
             <FieldGroup>
-              <form.AppField name="amount">
+              <form.AppField
+                name="amount"
+                validators={{
+                  // The account can be picked after the amount is in.
+                  onChangeListenTo: ["bankAccountId"],
+                  onChange: ({ value }) => {
+                    if (!isPayingOut) return undefined;
+
+                    const bankAccount = bankAccounts?.find(
+                      (account) => account.id === form.getFieldValue("bankAccountId"),
+                    );
+                    if (!bankAccount) return undefined;
+
+                    return currencyCodec.decode(Number(value)) > bankAccount.unallocated
+                      ? {
+                          message: describeInsufficientRepaymentAccount({
+                            bankAccount,
+                            available: bankAccount.unallocated,
+                          }),
+                        }
+                      : undefined;
+                  },
+                }}
+              >
                 {(field) => (
                   <field.AmountInput
                     label="Amount"
@@ -293,17 +302,6 @@ export function LogRepaymentDialog() {
               <form.AppField name="note">
                 {(field) => <field.Textarea label="Note (optional)" placeholder="Add a note..." />}
               </form.AppField>
-              <form.Subscribe selector={(state) => state.errorMap.onSubmit}>
-                {(error) =>
-                  error ? (
-                    <Alert variant="destructive" className="max-w-md">
-                      <IconAlertCircle />
-                      <AlertTitle>Log Repayment failed</AlertTitle>
-                      <AlertDescription>{error}</AlertDescription>
-                    </Alert>
-                  ) : null
-                }
-              </form.Subscribe>
             </FieldGroup>
           </form>
         </div>
