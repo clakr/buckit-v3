@@ -16,6 +16,7 @@ import { findOwnedBankAccount } from "#/modules/bank-accounts/ownership.server";
 import { checkTransactionEdit, updateTransaction } from "#/modules/transactions/linked.server";
 
 import { verifyUserDebtMiddleware } from "../debts/middlewares";
+import { getLinkedTransactionType } from "../debts/utils";
 import { editRepaymentSchema, logRepaymentSchema } from "./schemas";
 import { isRepaymentDateBeforeDebt } from "./utils";
 
@@ -90,7 +91,7 @@ async function checkLogRepaymentBalance(
   const check = await checkUnallocated(db, userId, {
     kind: "add-transaction",
     bankAccountId: data.bankAccountId,
-    type: debt.direction === "receivable" ? "income" : "expense",
+    type: getLinkedTransactionType(debt.direction, "repayment"),
     amount: currencyCodec.decode(data.amount),
   });
 
@@ -169,7 +170,7 @@ export const logRepayment = createServerFn({
       return repaymentRows[0];
     }
 
-    const type = debt.direction === "receivable" ? "income" : "expense";
+    const type = getLinkedTransactionType(debt.direction, "repayment");
 
     const transactionId = uuidv7();
 

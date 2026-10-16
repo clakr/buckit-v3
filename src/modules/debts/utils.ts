@@ -1,7 +1,20 @@
-import type { BankAccount, Debt, Repayment } from "#/db/schema";
+import type { BankAccount, Debt, Repayment, Transaction } from "#/db/schema";
 
 import { currencyCodec } from "#/lib/codecs";
 import { formatCurrency } from "#/lib/utils";
+
+/**
+ * The type a Linked Transaction always has, fixed by its Debt: a receivable's origination is money
+ * lent out; a repayment is money coming back on a receivable, or going out on a payable.
+ */
+export function getLinkedTransactionType(
+  direction: Debt["direction"],
+  kind: "origination" | "repayment",
+): Transaction["type"] {
+  if (kind === "origination") return "expense";
+
+  return direction === "receivable" ? "income" : "expense";
+}
 
 // Every Transaction a Debt links to: its origination (if any) plus each repayment's.
 export function getDebtLinkedTransactionIds({

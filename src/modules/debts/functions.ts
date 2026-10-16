@@ -18,7 +18,11 @@ import { deleteDebtSchema, editDebtSchema, recordDebtSchema } from "#/modules/de
 
 import { getDebtsWithFigures } from "./figures.server";
 import { verifyUserDebtMiddleware } from "./middlewares";
-import { describeDeleteTransactionsShortfall, describeInsufficientSourceAccount } from "./utils";
+import {
+  describeDeleteTransactionsShortfall,
+  describeInsufficientSourceAccount,
+  getLinkedTransactionType,
+} from "./utils";
 
 export const getDebts = createServerFn({
   method: "GET",
@@ -39,11 +43,11 @@ async function checkDebtSourceBankAccount(
   // An unusable source account isn't a shortfall: wrong currency, missing, or not the user's.
   if (!account) throw new NotFoundError("The source account is invalid for this debt.");
 
-  // Funding a receivable is an `expense`, under the same never-negative rule as any other.
+  // Funding a receivable takes money out, under the same never-negative rule as any other.
   const check = await checkUnallocated(db, userId, {
     kind: "add-transaction",
     bankAccountId: data.bankAccountId,
-    type: "expense",
+    type: getLinkedTransactionType("receivable", "origination"),
     amount: data.amount,
   });
 
@@ -98,7 +102,7 @@ export const recordDebt = createServerFn({
       db.insert(transactions).values({
         id: transactionId,
         bankAccountId: data.bankAccountId,
-        type: "expense",
+        type: getLinkedTransactionType(data.direction, "origination"),
         amount,
         date: data.date,
         note: `Loan to "${data.name}"`,
