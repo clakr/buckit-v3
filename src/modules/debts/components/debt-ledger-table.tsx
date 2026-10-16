@@ -114,7 +114,7 @@ export function DebtLedgerTable({ debt, onLogRepayment }: Props) {
                 {formatDebtAmount(Math.max(entry.balance, 0))}
               </TableCell>
               <TableCell className="text-end">
-                <RepaymentActionsDropdownMenu debt={debt} repaymentId={entry.id} />
+                <RepaymentActionsDropdownMenu debtId={debt.id} repaymentId={entry.id} />
               </TableCell>
             </TableRow>
           ))}

@@ -7,6 +7,7 @@ import { useShallow } from "zustand/react/shallow";
 import type { Debt } from "#/db/schema";
 import type { DialogState } from "#/lib/types";
 
+import { StateTemplate } from "#/components/state-template";
 import { Button } from "#/components/ui/button";
 import {
   Dialog,
@@ -27,9 +28,11 @@ import {
 } from "#/components/ui/select";
 import { useAppForm } from "#/integrations/tanstack-form";
 import { currencyCodec } from "#/lib/codecs";
+import { NotFoundError } from "#/lib/errors";
 import { formatCurrency } from "#/lib/utils";
 import { BankAccountFigures } from "#/modules/bank-accounts/components/bank-account-figures";
 import { bankAccountsQueryOption } from "#/modules/bank-accounts/query-options";
+import { debtQueryOption } from "#/modules/debts/query-options";
 import { getLinkedTransactionType } from "#/modules/debts/utils";
 import { confirm } from "#/stores/use-confirm";
 
@@ -38,8 +41,8 @@ import { logRepaymentSchema } from "../schemas";
 import { describeInsufficientRepaymentAccount } from "../utils";
 
 type StoreState = DialogState & {
-  debt: Debt | null;
-  setDebt: (debt: Debt) => void;
+  debtId: Debt["id"] | null;
+  setDebtId: (debtId: Debt["id"]) => void;
 };
 
 export const useLogRepaymentDialogStore = create<StoreState>()((set) => ({
@@ -48,20 +51,30 @@ export const useLogRepaymentDialogStore = create<StoreState>()((set) => ({
   closeDialog: () => set({ isOpen: false }),
   toggleDialog: () => set((state) => ({ isOpen: !state.isOpen })),
 
-  debt: null,
-  setDebt: (debt) => set({ debt }),
+  debtId: null,
+  setDebtId: (debtId) => set({ debtId }),
 }));
 
 export function LogRepaymentDialog() {
-  const { isOpen, closeDialog, toggleDialog, debt } = useLogRepaymentDialogStore(
+  const { isOpen, closeDialog, toggleDialog, debtId } = useLogRepaymentDialogStore(
     useShallow((state) => ({
       isOpen: state.isOpen,
       closeDialog: state.closeDialog,
       toggleDialog: state.toggleDialog,
 
-      debt: state.debt,
+      debtId: state.debtId,
     })),
   );
+
+  const {
+    status: debtStatus,
+    error: debtError,
+    refetch: refetchDebt,
+    data: debt,
+  } = useQuery({
+    ...debtQueryOption(debtId ?? ""),
+    enabled: isOpen,
+  });
 
   const mutation = useLogRepaymentMutation();
 
@@ -79,7 +92,7 @@ export function LogRepaymentDialog() {
     refetch,
   } = useQuery({
     ...bankAccountsQueryOption({ currency: debt?.currency }),
-    enabled: isOpen,
+    enabled: isOpen && debt !== undefined,
   });
 
   const form = useAppForm({
@@ -88,7 +101,7 @@ export function LogRepaymentDialog() {
       onChange: logRepaymentSchema,
     },
     onSubmit: async ({ value: data }) => {
-      if (debt?.forgivenAt) {
+      if (debt?.status === "forgiven") {
         const confirmed = await confirm(`Reopen "${debt.name}"?`, {
           description:
             "This debt was forgiven. Logging a repayment reopens it, and the forgiveness is lifted.",
@@ -129,187 +142,221 @@ export function LogRepaymentDialog() {
     toggleDialog();
   }
 
-  if (!debt) return null;
-
   // Money only leaves the account on a payable; a receivable's repayment can't overdraw it.
-  const isPayingOut = getLinkedTransactionType(debt.direction, "repayment") === "expense";
+  const isPayingOut =
+    debt !== undefined && getLinkedTransactionType(debt.direction, "repayment") === "expense";
 
   return (
     <Dialog open={isOpen} onOpenChange={handleOnOpenChange}>
       <DialogContent>
         <DialogHeader>
           <DialogTitle>Log Repayment</DialogTitle>
-          <DialogDescription>Record a payment against "{debt.name}".</DialogDescription>
+          {debt ? (
+            <DialogDescription>Record a payment against "{debt.name}".</DialogDescription>
+          ) : null}
         </DialogHeader>
         <div>
-          <form
-            id={form.formId}
-            onSubmit={(e) => {
-              e.preventDefault();
-              e.stopPropagation();
-              form.handleSubmit();
-            }}
-          >
-            <FieldGroup>
-              <form.AppField
-                name="amount"
-                validators={{
-                  // The account can be picked after the amount is in.
-                  onChangeListenTo: ["bankAccountId"],
-                  onChange: ({ value }) => {
-                    if (!isPayingOut) return undefined;
+          {debtStatus === "pending" ? (
+            <StateTemplate
+              state="loading"
+              title="Loading debt"
+              description="Fetching debt details..."
+            />
+          ) : null}
+          {debtStatus === "error" && debtError instanceof NotFoundError ? (
+            <StateTemplate
+              state="error"
+              title="Debt not found"
+              description={debtError.message}
+              content={
+                <Button variant="secondary" onClick={closeDialog}>
+                  Close
+                </Button>
+              }
+            />
+          ) : null}
+          {debtStatus === "error" && !(debtError instanceof NotFoundError) ? (
+            <StateTemplate
+              state="error"
+              title="Could not load debt"
+              description="We weren't able to retrieve this debt. Please check your connection and try again."
+              content={<Button onClick={() => refetchDebt()}>Retry</Button>}
+            />
+          ) : null}
+          {debtStatus === "success" ? (
+            <form
+              id={form.formId}
+              onSubmit={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                form.handleSubmit();
+              }}
+            >
+              <FieldGroup>
+                <form.AppField
+                  name="amount"
+                  validators={{
+                    // The account can be picked after the amount is in.
+                    onChangeListenTo: ["bankAccountId"],
+                    onChange: ({ value }) => {
+                      if (!isPayingOut) return undefined;
 
-                    const bankAccount = bankAccounts?.find(
-                      (account) => account.id === form.getFieldValue("bankAccountId"),
-                    );
-                    if (!bankAccount) return undefined;
+                      const bankAccount = bankAccounts?.find(
+                        (account) => account.id === form.getFieldValue("bankAccountId"),
+                      );
+                      if (!bankAccount) return undefined;
 
-                    return currencyCodec.decode(Number(value)) > bankAccount.unallocated
-                      ? {
-                          message: describeInsufficientRepaymentAccount({
-                            bankAccount,
-                            available: bankAccount.unallocated,
-                          }),
-                        }
-                      : undefined;
-                  },
-                }}
-              >
-                {(field) => (
-                  <field.AmountInput
-                    label="Amount"
-                    min={0.01}
-                    step={0.01}
-                    required
-                    placeholder="0.00"
-                    currency={debt.currency}
-                  />
-                )}
-              </form.AppField>
-              <form.AppField name="bankAccountId">
-                {(field) => {
-                  const isInvalid = field.state.meta.isTouched && !field.state.meta.isValid;
+                      return currencyCodec.decode(Number(value)) > bankAccount.unallocated
+                        ? {
+                            message: describeInsufficientRepaymentAccount({
+                              bankAccount,
+                              available: bankAccount.unallocated,
+                            }),
+                          }
+                        : undefined;
+                    },
+                  }}
+                >
+                  {(field) => (
+                    <field.AmountInput
+                      label="Amount"
+                      min={0.01}
+                      step={0.01}
+                      required
+                      placeholder="0.00"
+                      currency={debt.currency}
+                    />
+                  )}
+                </form.AppField>
+                <form.AppField name="bankAccountId">
+                  {(field) => {
+                    const isInvalid = field.state.meta.isTouched && !field.state.meta.isValid;
 
-                  const id = field.name;
-                  const errorId = `${id}-error`;
+                    const id = field.name;
+                    const errorId = `${id}-error`;
 
-                  const disabled =
-                    status !== "success" || !bankAccounts || bankAccounts.length === 0;
+                    const disabled =
+                      status !== "success" || !bankAccounts || bankAccounts.length === 0;
 
-                  const items = bankAccounts?.map((a) => ({ value: a.id, label: a.name }));
+                    const items = bankAccounts?.map((a) => ({ value: a.id, label: a.name }));
 
-                  const selected = bankAccounts?.find((a) => a.id === field.state.value);
+                    const selected = bankAccounts?.find((a) => a.id === field.state.value);
 
-                  return (
-                    <Field data-invalid={isInvalid}>
-                      <FieldLabel htmlFor={id}>Bank Account</FieldLabel>
-                      <FieldDescription>
-                        Optional — leave empty if this isn't a real money movement.
-                      </FieldDescription>
+                    return (
+                      <Field data-invalid={isInvalid}>
+                        <FieldLabel htmlFor={id}>Bank Account</FieldLabel>
+                        <FieldDescription>
+                          Optional — leave empty if this isn't a real money movement.
+                        </FieldDescription>
 
-                      {status === "error" ? (
-                        <>
-                          <FieldError>Could not load your {debt.currency} accounts.</FieldError>
-                          <Button type="button" variant="outline" onClick={() => refetch()}>
-                            Retry
-                          </Button>
-                        </>
-                      ) : (
-                        <Select
-                          items={items}
-                          value={field.state.value ?? ""}
-                          onValueChange={(value) => field.handleChange((value as string) || null)}
-                          disabled={disabled}
-                        >
-                          <SelectTrigger
-                            id={id}
-                            className="w-full"
-                            onBlur={field.handleBlur}
-                            aria-invalid={isInvalid ? true : undefined}
-                            aria-labelledby={isInvalid ? errorId : undefined}
-                          >
-                            <SelectValue placeholder="No bank account" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectGroup>
-                              {bankAccounts?.map((account) => {
-                                const { balance, unallocated } = account;
-
-                                return (
-                                  <SelectItem key={account.id} value={account.id}>
-                                    <div className="flex w-full flex-col items-start gap-0.5">
-                                      <span className="font-medium">{account.name}</span>
-                                      <BankAccountFigures
-                                        balance={balance}
-                                        unallocated={unallocated}
-                                        currency={account.currency}
-                                        className="text-[11px]"
-                                      />
-                                    </div>
-                                  </SelectItem>
-                                );
-                              })}
-                            </SelectGroup>
-                          </SelectContent>
-                        </Select>
-                      )}
-
-                      {selected &&
-                        (selected.balance === selected.unallocated ? (
-                          <FieldDescription>
-                            Balance{" "}
-                            <span className="font-semibold">
-                              {formatCurrency(currencyCodec.encode(selected.balance), {
-                                currency: selected.currency,
-                              })}
-                            </span>
-                          </FieldDescription>
+                        {status === "error" ? (
+                          <>
+                            <FieldError>Could not load your {debt.currency} accounts.</FieldError>
+                            <Button type="button" variant="outline" onClick={() => refetch()}>
+                              Retry
+                            </Button>
+                          </>
                         ) : (
-                          <FieldDescription>
-                            Balance{" "}
-                            <span className="font-semibold">
-                              {formatCurrency(currencyCodec.encode(selected.balance), {
-                                currency: selected.currency,
-                              })}
-                            </span>{" "}
-                            · Unallocated{" "}
-                            <span className="font-semibold">
-                              {formatCurrency(currencyCodec.encode(selected.unallocated), {
-                                currency: selected.currency,
-                              })}
-                            </span>
-                          </FieldDescription>
-                        ))}
+                          <Select
+                            items={items}
+                            value={field.state.value ?? ""}
+                            onValueChange={(value) => field.handleChange((value as string) || null)}
+                            disabled={disabled}
+                          >
+                            <SelectTrigger
+                              id={id}
+                              className="w-full"
+                              onBlur={field.handleBlur}
+                              aria-invalid={isInvalid ? true : undefined}
+                              aria-labelledby={isInvalid ? errorId : undefined}
+                            >
+                              <SelectValue placeholder="No bank account" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectGroup>
+                                {bankAccounts?.map((account) => {
+                                  const { balance, unallocated } = account;
 
-                      {isInvalid && <FieldError id={errorId} errors={field.state.meta.errors} />}
-                    </Field>
-                  );
-                }}
-              </form.AppField>
-              <form.AppField
-                name="date"
-                validators={{
-                  // By calendar day, so a repayment on the day the Debt was recorded is fine
-                  // whatever time of day either was saved with.
-                  onChange: logRepaymentSchema.shape.date.refine(
-                    (value) => !isBefore(value, startOfDay(debt.date)),
-                    `Can't be before the debt was recorded (${format(debt.date, "PPP")}).`,
-                  ),
-                }}
-              >
-                {(field) => <field.Datepicker label="Date" disabled={{ before: debt.date }} />}
-              </form.AppField>
-              <form.AppField name="note">
-                {(field) => <field.Textarea label="Note (optional)" placeholder="Add a note..." />}
-              </form.AppField>
-            </FieldGroup>
-          </form>
+                                  return (
+                                    <SelectItem key={account.id} value={account.id}>
+                                      <div className="flex w-full flex-col items-start gap-0.5">
+                                        <span className="font-medium">{account.name}</span>
+                                        <BankAccountFigures
+                                          balance={balance}
+                                          unallocated={unallocated}
+                                          currency={account.currency}
+                                          className="text-[11px]"
+                                        />
+                                      </div>
+                                    </SelectItem>
+                                  );
+                                })}
+                              </SelectGroup>
+                            </SelectContent>
+                          </Select>
+                        )}
+
+                        {selected &&
+                          (selected.balance === selected.unallocated ? (
+                            <FieldDescription>
+                              Balance{" "}
+                              <span className="font-semibold">
+                                {formatCurrency(currencyCodec.encode(selected.balance), {
+                                  currency: selected.currency,
+                                })}
+                              </span>
+                            </FieldDescription>
+                          ) : (
+                            <FieldDescription>
+                              Balance{" "}
+                              <span className="font-semibold">
+                                {formatCurrency(currencyCodec.encode(selected.balance), {
+                                  currency: selected.currency,
+                                })}
+                              </span>{" "}
+                              · Unallocated{" "}
+                              <span className="font-semibold">
+                                {formatCurrency(currencyCodec.encode(selected.unallocated), {
+                                  currency: selected.currency,
+                                })}
+                              </span>
+                            </FieldDescription>
+                          ))}
+
+                        {isInvalid && <FieldError id={errorId} errors={field.state.meta.errors} />}
+                      </Field>
+                    );
+                  }}
+                </form.AppField>
+                <form.AppField
+                  name="date"
+                  validators={{
+                    // By calendar day, so a repayment on the day the Debt was recorded is fine
+                    // whatever time of day either was saved with.
+                    onChange: logRepaymentSchema.shape.date.refine(
+                      (value) => !isBefore(value, startOfDay(debt.date)),
+                      `Can't be before the debt was recorded (${format(debt.date, "PPP")}).`,
+                    ),
+                  }}
+                >
+                  {(field) => <field.Datepicker label="Date" disabled={{ before: debt.date }} />}
+                </form.AppField>
+                <form.AppField name="note">
+                  {(field) => (
+                    <field.Textarea label="Note (optional)" placeholder="Add a note..." />
+                  )}
+                </form.AppField>
+              </FieldGroup>
+            </form>
+          ) : null}
         </div>
-        <DialogFooter>
-          <form.AppForm>
-            <form.Button form={form.formId}>Log Repayment</form.Button>
-          </form.AppForm>
-        </DialogFooter>
+        {debtStatus === "success" ? (
+          <DialogFooter>
+            <form.AppForm>
+              <form.Button form={form.formId}>Log Repayment</form.Button>
+            </form.AppForm>
+          </DialogFooter>
+        ) : null}
       </DialogContent>
     </Dialog>
   );

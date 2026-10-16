@@ -71,7 +71,7 @@ function RouteComponent() {
   function handleOpenLogRepaymentDialog() {
     const state = useLogRepaymentDialogStore.getState();
 
-    state.setDebt(debt);
+    state.setDebtId(debt.id);
     state.openDialog();
   }
 

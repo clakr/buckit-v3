@@ -1,7 +1,6 @@
 import { IconDots, IconEdit } from "@tabler/icons-react";
 
-import type { Repayment } from "#/db/schema";
-import type { getDebt } from "#/modules/debts/functions";
+import type { Debt, Repayment } from "#/db/schema";
 
 import { Button } from "#/components/ui/button";
 import {
@@ -15,15 +14,15 @@ import {
 import { useEditRepaymentDialogStore } from "./edit-repayment-dialog";
 
 type Props = {
-  debt: NonNullable<Awaited<ReturnType<typeof getDebt>>>;
+  debtId: Debt["id"];
   repaymentId: Repayment["id"];
 };
 
-export function RepaymentActionsDropdownMenu({ debt, repaymentId }: Props) {
+export function RepaymentActionsDropdownMenu({ debtId, repaymentId }: Props) {
   function handleOpenEditRepaymentDialog() {
     const state = useEditRepaymentDialogStore.getState();
 
-    state.setRepayment(debt, repaymentId);
+    state.setRepayment(debtId, repaymentId);
     state.openDialog();
   }
 
