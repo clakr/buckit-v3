@@ -28,15 +28,13 @@ import {
 } from "#/components/ui/field";
 import { useAppForm } from "#/integrations/tanstack-form";
 import { NotFoundError } from "#/lib/errors";
-import { bankAccountsQueryOption } from "#/modules/bank-accounts/query-options";
 import {
   DebtDeletionSummary,
-  findDeleteTransactionsShortfall,
   getDebtDeletionDescription,
-  getDebtLinkedTransactions,
+  getLinkedBankAccountsLabel,
 } from "#/modules/debts/components/debt-deletion-summary";
 import { useDeleteDebtMutation } from "#/modules/debts/mutations";
-import { debtQueryOption } from "#/modules/debts/query-options";
+import { debtDeletionImpactQueryOption } from "#/modules/debts/query-options";
 import { deleteDebtSchema } from "#/modules/debts/schemas";
 import { describeDeleteTransactionsShortfall } from "#/modules/debts/utils";
 
@@ -70,39 +68,25 @@ export function DeleteDebtDialog() {
 
   // Disabled while deleting: the global post-mutation invalidation would otherwise refetch the
   // just-deleted record and flash "not found" before the dialog closes.
-  const debtQuery = useQuery({
-    ...debtQueryOption(debtId ?? ""),
+  const {
+    status,
+    error,
+    refetch,
+    data: impact,
+  } = useQuery({
+    ...debtDeletionImpactQueryOption(debtId ?? ""),
     enabled: isOpen && !mutation.isPending,
   });
-  // The summary needs each linked account's current balance.
-  const bankAccountsQuery = useQuery({
-    ...bankAccountsQueryOption(),
-    enabled: isOpen,
-  });
-
-  const debt = debtQuery.data;
-  const bankAccounts = bankAccountsQuery.data ?? [];
-  const statuses = [debtQuery.status, bankAccountsQuery.status];
-  const status = statuses.includes("error")
-    ? "error"
-    : statuses.includes("pending")
-      ? "pending"
-      : "success";
-
-  function refetch() {
-    if (debtQuery.isError) debtQuery.refetch();
-    if (bankAccountsQuery.isError) bankAccountsQuery.refetch();
-  }
 
   const deleteSchema = z.object({
     ...deleteDebtSchema.shape,
-    name: z.literal(debt?.name ?? "", {
+    name: z.literal(impact?.debt.name ?? "", {
       error: "Doesn't match the name.",
     }),
   });
 
   const defaultValues: z.input<typeof deleteSchema> = {
-    debtId: debt?.id ?? "",
+    debtId: impact?.debt.id ?? "",
     deleteTransactions: false,
     name: "",
   };
@@ -136,11 +120,7 @@ export function DeleteDebtDialog() {
     toggleDialog();
   }
 
-  const linkedTransactions = debt ? getDebtLinkedTransactions(debt) : [];
-  const totalLinkedTransactions = linkedTransactions.length;
-  const linkedBankAccountsLabel = [...new Set(linkedTransactions.map((t) => t.bankAccount.name))]
-    .map((name) => `"${name}"`)
-    .join(", ");
+  const totalLinkedTransactions = impact?.linkedTransactionIds.length ?? 0;
 
   return (
     <Dialog open={isOpen} onOpenChange={handleOnOpenChange}>
@@ -148,8 +128,8 @@ export function DeleteDebtDialog() {
         <DialogHeader>
           <DialogTitle>Delete Debt?</DialogTitle>
           <DialogDescription>
-            {status === "success" && debt
-              ? getDebtDeletionDescription({ debt, deleteTransactions })
+            {status === "success"
+              ? getDebtDeletionDescription({ impact, deleteTransactions })
               : "Permanently delete this debt and its repayments. This cannot be undone."}
           </DialogDescription>
         </DialogHeader>
@@ -158,14 +138,14 @@ export function DeleteDebtDialog() {
             <StateTemplate
               state="loading"
               title="Loading debt"
-              description="Fetching repayments, linked transactions, and accounts to review before deletion..."
+              description="Fetching repayments, linked transactions, and their accounts to review before deletion..."
             />
           ) : null}
-          {status === "error" && debtQuery.error instanceof NotFoundError ? (
+          {status === "error" && error instanceof NotFoundError ? (
             <StateTemplate
               state="error"
               title="Debt not found"
-              description={debtQuery.error.message}
+              description={error.message}
               content={
                 <Button variant="secondary" onClick={closeDialog}>
                   Close
@@ -173,7 +153,7 @@ export function DeleteDebtDialog() {
               }
             />
           ) : null}
-          {status === "error" && !(debtQuery.error instanceof NotFoundError) ? (
+          {status === "error" && !(error instanceof NotFoundError) ? (
             <StateTemplate
               state="error"
               title="Could not load debt"
@@ -181,13 +161,9 @@ export function DeleteDebtDialog() {
               content={<Button onClick={() => refetch()}>Retry</Button>}
             />
           ) : null}
-          {status === "success" && debt ? (
+          {status === "success" ? (
             <div className="flex flex-col gap-y-4">
-              <DebtDeletionSummary
-                debt={debt}
-                bankAccounts={bankAccounts}
-                deleteTransactions={deleteTransactions}
-              />
+              <DebtDeletionSummary impact={impact} deleteTransactions={deleteTransactions} />
               <form
                 id={form.formId}
                 onSubmit={(e) => {
@@ -201,15 +177,10 @@ export function DeleteDebtDialog() {
                     <form.AppField
                       name="deleteTransactions"
                       validators={{
-                        onChange: ({ value }) => {
-                          if (!value) return undefined;
-
-                          const shortfall = findDeleteTransactionsShortfall({ debt, bankAccounts });
-
-                          return shortfall
-                            ? { message: describeDeleteTransactionsShortfall(shortfall) }
-                            : undefined;
-                        },
+                        onChange: ({ value }) =>
+                          value && impact.shortfall
+                            ? { message: describeDeleteTransactionsShortfall(impact.shortfall) }
+                            : undefined,
                       }}
                     >
                       {(field) => {
@@ -233,8 +204,9 @@ export function DeleteDebtDialog() {
                                 {totalLinkedTransactions === 1 ? "transaction" : "transactions"}
                               </FieldLabel>
                               <FieldDescription>
-                                Removes real money movement from {linkedBankAccountsLabel}. Only
-                                check this to undo a debt recorded by mistake.
+                                Removes real money movement from{" "}
+                                {getLinkedBankAccountsLabel(impact)}. Only check this to undo a debt
+                                recorded by mistake.
                               </FieldDescription>
                               {isInvalid && (
                                 <FieldError id={errorId} errors={field.state.meta.errors} />
@@ -248,7 +220,7 @@ export function DeleteDebtDialog() {
                   <form.AppField name="name">
                     {(field) => (
                       <field.ValidatedInput
-                        label={`Type "${debt.name}" to confirm`}
+                        label={`Type "${impact.debt.name}" to confirm`}
                         maxLength={100}
                       />
                     )}

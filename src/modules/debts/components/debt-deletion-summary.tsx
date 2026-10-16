@@ -1,25 +1,25 @@
 import { IconBuildingBank } from "@tabler/icons-react";
 
-import type { getBankAccounts } from "#/modules/bank-accounts/functions";
-import type { getDebt } from "#/modules/debts/functions";
+import type { DebtDeletionImpact } from "#/modules/debts/deletion.server";
 
 import { currencyCodec } from "#/lib/codecs";
 import { formatCurrency } from "#/lib/utils";
 
 type Props = {
-  debt: NonNullable<Awaited<ReturnType<typeof getDebt>>>;
-  bankAccounts: Awaited<ReturnType<typeof getBankAccounts>>;
+  impact: DebtDeletionImpact;
   deleteTransactions: boolean;
 };
 
+/** The accounts the linked Transactions moved money through, quoted for the dialog's copy. */
+export function getLinkedBankAccountsLabel(impact: DebtDeletionImpact) {
+  return impact.bankAccounts.map((account) => `"${account.name}"`).join(", ");
+}
+
 // The dialog's description: what goes with the Debt (and, if ticked, its linked
 // Transactions), so the summary below only has to cover what survives but changes.
-export function getDebtDeletionDescription({
-  debt,
-  deleteTransactions,
-}: Pick<Props, "debt" | "deleteTransactions">) {
-  const repaymentCount = debt.repayments.length;
-  const transactionCount = getDebtLinkedTransactions(debt).length;
+export function getDebtDeletionDescription({ impact, deleteTransactions }: Props) {
+  const { repaymentCount } = impact;
+  const transactionCount = impact.linkedTransactionIds.length;
 
   const deletedRecords = [
     repaymentCount
@@ -30,89 +30,19 @@ export function getDebtDeletionDescription({
       : null,
   ].filter((part) => part !== null);
 
-  return `Permanently delete the debt with "${debt.name}"${deletedRecords.length ? ` with its ${deletedRecords.join(" and ")}` : ""}. This cannot be undone.`;
+  return `Permanently delete the debt with "${impact.debt.name}"${deletedRecords.length ? ` with its ${deletedRecords.join(" and ")}` : ""}. This cannot be undone.`;
 }
 
-// What deleting the Debt's linked Transactions does to each linked account's Balance, by account id.
-// The linked Transactions' types follow the fixed direction → cash-flow mapping: a receivable's
-// origination is an `expense` and its repayments are `income`; a payable's repayments are
-// `expense`. Deleting income lowers a balance; deleting an expense raises it.
-export function getDebtLinkedTransactions(debt: Props["debt"]) {
-  const repaymentBalanceSign = debt.direction === "receivable" ? -1 : 1;
-
-  return [
-    ...(debt.originatingBankAccount
-      ? [{ bankAccount: debt.originatingBankAccount, balanceChange: debt.amount }]
-      : []),
-    ...debt.repayments.flatMap(({ bankAccount, amount }) =>
-      bankAccount ? [{ bankAccount, balanceChange: repaymentBalanceSign * amount }] : [],
-    ),
-  ];
-}
-
-function getBalanceChangeByBankAccountId(
-  linkedTransactions: ReturnType<typeof getDebtLinkedTransactions>,
-) {
-  const balanceChangeByBankAccountId = new Map<string, number>();
-  for (const transaction of linkedTransactions) {
-    balanceChangeByBankAccountId.set(
-      transaction.bankAccount.id,
-      (balanceChangeByBankAccountId.get(transaction.bankAccount.id) ?? 0) +
-        transaction.balanceChange,
-    );
-  }
-
-  return balanceChangeByBankAccountId;
-}
-
-/**
- * The first linked account that deleting the linked Transactions would leave with a negative
- * Unallocated: the same rule `deleteDebt` enforces, checked from the figures already loaded.
- */
-export function findDeleteTransactionsShortfall({
-  debt,
-  bankAccounts,
-}: Pick<Props, "debt" | "bankAccounts">) {
-  const balanceChangeByBankAccountId = getBalanceChangeByBankAccountId(
-    getDebtLinkedTransactions(debt),
-  );
-
-  return bankAccounts.find((account) => {
-    const balanceChange = balanceChangeByBankAccountId.get(account.id);
-
-    return balanceChange !== undefined && account.unallocated + balanceChange < 0;
-  });
+function formatBankAccountAmount(value: number, currency: string) {
+  return formatCurrency(currencyCodec.encode(value), { currency });
 }
 
 // Same shape as `BankAccountDeletionSummary`: what survives but changes. Here that's each
 // linked account's balance, and only when the linked Transactions are deleted too —
 // keeping them changes nothing outside the Debt.
-export function DebtDeletionSummary({ debt, bankAccounts, deleteTransactions }: Props) {
-  function formatDebtAmount(value: number) {
-    return formatCurrency(currencyCodec.encode(value), { currency: debt.currency });
-  }
-
-  const linkedTransactions = getDebtLinkedTransactions(debt);
-  const balanceChangeByBankAccountId = getBalanceChangeByBankAccountId(linkedTransactions);
-
-  const affectedBankAccounts = bankAccounts
-    .filter((account) => balanceChangeByBankAccountId.has(account.id))
-    .map((account) => {
-      const { balance } = account;
-
-      return {
-        id: account.id,
-        name: account.name,
-        balanceBefore: balance,
-        balanceAfter: balance + (balanceChangeByBankAccountId.get(account.id) ?? 0),
-      };
-    });
-
-  const transactionCount = linkedTransactions.length;
-
-  const bankAccountsLabel = [...new Set(linkedTransactions.map((t) => t.bankAccount.name))]
-    .map((name) => `"${name}"`)
-    .join(", ");
+export function DebtDeletionSummary({ impact, deleteTransactions }: Props) {
+  const transactionCount = impact.linkedTransactionIds.length;
+  const bankAccountsLabel = getLinkedBankAccountsLabel(impact);
 
   return (
     <div className="flex flex-col gap-y-3">
@@ -128,7 +58,7 @@ export function DebtDeletionSummary({ debt, bankAccounts, deleteTransactions }: 
             </tr>
           </thead>
           <tbody className="divide-y">
-            {affectedBankAccounts.map((account) => (
+            {impact.bankAccounts.map((account) => (
               <tr key={account.id}>
                 <td className="py-1.5">
                   <span className="flex items-center gap-x-1.5">
@@ -137,10 +67,10 @@ export function DebtDeletionSummary({ debt, bankAccounts, deleteTransactions }: 
                   </span>
                 </td>
                 <td className="py-1.5 text-end text-muted-foreground">
-                  {formatDebtAmount(account.balanceBefore)}
+                  {formatBankAccountAmount(account.balanceBefore, account.currency)}
                 </td>
                 <td className="py-1.5 text-end font-semibold">
-                  {formatDebtAmount(account.balanceAfter)}
+                  {formatBankAccountAmount(account.balanceAfter, account.currency)}
                 </td>
               </tr>
             ))}

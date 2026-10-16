@@ -13,15 +13,12 @@ import { ConflictError, InsufficientFundsError, NotFoundError } from "#/lib/erro
 import { authMiddleware } from "#/lib/middlewares";
 import { checkUnallocated } from "#/modules/bank-accounts/figures.server";
 import { findOwnedBankAccount } from "#/modules/bank-accounts/ownership.server";
+import { loadDebtDeletionImpact } from "#/modules/debts/deletion.server";
 import { deleteDebtSchema, editDebtSchema, recordDebtSchema } from "#/modules/debts/schemas";
 
 import { getDebtsWithFigures } from "./figures.server";
 import { verifyUserDebtMiddleware } from "./middlewares";
-import {
-  describeDeleteTransactionsShortfall,
-  describeInsufficientSourceAccount,
-  getDebtLinkedTransactionIds,
-} from "./utils";
+import { describeDeleteTransactionsShortfall, describeInsufficientSourceAccount } from "./utils";
 
 export const getDebts = createServerFn({
   method: "GET",
@@ -173,6 +170,14 @@ export const editDebt = createServerFn({
     return updated;
   });
 
+export const getDebtDeletionImpact = createServerFn({
+  method: "GET",
+})
+  .middleware([verifyUserDebtMiddleware])
+  .handler(async ({ context, data }) =>
+    loadDebtDeletionImpact(getDB(env.db), context.user.id, data.debtId),
+  );
+
 export const deleteDebt = createServerFn({
   method: "POST",
 })
@@ -188,32 +193,18 @@ export const deleteDebt = createServerFn({
 
     // Resolved before anything is deleted: the `debts` row's cascade takes its `repayments`
     // rows, and with them the repayment → Transaction links.
-    const debt = await db.query.debts.findFirst({
-      where: { id: data.debtId },
-      columns: { originatingTransactionId: true },
-      with: { repayments: { columns: { transactionId: true } } },
-    });
+    const { linkedTransactionIds, shortfall } = await loadDebtDeletionImpact(
+      db,
+      context.user.id,
+      data.debtId,
+    );
 
-    if (!debt) throw new NotFoundError("This debt doesn't exist or may have been deleted.");
+    if (shortfall) throw new InsufficientFundsError(describeDeleteTransactionsShortfall(shortfall));
 
-    const transactionIds = getDebtLinkedTransactionIds(debt);
-
-    if (!transactionIds.length) return deleteDebtQuery;
-
-    // Several linked Transactions can share a Bank Account, so each account is checked once
-    // with all of them removed: e.g. a receivable's repayment (income) leaving Savings can
-    // push it below what's allocated from it.
-    const check = await checkUnallocated(db, context.user.id, {
-      kind: "remove-transactions",
-      transactionIds,
-    });
-
-    if (!check.ok) {
-      throw new InsufficientFundsError(describeDeleteTransactionsShortfall(check.bankAccount));
-    }
+    if (!linkedTransactionIds.length) return deleteDebtQuery;
 
     const [, deleted] = await db.batch([
-      db.delete(transactions).where(inArray(transactions.id, transactionIds)),
+      db.delete(transactions).where(inArray(transactions.id, linkedTransactionIds)),
       deleteDebtQuery,
     ]);
 
