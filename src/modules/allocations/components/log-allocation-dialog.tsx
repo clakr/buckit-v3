@@ -17,22 +17,14 @@ import {
   DialogHeader,
   DialogTitle,
 } from "#/components/ui/dialog";
-import { Field, FieldError, FieldGroup, FieldLabel } from "#/components/ui/field";
-import {
-  Select,
-  SelectContent,
-  SelectGroup,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "#/components/ui/select";
+import { FieldGroup } from "#/components/ui/field";
 import { useAppForm } from "#/integrations/tanstack-form";
 import { currencyCodec } from "#/lib/codecs";
 import { formatCurrency, getCurrency, isCurrencyCode } from "#/lib/utils";
 import { useLogAllocationMutation } from "#/modules/allocations/mutations";
 import { logAllocationSchema } from "#/modules/allocations/schemas";
 import { describeInsufficientUnallocated } from "#/modules/allocations/utils";
-import { BankAccountFigures } from "#/modules/bank-accounts/components/bank-account-figures";
+import { BankAccountSelectField } from "#/modules/bank-accounts/components/bank-account-select-field";
 import { bankAccountsQueryOption } from "#/modules/bank-accounts/query-options";
 import { bucketsQueryOptions } from "#/modules/buckets/query-options";
 import { confirm } from "#/stores/use-confirm";
@@ -234,64 +226,24 @@ export function LogAllocationDialog() {
                   the account's currency). From an account: "Set aside ₱500 into Emergency". */}
                 {start.from === "bucket" ? (
                   <form.AppField name="bankAccountId">
-                    {(field) => {
-                      const isInvalid = field.state.meta.isTouched && !field.state.meta.isValid;
-
-                      const id = field.name;
-                      const errorId = `${id}-error`;
-
-                      const disabled = !bankAccounts?.length;
-
-                      const items = bankAccounts?.map((a) => ({ value: a.id, label: a.name }));
-
-                      return (
-                        <Field data-invalid={isInvalid}>
-                          <FieldLabel htmlFor={id}>Bank Account</FieldLabel>
-
-                          <Select
-                            items={items}
-                            value={field.state.value}
-                            onValueChange={(value) => field.handleChange(value as string)}
-                            disabled={disabled}
-                          >
-                            <SelectTrigger
-                              id={id}
-                              className="w-full"
-                              onBlur={field.handleBlur}
-                              aria-invalid={isInvalid ? true : undefined}
-                              aria-labelledby={isInvalid ? errorId : undefined}
-                            >
-                              <SelectValue placeholder="Select bank account" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectGroup>
-                                {bankAccounts?.map((account) => {
-                                  const { balance, unallocated } = account;
-
-                                  return (
-                                    <SelectItem key={account.id} value={account.id}>
-                                      <div className="flex w-full flex-col items-start gap-0.5">
-                                        <span className="font-medium">{account.name}</span>
-                                        <BankAccountFigures
-                                          balance={balance}
-                                          unallocated={unallocated}
-                                          currency={account.currency}
-                                          className="text-[11px]"
-                                        />
-                                      </div>
-                                    </SelectItem>
-                                  );
-                                })}
-                              </SelectGroup>
-                            </SelectContent>
-                          </Select>
-
-                          {isInvalid && (
-                            <FieldError id={errorId} errors={field.state.meta.errors} />
-                          )}
-                        </Field>
-                      );
-                    }}
+                    {() => (
+                      <BankAccountSelectField
+                        label="Bank Account"
+                        description={null}
+                        placeholder="Select bank account"
+                        currency={null}
+                        bankAccountsQuery={{
+                          status: bankAccountsStatus,
+                          refetch: refetchBankAccounts,
+                        }}
+                        bankAccounts={bankAccounts}
+                        emptyContent={
+                          <p className="text-muted-foreground">
+                            You have no bank accounts to allocate from yet.
+                          </p>
+                        }
+                      />
+                    )}
                   </form.AppField>
                 ) : null}
                 <form.AppField

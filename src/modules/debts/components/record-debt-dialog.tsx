@@ -7,6 +7,7 @@ import { useShallow } from "zustand/react/shallow";
 import type { DialogState } from "#/lib/types";
 
 import { CurrencyCombobox } from "#/components/currency-combobox";
+import { Button } from "#/components/ui/button";
 import {
   Dialog,
   DialogContent,
@@ -19,8 +20,9 @@ import { Field, FieldError, FieldGroup, FieldLabel } from "#/components/ui/field
 import { InputGroup, InputGroupAddon, InputGroupInput } from "#/components/ui/input-group";
 import { useAppForm } from "#/integrations/tanstack-form";
 import { currencyCodec } from "#/lib/codecs";
+import { BankAccountSelectField } from "#/modules/bank-accounts/components/bank-account-select-field";
+import { useRegisterBankAccountDialogStore } from "#/modules/bank-accounts/components/register-bank-account-dialog";
 import { bankAccountsQueryOption } from "#/modules/bank-accounts/query-options";
-import { SourceAccountField } from "#/modules/debts/components/source-account-field";
 import { useRecordDebtMutation } from "#/modules/debts/mutations";
 import { describeInsufficientSourceAccount } from "#/modules/debts/utils";
 import { confirm } from "#/stores/use-confirm";
@@ -80,6 +82,18 @@ export function RecordDebtDialog() {
     ...bankAccountsQueryOption({ currency }),
     enabled: isOpen && direction === "receivable",
   });
+
+  // Funding a loan takes money out, so only accounts with something left to lend can fund it.
+  const eligibleSourceAccounts = bankAccountsQuery.data?.filter(
+    (account) => account.unallocated > 0,
+  );
+
+  function openRegisterBankAccountDialog() {
+    const state = useRegisterBankAccountDialogStore.getState();
+
+    state.openDialog();
+    state.setCurrency(currency);
+  }
 
   function findSourceAccount(bankAccountId: string | undefined) {
     return bankAccountsQuery.data?.find((account) => account.id === bankAccountId);
@@ -208,12 +222,26 @@ export function RecordDebtDialog() {
               </Field>
               {direction === "receivable" ? (
                 <form.AppField name="bankAccountId">
-                  {(field) => (
-                    <SourceAccountField
+                  {() => (
+                    <BankAccountSelectField
+                      label="Funding Source"
+                      description="Optional — leave empty if this isn't coming out of a tracked account."
+                      placeholder="No source account"
                       currency={currency}
                       bankAccountsQuery={bankAccountsQuery}
-                      bankAccountId={field.state.value}
-                      onBankAccountIdChange={field.handleChange}
+                      bankAccounts={eligibleSourceAccounts}
+                      emptyContent={
+                        <>
+                          <FieldError>No {currency} accounts with available balance.</FieldError>
+                          <Button
+                            type="button"
+                            variant="outline"
+                            onClick={openRegisterBankAccountDialog}
+                          >
+                            Register a/an {currency} account
+                          </Button>
+                        </>
+                      }
                     />
                   )}
                 </form.AppField>

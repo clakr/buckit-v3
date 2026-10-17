@@ -17,20 +17,11 @@ import {
   DialogHeader,
   DialogTitle,
 } from "#/components/ui/dialog";
-import { Field, FieldDescription, FieldError, FieldGroup, FieldLabel } from "#/components/ui/field";
-import {
-  Select,
-  SelectContent,
-  SelectGroup,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "#/components/ui/select";
+import { FieldGroup } from "#/components/ui/field";
 import { useAppForm } from "#/integrations/tanstack-form";
 import { currencyCodec } from "#/lib/codecs";
 import { NotFoundError } from "#/lib/errors";
-import { formatCurrency } from "#/lib/utils";
-import { BankAccountFigures } from "#/modules/bank-accounts/components/bank-account-figures";
+import { BankAccountSelectField } from "#/modules/bank-accounts/components/bank-account-select-field";
 import { bankAccountsQueryOption } from "#/modules/bank-accounts/query-options";
 import { debtQueryOption } from "#/modules/debts/query-options";
 import { getLinkedTransactionType } from "#/modules/debts/utils";
@@ -229,104 +220,21 @@ export function LogRepaymentDialog() {
                   )}
                 </form.AppField>
                 <form.AppField name="bankAccountId">
-                  {(field) => {
-                    const isInvalid = field.state.meta.isTouched && !field.state.meta.isValid;
-
-                    const id = field.name;
-                    const errorId = `${id}-error`;
-
-                    const disabled =
-                      status !== "success" || !bankAccounts || bankAccounts.length === 0;
-
-                    const items = bankAccounts?.map((a) => ({ value: a.id, label: a.name }));
-
-                    const selected = bankAccounts?.find((a) => a.id === field.state.value);
-
-                    return (
-                      <Field data-invalid={isInvalid}>
-                        <FieldLabel htmlFor={id}>Bank Account</FieldLabel>
-                        <FieldDescription>
-                          Optional — leave empty if this isn't a real money movement.
-                        </FieldDescription>
-
-                        {status === "error" ? (
-                          <>
-                            <FieldError>Could not load your {debt.currency} accounts.</FieldError>
-                            <Button type="button" variant="outline" onClick={() => refetch()}>
-                              Retry
-                            </Button>
-                          </>
-                        ) : (
-                          <Select
-                            items={items}
-                            value={field.state.value ?? ""}
-                            onValueChange={(value) => field.handleChange((value as string) || null)}
-                            disabled={disabled}
-                          >
-                            <SelectTrigger
-                              id={id}
-                              className="w-full"
-                              onBlur={field.handleBlur}
-                              aria-invalid={isInvalid ? true : undefined}
-                              aria-labelledby={isInvalid ? errorId : undefined}
-                            >
-                              <SelectValue placeholder="No bank account" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectGroup>
-                                {bankAccounts?.map((account) => {
-                                  const { balance, unallocated } = account;
-
-                                  return (
-                                    <SelectItem key={account.id} value={account.id}>
-                                      <div className="flex w-full flex-col items-start gap-0.5">
-                                        <span className="font-medium">{account.name}</span>
-                                        <BankAccountFigures
-                                          balance={balance}
-                                          unallocated={unallocated}
-                                          currency={account.currency}
-                                          className="text-[11px]"
-                                        />
-                                      </div>
-                                    </SelectItem>
-                                  );
-                                })}
-                              </SelectGroup>
-                            </SelectContent>
-                          </Select>
-                        )}
-
-                        {selected &&
-                          (selected.balance === selected.unallocated ? (
-                            <FieldDescription>
-                              Balance{" "}
-                              <span className="font-semibold">
-                                {formatCurrency(currencyCodec.encode(selected.balance), {
-                                  currency: selected.currency,
-                                })}
-                              </span>
-                            </FieldDescription>
-                          ) : (
-                            <FieldDescription>
-                              Balance{" "}
-                              <span className="font-semibold">
-                                {formatCurrency(currencyCodec.encode(selected.balance), {
-                                  currency: selected.currency,
-                                })}
-                              </span>{" "}
-                              · Unallocated{" "}
-                              <span className="font-semibold">
-                                {formatCurrency(currencyCodec.encode(selected.unallocated), {
-                                  currency: selected.currency,
-                                })}
-                              </span>
-                            </FieldDescription>
-                          ))}
-
-                        {isInvalid && <FieldError id={errorId} errors={field.state.meta.errors} />}
-                      </Field>
-                    );
-                  }}
+                  {() => (
+                    <BankAccountSelectField
+                      label="Bank Account"
+                      description="Optional — leave empty if this isn't a real money movement."
+                      placeholder="No bank account"
+                      currency={debt.currency}
+                      bankAccountsQuery={{ status, refetch }}
+                      bankAccounts={bankAccounts}
+                      emptyContent={
+                        <p className="text-muted-foreground">
+                          No {debt.currency} accounts — this repayment is recorded without one.
+                        </p>
+                      }
+                    />
+                  )}
                 </form.AppField>
                 <form.AppField
                   name="date"
