@@ -36,7 +36,7 @@ Unlike Transaction (embedded only in its Bank Account's detail page), an Allocat
 
 ### Logging Starts From Either Parent
 
-The Log dialog opens from a Bank Account's menu or a Bucket's menu, and callers pass only that side's id (`{ from: "bank-account", bankAccountId }` or `{ from: "bucket", bucketId }`). That side stays fixed; the dialog shows a picker for the other. It loads the user's Bank Accounts (with figures) and Buckets itself, whichever side it opened from, so the account's Available always comes from the live list. While either list loads it shows a loading state; if one fails, "Could not load …" with Retry; if the fixed side was deleted meanwhile, "Bank account not found" or "Bucket not found" with Close.
+The Log dialog opens from a Bank Account's menu or a Bucket's menu, and callers pass only that side's id (`{ from: "bank-account", bankAccountId }` or `{ from: "bucket", bucketId }`). That side stays fixed; the dialog shows a picker for the other. It loads the user's Bank Accounts (with figures) and Buckets itself, whichever side it opened from, so the account's Available always comes from the live list. While either list loads it shows a loading state; if one fails, "Could not load …" with Retry; if the fixed side was deleted meanwhile, "Bank account not found" or "Bucket not found" with Close. The Bank Account picker is the shared `BankAccountSelectField` (`src/modules/bank-accounts/components/bank-account-select-field.tsx`), the same one the Record Debt and Log Repayment dialogs use.
 
 ### Reassignment Is Not Supported — By Design
 
