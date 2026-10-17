@@ -1,5 +1,4 @@
 import { useQuery } from "@tanstack/react-query";
-import { format, isBefore, startOfDay } from "date-fns";
 import z from "zod";
 import { create } from "zustand";
 import { useShallow } from "zustand/react/shallow";
@@ -26,6 +25,7 @@ import { confirm } from "#/stores/use-confirm";
 
 import { useEditRepaymentMutation } from "../mutations";
 import { editRepaymentSchema } from "../schemas";
+import { getRepaymentDateRule } from "../utils";
 
 type StoreState = DialogState & {
   debtId: Debt["id"] | null;
@@ -193,15 +193,15 @@ export function EditRepaymentDialog() {
                 <form.AppField
                   name="date"
                   validators={{
-                    // By calendar day, so a repayment on the day the Debt was recorded is fine
-                    // whatever time of day either was saved with.
-                    onChange: editRepaymentSchema.shape.date.refine(
-                      (value) => !isBefore(value, startOfDay(debt.date)),
-                      `Can't be before the debt was recorded (${format(debt.date, "PPP")}).`,
-                    ),
+                    onChange: ({ value }) => getRepaymentDateRule(debt.date).validate(value),
                   }}
                 >
-                  {(field) => <field.Datepicker label="Date" disabled={{ before: debt.date }} />}
+                  {(field) => (
+                    <field.Datepicker
+                      label="Date"
+                      disabled={getRepaymentDateRule(debt.date).disabledDays}
+                    />
+                  )}
                 </form.AppField>
                 <form.AppField name="note">
                   {(field) => (

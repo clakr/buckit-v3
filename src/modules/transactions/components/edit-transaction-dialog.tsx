@@ -20,6 +20,7 @@ import { FieldDescription, FieldGroup } from "#/components/ui/field";
 import { useAppForm } from "#/integrations/tanstack-form";
 import { currencyCodec } from "#/lib/codecs";
 import { NotFoundError } from "#/lib/errors";
+import { getRepaymentDateRule } from "#/modules/repayments/utils";
 import { useEditTransactionMutation } from "#/modules/transactions/mutations";
 import { transactionQueryOption } from "#/modules/transactions/query-options";
 import { editTransactionSchema, transactionTypeEnum } from "#/modules/transactions/schemas";
@@ -89,6 +90,11 @@ export function EditTransactionDialog() {
       closeDialog();
     },
   });
+
+  const repaymentDateRule =
+    transaction?.link?.kind === "repayment"
+      ? getRepaymentDateRule(transaction.link.debtDate)
+      : undefined;
 
   async function handleOnOpenChange(open: boolean) {
     if (!open && form.state.isDirty) {
@@ -183,16 +189,14 @@ export function EditTransactionDialog() {
                     />
                   )}
                 </form.AppField>
-                <form.AppField name="date">
+                <form.AppField
+                  name="date"
+                  validators={{
+                    onChange: ({ value }) => repaymentDateRule?.validate(value),
+                  }}
+                >
                   {(field) => (
-                    <field.Datepicker
-                      label="Date"
-                      disabled={
-                        transaction.link?.kind === "repayment"
-                          ? { before: transaction.link.debtDate }
-                          : undefined
-                      }
-                    />
+                    <field.Datepicker label="Date" disabled={repaymentDateRule?.disabledDays} />
                   )}
                 </form.AppField>
                 <form.AppField name="note">

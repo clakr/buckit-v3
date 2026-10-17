@@ -1,3 +1,5 @@
+import { format, isBefore, startOfDay } from "date-fns";
+
 import type { BankAccount } from "#/db/schema";
 
 import { currencyCodec } from "#/lib/codecs";
@@ -16,6 +18,23 @@ export const REPAYMENT_BEFORE_DEBT_MESSAGE =
  */
 export function isRepaymentDateBeforeDebt(repaymentDate: Date, debtDate: Date) {
   return repaymentDate.getTime() < debtDate.getTime() - DAY_IN_MS;
+}
+
+/**
+ * "A repayment can't predate its Debt" as a dialog applies it: earlier days greyed out in the
+ * picker, and a field validator for a date that starts out too early (a Debt dated in the future,
+ * with the date defaulting to today). By calendar day, so a repayment on the day the Debt was
+ * recorded is fine whatever time of day either was saved with.
+ */
+export function getRepaymentDateRule(debtDate: Date) {
+  return {
+    disabledDays: { before: debtDate },
+    validate(date: Date) {
+      return isBefore(date, startOfDay(debtDate))
+        ? { message: `Can't be before the debt was recorded (${format(debtDate, "PPP")}).` }
+        : undefined;
+    },
+  };
 }
 
 /**
