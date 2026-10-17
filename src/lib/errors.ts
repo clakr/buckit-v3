@@ -26,6 +26,11 @@ export class InsufficientFundsError extends AppError {
   override name = "InsufficientFundsError";
 }
 
+/** What a failure toast or screen says: an `AppError`'s own message, otherwise `fallback`. */
+export function describeErrorForUser(error: unknown, fallback: string) {
+  return error instanceof AppError ? error.message : fallback;
+}
+
 // Keyed by a literal `name` rather than `constructor.name`, which minification mangles.
 const APP_ERRORS = {
   AppError,
