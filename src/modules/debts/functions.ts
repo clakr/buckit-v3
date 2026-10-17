@@ -157,7 +157,7 @@ export const editDebt = createServerFn({
     if (!debt) throw new NotFoundError("This debt doesn't exist or may have been deleted.");
 
     if (debt.direction === "receivable" && data.amount !== undefined) {
-      throw new Error("A receivable debt's amount can't be changed.");
+      throw new ConflictError("A receivable debt's amount can't be changed.");
     }
 
     const [updated] = await db
