@@ -49,7 +49,7 @@ A Linked Transaction (see `CONTEXT.md`) is edited and deleted under its Debt's r
 
   It then runs the usual `Unallocated` check.
 
-- `editTransaction` and `editRepayment` both call it in-process.
+- `editTransaction` and the Repayment storage module (`changeRepayment`) both call it in-process.
 - `getTransaction` returns the link and which fields it locks. The Edit dialog disables those fields and says why.
 - `deleteLinkedTransaction` and `isRepaymentBackedBy` apply the "repayment goes with its Transaction" rule for both Transaction and Bank Account deletes.
 

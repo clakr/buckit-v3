@@ -41,7 +41,7 @@ A record of money owed to or by another person, referenced only by a free-text c
 _Avoid_: modeling the counterparty as its own entity (Contact, Person); assuming a `receivable` always has a source Bank Account — it's optional; funding a single Debt from more than one Bank Account at once — considered and rejected as not worth the complexity, see the spec's Further Notes.
 
 **Repayment**:
-A payment against a Debt: an amount, date and optional note. Logged through a Bank Account, its Linked Transaction holds those values and moves the money; logged without one, the repayment holds them itself as a pure record. Readers only ever see the resolved values (`src/modules/debts/figures.server.ts`).
+A payment against a Debt: an amount, date and optional note. Logged through a Bank Account, its Linked Transaction holds those values and moves the money; logged without one, the repayment holds them itself as a pure record. Which form a repayment takes is known only to `src/modules/repayments/storage.server.ts`; everything else sees the resolved values.
 
 **Outstanding**:
 What's left of a Debt: its amount minus every Repayment. Computed on read, never stored. Goes negative when overpaid, which isn't an error. Forgiving a Debt doesn't change it; the Debt's status says it was written off.
