@@ -4,6 +4,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 
 import { Heading } from "#/components/heading";
 import { Main } from "#/components/main";
+import { RouteRetryButton } from "#/components/route-retry-button";
 import { StateTemplate } from "#/components/state-template";
 import { Button } from "#/components/ui/button";
 import { NotFoundError } from "#/lib/errors";
@@ -30,7 +31,7 @@ export const Route = createFileRoute("/_protected/debts/$debtId")({
       />
     </Main>
   ),
-  errorComponent: ({ error, reset }) => {
+  errorComponent: ({ error }) => {
     if (error instanceof NotFoundError)
       return (
         <Main>
@@ -55,7 +56,7 @@ export const Route = createFileRoute("/_protected/debts/$debtId")({
           state="error"
           title="Could not load debt"
           description="We weren't able to retrieve this debt. Please check your connection and try again."
-          content={<Button onClick={reset}>Retry</Button>}
+          content={<RouteRetryButton />}
         />
       </Main>
     );

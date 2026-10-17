@@ -5,6 +5,7 @@ import { useShallow } from "zustand/react/shallow";
 
 import { Heading } from "#/components/heading";
 import { Main } from "#/components/main";
+import { RouteRetryButton } from "#/components/route-retry-button";
 import { StateTemplate } from "#/components/state-template";
 import { Button } from "#/components/ui/button";
 import { DataTable } from "#/components/ui/data-table";
@@ -29,7 +30,7 @@ export const Route = createFileRoute("/_protected/accounts/")({
       />
     </Main>
   ),
-  errorComponent: ({ reset }) => (
+  errorComponent: () => (
     <Main>
       <Heading>Accounts</Heading>
 
@@ -37,7 +38,7 @@ export const Route = createFileRoute("/_protected/accounts/")({
         state="error"
         title="Could not load accounts."
         description="We weren't able to retrieve your accounts. Please try again."
-        content={<Button onClick={reset}>Retry</Button>}
+        content={<RouteRetryButton />}
       />
     </Main>
   ),
