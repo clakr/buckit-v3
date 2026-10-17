@@ -1,6 +1,8 @@
 import type { DB } from "#/db";
 import type { BankAccount, Debt, Repayment } from "#/db/schema";
 
+import { toRepaymentEntry } from "#/modules/repayments/storage.server";
+
 // Computed on read, never stored — a stored status would go stale the moment a repayment
 // disappears through an unrelated code path (e.g. a Bank Account deletion).
 export type DebtStatus = "open" | "settled" | "forgiven";
@@ -80,14 +82,7 @@ export async function getDebtsWithFigures(
       ...debt,
       originatingBankAccount: originatingTransaction?.bankAccount ?? null,
       repayments: repayments
-        .map(({ transaction, ...repayment }) => ({
-          id: repayment.id,
-          amount: transaction?.amount ?? repayment.amount ?? 0,
-          date: transaction?.date ?? repayment.date ?? repayment.createdAt,
-          note: transaction?.note ?? repayment.note,
-          bankAccount: transaction?.bankAccount ?? null,
-          createdAt: repayment.createdAt,
-        }))
+        .map(toRepaymentEntry)
         .sort(
           (a, b) =>
             a.date.getTime() - b.date.getTime() || a.createdAt.getTime() - b.createdAt.getTime(),
