@@ -7,6 +7,7 @@ import registerImage from "#/assets/register.webp";
 import { Button } from "#/components/ui/button";
 import { Field, FieldDescription, FieldGroup, FieldSeparator } from "#/components/ui/field";
 import { useAppForm } from "#/integrations/tanstack-form";
+import { describeErrorForUser } from "#/lib/errors";
 import { signUpUser } from "#/modules/authentication/functions";
 import { signUpUserSchema } from "#/modules/authentication/schemas";
 
@@ -34,8 +35,13 @@ function RouteComponent() {
       try {
         await signUpUser({ data });
       } catch (error) {
-        toast.error("Oops", {
-          description: error instanceof Error ? error.message : String(error),
+        console.error(error);
+
+        toast.error("Failed to Create Account", {
+          description: describeErrorForUser(
+            error,
+            "We weren't able to create your account. Please try again.",
+          ),
         });
 
         return;

@@ -7,6 +7,7 @@ import loginImage from "#/assets/login.webp";
 import { Button } from "#/components/ui/button";
 import { Field, FieldDescription, FieldGroup, FieldSeparator } from "#/components/ui/field";
 import { useAppForm } from "#/integrations/tanstack-form";
+import { describeErrorForUser } from "#/lib/errors";
 import { signInUser } from "#/modules/authentication/functions";
 import { signInUserSchema } from "#/modules/authentication/schemas";
 
@@ -31,8 +32,13 @@ function RouteComponent() {
       try {
         await signInUser({ data });
       } catch (error) {
-        toast.error("Oops", {
-          description: error instanceof Error ? error.message : String(error),
+        console.error(error);
+
+        toast.error("Failed to Sign In", {
+          description: describeErrorForUser(
+            error,
+            "We weren't able to sign you in. Please try again.",
+          ),
         });
 
         return;

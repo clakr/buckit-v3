@@ -22,6 +22,7 @@ import {
   useSidebar,
   SidebarMenuButton,
 } from "#/components/ui/sidebar";
+import { describeErrorForUser, UnauthorizedError } from "#/lib/errors";
 import { signOutUser } from "#/modules/authentication/functions";
 
 export function SidebarFooter() {
@@ -46,13 +47,21 @@ export function SidebarFooter() {
     } catch (error) {
       if (controller.signal.aborted) return;
 
-      toast.error("Oops", {
-        description: error instanceof Error ? error.message : String(error),
-        action:
-          error instanceof TypeError ? <Button onClick={handleLogout}>Retry</Button> : undefined,
-      });
+      // Already signed out (expired, or signed out in another tab): finish leaving.
+      if (!(error instanceof UnauthorizedError)) {
+        console.error(error);
 
-      return;
+        toast.error("Failed to Sign Out", {
+          description: describeErrorForUser(
+            error,
+            "We weren't able to sign you out. Please try again.",
+          ),
+          action:
+            error instanceof TypeError ? <Button onClick={handleLogout}>Retry</Button> : undefined,
+        });
+
+        return;
+      }
     }
 
     queryClient.clear();
