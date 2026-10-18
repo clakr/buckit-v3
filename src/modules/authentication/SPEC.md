@@ -65,7 +65,7 @@ Schema exists but is currently unused end-to-end: nothing in this app writes or 
 
 ### Identity Middleware Is Separate From Ownership Middleware
 
-`authMiddleware` (`src/modules/authentication/middlewares.ts`) does exactly one thing: ask the Session module for the signed-in User's id (`requireUserId`, which throws `UnauthorizedError` from `src/lib/errors.ts` without a Session) and pass it on as `context.userId`. It performs no resource-ownership checks. Every other module layers its own `verifyUser<Entity>Middleware` on top of this (e.g. `verifyUserBucketMiddleware`, `verifyUserAllocationMiddleware`) to confirm the _specific record_ being touched belongs to `context.userId`. This split is correct and consistent across the codebase — Authentication's job stops at "who is this," never "do they own this."
+`authMiddleware` (`src/modules/authentication/middlewares.ts`) does exactly one thing: ask the Session module for the signed-in User's id (`requireUserId`, which throws `UnauthorizedError` from `src/lib/errors.ts` without a Session) and pass it on as `context.userId`. It performs no resource-ownership checks. Every other module layers its own `verifyUser<Entity>Middleware` on top of this (e.g. `verifyUserBucketMiddleware`, `verifyUserAllocationMiddleware`) to confirm the _specific record_ being touched belongs to `context.userId`. This split is correct and consistent across the codebase — Authentication's job stops at "who is this," never "do they own this." Handlers behind an ownership middleware may read and write by id; see [ADR 0003](../../../docs/adr/0003-ownership-checked-by-middleware.md) before removing one.
 
 ### Route Guarding Pattern
 
