@@ -69,7 +69,7 @@ Schema exists but is currently unused end-to-end: nothing in this app writes or 
 
 ### Route Guarding Pattern
 
-Two route-tree layouts gate everything: `_guest.tsx`'s `beforeLoad` calls `getSession()` and redirects to `/dashboard` if a Session exists (keeps signed-in users off login/register); `_protected.tsx`'s `beforeLoad` calls `getSession()` and redirects to `/` if none exists, then exposes `{ user: session.user }` as route context for every nested route (consumed by `SidebarFooter`, etc.). Both are correct and consistent with each other.
+Two route-tree layouts gate everything, through `src/modules/authentication/guards.ts`. `_guest.tsx`'s `beforeLoad` is `requireSignedOut`, which redirects to `/dashboard` if a Session exists (keeping signed-in users off login/register). `_protected.tsx`'s is `requireSignedIn`, which redirects to `/` if none exists and exposes `{ user }` (`id`, `name`, `email`) as route context for every nested route (consumed by `SidebarFooter`, etc.). Both read the Session through `sessionQueryOption()` (`query-options.ts`), cached until the Session module clears it on sign-in or sign-out, so navigating doesn't re-ask the server. `authMiddleware` remains the real check on every request.
 
 ### Sign-Out Flow
 
@@ -125,6 +125,8 @@ Better-Auth's built-in rate limiter defaults to **enabled only in production**, 
 
   The server functions are one-line adapters over it. `authMiddleware` moved to `src/modules/authentication/middlewares.ts` and passes `context.userId` instead of Better-Auth's Session, so its shape stops at this module (37 `context.user.id` reads became `context.userId`). The `/api/auth/$` route still mounts Better-Auth's HTTP handler directly. It's the integration's entry point, not a caller.
 
+- **2026-10-20 — the route guards read the Session once.** Feature 4 is unchanged. Every matched route's `beforeLoad` runs on every navigation, and on hover through `defaultPreload: "intent"`, so `_protected`, `_guest` and the dashboard each called `getSession` (a server round trip and a D1 read) before any page could load. `sessionQueryOption()` in `src/modules/authentication/query-options.ts` caches the signed-in User with `staleTime: Infinity`. `requireSignedIn` / `requireSignedOut` in `guards.ts` read it and hold the redirect rules, and the dashboard's duplicate check is gone. Navigating no longer asks the server who you are: one `getSession` after sign-in, then none. The cache goes when a Session starts or ends, since the Session module clears the query cache. Leaving sets the cached Session to `null` before navigating to `/`, or the login page's guard would send the cached User straight back to `/dashboard`. A Session that ends while cached still lets the guard through, but the page's first request fails with `UnauthorizedError` and the client signs out. Every successful mutation invalidates all queries, the Session included, so the first navigation after one re-reads it.
+
 ## Documentation Corrections Made This Session
 
 While confirming multi-user is a deliberate product goal (not incidental plumbing), found that `bank-accounts/SPEC.md`, `buckets/SPEC.md`, `transactions/SPEC.md`, and `allocations/SPEC.md` all justified "no `updatedAt` column" with **"single-user app, no sync/API client"** — which reads as "this app supports one User total," contradicting the actual design. Reworded all four to "no per-User concurrent-edit conflict scenario" instead, and added a `User` entry to `CONTEXT.md` (previously missing despite being the root owner of every other entity) stating the app is built for multiple independent, isolated Users.
@@ -161,4 +163,4 @@ Multi-device Sessions already work at the data layer, but a User has no UI to se
 
 ### `dashboard.tsx` — Known Placeholder, Not Audited for Correctness
 
-`_protected/dashboard.tsx` duplicates the `beforeLoad` Session check `_protected.tsx` already performs, has its own logout button (which goes through the Session module like `SidebarFooter`'s, since 2026-10-20), and dumps the raw route context via `<pre>{JSON.stringify(foo, null, 2)}</pre>`. Otherwise left untouched by design — this route is a placeholder to be replaced once core features and real data exist, so cleaning up code inside it now would be discarded along with the rest of the file later.
+`_protected/dashboard.tsx` has its own logout button (which goes through the Session module like `SidebarFooter`'s, since 2026-10-20), and dumps the raw route context via `<pre>{JSON.stringify(foo, null, 2)}</pre>`. Otherwise left untouched by design — this route is a placeholder to be replaced once core features and real data exist, so cleaning up code inside it now would be discarded along with the rest of the file later.
