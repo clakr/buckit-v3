@@ -5,6 +5,10 @@ import { AppError, describeErrorForUser, UnauthorizedError } from "#/lib/errors"
 
 declare module "@tanstack/react-query" {
   interface Register {
+    queryMeta: {
+      /** Not marked stale by a successful mutation; set on data no write can change. */
+      keepOnWrite?: boolean;
+    };
     mutationMeta: {
       success: {
         title: string;
@@ -42,7 +46,7 @@ export function getContext({ onSessionExpired }: Options) {
           description: mutation.meta?.success.description ?? "Action proceeded successfully",
         });
 
-        await queryClient.invalidateQueries();
+        await queryClient.invalidateQueries({ predicate: (query) => !query.meta?.keepOnWrite });
       },
       onError: (error, __, ___, mutation) => {
         if (error instanceof UnauthorizedError) {

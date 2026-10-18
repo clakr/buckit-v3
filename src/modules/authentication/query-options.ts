@@ -12,5 +12,7 @@ export function sessionQueryOption() {
     queryKey: ["session"],
     queryFn: () => getSession(),
     staleTime: Infinity,
+    // No write changes who's signed in; the Session module clears it when that changes.
+    meta: { keepOnWrite: true },
   });
 }
