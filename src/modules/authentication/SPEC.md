@@ -65,7 +65,7 @@ Schema exists but is currently unused end-to-end: nothing in this app writes or 
 
 ### Identity Middleware Is Separate From Ownership Middleware
 
-`authMiddleware` (`lib/middlewares.ts`) does exactly one thing: call `auth.api.getSession()` and throw `UnauthorizedError` (`src/lib/errors.ts`) if there's no Session, otherwise pass the Session through as context. It performs no resource-ownership checks. Every other module layers its own `verifyUser<Entity>Middleware` on top of this (e.g. `verifyUserBucketMiddleware`, `verifyUserAllocationMiddleware`) to confirm the _specific record_ being touched belongs to `context.user.id`. This split is correct and consistent across the codebase — Authentication's job stops at "who is this," never "do they own this."
+`authMiddleware` (`src/modules/authentication/middlewares.ts`) does exactly one thing: ask the Session module for the signed-in User's id (`requireUserId`, which throws `UnauthorizedError` from `src/lib/errors.ts` without a Session) and pass it on as `context.userId`. It performs no resource-ownership checks. Every other module layers its own `verifyUser<Entity>Middleware` on top of this (e.g. `verifyUserBucketMiddleware`, `verifyUserAllocationMiddleware`) to confirm the _specific record_ being touched belongs to `context.userId`. This split is correct and consistent across the codebase — Authentication's job stops at "who is this," never "do they own this."
 
 ### Route Guarding Pattern
 
@@ -115,6 +115,15 @@ Better-Auth's built-in rate limiter defaults to **enabled only in production**, 
   - `leaveExpiredSession(router, error)` is what `getRouter` hands the query client: one "Signed Out" toast, however many requests fail together, and nothing on the server.
   - Leaving goes to `/` first, then empties the cache, so the open page's queries don't refetch into the same failure. Entering empties it first, so a missed exit can't leak into the next Session.
   - The sidebar, the dashboard's logout button, and the login and register pages all call it.
+
+- **2026-10-20 — the session token stays on the server.** `getSession` sent Better-Auth's whole Session to the browser: the Session record with its `token` (the value the httpOnly cookie keeps away from JavaScript), IP address and user agent, plus the full User. `signInUser` and `signUpUser` returned Better-Auth's sign-in result, which carries the token too. `getSession` now returns only the User's `id`, `name` and `email`, or `null`; sign-in and sign-up return nothing. The client only ever showed the name and email.
+- **2026-10-20 — one module owns Better-Auth.** Features 1–4 are unchanged. Better-Auth was reached from three places: `authMiddleware` in `lib/` and `getSession` each read the Session the same way, and sign-in and sign-up translated Better-Auth's error codes inside their server functions. `src/modules/authentication/session.server.ts` is now the only caller of `auth.api`, and reads the request headers itself:
+  - `readSession()`: the signed-in User (`id`, `name`, `email`) or `null`.
+  - `requireUserId()`: the User's id, or `UnauthorizedError`.
+  - `signInWithEmail(data)` / `signUpWithEmail(data)`: "Incorrect email or password." and "An account with this email already exists." translated here.
+  - `signOutSession()`.
+
+  The server functions are one-line adapters over it. `authMiddleware` moved to `src/modules/authentication/middlewares.ts` and passes `context.userId` instead of Better-Auth's Session, so its shape stops at this module (37 `context.user.id` reads became `context.userId`). The `/api/auth/$` route still mounts Better-Auth's HTTP handler directly. It's the integration's entry point, not a caller.
 
 ## Documentation Corrections Made This Session
 
