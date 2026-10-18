@@ -6,8 +6,8 @@ export const Route = createFileRoute("/_guest")({
   ssr: false,
   component: Outlet,
   beforeLoad: async () => {
-    const session = await getSession();
-    if (!session) return;
+    const user = await getSession();
+    if (!user) return;
 
     throw redirect({
       to: "/dashboard",

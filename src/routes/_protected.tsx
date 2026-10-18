@@ -24,13 +24,13 @@ export const Route = createFileRoute("/_protected")({
   ssr: "data-only",
   component: RouteComponent,
   beforeLoad: async () => {
-    const session = await getSession();
-    if (!session)
+    const user = await getSession();
+    if (!user)
       throw redirect({
         to: "/",
       });
 
-    return { user: session.user };
+    return { user };
   },
 });
 

@@ -3,7 +3,7 @@ import { env } from "cloudflare:workers";
 
 import { getDB } from "#/db";
 import { NotFoundError } from "#/lib/errors";
-import { authMiddleware } from "#/lib/middlewares";
+import { authMiddleware } from "#/modules/authentication/middlewares";
 
 import { verifyUserDebtMiddlewareSchema } from "./schemas";
 
@@ -17,7 +17,7 @@ export const verifyUserDebtMiddleware = createMiddleware({
 
     const result = await db.query.debts.findFirst({
       where: {
-        userId: context.user.id,
+        userId: context.userId,
         id: data.debtId,
       },
     });

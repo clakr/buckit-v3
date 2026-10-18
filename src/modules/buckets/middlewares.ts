@@ -3,7 +3,7 @@ import { env } from "cloudflare:workers";
 
 import { getDB } from "#/db";
 import { NotFoundError } from "#/lib/errors";
-import { authMiddleware } from "#/lib/middlewares";
+import { authMiddleware } from "#/modules/authentication/middlewares";
 import { verifyUserBucketMiddlewareSchema } from "#/modules/buckets/schemas";
 
 export const verifyUserBucketMiddleware = createMiddleware({
@@ -16,7 +16,7 @@ export const verifyUserBucketMiddleware = createMiddleware({
 
     const result = await db.query.buckets.findFirst({
       where: {
-        userId: context.user.id,
+        userId: context.userId,
         id: data.bucketId,
       },
     });

@@ -7,14 +7,14 @@ import { signOut } from "#/modules/authentication/session";
 export const Route = createFileRoute("/_protected/dashboard")({
   component: RouteComponent,
   beforeLoad: async () => {
-    const session = await getSession();
+    const user = await getSession();
 
-    if (!session)
+    if (!user)
       throw redirect({
         to: "/",
       });
 
-    return { user: session.user };
+    return { user };
   },
 });
 

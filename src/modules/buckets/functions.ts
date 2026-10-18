@@ -10,7 +10,7 @@ import type { DB } from "#/db";
 import { getDB } from "#/db";
 import { buckets, lower } from "#/db/schema";
 import { ConflictError, NotFoundError } from "#/lib/errors";
-import { authMiddleware } from "#/lib/middlewares";
+import { authMiddleware } from "#/modules/authentication/middlewares";
 import { loadBucketDeletionImpact } from "#/modules/buckets/deletion.server";
 import { getBucketsWithFigures } from "#/modules/buckets/figures.server";
 import { verifyUserBucketMiddleware } from "#/modules/buckets/middlewares";
@@ -26,7 +26,7 @@ export const getBuckets = createServerFn({
   .middleware([authMiddleware])
   .handler(async ({ context }) => {
     const bucketsWithFigures = await getBucketsWithFigures(getDB(env.db), {
-      userId: context.user.id,
+      userId: context.userId,
     });
 
     // The list shows Subtotals only; what each Bank Account holds is for one Bucket's reads.
@@ -104,7 +104,7 @@ export const validateBucketName = createServerFn({
 })
   .middleware([authMiddleware])
   .validator(validateBucketNameSchema)
-  .handler(async ({ context, data }) => checkBucketName(getDB(env.db), context.user.id, data));
+  .handler(async ({ context, data }) => checkBucketName(getDB(env.db), context.userId, data));
 
 export const setUpBucket = createServerFn({
   method: "POST",
@@ -114,7 +114,7 @@ export const setUpBucket = createServerFn({
   .handler(async ({ context, data }) => {
     const db = getDB(env.db);
 
-    const { isValid, message } = await checkBucketName(db, context.user.id, { name: data.name });
+    const { isValid, message } = await checkBucketName(db, context.userId, { name: data.name });
 
     if (!isValid) throw new ConflictError(message);
 
@@ -123,7 +123,7 @@ export const setUpBucket = createServerFn({
         .insert(buckets)
         .values({
           id: uuidv7(),
-          userId: context.user.id,
+          userId: context.userId,
           name: data.name,
         })
         .returning();
@@ -142,7 +142,7 @@ export const editBucket = createServerFn({
   .handler(async ({ context, data }) => {
     const db = getDB(env.db);
 
-    const { isValid, message } = await checkBucketName(db, context.user.id, data);
+    const { isValid, message } = await checkBucketName(db, context.userId, data);
 
     if (!isValid) throw new ConflictError(message);
 
@@ -166,7 +166,7 @@ export const getBucketDeletionImpact = createServerFn({
 })
   .middleware([verifyUserBucketMiddleware])
   .handler(async ({ context, data }) =>
-    loadBucketDeletionImpact(getDB(env.db), context.user.id, data.bucketId),
+    loadBucketDeletionImpact(getDB(env.db), context.userId, data.bucketId),
   );
 
 export const deleteBucket = createServerFn({

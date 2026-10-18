@@ -9,7 +9,6 @@ import { getDB } from "#/db";
 import { allocations } from "#/db/schema";
 import { currencyCodec } from "#/lib/codecs";
 import { InsufficientFundsError, NotFoundError } from "#/lib/errors";
-import { authMiddleware } from "#/lib/middlewares";
 import { verifyUserAllocationMiddleware } from "#/modules/allocations/middlewares";
 import {
   editAllocationSchema,
@@ -17,6 +16,7 @@ import {
   logAllocationSchema,
 } from "#/modules/allocations/schemas";
 import { describeInsufficientUnallocated } from "#/modules/allocations/utils";
+import { authMiddleware } from "#/modules/authentication/middlewares";
 import {
   checkUnallocated,
   getBankAccountsWithFigures,
@@ -40,7 +40,7 @@ export const getAllocation = createServerFn({
 
     const [figures] = allocation
       ? await getBankAccountsWithFigures(db, {
-          userId: context.user.id,
+          userId: context.userId,
           bankAccountId: allocation.bankAccountId,
         })
       : [];
@@ -85,7 +85,7 @@ export const logAllocation = createServerFn({
   .handler(async ({ context, data }) => {
     const db = getDB(env.db);
 
-    await checkAllocationAmount(db, context.user.id, {
+    await checkAllocationAmount(db, context.userId, {
       kind: "add-allocation",
       bankAccountId: data.bankAccountId,
       amount: currencyCodec.decode(data.amount),
@@ -112,7 +112,7 @@ export const editAllocation = createServerFn({
   .handler(async ({ context, data }) => {
     const db = getDB(env.db);
 
-    await checkAllocationAmount(db, context.user.id, {
+    await checkAllocationAmount(db, context.userId, {
       kind: "replace-allocation",
       allocationId: data.allocationId,
       amount: currencyCodec.decode(data.amount),
@@ -154,7 +154,7 @@ export const getAllocations = createServerFn({
     return db.query.allocations.findMany({
       where: {
         bankAccount: {
-          userId: context.user.id,
+          userId: context.userId,
         },
         ...(data.bucketId ? { bucketId: data.bucketId } : {}),
         ...(data.bankAccountId ? { bankAccountId: data.bankAccountId } : {}),

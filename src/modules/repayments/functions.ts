@@ -16,7 +16,7 @@ export const logRepayment = createServerFn({
   .middleware([verifyUserDebtMiddleware])
   .validator(logRepaymentSchema)
   .handler(({ context, data }) =>
-    addRepayment(getDB(env.db), context.user.id, {
+    addRepayment(getDB(env.db), context.userId, {
       debtId: data.debtId,
       bankAccountId: data.bankAccountId,
       amount: currencyCodec.decode(data.amount),
@@ -31,7 +31,7 @@ export const editRepayment = createServerFn({
   .middleware([verifyUserDebtMiddleware])
   .validator(editRepaymentSchema)
   .handler(({ context, data }) =>
-    changeRepayment(getDB(env.db), context.user.id, {
+    changeRepayment(getDB(env.db), context.userId, {
       debtId: data.debtId,
       repaymentId: data.repaymentId,
       amount: currencyCodec.decode(data.amount),

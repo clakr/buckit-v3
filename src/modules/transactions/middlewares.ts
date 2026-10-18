@@ -5,7 +5,7 @@ import { and, eq } from "drizzle-orm";
 import { getDB } from "#/db";
 import { transactions } from "#/db/schema";
 import { NotFoundError } from "#/lib/errors";
-import { authMiddleware } from "#/lib/middlewares";
+import { authMiddleware } from "#/modules/authentication/middlewares";
 import { isOwnedThroughBankAccount } from "#/modules/bank-accounts/ownership.server";
 import { verifyUserTransactionMiddlewareSchema } from "#/modules/transactions/schemas";
 
@@ -23,7 +23,7 @@ export const verifyUserTransactionMiddleware = createMiddleware({
       .where(
         and(
           eq(transactions.id, data.transactionId),
-          isOwnedThroughBankAccount(db, context.user.id, transactions.bankAccountId),
+          isOwnedThroughBankAccount(db, context.userId, transactions.bankAccountId),
         ),
       )
       .limit(1);

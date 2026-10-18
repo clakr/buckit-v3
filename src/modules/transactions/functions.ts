@@ -69,7 +69,7 @@ export const logTransaction = createServerFn({
     const amount = currencyCodec.decode(data.amount);
 
     // The write is the check: its error reaches the dialog's failure toast with this message.
-    const check = await checkUnallocated(db, context.user.id, {
+    const check = await checkUnallocated(db, context.userId, {
       kind: "add-transaction",
       bankAccountId: data.bankAccountId,
       type: data.type,
@@ -110,7 +110,7 @@ export const editTransaction = createServerFn({
     const db = getDB(env.db);
     const edit = toTransactionEdit(data);
 
-    const check = await checkTransactionEdit(db, context.user.id, edit);
+    const check = await checkTransactionEdit(db, context.userId, edit);
 
     if (!check.ok) {
       throw check.reason === "linked"
@@ -139,7 +139,7 @@ export const validateDeleteTransaction = createServerFn({
     const db = getDB(env.db);
 
     const [check, transaction, link] = await Promise.all([
-      checkDeleteTransaction(db, context.user.id, data.transactionId),
+      checkDeleteTransaction(db, context.userId, data.transactionId),
       db.query.transactions.findFirst({
         columns: { type: true, amount: true },
         where: { id: data.transactionId },
@@ -175,7 +175,7 @@ export const deleteTransaction = createServerFn({
   .handler(async ({ context, data }) => {
     const db = getDB(env.db);
 
-    const check = await checkDeleteTransaction(db, context.user.id, data.transactionId);
+    const check = await checkDeleteTransaction(db, context.userId, data.transactionId);
 
     if (!check.ok) throw new InsufficientFundsError(DELETE_NEGATIVE_UNALLOCATED_MESSAGE);
 

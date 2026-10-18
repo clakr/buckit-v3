@@ -11,7 +11,7 @@ import { getDB } from "#/db";
 import { bankAccounts, lower } from "#/db/schema";
 import { currencyCodec } from "#/lib/codecs";
 import { ConflictError, NotFoundError } from "#/lib/errors";
-import { authMiddleware } from "#/lib/middlewares";
+import { authMiddleware } from "#/modules/authentication/middlewares";
 import {
   deleteBankAccountWithCascade,
   loadBankAccountDeletionImpact,
@@ -32,7 +32,7 @@ export const getBankAccounts = createServerFn({
   .validator(getBankAccountsSchema)
   .handler(async ({ context, data }) =>
     getBankAccountsWithFigures(getDB(env.db), {
-      userId: context.user.id,
+      userId: context.userId,
       currency: data?.currency,
     }),
   );
@@ -64,7 +64,7 @@ export const getBankAccount = createServerFn({
     const [bankAccount, [figures]] = await Promise.all([
       bankAccountQuery,
       getBankAccountsWithFigures(db, {
-        userId: context.user.id,
+        userId: context.userId,
         bankAccountId: data.bankAccountId,
       }),
     ]);
@@ -127,7 +127,7 @@ export const validateBankAccountName = createServerFn({
 })
   .middleware([authMiddleware])
   .validator(validateBankAccountNameSchema)
-  .handler(async ({ context, data }) => checkBankAccountName(getDB(env.db), context.user.id, data));
+  .handler(async ({ context, data }) => checkBankAccountName(getDB(env.db), context.userId, data));
 
 export const registerBankAccount = createServerFn({
   method: "POST",
@@ -137,7 +137,7 @@ export const registerBankAccount = createServerFn({
   .handler(async ({ context, data }) => {
     const db = getDB(env.db);
 
-    const { isValid, message } = await checkBankAccountName(db, context.user.id, {
+    const { isValid, message } = await checkBankAccountName(db, context.userId, {
       name: data.name,
     });
 
@@ -148,7 +148,7 @@ export const registerBankAccount = createServerFn({
         .insert(bankAccounts)
         .values({
           id: uuidv7(),
-          userId: context.user.id,
+          userId: context.userId,
           name: data.name,
           currency: data.currency,
           startingBalance: currencyCodec.decode(data.startingBalance),
@@ -169,7 +169,7 @@ export const editBankAccount = createServerFn({
   .handler(async ({ context, data }) => {
     const db = getDB(env.db);
 
-    const { isValid, message } = await checkBankAccountName(db, context.user.id, data);
+    const { isValid, message } = await checkBankAccountName(db, context.userId, data);
 
     if (!isValid) throw new ConflictError(message);
 
@@ -193,7 +193,7 @@ export const getBankAccountDeletionImpact = createServerFn({
 })
   .middleware([verifyUserBankAccountMiddleware])
   .handler(async ({ context, data }) =>
-    loadBankAccountDeletionImpact(getDB(env.db), context.user.id, data.bankAccountId),
+    loadBankAccountDeletionImpact(getDB(env.db), context.userId, data.bankAccountId),
   );
 
 export const deleteBankAccount = createServerFn({

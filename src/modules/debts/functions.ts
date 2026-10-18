@@ -10,7 +10,7 @@ import { getDB } from "#/db";
 import { debts, transactions } from "#/db/schema";
 import { currencyCodec } from "#/lib/codecs";
 import { ConflictError, InsufficientFundsError, NotFoundError } from "#/lib/errors";
-import { authMiddleware } from "#/lib/middlewares";
+import { authMiddleware } from "#/modules/authentication/middlewares";
 import { checkUnallocated } from "#/modules/bank-accounts/figures.server";
 import { findOwnedBankAccount } from "#/modules/bank-accounts/ownership.server";
 import { loadDebtDeletionImpact } from "#/modules/debts/deletion.server";
@@ -28,7 +28,7 @@ export const getDebts = createServerFn({
   method: "GET",
 })
   .middleware([authMiddleware])
-  .handler(async ({ context }) => getDebtsWithFigures(getDB(env.db), { userId: context.user.id }));
+  .handler(async ({ context }) => getDebtsWithFigures(getDB(env.db), { userId: context.userId }));
 
 // `recordDebt` has no bank-account middleware of its own, so this is its ownership check too.
 async function checkDebtSourceBankAccount(
@@ -77,7 +77,7 @@ export const recordDebt = createServerFn({
         .insert(debts)
         .values({
           id: debtId,
-          userId: context.user.id,
+          userId: context.userId,
           direction: data.direction,
           currency: data.currency,
           amount,
@@ -90,7 +90,7 @@ export const recordDebt = createServerFn({
       return debt;
     }
 
-    await checkDebtSourceBankAccount(db, context.user.id, {
+    await checkDebtSourceBankAccount(db, context.userId, {
       bankAccountId: data.bankAccountId,
       currency: data.currency,
       amount,
@@ -112,7 +112,7 @@ export const recordDebt = createServerFn({
         .values({
           id: debtId,
           originatingTransactionId: transactionId,
-          userId: context.user.id,
+          userId: context.userId,
           direction: data.direction,
           currency: data.currency,
           amount,
@@ -132,7 +132,7 @@ export const getDebt = createServerFn({
   .middleware([verifyUserDebtMiddleware])
   .handler(async ({ context, data }) => {
     const [debt] = await getDebtsWithFigures(getDB(env.db), {
-      userId: context.user.id,
+      userId: context.userId,
       debtIds: [data.debtId],
     });
 
@@ -179,7 +179,7 @@ export const getDebtDeletionImpact = createServerFn({
 })
   .middleware([verifyUserDebtMiddleware])
   .handler(async ({ context, data }) =>
-    loadDebtDeletionImpact(getDB(env.db), context.user.id, data.debtId),
+    loadDebtDeletionImpact(getDB(env.db), context.userId, data.debtId),
   );
 
 export const deleteDebt = createServerFn({
@@ -199,7 +199,7 @@ export const deleteDebt = createServerFn({
     // rows, and with them the repayment → Transaction links.
     const { linkedTransactionIds, shortfall } = await loadDebtDeletionImpact(
       db,
-      context.user.id,
+      context.userId,
       data.debtId,
     );
 
@@ -223,7 +223,7 @@ export const forgiveDebt = createServerFn({
     const db = getDB(env.db);
 
     const [debt] = await getDebtsWithFigures(db, {
-      userId: context.user.id,
+      userId: context.userId,
       debtIds: [data.debtId],
     });
     if (!debt) throw new NotFoundError("This debt doesn't exist or may have been deleted.");
