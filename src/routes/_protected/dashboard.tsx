@@ -1,8 +1,8 @@
-import { createFileRoute, redirect } from "@tanstack/react-router";
-import { useServerFn } from "@tanstack/react-start";
+import { createFileRoute, redirect, useRouter } from "@tanstack/react-router";
 
 import { Button } from "#/components/ui/button";
-import { getSession, signOutUser } from "#/modules/authentication/functions";
+import { getSession } from "#/modules/authentication/functions";
+import { signOut } from "#/modules/authentication/session";
 
 export const Route = createFileRoute("/_protected/dashboard")({
   component: RouteComponent,
@@ -21,23 +21,13 @@ export const Route = createFileRoute("/_protected/dashboard")({
 function RouteComponent() {
   const foo = Route.useRouteContext();
 
-  const navigate = Route.useNavigate();
-  const logoutUserServerFn = useServerFn(signOutUser);
-
-  async function handleLogout() {
-    await logoutUserServerFn();
-
-    navigate({
-      to: "/",
-      replace: true,
-    });
-  }
+  const router = useRouter();
 
   return (
     <main>
       <pre>{JSON.stringify(foo, null, 2)}</pre>
       <div>Hello "/dashboard"!</div>
-      <Button onClick={handleLogout}>logout</Button>
+      <Button onClick={() => signOut(router)}>logout</Button>
     </main>
   );
 }

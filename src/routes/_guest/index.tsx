@@ -1,22 +1,20 @@
 import { IconBrandGoogleFilled } from "@tabler/icons-react";
-import { createFileRoute, Link } from "@tanstack/react-router";
-import { toast } from "sonner";
+import { createFileRoute, Link, useRouter } from "@tanstack/react-router";
 import { z } from "zod";
 
 import loginImage from "#/assets/login.webp";
 import { Button } from "#/components/ui/button";
 import { Field, FieldDescription, FieldGroup, FieldSeparator } from "#/components/ui/field";
 import { useAppForm } from "#/integrations/tanstack-form";
-import { describeErrorForUser } from "#/lib/errors";
-import { signInUser } from "#/modules/authentication/functions";
 import { signInUserSchema } from "#/modules/authentication/schemas";
+import { signIn } from "#/modules/authentication/session";
 
 export const Route = createFileRoute("/_guest/")({
   component: RouteComponent,
 });
 
 function RouteComponent() {
-  const navigate = Route.useNavigate();
+  const router = useRouter();
 
   const defaultValues: z.infer<typeof signInUserSchema> = {
     email: "",
@@ -28,27 +26,7 @@ function RouteComponent() {
     validators: {
       onChange: signInUserSchema,
     },
-    onSubmit: async ({ value: data }) => {
-      try {
-        await signInUser({ data });
-      } catch (error) {
-        console.error(error);
-
-        toast.error("Failed to Sign In", {
-          description: describeErrorForUser(
-            error,
-            "We weren't able to sign you in. Please try again.",
-          ),
-        });
-
-        return;
-      }
-
-      navigate({
-        to: "/dashboard",
-        replace: true,
-      });
-    },
+    onSubmit: ({ value: data }) => signIn(router, data),
   });
 
   return (

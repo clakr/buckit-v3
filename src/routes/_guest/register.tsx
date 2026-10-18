@@ -1,22 +1,20 @@
 import { IconBrandGoogleFilled } from "@tabler/icons-react";
-import { createFileRoute, Link } from "@tanstack/react-router";
-import { toast } from "sonner";
+import { createFileRoute, Link, useRouter } from "@tanstack/react-router";
 import { z } from "zod";
 
 import registerImage from "#/assets/register.webp";
 import { Button } from "#/components/ui/button";
 import { Field, FieldDescription, FieldGroup, FieldSeparator } from "#/components/ui/field";
 import { useAppForm } from "#/integrations/tanstack-form";
-import { describeErrorForUser } from "#/lib/errors";
-import { signUpUser } from "#/modules/authentication/functions";
 import { signUpUserSchema } from "#/modules/authentication/schemas";
+import { signUp } from "#/modules/authentication/session";
 
 export const Route = createFileRoute("/_guest/register")({
   component: RouteComponent,
 });
 
 function RouteComponent() {
-  const navigate = Route.useNavigate();
+  const router = useRouter();
 
   const defaultValues: z.infer<typeof signUpUserSchema> = {
     firstName: "",
@@ -31,27 +29,7 @@ function RouteComponent() {
     validators: {
       onChange: signUpUserSchema,
     },
-    onSubmit: async ({ value: data }) => {
-      try {
-        await signUpUser({ data });
-      } catch (error) {
-        console.error(error);
-
-        toast.error("Failed to Create Account", {
-          description: describeErrorForUser(
-            error,
-            "We weren't able to create your account. Please try again.",
-          ),
-        });
-
-        return;
-      }
-
-      navigate({
-        to: "/dashboard",
-        replace: true,
-      });
-    },
+    onSubmit: ({ value: data }) => signUp(router, data),
   });
 
   return (

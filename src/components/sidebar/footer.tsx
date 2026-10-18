@@ -1,11 +1,7 @@
 import { IconSelector, IconLogout, IconUserCircle } from "@tabler/icons-react";
-import { getRouteApi } from "@tanstack/react-router";
-import { useServerFn } from "@tanstack/react-start";
-import { useRef } from "react";
-import { toast } from "sonner";
+import { getRouteApi, useRouter } from "@tanstack/react-router";
 
 import { Avatar, AvatarImage, AvatarFallback } from "#/components/ui/avatar";
-import { Button } from "#/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuTrigger,
@@ -22,55 +18,15 @@ import {
   useSidebar,
   SidebarMenuButton,
 } from "#/components/ui/sidebar";
-import { describeErrorForUser, UnauthorizedError } from "#/lib/errors";
-import { signOutUser } from "#/modules/authentication/functions";
+import { signOut } from "#/modules/authentication/session";
 
 export function SidebarFooter() {
   const Route = getRouteApi("/_protected");
-  const { user, queryClient } = Route.useRouteContext();
-
-  const navigate = Route.useNavigate();
+  const { user } = Route.useRouteContext();
 
   const { isMobile } = useSidebar();
 
-  const logoutUserServerFn = useServerFn(signOutUser);
-
-  const abortControllerRef = useRef<AbortController | null>(null);
-
-  async function handleLogout() {
-    abortControllerRef.current?.abort();
-    const controller = new AbortController();
-    abortControllerRef.current = controller;
-
-    try {
-      await logoutUserServerFn({ signal: controller.signal });
-    } catch (error) {
-      if (controller.signal.aborted) return;
-
-      // Already signed out (expired, or signed out in another tab): finish leaving.
-      if (!(error instanceof UnauthorizedError)) {
-        console.error(error);
-
-        toast.error("Failed to Sign Out", {
-          description: describeErrorForUser(
-            error,
-            "We weren't able to sign you out. Please try again.",
-          ),
-          action:
-            error instanceof TypeError ? <Button onClick={handleLogout}>Retry</Button> : undefined,
-        });
-
-        return;
-      }
-    }
-
-    queryClient.clear();
-
-    navigate({
-      to: "/",
-      replace: true,
-    });
-  }
+  const router = useRouter();
 
   return (
     <UISidebarFooter>
@@ -116,7 +72,7 @@ export function SidebarFooter() {
               </DropdownMenuGroup>
               <DropdownMenuSeparator />
               <DropdownMenuGroup>
-                <DropdownMenuItem onClick={handleLogout}>
+                <DropdownMenuItem onClick={() => signOut(router)}>
                   <IconLogout />
                   Sign Out
                 </DropdownMenuItem>
