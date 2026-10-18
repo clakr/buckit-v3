@@ -13,7 +13,8 @@ export const signUpUser = createServerFn({
   .validator(signUpUserSchema)
   .handler(async ({ data }) => {
     try {
-      return await auth.api.signUpEmail({
+      // Nothing returned: the result carries the session token the httpOnly cookie protects.
+      await auth.api.signUpEmail({
         body: {
           name: `${data.firstName} ${data.lastName}`,
           email: data.email,
@@ -35,7 +36,12 @@ export const getSession = createServerFn({
   const headers = getRequestHeaders();
   const session = await auth.api.getSession({ headers });
 
-  return session;
+  if (!session) return null;
+
+  // Only what the client shows: the Session record holds its token, IP address and user agent.
+  const { id, name, email } = session.user;
+
+  return { user: { id, name, email } };
 });
 
 export const signOutUser = createServerFn({ method: "POST" })
@@ -46,7 +52,8 @@ export const signInUser = createServerFn({ method: "POST" })
   .validator(signInUserSchema)
   .handler(async ({ data }) => {
     try {
-      return await auth.api.signInEmail({
+      // Nothing returned: the result carries the session token the httpOnly cookie protects.
+      await auth.api.signInEmail({
         body: {
           email: data.email,
           password: data.password,
