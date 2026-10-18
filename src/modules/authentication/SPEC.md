@@ -73,7 +73,7 @@ Two route-tree layouts gate everything: `_guest.tsx`'s `beforeLoad` calls `getSe
 
 ### Sign-Out Flow
 
-`signOutUser` is a plain Better-Auth `auth.api.signOut()` call behind `authMiddleware`, invalidating the Session server-side. The one real caller (`SidebarFooter`) also clears the TanStack Query cache (`queryClient.clear()`) before navigating to `/` — correct, since query results are User-scoped and must not leak into whatever gets signed in next on the same device.
+`signOutUser` is a plain Better-Auth `auth.api.signOut()` call behind `authMiddleware`, invalidating the Session server-side. On the client, every way in and out of a Session goes through `src/modules/authentication/session.tsx` (see the 2026-10-20 update below), which empties the TanStack Query cache on the way in and out. Query results are User-scoped and must not leak into whatever gets signed in next on the same device.
 
 ### No Rate Limiting Configured Explicitly
 
@@ -108,6 +108,13 @@ Better-Auth's built-in rate limiter defaults to **enabled only in production**, 
   - **Retry re-runs the load:** every route error screen's Retry is now `RouteRetryButton` (`src/components/route-retry-button.tsx`), which calls `router.invalidate()`. It used to call the error component's `reset`, which only clears the boundary, so the Accounts, Buckets and Debts pages (list and detail) showed the same error again even after the connection came back.
   - **Shared wording rule:** `describeErrorForUser(error, fallback)` in `src/lib/errors.ts` returns an `AppError`'s message or the fallback. The global mutation toast, sign-in, register and sign-out all use it.
   - `dashboard.tsx`'s own logout button is untouched, per the placeholder note under Future Considerations.
+
+- **2026-10-20 — one module enters and leaves a Session.** Features 1–3 are unchanged. Each exit used to clear the query cache and navigate in its own way: the sidebar's Sign Out and the expired-Session handler did, the dashboard's logout button skipped the clear, and sign-in and sign-up assumed an empty cache. `src/modules/authentication/session.tsx` now owns all of it:
+  - `signIn(router, data)` and `signUp(router, data)` make the call and, on success, empty the cache and land on `/dashboard`. A failure is toasted ("Failed to Sign In" / "Failed to Create Account") and not thrown, so the forms only await it.
+  - `signOut(router)` signs out and leaves for `/`. Repeat clicks are ignored while one is in flight. An `UnauthorizedError` counts as already signed out, and other failures toast "Failed to Sign Out", with Retry for a network error.
+  - `leaveExpiredSession(router, error)` is what `getRouter` hands the query client: one "Signed Out" toast, however many requests fail together, and nothing on the server.
+  - Leaving goes to `/` first, then empties the cache, so the open page's queries don't refetch into the same failure. Entering empties it first, so a missed exit can't leak into the next Session.
+  - The sidebar, the dashboard's logout button, and the login and register pages all call it.
 
 ## Documentation Corrections Made This Session
 
@@ -145,4 +152,4 @@ Multi-device Sessions already work at the data layer, but a User has no UI to se
 
 ### `dashboard.tsx` — Known Placeholder, Not Audited for Correctness
 
-`_protected/dashboard.tsx` duplicates the `beforeLoad` Session check `_protected.tsx` already performs, has its own standalone logout button separate from `SidebarFooter`'s, and dumps the raw route context via `<pre>{JSON.stringify(foo, null, 2)}</pre>`. Left untouched this session by design — this route is a placeholder to be replaced once core features and real data exist, so cleaning up code inside it now would be discarded along with the rest of the file later.
+`_protected/dashboard.tsx` duplicates the `beforeLoad` Session check `_protected.tsx` already performs, has its own logout button (which goes through the Session module like `SidebarFooter`'s, since 2026-10-20), and dumps the raw route context via `<pre>{JSON.stringify(foo, null, 2)}</pre>`. Otherwise left untouched by design — this route is a placeholder to be replaced once core features and real data exist, so cleaning up code inside it now would be discarded along with the rest of the file later.
