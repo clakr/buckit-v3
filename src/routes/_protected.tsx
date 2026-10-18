@@ -1,11 +1,11 @@
-import { createFileRoute, Outlet, redirect } from "@tanstack/react-router";
+import { createFileRoute, Outlet } from "@tanstack/react-router";
 
 import { SidebarContent } from "#/components/sidebar/content";
 import { SidebarFooter } from "#/components/sidebar/footer";
 import { Sidebar, SidebarInset, SidebarProvider, SidebarTrigger } from "#/components/ui/sidebar";
 import { EditAllocationDialog } from "#/modules/allocations/components/edit-allocation-dialog";
 import { LogAllocationDialog } from "#/modules/allocations/components/log-allocation-dialog";
-import { getSession } from "#/modules/authentication/functions";
+import { requireSignedIn } from "#/modules/authentication/guards";
 import { DeleteBankAccountDialog } from "#/modules/bank-accounts/components/delete-bank-account-dialog";
 import { EditBankAccountDialog } from "#/modules/bank-accounts/components/edit-bank-account-dialog";
 import { RegisterBankAccountDialog } from "#/modules/bank-accounts/components/register-bank-account-dialog";
@@ -23,15 +23,7 @@ import { LogTransactionDialog } from "#/modules/transactions/components/log-tran
 export const Route = createFileRoute("/_protected")({
   ssr: "data-only",
   component: RouteComponent,
-  beforeLoad: async () => {
-    const user = await getSession();
-    if (!user)
-      throw redirect({
-        to: "/",
-      });
-
-    return { user };
-  },
+  beforeLoad: ({ context }) => requireSignedIn(context),
 });
 
 function RouteComponent() {

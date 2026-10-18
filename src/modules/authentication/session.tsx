@@ -8,6 +8,7 @@ import type { signInUserSchema, signUpUserSchema } from "#/modules/authenticatio
 import { Button } from "#/components/ui/button";
 import { describeErrorForUser, UnauthorizedError } from "#/lib/errors";
 import { signInUser, signOutUser, signUpUser } from "#/modules/authentication/functions";
+import { sessionQueryOption } from "#/modules/authentication/query-options";
 
 /*
  * Entering and leaving a Session on the client. Query results are User-scoped, so the cache is
@@ -108,6 +109,9 @@ async function enterSession(router: RegisteredRouter) {
 }
 
 async function leaveSession(router: RegisteredRouter) {
+  // Signed out before navigating, or the login page's guard would send the cached User back in.
+  router.options.context.queryClient.setQueryData(sessionQueryOption().queryKey, null);
+
   try {
     await router.navigate({ to: "/", replace: true });
   } finally {
