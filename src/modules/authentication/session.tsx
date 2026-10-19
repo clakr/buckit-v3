@@ -9,6 +9,7 @@ import { Button } from "#/components/ui/button";
 import { describeErrorForUser, UnauthorizedError } from "#/lib/errors";
 import { signInUser, signOutUser, signUpUser } from "#/modules/authentication/functions";
 import { sessionQueryOption } from "#/modules/authentication/query-options";
+import { closeAllDialogs } from "#/stores/dialog-store";
 
 /*
  * Entering and leaving a Session on the client. Query results are User-scoped, so the cache is
@@ -103,12 +104,15 @@ export async function leaveExpiredSession(router: RegisteredRouter, error: Unaut
 }
 
 async function enterSession(router: RegisteredRouter) {
+  closeAllDialogs();
   router.options.context.queryClient.clear();
 
   await router.navigate({ to: "/dashboard", replace: true });
 }
 
 async function leaveSession(router: RegisteredRouter) {
+  closeAllDialogs();
+
   // Signed out before navigating, or the login page's guard would send the cached User back in.
   router.options.context.queryClient.setQueryData(sessionQueryOption().queryKey, null);
 
