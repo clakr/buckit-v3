@@ -13,7 +13,7 @@ A Transaction is a record of money moving into (`income`) or out of (`expense`) 
 | `id`            | string   | auto-generated (uuidv7)                                                   |
 | `bankAccountId` | string   | FK → BankAccount, `onDelete: cascade`                                     |
 | `type`          | enum     | `income` \| `expense`                                                     |
-| `amount`        | integer  | minor units (cents) via `currencyCodec`, in the owning account's currency |
+| `amount`        | integer  | minor units (cents) via the Money module (`src/lib/money.ts`), in the owning account's currency |
 | `note`          | string   | nullable                                                                  |
 | `date`          | datetime | user-editable, defaults to now on creation                                |
 | `createdAt`     | datetime |                                                                           |
@@ -28,7 +28,7 @@ A Transaction's `type` determines its sign in the Balance formula: `Balance = st
 
 ### No Currency of Its Own
 
-Amount is stored in minor units of the owning Bank Account's currency (`currencyCodec`). There is no per-Transaction currency field — `getTransaction` joins the Bank Account's `currency` column specifically to render amounts correctly.
+Amount is stored in minor units of the owning Bank Account's currency (see the Money module, `src/lib/money.ts`). There is no per-Transaction currency field — `getTransaction` joins the Bank Account's `currency` column specifically to render amounts correctly.
 
 ### Permanent Boundary: Never Attaches to a Bucket
 

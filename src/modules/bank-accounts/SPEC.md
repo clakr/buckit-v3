@@ -16,7 +16,7 @@ A Bank Account represents a real-world, liquid money container (cash, checking, 
 | `userId`          | string   | FK → Users (ownership boundary)                                        |
 | `name`            | string   | user-given label, unique per user (case-insensitive), editable         |
 | `currency`        | string   | e.g. PHP, QAR — **immutable after creation**                           |
-| `startingBalance` | integer  | minor units (cents) via `currencyCodec` — **immutable after creation** |
+| `startingBalance` | integer  | minor units (cents) via the Money module (`src/lib/money.ts`) — **immutable after creation** |
 | `createdAt`       | datetime |                                                                        |
 
 No `updatedAt` column — considered and deliberately deferred (see Design Decisions).
@@ -68,6 +68,16 @@ Every other table in the schema (`users`, `sessions`, `accounts`, `verifications
 ### Transfers Between Accounts — Out of Scope, Constraint Captured for Later
 
 Not building this now. When it is built: **a transfer must only be allowed between two Bank Accounts of the same currency** — no exchange-rate conversion is in scope for this ledger. (Prior art: the old, deleted spec modeled a transfer as two linked Transactions — an expense on the source account and an income on the destination account, connected via a shared note. Worth reconsidering as a starting point rather than adding new schema, since it fits the existing Transaction model as-is — but this needs its own design pass.)
+
+### Money (`src/lib/money.ts`)
+
+Since 2026-10-20, every amount goes through one module, shared by all modules on client and server. Amounts are stored as integer cents next to their currency.
+
+- `amountSchema` (more than 0) and `nonNegativeAmountSchema(message)` (Starting Balance, which may be 0) take what the user typed, enforce at most 2 decimal places ("Use at most 2 decimal places." as a field error), and parse to cents. Server functions receive cents; nothing else decodes.
+- `formatMoney(cents, currency)` shows an amount, and the currency is required. `centsToAmountInput(cents)` gives an edit form its starting value.
+- `exceedsAvailable(amountInput, availableCents)` is the dialogs' as-you-type "more than Unallocated" check. `describeInsufficientUnallocated({ bankAccount, available, purpose })` is its message, shared with the writes; `purpose` ("loan", "repayment") keeps each dialog's wording.
+
+**Known limit:** every currency is treated as having 2 decimal places. That's wrong for currencies like JPY (0) or KWD (3), which the currency picker still offers. Changing it means per-currency minor units, and migrating any amounts already stored in such a currency.
 
 ## Features
 
