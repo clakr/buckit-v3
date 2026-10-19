@@ -1,10 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import z from "zod";
-import { create } from "zustand";
-import { useShallow } from "zustand/react/shallow";
 
 import type { Debt } from "#/db/schema";
-import type { DialogState } from "#/lib/types";
 
 import { StateTemplate } from "#/components/state-template";
 import { Button } from "#/components/ui/button";
@@ -24,37 +21,20 @@ import { BankAccountSelectField } from "#/modules/bank-accounts/components/bank-
 import { bankAccountsQueryOption } from "#/modules/bank-accounts/query-options";
 import { debtQueryOption } from "#/modules/debts/query-options";
 import { getLinkedTransactionType } from "#/modules/debts/utils";
+import { createDialogStore } from "#/stores/dialog-store";
 import { confirm } from "#/stores/use-confirm";
 
 import { useLogRepaymentMutation } from "../mutations";
 import { logRepaymentSchema } from "../schemas";
 import { getRepaymentDateRule } from "../utils";
 
-type StoreState = DialogState & {
-  debtId: Debt["id"] | null;
-  setDebtId: (debtId: Debt["id"]) => void;
-};
-
-export const useLogRepaymentDialogStore = create<StoreState>()((set) => ({
-  isOpen: false,
-  openDialog: () => set({ isOpen: true }),
-  closeDialog: () => set({ isOpen: false }),
-  toggleDialog: () => set((state) => ({ isOpen: !state.isOpen })),
-
+export const useLogRepaymentDialogStore = createDialogStore<{ debtId: Debt["id"] | null }>({
   debtId: null,
-  setDebtId: (debtId) => set({ debtId }),
-}));
+});
 
 export function LogRepaymentDialog() {
-  const { isOpen, closeDialog, toggleDialog, debtId } = useLogRepaymentDialogStore(
-    useShallow((state) => ({
-      isOpen: state.isOpen,
-      closeDialog: state.closeDialog,
-      toggleDialog: state.toggleDialog,
-
-      debtId: state.debtId,
-    })),
-  );
+  const { isOpen, payload, close } = useLogRepaymentDialogStore();
+  const { debtId } = payload;
 
   const {
     status: debtStatus,
@@ -111,7 +91,7 @@ export function LogRepaymentDialog() {
       }
 
       form.reset();
-      closeDialog();
+      close();
     },
   });
 
@@ -129,7 +109,7 @@ export function LogRepaymentDialog() {
 
     form.reset();
 
-    toggleDialog();
+    close();
   }
 
   // Money only leaves the account on a payable; a receivable's repayment can't overdraw it.
@@ -159,7 +139,7 @@ export function LogRepaymentDialog() {
               title="Debt not found"
               description={debtError.message}
               content={
-                <Button variant="secondary" onClick={closeDialog}>
+                <Button variant="secondary" onClick={close}>
                   Close
                 </Button>
               }

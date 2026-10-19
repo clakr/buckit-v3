@@ -1,7 +1,6 @@
 import { IconPlus } from "@tabler/icons-react";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
-import { useShallow } from "zustand/react/shallow";
 
 import { Heading } from "#/components/heading";
 import { Main } from "#/components/main";
@@ -51,13 +50,13 @@ function RouteComponent() {
 
   const isEmpty = bankAccounts.length === 0;
 
-  const openDialog = useRegisterBankAccountDialogStore(useShallow((state) => state.openDialog));
+  const openDialog = useRegisterBankAccountDialogStore((state) => state.open);
 
   return (
     <Main>
       <div className="flex items-center justify-between">
         <Heading>Accounts</Heading>
-        <Button onClick={openDialog}>
+        <Button onClick={() => openDialog()}>
           <IconPlus />
           Register Account
         </Button>
@@ -70,7 +69,7 @@ function RouteComponent() {
           description="Add your first bank account to start tracking."
           icon={<MODULE_ICONS.accounts />}
           content={
-            <Button onClick={openDialog}>
+            <Button onClick={() => openDialog()}>
               <IconPlus />
               Register Account
             </Button>

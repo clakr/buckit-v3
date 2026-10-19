@@ -20,10 +20,7 @@ type Props = {
 
 export function AllocationActionsDropdownMenu({ allocationId }: Props) {
   function handleOpenEditAllocationDialog() {
-    const state = useEditAllocationDialogStore.getState();
-
-    state.setAllocationId(allocationId);
-    state.openDialog();
+    useEditAllocationDialogStore.getState().open({ allocationId });
   }
 
   const mutation = useDeleteAllocationMutation();

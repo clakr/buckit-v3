@@ -1,8 +1,4 @@
 import z from "zod";
-import { create } from "zustand";
-import { useShallow } from "zustand/react/shallow";
-
-import type { DialogState } from "#/lib/types";
 
 import {
   Dialog,
@@ -18,23 +14,13 @@ import { refineNameAvailability } from "#/lib/name-availability";
 import { validateBucketName } from "#/modules/buckets/functions";
 import { useSetUpBucketMutation } from "#/modules/buckets/mutations";
 import { setUpBucketSchema } from "#/modules/buckets/schemas";
+import { createDialogStore } from "#/stores/dialog-store";
 import { confirm } from "#/stores/use-confirm";
 
-export const useSetUpBucketDialogStore = create<DialogState>()((set) => ({
-  isOpen: false,
-  openDialog: () => set({ isOpen: true }),
-  closeDialog: () => set({ isOpen: false }),
-  toggleDialog: () => set((state) => ({ isOpen: !state.isOpen })),
-}));
+export const useSetUpBucketDialogStore = createDialogStore();
 
 export function SetUpBucketDialog() {
-  const { isOpen, closeDialog, toggleDialog } = useSetUpBucketDialogStore(
-    useShallow((state) => ({
-      isOpen: state.isOpen,
-      closeDialog: state.closeDialog,
-      toggleDialog: state.toggleDialog,
-    })),
-  );
+  const { isOpen, close } = useSetUpBucketDialogStore();
 
   const mutation = useSetUpBucketMutation();
 
@@ -57,7 +43,7 @@ export function SetUpBucketDialog() {
       }
 
       form.reset();
-      closeDialog();
+      close();
     },
   });
 
@@ -75,7 +61,7 @@ export function SetUpBucketDialog() {
 
     form.reset();
 
-    toggleDialog();
+    close();
   }
 
   return (

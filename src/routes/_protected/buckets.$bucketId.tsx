@@ -77,10 +77,7 @@ function RouteComponent() {
   const { data: allocations } = useSuspenseQuery(allocationsQueryOptions);
 
   function handleOpenEditBucketDialog() {
-    const state = useEditBucketDialogStore.getState();
-
-    state.setBucketId(bucketId);
-    state.openDialog();
+    useEditBucketDialogStore.getState().open({ bucketId });
   }
 
   return (

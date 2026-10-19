@@ -22,10 +22,7 @@ type Props = {
 
 export function TransactionActionsDropdownMenu({ transactionId }: Props) {
   function handleOpenEditTransactionDialog() {
-    const state = useEditTransactionDialogStore.getState();
-
-    state.setTransactionId(transactionId);
-    state.openDialog();
+    useEditTransactionDialogStore.getState().open({ transactionId });
   }
 
   const mutation = useDeleteTransactionMutation();

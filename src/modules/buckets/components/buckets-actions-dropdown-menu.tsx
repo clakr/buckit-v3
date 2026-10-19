@@ -25,24 +25,15 @@ export function BucketActionsDropdownMenu({ bucket }: Props) {
   const bucketId = bucket.id;
 
   function handleOpenLogAllocationDialog() {
-    const state = useLogAllocationDialogStore.getState();
-
-    state.setStart({ from: "bucket", bucketId });
-    state.openDialog();
+    useLogAllocationDialogStore.getState().open({ start: { from: "bucket", bucketId } });
   }
 
   function handleOpenEditBucketDialog() {
-    const state = useEditBucketDialogStore.getState();
-
-    state.setBucketId(bucketId);
-    state.openDialog();
+    useEditBucketDialogStore.getState().open({ bucketId });
   }
 
   function handleOpenDeleteBucketDialog() {
-    const state = useDeleteBucketDialogStore.getState();
-
-    state.setBucketId(bucketId);
-    state.openDialog();
+    useDeleteBucketDialogStore.getState().open({ bucketId });
   }
 
   return (

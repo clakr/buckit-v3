@@ -1,10 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import z from "zod";
-import { create } from "zustand";
-import { useShallow } from "zustand/react/shallow";
 
 import type { Debt } from "#/db/schema";
-import type { DialogState } from "#/lib/types";
 
 import { StateTemplate } from "#/components/state-template";
 import { Badge } from "#/components/ui/badge";
@@ -24,33 +21,16 @@ import { centsToAmountInput } from "#/lib/money";
 import { useEditDebtMutation } from "#/modules/debts/mutations";
 import { debtQueryOption } from "#/modules/debts/query-options";
 import { editDebtSchema } from "#/modules/debts/schemas";
+import { createDialogStore } from "#/stores/dialog-store";
 import { confirm } from "#/stores/use-confirm";
 
-type StoreState = DialogState & {
-  debtId: Debt["id"] | null;
-  setDebtId: (debtId: Debt["id"]) => void;
-};
-
-export const useEditDebtDialogStore = create<StoreState>()((set) => ({
-  isOpen: false,
-  openDialog: () => set({ isOpen: true }),
-  closeDialog: () => set({ isOpen: false }),
-  toggleDialog: () => set((state) => ({ isOpen: !state.isOpen })),
-
+export const useEditDebtDialogStore = createDialogStore<{ debtId: Debt["id"] | null }>({
   debtId: null,
-  setDebtId: (debtId) => set({ debtId }),
-}));
+});
 
 export function EditDebtDialog() {
-  const { isOpen, closeDialog, toggleDialog, debtId } = useEditDebtDialogStore(
-    useShallow((state) => ({
-      isOpen: state.isOpen,
-      closeDialog: state.closeDialog,
-      toggleDialog: state.toggleDialog,
-
-      debtId: state.debtId,
-    })),
-  );
+  const { isOpen, payload, close } = useEditDebtDialogStore();
+  const { debtId } = payload;
 
   const {
     status,
@@ -92,7 +72,7 @@ export function EditDebtDialog() {
       }
 
       form.reset();
-      closeDialog();
+      close();
     },
   });
 
@@ -110,7 +90,7 @@ export function EditDebtDialog() {
 
     form.reset();
 
-    toggleDialog();
+    close();
   }
 
   return (
@@ -144,7 +124,7 @@ export function EditDebtDialog() {
               title="Debt not found"
               description={error.message}
               content={
-                <Button variant="secondary" onClick={closeDialog}>
+                <Button variant="secondary" onClick={close}>
                   Close
                 </Button>
               }

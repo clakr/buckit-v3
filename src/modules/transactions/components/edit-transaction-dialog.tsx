@@ -1,10 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import z from "zod";
-import { create } from "zustand";
-import { useShallow } from "zustand/react/shallow";
 
 import type { Transaction } from "#/db/schema";
-import type { DialogState } from "#/lib/types";
 
 import { StateTemplate } from "#/components/state-template";
 import { Button } from "#/components/ui/button";
@@ -24,33 +21,16 @@ import { getRepaymentDateRule } from "#/modules/repayments/utils";
 import { useEditTransactionMutation } from "#/modules/transactions/mutations";
 import { transactionQueryOption } from "#/modules/transactions/query-options";
 import { editTransactionSchema, transactionTypeEnum } from "#/modules/transactions/schemas";
+import { createDialogStore } from "#/stores/dialog-store";
 import { confirm } from "#/stores/use-confirm";
 
-type StoreState = DialogState & {
+export const useEditTransactionDialogStore = createDialogStore<{
   transactionId: Transaction["id"] | null;
-  setTransactionId: (transactionId: Transaction["id"]) => void;
-};
-
-export const useEditTransactionDialogStore = create<StoreState>()((set) => ({
-  isOpen: false,
-  openDialog: () => set({ isOpen: true }),
-  closeDialog: () => set({ isOpen: false }),
-  toggleDialog: () => set((state) => ({ isOpen: !state.isOpen })),
-
-  transactionId: null,
-  setTransactionId: (transactionId) => set({ transactionId }),
-}));
+}>({ transactionId: null });
 
 export function EditTransactionDialog() {
-  const { isOpen, closeDialog, toggleDialog, transactionId } = useEditTransactionDialogStore(
-    useShallow((state) => ({
-      isOpen: state.isOpen,
-      closeDialog: state.closeDialog,
-      toggleDialog: state.toggleDialog,
-
-      transactionId: state.transactionId,
-    })),
-  );
+  const { isOpen, payload, close } = useEditTransactionDialogStore();
+  const { transactionId } = payload;
 
   const {
     status,
@@ -87,7 +67,7 @@ export function EditTransactionDialog() {
       }
 
       form.reset();
-      closeDialog();
+      close();
     },
   });
 
@@ -109,7 +89,7 @@ export function EditTransactionDialog() {
 
     form.reset();
 
-    toggleDialog();
+    close();
   }
 
   return (
@@ -133,7 +113,7 @@ export function EditTransactionDialog() {
               title="Transaction not found"
               description={error.message}
               content={
-                <Button variant="secondary" onClick={closeDialog}>
+                <Button variant="secondary" onClick={close}>
                   Close
                 </Button>
               }

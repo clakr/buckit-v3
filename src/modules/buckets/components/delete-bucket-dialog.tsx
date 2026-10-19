@@ -1,10 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import z from "zod";
-import { create } from "zustand";
-import { useShallow } from "zustand/react/shallow";
 
 import type { Bucket } from "#/db/schema";
-import type { DialogState } from "#/lib/types";
 
 import { StateTemplate } from "#/components/state-template";
 import { Button } from "#/components/ui/button";
@@ -19,37 +16,20 @@ import {
 import { FieldGroup } from "#/components/ui/field";
 import { useAppForm } from "#/integrations/tanstack-form";
 import { NotFoundError } from "#/lib/errors";
+import { createDialogStore } from "#/stores/dialog-store";
 
 import { useDeleteBucketMutation } from "../mutations";
 import { bucketDeletionImpactQueryOption } from "../query-options";
 import { verifyUserBucketMiddlewareSchema } from "../schemas";
 import { BucketDeletionSummary, getBucketDeletionDescription } from "./bucket-deletion-summary";
 
-type StoreState = DialogState & {
-  bucketId: Bucket["id"] | null;
-  setBucketId: (bucketId: Bucket["id"]) => void;
-};
-
-export const useDeleteBucketDialogStore = create<StoreState>()((set) => ({
-  isOpen: false,
-  openDialog: () => set({ isOpen: true }),
-  closeDialog: () => set({ isOpen: false }),
-  toggleDialog: () => set((state) => ({ isOpen: !state.isOpen })),
-
+export const useDeleteBucketDialogStore = createDialogStore<{ bucketId: Bucket["id"] | null }>({
   bucketId: null,
-  setBucketId: (bucketId) => set({ bucketId }),
-}));
+});
 
 export function DeleteBucketDialog() {
-  const { isOpen, closeDialog, toggleDialog, bucketId } = useDeleteBucketDialogStore(
-    useShallow((state) => ({
-      isOpen: state.isOpen,
-      closeDialog: state.closeDialog,
-      toggleDialog: state.toggleDialog,
-
-      bucketId: state.bucketId,
-    })),
-  );
+  const { isOpen, payload, close } = useDeleteBucketDialogStore();
+  const { bucketId } = payload;
 
   const mutation = useDeleteBucketMutation();
 
@@ -90,7 +70,7 @@ export function DeleteBucketDialog() {
         await mutation.mutateAsync({ data });
 
         form.reset();
-        closeDialog();
+        close();
       } catch (error) {
         console.error(error);
 
@@ -101,7 +81,7 @@ export function DeleteBucketDialog() {
 
   async function handleOnOpenChange() {
     form.reset();
-    toggleDialog();
+    close();
   }
 
   return (
@@ -129,7 +109,7 @@ export function DeleteBucketDialog() {
               title="Bucket not found"
               description={notFoundError.message}
               content={
-                <Button variant="secondary" onClick={closeDialog}>
+                <Button variant="secondary" onClick={close}>
                   Close
                 </Button>
               }

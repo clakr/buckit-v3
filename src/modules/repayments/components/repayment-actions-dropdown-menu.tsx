@@ -20,10 +20,7 @@ type Props = {
 
 export function RepaymentActionsDropdownMenu({ debtId, repaymentId }: Props) {
   function handleOpenEditRepaymentDialog() {
-    const state = useEditRepaymentDialogStore.getState();
-
-    state.setRepayment(debtId, repaymentId);
-    state.openDialog();
+    useEditRepaymentDialogStore.getState().open({ debtId: debtId, repaymentId: repaymentId });
   }
 
   return (

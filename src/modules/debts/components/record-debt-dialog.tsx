@@ -1,10 +1,6 @@
 import { useSelector } from "@tanstack/react-form";
 import { useQuery } from "@tanstack/react-query";
 import z from "zod";
-import { create } from "zustand";
-import { useShallow } from "zustand/react/shallow";
-
-import type { DialogState } from "#/lib/types";
 
 import { CurrencyCombobox } from "#/components/currency-combobox";
 import { Button } from "#/components/ui/button";
@@ -24,25 +20,15 @@ import { BankAccountSelectField } from "#/modules/bank-accounts/components/bank-
 import { useRegisterBankAccountDialogStore } from "#/modules/bank-accounts/components/register-bank-account-dialog";
 import { bankAccountsQueryOption } from "#/modules/bank-accounts/query-options";
 import { useRecordDebtMutation } from "#/modules/debts/mutations";
+import { createDialogStore } from "#/stores/dialog-store";
 import { confirm } from "#/stores/use-confirm";
 
 import { debtDirectionEnum, recordDebtSchema } from "../schemas";
 
-export const useRecordDebtDialogStore = create<DialogState>()((set) => ({
-  isOpen: false,
-  openDialog: () => set({ isOpen: true }),
-  closeDialog: () => set({ isOpen: false }),
-  toggleDialog: () => set((state) => ({ isOpen: !state.isOpen })),
-}));
+export const useRecordDebtDialogStore = createDialogStore();
 
 export function RecordDebtDialog() {
-  const { isOpen, closeDialog, toggleDialog } = useRecordDebtDialogStore(
-    useShallow((state) => ({
-      isOpen: state.isOpen,
-      closeDialog: state.closeDialog,
-      toggleDialog: state.toggleDialog,
-    })),
-  );
+  const { isOpen, close } = useRecordDebtDialogStore();
 
   const mutation = useRecordDebtMutation();
 
@@ -70,7 +56,7 @@ export function RecordDebtDialog() {
       }
 
       form.reset();
-      closeDialog();
+      close();
     },
   });
 
@@ -88,10 +74,7 @@ export function RecordDebtDialog() {
   );
 
   function openRegisterBankAccountDialog() {
-    const state = useRegisterBankAccountDialogStore.getState();
-
-    state.openDialog();
-    state.setCurrency(currency);
+    useRegisterBankAccountDialogStore.getState().open({ currency });
   }
 
   function findSourceAccount(bankAccountId: string | undefined) {
@@ -112,7 +95,7 @@ export function RecordDebtDialog() {
 
     form.reset();
 
-    toggleDialog();
+    close();
   }
 
   return (

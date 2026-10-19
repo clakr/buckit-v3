@@ -1,11 +1,8 @@
 import { useSelector } from "@tanstack/react-form";
 import { useQuery } from "@tanstack/react-query";
 import z from "zod";
-import { create } from "zustand";
-import { useShallow } from "zustand/react/shallow";
 
 import type { Debt } from "#/db/schema";
-import type { DialogState } from "#/lib/types";
 
 import { StateTemplate } from "#/components/state-template";
 import { Button } from "#/components/ui/button";
@@ -37,32 +34,15 @@ import { useDeleteDebtMutation } from "#/modules/debts/mutations";
 import { debtDeletionImpactQueryOption } from "#/modules/debts/query-options";
 import { deleteDebtSchema } from "#/modules/debts/schemas";
 import { describeDeleteTransactionsShortfall } from "#/modules/debts/utils";
+import { createDialogStore } from "#/stores/dialog-store";
 
-type StoreState = DialogState & {
-  debtId: Debt["id"] | null;
-  setDebtId: (debtId: Debt["id"]) => void;
-};
-
-export const useDeleteDebtDialogStore = create<StoreState>()((set) => ({
-  isOpen: false,
-  openDialog: () => set({ isOpen: true }),
-  closeDialog: () => set({ isOpen: false }),
-  toggleDialog: () => set((state) => ({ isOpen: !state.isOpen })),
-
+export const useDeleteDebtDialogStore = createDialogStore<{ debtId: Debt["id"] | null }>({
   debtId: null,
-  setDebtId: (debtId) => set({ debtId }),
-}));
+});
 
 export function DeleteDebtDialog() {
-  const { isOpen, closeDialog, toggleDialog, debtId } = useDeleteDebtDialogStore(
-    useShallow((state) => ({
-      isOpen: state.isOpen,
-      closeDialog: state.closeDialog,
-      toggleDialog: state.toggleDialog,
-
-      debtId: state.debtId,
-    })),
-  );
+  const { isOpen, payload, close } = useDeleteDebtDialogStore();
+  const { debtId } = payload;
 
   const mutation = useDeleteDebtMutation();
 
@@ -109,7 +89,7 @@ export function DeleteDebtDialog() {
       }
 
       form.reset();
-      closeDialog();
+      close();
     },
   });
 
@@ -117,7 +97,7 @@ export function DeleteDebtDialog() {
 
   function handleOnOpenChange() {
     form.reset();
-    toggleDialog();
+    close();
   }
 
   const totalLinkedTransactions = impact?.linkedTransactionIds.length ?? 0;
@@ -147,7 +127,7 @@ export function DeleteDebtDialog() {
               title="Debt not found"
               description={error.message}
               content={
-                <Button variant="secondary" onClick={closeDialog}>
+                <Button variant="secondary" onClick={close}>
                   Close
                 </Button>
               }

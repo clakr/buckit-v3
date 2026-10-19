@@ -1,8 +1,4 @@
 import z from "zod";
-import { create } from "zustand";
-import { useShallow } from "zustand/react/shallow";
-
-import type { DialogState } from "#/lib/types";
 
 import { CurrencyCombobox } from "#/components/currency-combobox";
 import {
@@ -20,32 +16,16 @@ import { refineNameAvailability } from "#/lib/name-availability";
 import { validateBankAccountName } from "#/modules/bank-accounts/functions";
 import { useRegisterBankAccountMutation } from "#/modules/bank-accounts/mutations";
 import { registerBankAccountSchema } from "#/modules/bank-accounts/schemas";
+import { createDialogStore } from "#/stores/dialog-store";
 import { confirm } from "#/stores/use-confirm";
 
-type StoreState = DialogState & {
-  currency: string;
-  setCurrency: (currency: string) => void;
-};
-
-export const useRegisterBankAccountDialogStore = create<StoreState>()((set) => ({
-  isOpen: false,
-  openDialog: () => set({ isOpen: true }),
-  closeDialog: () => set({ isOpen: false }),
-  toggleDialog: () => set((state) => ({ isOpen: !state.isOpen })),
-
+export const useRegisterBankAccountDialogStore = createDialogStore<{ currency: string }>({
   currency: "PHP",
-  setCurrency: (currency) => set({ currency }),
-}));
+});
 
 export function RegisterBankAccountDialog() {
-  const { isOpen, closeDialog, toggleDialog, currency } = useRegisterBankAccountDialogStore(
-    useShallow((state) => ({
-      isOpen: state.isOpen,
-      closeDialog: state.closeDialog,
-      toggleDialog: state.toggleDialog,
-      currency: state.currency,
-    })),
-  );
+  const { isOpen, payload, close } = useRegisterBankAccountDialogStore();
+  const { currency } = payload;
 
   const mutation = useRegisterBankAccountMutation();
 
@@ -70,7 +50,7 @@ export function RegisterBankAccountDialog() {
       }
 
       form.reset();
-      closeDialog();
+      close();
     },
   });
 
@@ -88,7 +68,7 @@ export function RegisterBankAccountDialog() {
 
     form.reset();
 
-    toggleDialog();
+    close();
   }
 
   return (

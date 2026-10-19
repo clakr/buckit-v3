@@ -70,17 +70,11 @@ function RouteComponent() {
   const { data: debt } = useSuspenseQuery(debtQueryOptions);
 
   function handleOpenLogRepaymentDialog() {
-    const state = useLogRepaymentDialogStore.getState();
-
-    state.setDebtId(debt.id);
-    state.openDialog();
+    useLogRepaymentDialogStore.getState().open({ debtId: debt.id });
   }
 
   function handleOpenEditDebtDialog() {
-    const state = useEditDebtDialogStore.getState();
-
-    state.setDebtId(debt.id);
-    state.openDialog();
+    useEditDebtDialogStore.getState().open({ debtId: debt.id });
   }
 
   return (

@@ -1,11 +1,8 @@
 import { useSelector } from "@tanstack/react-form";
 import { useQuery } from "@tanstack/react-query";
 import z from "zod";
-import { create } from "zustand";
-import { useShallow } from "zustand/react/shallow";
 
 import type { BankAccount, Bucket } from "#/db/schema";
-import type { DialogState } from "#/lib/types";
 
 import { StateTemplate } from "#/components/state-template";
 import { Button } from "#/components/ui/button";
@@ -26,6 +23,7 @@ import { logAllocationSchema } from "#/modules/allocations/schemas";
 import { BankAccountSelectField } from "#/modules/bank-accounts/components/bank-account-select-field";
 import { bankAccountsQueryOption } from "#/modules/bank-accounts/query-options";
 import { bucketsQueryOptions } from "#/modules/buckets/query-options";
+import { createDialogStore } from "#/stores/dialog-store";
 import { confirm } from "#/stores/use-confirm";
 
 /** The side the dialog was opened from, which stays fixed; the other side is picked. */
@@ -33,31 +31,13 @@ export type LogAllocationStart =
   | { from: "bank-account"; bankAccountId: BankAccount["id"] }
   | { from: "bucket"; bucketId: Bucket["id"] };
 
-type StoreState = DialogState & {
-  start: LogAllocationStart | null;
-  setStart: (start: LogAllocationStart) => void;
-};
-
-export const useLogAllocationDialogStore = create<StoreState>()((set) => ({
-  isOpen: false,
-  openDialog: () => set({ isOpen: true }),
-  closeDialog: () => set({ isOpen: false }),
-  toggleDialog: () => set((state) => ({ isOpen: !state.isOpen })),
-
+export const useLogAllocationDialogStore = createDialogStore<{ start: LogAllocationStart | null }>({
   start: null,
-  setStart: (start) => set({ start }),
-}));
+});
 
 export function LogAllocationDialog() {
-  const { isOpen, closeDialog, toggleDialog, start } = useLogAllocationDialogStore(
-    useShallow((state) => ({
-      isOpen: state.isOpen,
-      closeDialog: state.closeDialog,
-      toggleDialog: state.toggleDialog,
-
-      start: state.start,
-    })),
-  );
+  const { isOpen, payload, close } = useLogAllocationDialogStore();
+  const { start } = payload;
 
   const mutation = useLogAllocationMutation();
 
@@ -102,7 +82,7 @@ export function LogAllocationDialog() {
       }
 
       form.reset();
-      closeDialog();
+      close();
     },
   });
 
@@ -123,7 +103,7 @@ export function LogAllocationDialog() {
 
     form.reset();
 
-    toggleDialog();
+    close();
   }
 
   if (!start) return null;
@@ -205,7 +185,7 @@ export function LogAllocationDialog() {
                   : "This bucket doesn't exist or may have been deleted."
               }
               content={
-                <Button variant="secondary" onClick={closeDialog}>
+                <Button variant="secondary" onClick={close}>
                   Close
                 </Button>
               }

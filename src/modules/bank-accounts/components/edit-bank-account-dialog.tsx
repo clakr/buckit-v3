@@ -1,10 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import z from "zod";
-import { create } from "zustand";
-import { useShallow } from "zustand/react/shallow";
 
 import type { BankAccount } from "#/db/schema";
-import type { DialogState } from "#/lib/types";
 
 import { StateTemplate } from "#/components/state-template";
 import { Button } from "#/components/ui/button";
@@ -24,33 +21,16 @@ import { validateBankAccountName } from "#/modules/bank-accounts/functions";
 import { useEditBankAccountMutation } from "#/modules/bank-accounts/mutations";
 import { bankAccountQueryOption } from "#/modules/bank-accounts/query-options";
 import { editBankAccountSchema } from "#/modules/bank-accounts/schemas";
+import { createDialogStore } from "#/stores/dialog-store";
 import { confirm } from "#/stores/use-confirm";
 
-type StoreState = DialogState & {
+export const useEditBankAccountDialogStore = createDialogStore<{
   bankAccountId: BankAccount["id"] | null;
-  setBankAccountId: (bankAccountId: BankAccount["id"]) => void;
-};
-
-export const useEditBankAccountDialogStore = create<StoreState>()((set) => ({
-  isOpen: false,
-  openDialog: () => set({ isOpen: true }),
-  closeDialog: () => set({ isOpen: false }),
-  toggleDialog: () => set((state) => ({ isOpen: !state.isOpen })),
-
-  bankAccountId: null,
-  setBankAccountId: (bankAccountId) => set({ bankAccountId }),
-}));
+}>({ bankAccountId: null });
 
 export function EditBankAccountDialog() {
-  const { isOpen, closeDialog, toggleDialog, bankAccountId } = useEditBankAccountDialogStore(
-    useShallow((state) => ({
-      isOpen: state.isOpen,
-      closeDialog: state.closeDialog,
-      toggleDialog: state.toggleDialog,
-
-      bankAccountId: state.bankAccountId,
-    })),
-  );
+  const { isOpen, payload, close } = useEditBankAccountDialogStore();
+  const { bankAccountId } = payload;
 
   const {
     status,
@@ -84,7 +64,7 @@ export function EditBankAccountDialog() {
       }
 
       form.reset();
-      closeDialog();
+      close();
     },
   });
 
@@ -102,7 +82,7 @@ export function EditBankAccountDialog() {
 
     form.reset();
 
-    toggleDialog();
+    close();
   }
 
   return (
@@ -126,7 +106,7 @@ export function EditBankAccountDialog() {
               title="Account not found"
               description={error.message}
               content={
-                <Button variant="secondary" onClick={closeDialog}>
+                <Button variant="secondary" onClick={close}>
                   Close
                 </Button>
               }

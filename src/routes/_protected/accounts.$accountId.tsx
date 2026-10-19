@@ -85,10 +85,7 @@ function RouteComponent() {
   const { balance, unallocated, totalAllocated } = bankAccount;
 
   function handleOpenEditBankAccountDialog() {
-    const state = useEditBankAccountDialogStore.getState();
-
-    state.setBankAccountId(accountId);
-    state.openDialog();
+    useEditBankAccountDialogStore.getState().open({ bankAccountId: accountId });
   }
 
   return (

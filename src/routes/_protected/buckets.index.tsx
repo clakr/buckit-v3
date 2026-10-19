@@ -1,7 +1,6 @@
 import { IconPlus } from "@tabler/icons-react";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
-import { useShallow } from "zustand/react/shallow";
 
 import { Heading } from "#/components/heading";
 import { Main } from "#/components/main";
@@ -51,13 +50,13 @@ function RouteComponent() {
 
   const isEmpty = buckets.length === 0;
 
-  const openDialog = useSetUpBucketDialogStore(useShallow((state) => state.openDialog));
+  const openDialog = useSetUpBucketDialogStore((state) => state.open);
 
   return (
     <Main>
       <div className="flex items-center justify-between">
         <Heading>Buckets</Heading>
-        <Button onClick={openDialog}>
+        <Button onClick={() => openDialog()}>
           <IconPlus />
           Set Up Bucket
         </Button>
@@ -70,7 +69,7 @@ function RouteComponent() {
           description="Create a bucket to start organizing your money."
           icon={<MODULE_ICONS.buckets />}
           content={
-            <Button onClick={openDialog}>
+            <Button onClick={() => openDialog()}>
               <IconPlus />
               Set Up Bucket
             </Button>

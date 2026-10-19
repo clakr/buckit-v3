@@ -1,10 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import z from "zod";
-import { create } from "zustand";
-import { useShallow } from "zustand/react/shallow";
 
 import type { Allocation } from "#/db/schema";
-import type { DialogState } from "#/lib/types";
 
 import { StateTemplate } from "#/components/state-template";
 import { Button } from "#/components/ui/button";
@@ -28,33 +25,16 @@ import {
 import { useEditAllocationMutation } from "#/modules/allocations/mutations";
 import { allocationQueryOption } from "#/modules/allocations/query-options";
 import { editAllocationSchema } from "#/modules/allocations/schemas";
+import { createDialogStore } from "#/stores/dialog-store";
 import { confirm } from "#/stores/use-confirm";
 
-type StoreState = DialogState & {
+export const useEditAllocationDialogStore = createDialogStore<{
   allocationId: Allocation["id"] | null;
-  setAllocationId: (allocationId: Allocation["id"]) => void;
-};
-
-export const useEditAllocationDialogStore = create<StoreState>()((set) => ({
-  isOpen: false,
-  openDialog: () => set({ isOpen: true }),
-  closeDialog: () => set({ isOpen: false }),
-  toggleDialog: () => set((state) => ({ isOpen: !state.isOpen })),
-
-  allocationId: null,
-  setAllocationId: (allocationId) => set({ allocationId }),
-}));
+}>({ allocationId: null });
 
 export function EditAllocationDialog() {
-  const { isOpen, closeDialog, toggleDialog, allocationId } = useEditAllocationDialogStore(
-    useShallow((state) => ({
-      isOpen: state.isOpen,
-      closeDialog: state.closeDialog,
-      toggleDialog: state.toggleDialog,
-
-      allocationId: state.allocationId,
-    })),
-  );
+  const { isOpen, payload, close } = useEditAllocationDialogStore();
+  const { allocationId } = payload;
 
   const {
     status,
@@ -90,7 +70,7 @@ export function EditAllocationDialog() {
       }
 
       form.reset();
-      closeDialog();
+      close();
     },
   });
 
@@ -108,7 +88,7 @@ export function EditAllocationDialog() {
 
     form.reset();
 
-    toggleDialog();
+    close();
   }
 
   return (
@@ -134,7 +114,7 @@ export function EditAllocationDialog() {
               title="Allocation not found"
               description={error.message}
               content={
-                <Button variant="secondary" onClick={closeDialog}>
+                <Button variant="secondary" onClick={close}>
                   Close
                 </Button>
               }

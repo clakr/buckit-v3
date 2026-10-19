@@ -30,24 +30,15 @@ export function DebtActionsDropdownMenu({ debt }: Props) {
   const { status } = debt;
 
   function handleOpenLogRepaymentDialog() {
-    const state = useLogRepaymentDialogStore.getState();
-
-    state.setDebtId(debt.id);
-    state.openDialog();
+    useLogRepaymentDialogStore.getState().open({ debtId: debt.id });
   }
 
   function handleOpenEditDebtDialog() {
-    const state = useEditDebtDialogStore.getState();
-
-    state.setDebtId(debt.id);
-    state.openDialog();
+    useEditDebtDialogStore.getState().open({ debtId: debt.id });
   }
 
   function handleOpenDeleteDebtDialog() {
-    const state = useDeleteDebtDialogStore.getState();
-
-    state.setDebtId(debt.id);
-    state.openDialog();
+    useDeleteDebtDialogStore.getState().open({ debtId: debt.id });
   }
 
   async function handleForgiveDebt() {

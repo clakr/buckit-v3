@@ -1,10 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import z from "zod";
-import { create } from "zustand";
-import { useShallow } from "zustand/react/shallow";
 
 import type { Debt, Repayment } from "#/db/schema";
-import type { DialogState } from "#/lib/types";
 
 import { StateTemplate } from "#/components/state-template";
 import { Button } from "#/components/ui/button";
@@ -21,40 +18,21 @@ import { useAppForm } from "#/integrations/tanstack-form";
 import { NotFoundError } from "#/lib/errors";
 import { centsToAmountInput } from "#/lib/money";
 import { debtQueryOption } from "#/modules/debts/query-options";
+import { createDialogStore } from "#/stores/dialog-store";
 import { confirm } from "#/stores/use-confirm";
 
 import { useEditRepaymentMutation } from "../mutations";
 import { editRepaymentSchema } from "../schemas";
 import { getRepaymentDateRule } from "../utils";
 
-type StoreState = DialogState & {
+export const useEditRepaymentDialogStore = createDialogStore<{
   debtId: Debt["id"] | null;
   repaymentId: Repayment["id"] | null;
-  setRepayment: (debtId: Debt["id"], repaymentId: Repayment["id"]) => void;
-};
-
-export const useEditRepaymentDialogStore = create<StoreState>()((set) => ({
-  isOpen: false,
-  openDialog: () => set({ isOpen: true }),
-  closeDialog: () => set({ isOpen: false }),
-  toggleDialog: () => set((state) => ({ isOpen: !state.isOpen })),
-
-  debtId: null,
-  repaymentId: null,
-  setRepayment: (debtId, repaymentId) => set({ debtId, repaymentId }),
-}));
+}>({ debtId: null, repaymentId: null });
 
 export function EditRepaymentDialog() {
-  const { isOpen, closeDialog, toggleDialog, debtId, repaymentId } = useEditRepaymentDialogStore(
-    useShallow((state) => ({
-      isOpen: state.isOpen,
-      closeDialog: state.closeDialog,
-      toggleDialog: state.toggleDialog,
-
-      debtId: state.debtId,
-      repaymentId: state.repaymentId,
-    })),
-  );
+  const { isOpen, payload, close } = useEditRepaymentDialogStore();
+  const { debtId, repaymentId } = payload;
 
   const {
     status,
@@ -93,7 +71,7 @@ export function EditRepaymentDialog() {
       }
 
       form.reset();
-      closeDialog();
+      close();
     },
   });
 
@@ -111,7 +89,7 @@ export function EditRepaymentDialog() {
 
     form.reset();
 
-    toggleDialog();
+    close();
   }
 
   return (
@@ -141,7 +119,7 @@ export function EditRepaymentDialog() {
               title="Debt not found"
               description={error.message}
               content={
-                <Button variant="secondary" onClick={closeDialog}>
+                <Button variant="secondary" onClick={close}>
                   Close
                 </Button>
               }
@@ -162,7 +140,7 @@ export function EditRepaymentDialog() {
               title="Repayment not found"
               description="This repayment doesn't exist or may have been deleted."
               content={
-                <Button variant="secondary" onClick={closeDialog}>
+                <Button variant="secondary" onClick={close}>
                   Close
                 </Button>
               }

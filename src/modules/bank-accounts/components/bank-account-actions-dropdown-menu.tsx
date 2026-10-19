@@ -24,31 +24,21 @@ type Props = {
 
 export function BankAccountActionsDropdownMenu({ account }: Props) {
   function handleOpenLogTransactionDialog() {
-    const state = useLogTransactionDialogStore.getState();
-
-    state.setAccount(account);
-    state.openDialog();
+    useLogTransactionDialogStore.getState().open({ account });
   }
 
   function handleOpenLogAllocationDialog() {
-    const state = useLogAllocationDialogStore.getState();
-
-    state.setStart({ from: "bank-account", bankAccountId: account.id });
-    state.openDialog();
+    useLogAllocationDialogStore
+      .getState()
+      .open({ start: { from: "bank-account", bankAccountId: account.id } });
   }
 
   function handleOpenEditBankAccountDialog() {
-    const state = useEditBankAccountDialogStore.getState();
-
-    state.setBankAccountId(account.id);
-    state.openDialog();
+    useEditBankAccountDialogStore.getState().open({ bankAccountId: account.id });
   }
 
   function handleOpenDeleteBankAccountDialog() {
-    const state = useDeleteBankAccountDialogStore.getState();
-
-    state.setBankAccountId(account.id);
-    state.openDialog();
+    useDeleteBankAccountDialogStore.getState().open({ bankAccountId: account.id });
   }
 
   return (
