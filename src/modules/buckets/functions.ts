@@ -1,15 +1,12 @@
-import type { z } from "zod";
-
 import { createServerFn } from "@tanstack/react-start";
 import { env } from "cloudflare:workers";
-import { and, eq, ne } from "drizzle-orm";
+import { eq } from "drizzle-orm";
 import { uuidv7 } from "uuidv7";
 
-import type { DB } from "#/db";
-
 import { getDB } from "#/db";
-import { buckets, lower } from "#/db/schema";
+import { buckets } from "#/db/schema";
 import { ConflictError, NotFoundError } from "#/lib/errors";
+import { createUniqueNameRule } from "#/lib/unique-name.server";
 import { authMiddleware } from "#/modules/authentication/middlewares";
 import { loadBucketDeletionImpact } from "#/modules/buckets/deletion.server";
 import { getBucketsWithFigures } from "#/modules/buckets/figures.server";
@@ -58,53 +55,20 @@ export const getBucket = createServerFn({
     return bucket;
   });
 
-const NAME_TAKEN_MESSAGE = "A bucket with this name already exists.";
-
-// Unique per user, case-insensitive, trimmed (the schemas trim). Renaming a bucket leaves its own
-// current name out of the comparison.
-async function checkBucketName(
-  db: DB,
-  userId: string,
-  { name, bucketId }: z.output<typeof validateBucketNameSchema>,
-) {
-  const [taken] = await db
-    .select({ id: buckets.id })
-    .from(buckets)
-    .where(
-      and(
-        eq(buckets.userId, userId),
-        eq(lower(buckets.name), name.toLowerCase()),
-        bucketId ? ne(buckets.id, bucketId) : undefined,
-      ),
-    )
-    .limit(1);
-
-  if (taken) return { isValid: false, message: NAME_TAKEN_MESSAGE };
-
-  return { isValid: true, message: "ok" };
-}
-
-// Two requests can both pass the check before either writes; the database's unique index then
-// rejects the second, which reads the same as a failed check.
-function isBucketNameTakenError(error: unknown) {
-  for (let cause = error; cause instanceof Error; cause = cause.cause) {
-    if (
-      cause.message.includes("UNIQUE constraint failed") &&
-      (cause.message.includes("buckets_user_id_lower_name_unique") ||
-        cause.message.includes("buckets.name"))
-    )
-      return true;
-  }
-
-  return false;
-}
+const bucketName = createUniqueNameRule({
+  table: buckets,
+  indexName: "buckets_user_id_lower_name_unique",
+  takenMessage: "A bucket with this name already exists.",
+});
 
 export const validateBucketName = createServerFn({
   method: "GET",
 })
   .middleware([authMiddleware])
   .validator(validateBucketNameSchema)
-  .handler(async ({ context, data }) => checkBucketName(getDB(env.db), context.userId, data));
+  .handler(async ({ context, data }) =>
+    bucketName.check(getDB(env.db), context.userId, { name: data.name, excludeId: data.bucketId }),
+  );
 
 export const setUpBucket = createServerFn({
   method: "POST",
@@ -114,24 +78,20 @@ export const setUpBucket = createServerFn({
   .handler(async ({ context, data }) => {
     const db = getDB(env.db);
 
-    const { isValid, message } = await checkBucketName(db, context.userId, { name: data.name });
+    const { isValid, message } = await bucketName.check(db, context.userId, { name: data.name });
 
     if (!isValid) throw new ConflictError(message);
 
-    try {
-      return await db
+    return bucketName.write(
+      db
         .insert(buckets)
         .values({
           id: uuidv7(),
           userId: context.userId,
           name: data.name,
         })
-        .returning();
-    } catch (error) {
-      if (isBucketNameTakenError(error)) throw new ConflictError(NAME_TAKEN_MESSAGE);
-
-      throw error;
-    }
+        .returning(),
+    );
   });
 
 export const editBucket = createServerFn({
@@ -142,23 +102,22 @@ export const editBucket = createServerFn({
   .handler(async ({ context, data }) => {
     const db = getDB(env.db);
 
-    const { isValid, message } = await checkBucketName(db, context.userId, data);
+    const { isValid, message } = await bucketName.check(db, context.userId, {
+      name: data.name,
+      excludeId: data.bucketId,
+    });
 
     if (!isValid) throw new ConflictError(message);
 
-    try {
-      return await db
+    return bucketName.write(
+      db
         .update(buckets)
         .set({
           name: data.name,
         })
         .where(eq(buckets.id, data.bucketId))
-        .returning();
-    } catch (error) {
-      if (isBucketNameTakenError(error)) throw new ConflictError(NAME_TAKEN_MESSAGE);
-
-      throw error;
-    }
+        .returning(),
+    );
   });
 
 export const getBucketDeletionImpact = createServerFn({
