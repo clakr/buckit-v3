@@ -2,8 +2,7 @@ import { IconBuildingBank } from "@tabler/icons-react";
 
 import type { getBucketDeletionImpact } from "#/modules/buckets/functions";
 
-import { currencyCodec } from "#/lib/codecs";
-import { formatCurrency } from "#/lib/utils";
+import { formatMoney } from "#/lib/money";
 
 type Props = {
   impact: Awaited<ReturnType<typeof getBucketDeletionImpact>>;
@@ -36,9 +35,7 @@ export function BucketDeletionSummary({ impact }: Props) {
             <tbody className="divide-y">
               {impact.bankAccounts.map((account) => {
                 function formatAccountAmount(value: number) {
-                  return formatCurrency(currencyCodec.encode(value), {
-                    currency: account.currency,
-                  });
+                  return formatMoney(value, account.currency);
                 }
 
                 return (

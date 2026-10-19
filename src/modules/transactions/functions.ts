@@ -8,9 +8,8 @@ import type { DB } from "#/db";
 
 import { getDB } from "#/db";
 import { transactions, type Transaction } from "#/db/schema";
-import { currencyCodec } from "#/lib/codecs";
 import { ConflictError, InsufficientFundsError, NotFoundError } from "#/lib/errors";
-import { formatCurrency } from "#/lib/utils";
+import { formatMoney } from "#/lib/money";
 import { checkUnallocated } from "#/modules/bank-accounts/figures.server";
 import { verifyUserBankAccountMiddleware } from "#/modules/bank-accounts/middlewares";
 import {
@@ -66,7 +65,7 @@ export const logTransaction = createServerFn({
   .validator(logTransactionSchema)
   .handler(async ({ context, data }) => {
     const db = getDB(env.db);
-    const amount = currencyCodec.decode(data.amount);
+    const amount = data.amount;
 
     // The write is the check: its error reaches the dialog's failure toast with this message.
     const check = await checkUnallocated(db, context.userId, {
@@ -95,7 +94,7 @@ function toTransactionEdit(data: z.output<typeof editTransactionSchema>): Transa
   return {
     transactionId: data.transactionId,
     type: data.type,
-    amount: currencyCodec.decode(data.amount),
+    amount: data.amount,
     date: data.date,
     note: data.note,
   };
@@ -153,9 +152,7 @@ export const validateDeleteTransaction = createServerFn({
     if (!transaction?.bankAccount)
       throw new NotFoundError("This transaction doesn't exist or may have been deleted.");
 
-    const amount = formatCurrency(currencyCodec.encode(transaction.amount), {
-      currency: transaction.bankAccount.currency,
-    });
+    const amount = formatMoney(transaction.amount, transaction.bankAccount.currency);
 
     return {
       isValid: true,

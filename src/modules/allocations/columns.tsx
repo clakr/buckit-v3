@@ -7,8 +7,8 @@ import type { getAllocations } from "#/modules/allocations/functions";
 import { SortableTableHead } from "#/components/table/sortable-table-head";
 import { Badge } from "#/components/ui/badge";
 import { Tooltip, TooltipContent, TooltipTrigger } from "#/components/ui/tooltip";
-import { currencyCodec } from "#/lib/codecs";
-import { formatCurrency, formatDateTime, formatToRelative } from "#/lib/utils";
+import { formatMoney } from "#/lib/money";
+import { formatDateTime, formatToRelative } from "#/lib/utils";
 import { AllocationActionsDropdownMenu } from "#/modules/allocations/components/allocation-actions-dropdown-menu";
 
 type AllocationRow = Awaited<ReturnType<typeof getAllocations>>[number];
@@ -49,9 +49,9 @@ const ALLOCATION_COLUMNS: ColumnDef<AllocationRow>[] = [
     header: () => <div data-currency>Amount</div>,
     cell: ({ row }) => (
       <span className="block text-end font-semibold tabular-nums">
-        {formatCurrency(currencyCodec.encode(row.original.amount), {
-          currency: row.original.bankAccount?.currency,
-        })}
+        {row.original.bankAccount
+          ? formatMoney(row.original.amount, row.original.bankAccount.currency)
+          : "—"}
       </span>
     ),
   },

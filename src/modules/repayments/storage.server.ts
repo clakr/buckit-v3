@@ -14,16 +14,13 @@ import {
   type Transaction,
 } from "#/db/schema";
 import { ConflictError, InsufficientFundsError, NotFoundError } from "#/lib/errors";
+import { describeInsufficientUnallocated } from "#/lib/money";
 import { checkUnallocated } from "#/modules/bank-accounts/figures.server";
 import { findOwnedBankAccount } from "#/modules/bank-accounts/ownership.server";
 import { getLinkedTransactionType } from "#/modules/debts/utils";
 import { checkTransactionEdit, updateTransaction } from "#/modules/transactions/linked.server";
 
-import {
-  describeInsufficientRepaymentAccount,
-  isRepaymentDateBeforeDebt,
-  REPAYMENT_BEFORE_DEBT_MESSAGE,
-} from "./utils";
+import { isRepaymentDateBeforeDebt, REPAYMENT_BEFORE_DEBT_MESSAGE } from "./utils";
 
 // A Repayment is stored one of two ways, never both: logged through a Bank Account, its Linked
 // Transaction holds the amount, date and note; logged without one, the repayment row does. This is
@@ -75,7 +72,8 @@ async function checkRepaymentBankAccount(
 
   if (!check.ok) {
     throw new InsufficientFundsError(
-      describeInsufficientRepaymentAccount({
+      describeInsufficientUnallocated({
+        purpose: "repayment",
         bankAccount: check.bankAccount,
         available: check.available,
       }),

@@ -18,13 +18,16 @@ import {
 } from "#/components/ui/dialog";
 import { FieldGroup } from "#/components/ui/field";
 import { useAppForm } from "#/integrations/tanstack-form";
-import { currencyCodec } from "#/lib/codecs";
 import { NotFoundError } from "#/lib/errors";
-import { formatCurrency } from "#/lib/utils";
+import {
+  centsToAmountInput,
+  formatMoney,
+  exceedsAvailable,
+  describeInsufficientUnallocated,
+} from "#/lib/money";
 import { useEditAllocationMutation } from "#/modules/allocations/mutations";
 import { allocationQueryOption } from "#/modules/allocations/query-options";
 import { editAllocationSchema } from "#/modules/allocations/schemas";
-import { describeInsufficientUnallocated } from "#/modules/allocations/utils";
 import { confirm } from "#/stores/use-confirm";
 
 type StoreState = DialogState & {
@@ -67,7 +70,7 @@ export function EditAllocationDialog() {
 
   const defaultValues: z.input<typeof editAllocationSchema> = {
     allocationId: allocationId ?? "",
-    amount: currencyCodec.encode(allocation?.amount ?? 0),
+    amount: centsToAmountInput(allocation?.amount ?? 0),
     date: allocation?.date ?? new Date(),
     note: allocation?.note ?? "",
   };
@@ -159,7 +162,7 @@ export function EditAllocationDialog() {
                   name="amount"
                   validators={{
                     onChange: ({ value }) =>
-                      currencyCodec.decode(Number(value)) > allocation.available
+                      exceedsAvailable(value, allocation.available)
                         ? {
                             message: describeInsufficientUnallocated({
                               bankAccount: allocation.bankAccount,
@@ -181,9 +184,7 @@ export function EditAllocationDialog() {
                         <>
                           Available:{" "}
                           <span className="font-semibold">
-                            {formatCurrency(currencyCodec.encode(allocation.available), {
-                              currency: allocation.bankAccount.currency,
-                            })}
+                            {formatMoney(allocation.available, allocation.bankAccount.currency)}
                           </span>
                         </>
                       }

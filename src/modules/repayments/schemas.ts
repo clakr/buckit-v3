@@ -1,11 +1,13 @@
 import { z } from "zod";
 
+import { amountSchema } from "#/lib/money";
+
 import { verifyUserDebtMiddlewareSchema } from "../debts/schemas";
 
 export const logRepaymentSchema = z.strictObject({
   ...verifyUserDebtMiddlewareSchema.shape,
   bankAccountId: z.string().nullable(),
-  amount: z.coerce.number().min(0.01, "Amount must be greater than 0."),
+  amount: amountSchema,
   date: z.date(),
   note: z.string(),
 });
@@ -15,7 +17,7 @@ export const logRepaymentSchema = z.strictObject({
 export const editRepaymentSchema = z.strictObject({
   ...verifyUserDebtMiddlewareSchema.shape,
   repaymentId: z.string().min(1, "No repayment ID provided"),
-  amount: z.coerce.number().min(0.01, "Amount must be greater than 0."),
+  amount: amountSchema,
   date: z.date(),
   note: z.string(),
 });

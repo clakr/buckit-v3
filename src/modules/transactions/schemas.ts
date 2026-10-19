@@ -1,5 +1,6 @@
 import { z } from "zod";
 
+import { amountSchema } from "#/lib/money";
 import { verifyUserBankAccountMiddlewareSchema } from "#/modules/bank-accounts/schemas";
 
 export const verifyUserTransactionMiddlewareSchema = z.looseObject({
@@ -11,7 +12,7 @@ export const transactionTypeEnum = z.enum(["income", "expense"], "Please select 
 export const logTransactionSchema = z.strictObject({
   ...verifyUserBankAccountMiddlewareSchema.shape,
   type: transactionTypeEnum,
-  amount: z.coerce.number().min(0.01, "Amount must be greater than 0."),
+  amount: amountSchema,
   date: z.date(),
   note: z.string(),
 });
@@ -19,7 +20,7 @@ export const logTransactionSchema = z.strictObject({
 export const editTransactionSchema = z.strictObject({
   ...verifyUserTransactionMiddlewareSchema.shape,
   type: transactionTypeEnum,
-  amount: z.coerce.number().min(0.01, "Amount must be greater than 0."),
+  amount: amountSchema,
   date: z.date(),
   note: z.string(),
 });

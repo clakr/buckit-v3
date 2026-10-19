@@ -8,8 +8,8 @@ import type { Debt } from "#/db/schema";
 
 import { getDB } from "#/db";
 import { debts, transactions } from "#/db/schema";
-import { currencyCodec } from "#/lib/codecs";
 import { ConflictError, InsufficientFundsError, NotFoundError } from "#/lib/errors";
+import { describeInsufficientUnallocated } from "#/lib/money";
 import { authMiddleware } from "#/modules/authentication/middlewares";
 import { checkUnallocated } from "#/modules/bank-accounts/figures.server";
 import { findOwnedBankAccount } from "#/modules/bank-accounts/ownership.server";
@@ -18,11 +18,7 @@ import { deleteDebtSchema, editDebtSchema, recordDebtSchema } from "#/modules/de
 
 import { getDebtsWithFigures } from "./figures.server";
 import { verifyUserDebtMiddleware } from "./middlewares";
-import {
-  describeDeleteTransactionsShortfall,
-  describeInsufficientSourceAccount,
-  getLinkedTransactionType,
-} from "./utils";
+import { describeDeleteTransactionsShortfall, getLinkedTransactionType } from "./utils";
 
 export const getDebts = createServerFn({
   method: "GET",
@@ -53,7 +49,8 @@ async function checkDebtSourceBankAccount(
 
   if (!check.ok) {
     throw new InsufficientFundsError(
-      describeInsufficientSourceAccount({
+      describeInsufficientUnallocated({
+        purpose: "loan",
         bankAccount: check.bankAccount,
         available: check.available,
       }),
@@ -70,7 +67,7 @@ export const recordDebt = createServerFn({
     const db = getDB(env.db);
     const debtId = uuidv7();
 
-    const amount = currencyCodec.decode(data.amount);
+    const amount = data.amount;
 
     if (data.direction === "payable" || !data.bankAccountId) {
       const [debt] = await db
@@ -166,7 +163,7 @@ export const editDebt = createServerFn({
         name: data.name,
         date: data.date,
         note: data.note || null,
-        ...(data.amount === undefined ? {} : { amount: currencyCodec.decode(data.amount) }),
+        ...(data.amount === undefined ? {} : { amount: data.amount }),
       })
       .where(eq(debts.id, data.debtId))
       .returning();

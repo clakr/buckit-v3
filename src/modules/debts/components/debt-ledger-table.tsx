@@ -21,8 +21,8 @@ import {
   TableHeader,
   TableRow,
 } from "#/components/ui/table";
-import { currencyCodec } from "#/lib/codecs";
-import { cn, formatCurrency, formatDate } from "#/lib/utils";
+import { formatMoney } from "#/lib/money";
+import { cn, formatDate } from "#/lib/utils";
 import { RepaymentActionsDropdownMenu } from "#/modules/repayments/components/repayment-actions-dropdown-menu";
 
 import type { getDebt } from "../functions";
@@ -36,7 +36,7 @@ type Props = {
 
 export function DebtLedgerTable({ debt, onLogRepayment }: Props) {
   function formatDebtAmount(value: number) {
-    return formatCurrency(currencyCodec.encode(value), { currency: debt.currency });
+    return formatMoney(value, debt.currency);
   }
 
   const { outstanding, repaid } = debt;

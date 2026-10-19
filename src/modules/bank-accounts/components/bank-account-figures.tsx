@@ -1,5 +1,5 @@
-import { currencyCodec } from "#/lib/codecs";
-import { cn, formatCurrency } from "#/lib/utils";
+import { formatMoney } from "#/lib/money";
+import { cn } from "#/lib/utils";
 
 type BankAccountFiguresProps = {
   balance: number;
@@ -21,18 +21,14 @@ export function BankAccountFigures({
   );
 
   if (balance === unallocated) {
-    return (
-      <span className={wrapperClassName}>
-        {formatCurrency(currencyCodec.encode(balance), { currency })}
-      </span>
-    );
+    return <span className={wrapperClassName}>{formatMoney(balance, currency)}</span>;
   }
 
   return (
     <span className={wrapperClassName}>
-      <span>{formatCurrency(currencyCodec.encode(balance), { currency })} bal</span>
+      <span>{formatMoney(balance, currency)} bal</span>
       <span className="text-foreground/30">·</span>
-      <span>{formatCurrency(currencyCodec.encode(unallocated), { currency })} free</span>
+      <span>{formatMoney(unallocated, currency)} free</span>
     </span>
   );
 }

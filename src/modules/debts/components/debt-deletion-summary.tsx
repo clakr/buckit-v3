@@ -2,8 +2,7 @@ import { IconBuildingBank } from "@tabler/icons-react";
 
 import type { DebtDeletionImpact } from "#/modules/debts/deletion.server";
 
-import { currencyCodec } from "#/lib/codecs";
-import { formatCurrency } from "#/lib/utils";
+import { formatMoney } from "#/lib/money";
 
 type Props = {
   impact: DebtDeletionImpact;
@@ -34,7 +33,7 @@ export function getDebtDeletionDescription({ impact, deleteTransactions }: Props
 }
 
 function formatBankAccountAmount(value: number, currency: string) {
-  return formatCurrency(currencyCodec.encode(value), { currency });
+  return formatMoney(value, currency);
 }
 
 // Same shape as `BankAccountDeletionSummary`: what survives but changes. Here that's each

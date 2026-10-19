@@ -7,8 +7,8 @@ import type { getBuckets } from "#/modules/buckets/functions";
 import { SortableTableHead } from "#/components/table/sortable-table-head";
 import { Badge } from "#/components/ui/badge";
 import { Tooltip, TooltipContent, TooltipTrigger } from "#/components/ui/tooltip";
-import { currencyCodec } from "#/lib/codecs";
-import { formatCurrency, formatDateTime, formatToRelative } from "#/lib/utils";
+import { formatMoney } from "#/lib/money";
+import { formatDateTime, formatToRelative } from "#/lib/utils";
 import { BucketActionsDropdownMenu } from "#/modules/buckets/components/buckets-actions-dropdown-menu";
 
 export const INDEX_COLUMNS: ColumnDef<Awaited<ReturnType<typeof getBuckets>>[number]>[] = [
@@ -22,11 +22,7 @@ export const INDEX_COLUMNS: ColumnDef<Awaited<ReturnType<typeof getBuckets>>[num
     header: () => <div data-currency>Subtotal</div>,
     cell: ({ row }) => {
       const subtotals = row.original.subtotals
-        .map(({ currency, amount }) =>
-          formatCurrency(currencyCodec.encode(amount), {
-            currency,
-          }),
-        )
+        .map(({ currency, amount }) => formatMoney(amount, currency))
         .join(" + ");
 
       if (!subtotals) return "-";

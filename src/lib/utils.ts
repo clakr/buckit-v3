@@ -4,15 +4,6 @@ import { CURRENCIES } from "#/lib/constants";
 
 export { cn } from "cn";
 
-export function formatCurrency(value: number, opts?: Intl.NumberFormatOptions) {
-  return Intl.NumberFormat(undefined, {
-    style: "currency",
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-    ...opts,
-  }).format(value);
-}
-
 export function sleep(ms: number) {
   return new Promise((r) => setTimeout(r, ms));
 }

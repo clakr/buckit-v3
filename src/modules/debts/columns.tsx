@@ -5,8 +5,8 @@ import { IconCircleDashed, IconCircleDottedLetterH } from "@tabler/icons-react";
 import { SortableTableHead } from "#/components/table/sortable-table-head";
 import { Badge } from "#/components/ui/badge";
 import { Tooltip, TooltipContent, TooltipTrigger } from "#/components/ui/tooltip";
-import { currencyCodec } from "#/lib/codecs";
-import { formatCurrency, formatDateTime, formatToRelative } from "#/lib/utils";
+import { formatMoney } from "#/lib/money";
+import { formatDateTime, formatToRelative } from "#/lib/utils";
 
 import type { getDebts } from "./functions";
 
@@ -38,7 +38,7 @@ export const INDEX_COLUMNS: ColumnDef<Awaited<ReturnType<typeof getDebts>>[numbe
       const { outstanding } = row.original;
 
       function formatDebtAmount(value: number) {
-        return formatCurrency(currencyCodec.encode(value), { currency: row.original.currency });
+        return formatMoney(value, row.original.currency);
       }
 
       if (row.original.forgivenAt)

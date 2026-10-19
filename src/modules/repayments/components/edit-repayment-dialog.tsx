@@ -18,8 +18,8 @@ import {
 } from "#/components/ui/dialog";
 import { FieldGroup } from "#/components/ui/field";
 import { useAppForm } from "#/integrations/tanstack-form";
-import { currencyCodec } from "#/lib/codecs";
 import { NotFoundError } from "#/lib/errors";
+import { centsToAmountInput } from "#/lib/money";
 import { debtQueryOption } from "#/modules/debts/query-options";
 import { confirm } from "#/stores/use-confirm";
 
@@ -73,7 +73,7 @@ export function EditRepaymentDialog() {
   const defaultValues: z.input<typeof editRepaymentSchema> = {
     debtId: debt?.id ?? "",
     repaymentId: repayment?.id ?? "",
-    amount: currencyCodec.encode(repayment?.amount ?? 0),
+    amount: centsToAmountInput(repayment?.amount ?? 0),
     date: repayment?.date ?? new Date(),
     note: repayment?.note ?? "",
   };

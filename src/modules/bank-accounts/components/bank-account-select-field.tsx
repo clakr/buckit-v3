@@ -14,8 +14,7 @@ import {
   SelectValue,
 } from "#/components/ui/select";
 import { useFieldContext } from "#/integrations/tanstack-form";
-import { currencyCodec } from "#/lib/codecs";
-import { formatCurrency } from "#/lib/utils";
+import { formatMoney } from "#/lib/money";
 import { BankAccountFigures } from "#/modules/bank-accounts/components/bank-account-figures";
 
 type BankAccountWithFigures = Awaited<ReturnType<typeof getBankAccounts>>[number];
@@ -58,7 +57,7 @@ export function BankAccountSelectField({
   const picked = bankAccounts?.find((account) => account.id === field.state.value);
 
   function formatFigure(value: number, accountCurrency: string) {
-    return formatCurrency(currencyCodec.encode(value), { currency: accountCurrency });
+    return formatMoney(value, accountCurrency);
   }
 
   return (

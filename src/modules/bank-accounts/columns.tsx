@@ -8,8 +8,8 @@ import type { getBankAccount, getBankAccounts } from "#/modules/bank-accounts/fu
 import { SortableTableHead } from "#/components/table/sortable-table-head";
 import { Badge } from "#/components/ui/badge";
 import { Tooltip, TooltipContent, TooltipTrigger } from "#/components/ui/tooltip";
-import { currencyCodec } from "#/lib/codecs";
-import { formatCurrency, formatDateTime, formatToRelative } from "#/lib/utils";
+import { formatMoney } from "#/lib/money";
+import { formatDateTime, formatToRelative } from "#/lib/utils";
 import { BankAccountActionsDropdownMenu } from "#/modules/bank-accounts/components/bank-account-actions-dropdown-menu";
 import { TransactionActionsDropdownMenu } from "#/modules/transactions/components/transaction-actions-dropdown-menu";
 
@@ -23,9 +23,7 @@ export const INDEX_COLUMNS: ColumnDef<Awaited<ReturnType<typeof getBankAccounts>
     accessorKey: "balance",
     header: () => <div data-currency>Balance</div>,
     cell: ({ row }) => {
-      const value = formatCurrency(currencyCodec.encode(row.original.balance), {
-        currency: row.original.currency,
-      });
+      const value = formatMoney(row.original.balance, row.original.currency);
 
       return <span className="block text-end font-semibold tabular-nums">{value}</span>;
     },
@@ -34,9 +32,7 @@ export const INDEX_COLUMNS: ColumnDef<Awaited<ReturnType<typeof getBankAccounts>
     accessorKey: "unallocated",
     header: () => <div data-currency>Unallocated</div>,
     cell: ({ row }) => {
-      const value = formatCurrency(currencyCodec.encode(row.original.unallocated), {
-        currency: row.original.currency,
-      });
+      const value = formatMoney(row.original.unallocated, row.original.currency);
 
       return <span className="block text-end font-medium tabular-nums">{value}</span>;
     },
@@ -121,9 +117,9 @@ export const TRANSACTIONS_COLUMNS: ColumnDef<
     header: () => <div data-currency>Amount</div>,
     cell: ({ row }) => (
       <span className="block text-end font-semibold tabular-nums">
-        {formatCurrency(currencyCodec.encode(row.original.amount), {
-          currency: row.original.bankAccount?.currency,
-        })}
+        {row.original.bankAccount
+          ? formatMoney(row.original.amount, row.original.bankAccount.currency)
+          : "—"}
       </span>
     ),
   },

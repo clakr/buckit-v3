@@ -2,7 +2,6 @@ import { createServerFn } from "@tanstack/react-start";
 import { env } from "cloudflare:workers";
 
 import { getDB } from "#/db";
-import { currencyCodec } from "#/lib/codecs";
 
 import { verifyUserDebtMiddleware } from "../debts/middlewares";
 import { editRepaymentSchema, logRepaymentSchema } from "./schemas";
@@ -19,7 +18,7 @@ export const logRepayment = createServerFn({
     addRepayment(getDB(env.db), context.userId, {
       debtId: data.debtId,
       bankAccountId: data.bankAccountId,
-      amount: currencyCodec.decode(data.amount),
+      amount: data.amount,
       date: data.date,
       note: data.note,
     }),
@@ -34,7 +33,7 @@ export const editRepayment = createServerFn({
     changeRepayment(getDB(env.db), context.userId, {
       debtId: data.debtId,
       repaymentId: data.repaymentId,
-      amount: currencyCodec.decode(data.amount),
+      amount: data.amount,
       date: data.date,
       note: data.note,
     }),

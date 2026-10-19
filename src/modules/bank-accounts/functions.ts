@@ -9,7 +9,6 @@ import type { DB } from "#/db";
 
 import { getDB } from "#/db";
 import { bankAccounts, lower } from "#/db/schema";
-import { currencyCodec } from "#/lib/codecs";
 import { ConflictError, NotFoundError } from "#/lib/errors";
 import { authMiddleware } from "#/modules/authentication/middlewares";
 import {
@@ -151,7 +150,7 @@ export const registerBankAccount = createServerFn({
           userId: context.userId,
           name: data.name,
           currency: data.currency,
-          startingBalance: currencyCodec.decode(data.startingBalance),
+          startingBalance: data.startingBalance,
         })
         .returning();
     } catch (error) {

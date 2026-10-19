@@ -1,10 +1,5 @@
 import { format, isBefore, startOfDay } from "date-fns";
 
-import type { BankAccount } from "#/db/schema";
-
-import { currencyCodec } from "#/lib/codecs";
-import { formatCurrency } from "#/lib/utils";
-
 const DAY_IN_MS = 24 * 60 * 60 * 1000;
 
 export const REPAYMENT_BEFORE_DEBT_MESSAGE =
@@ -35,21 +30,4 @@ export function getRepaymentDateRule(debtDate: Date) {
         : undefined;
     },
   };
-}
-
-/**
- * Why a repayment's amount is more than its account can pay out, as the Log dialog shows it
- * before submitting and the write rejects it. `available` is in database amounts.
- */
-export function describeInsufficientRepaymentAccount({
-  bankAccount,
-  available,
-}: {
-  bankAccount: Pick<BankAccount, "name" | "currency">;
-  available: number;
-}) {
-  return `Insufficient unallocated balance in ${bankAccount.name} for this repayment. Available: ${formatCurrency(
-    currencyCodec.encode(available),
-    { currency: bankAccount.currency },
-  )}`;
 }

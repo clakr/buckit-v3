@@ -2,8 +2,7 @@ import { IconBucket, IconCredits } from "@tabler/icons-react";
 
 import type { getBankAccountDeletionImpact } from "#/modules/bank-accounts/functions";
 
-import { currencyCodec } from "#/lib/codecs";
-import { formatCurrency } from "#/lib/utils";
+import { formatMoney } from "#/lib/money";
 import { DebtStatusBadge } from "#/modules/debts/components/debt-status-badge";
 
 type Props = {
@@ -36,7 +35,7 @@ export function getBankAccountDeletionDescription({ impact }: Props) {
 // can't see from the account page, so it gets a before → after table.
 export function BankAccountDeletionSummary({ impact }: Props) {
   function formatAccountAmount(value: number) {
-    return formatCurrency(currencyCodec.encode(value), { currency: impact.bankAccount.currency });
+    return formatMoney(value, impact.bankAccount.currency);
   }
 
   const { buckets: affectedBuckets, debts: affectedDebts } = impact;
@@ -73,7 +72,7 @@ export function BankAccountDeletionSummary({ impact }: Props) {
             ))}
             {affectedDebts.map((debt) => {
               function formatDebtAmount(value: number) {
-                return formatCurrency(currencyCodec.encode(value), { currency: debt.currency });
+                return formatMoney(value, debt.currency);
               }
 
               const isStatusChanged = debt.statusBefore !== debt.statusAfter;

@@ -19,8 +19,8 @@ import {
 } from "#/components/ui/dialog";
 import { FieldGroup } from "#/components/ui/field";
 import { useAppForm } from "#/integrations/tanstack-form";
-import { currencyCodec } from "#/lib/codecs";
 import { NotFoundError } from "#/lib/errors";
+import { centsToAmountInput } from "#/lib/money";
 import { useEditDebtMutation } from "#/modules/debts/mutations";
 import { debtQueryOption } from "#/modules/debts/query-options";
 import { editDebtSchema } from "#/modules/debts/schemas";
@@ -69,7 +69,7 @@ export function EditDebtDialog() {
   const defaultValues: z.input<typeof editDebtSchema> = {
     debtId: debt?.id ?? "",
     name: debt?.name ?? "",
-    amount: currencyCodec.encode(debt?.amount ?? 0),
+    amount: centsToAmountInput(debt?.amount ?? 0),
     date: debt?.date ?? new Date(),
     note: debt?.note ?? "",
   };

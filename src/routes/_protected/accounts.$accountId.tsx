@@ -10,9 +10,8 @@ import { Button } from "#/components/ui/button";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "#/components/ui/card";
 import { DataTable } from "#/components/ui/data-table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "#/components/ui/tabs";
-import { currencyCodec } from "#/lib/codecs";
 import { NotFoundError } from "#/lib/errors";
-import { formatCurrency } from "#/lib/utils";
+import { formatMoney } from "#/lib/money";
 import { getAllocationColumns } from "#/modules/allocations/columns";
 import { allocationsQueryOption } from "#/modules/allocations/query-options";
 import { TRANSACTIONS_COLUMNS } from "#/modules/bank-accounts/columns";
@@ -129,27 +128,15 @@ function RouteComponent() {
             <CardContent>
               <dl className="grid grid-cols-[auto_minmax(0,1fr)] gap-x-4 [&>dt]:text-end [&>dt]:font-semibold">
                 <dd>Unallocated:</dd>
-                <dt>
-                  {formatCurrency(currencyCodec.encode(unallocated), {
-                    currency: bankAccount.currency,
-                  })}
-                </dt>
+                <dt>{formatMoney(unallocated, bankAccount.currency)}</dt>
                 <dd>Total Allocated:</dd>
-                <dt>
-                  {formatCurrency(currencyCodec.encode(totalAllocated), {
-                    currency: bankAccount.currency,
-                  })}
-                </dt>
+                <dt>{formatMoney(totalAllocated, bankAccount.currency)}</dt>
               </dl>
             </CardContent>
             <CardFooter className=" border-t text-sm font-semibold">
               <dl className="grid basis-full grid-cols-[auto_minmax(0,1fr)] gap-x-4">
                 <dd>Computed Balance:</dd>
-                <dt className="text-end">
-                  {formatCurrency(currencyCodec.encode(balance), {
-                    currency: bankAccount.currency,
-                  })}
-                </dt>
+                <dt className="text-end">{formatMoney(balance, bankAccount.currency)}</dt>
               </dl>
             </CardFooter>
           </Card>

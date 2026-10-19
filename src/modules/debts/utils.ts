@@ -1,8 +1,5 @@
 import type { BankAccount, Debt, Repayment, Transaction } from "#/db/schema";
 
-import { currencyCodec } from "#/lib/codecs";
-import { formatCurrency } from "#/lib/utils";
-
 /**
  * The type a Linked Transaction always has, fixed by its Debt: a receivable's origination is money
  * lent out; a repayment is money coming back on a receivable, or going out on a payable.
@@ -27,23 +24,6 @@ export function getDebtLinkedTransactionIds({
   return [originatingTransactionId, ...repayments.map((r) => r.transactionId)].filter(
     (id): id is string => id !== null,
   );
-}
-
-/**
- * Why a receivable's amount is more than its source account can lend, as the Record dialog shows
- * it before submitting and the write rejects it. `available` is in database amounts.
- */
-export function describeInsufficientSourceAccount({
-  bankAccount,
-  available,
-}: {
-  bankAccount: Pick<BankAccount, "name" | "currency">;
-  available: number;
-}) {
-  return `Insufficient unallocated balance in ${bankAccount.name} for this loan. Available: ${formatCurrency(
-    currencyCodec.encode(available),
-    { currency: bankAccount.currency },
-  )}`;
 }
 
 /** Why deleting a Debt's linked Transactions is refused, in the Delete dialog and by the write. */

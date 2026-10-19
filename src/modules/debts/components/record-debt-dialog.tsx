@@ -19,12 +19,11 @@ import {
 import { Field, FieldError, FieldGroup, FieldLabel } from "#/components/ui/field";
 import { InputGroup, InputGroupAddon, InputGroupInput } from "#/components/ui/input-group";
 import { useAppForm } from "#/integrations/tanstack-form";
-import { currencyCodec } from "#/lib/codecs";
+import { exceedsAvailable, describeInsufficientUnallocated } from "#/lib/money";
 import { BankAccountSelectField } from "#/modules/bank-accounts/components/bank-account-select-field";
 import { useRegisterBankAccountDialogStore } from "#/modules/bank-accounts/components/register-bank-account-dialog";
 import { bankAccountsQueryOption } from "#/modules/bank-accounts/query-options";
 import { useRecordDebtMutation } from "#/modules/debts/mutations";
-import { describeInsufficientSourceAccount } from "#/modules/debts/utils";
 import { confirm } from "#/stores/use-confirm";
 
 import { debtDirectionEnum, recordDebtSchema } from "../schemas";
@@ -184,9 +183,10 @@ export function RecordDebtDialog() {
                         const bankAccount = findSourceAccount(form.getFieldValue("bankAccountId"));
                         if (!bankAccount) return undefined;
 
-                        return currencyCodec.decode(Number(value)) > bankAccount.unallocated
+                        return exceedsAvailable(value, bankAccount.unallocated)
                           ? {
-                              message: describeInsufficientSourceAccount({
+                              message: describeInsufficientUnallocated({
+                                purpose: "loan",
                                 bankAccount,
                                 available: bankAccount.unallocated,
                               }),

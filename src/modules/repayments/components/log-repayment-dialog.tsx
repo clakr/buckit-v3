@@ -18,8 +18,8 @@ import {
 } from "#/components/ui/dialog";
 import { FieldGroup } from "#/components/ui/field";
 import { useAppForm } from "#/integrations/tanstack-form";
-import { currencyCodec } from "#/lib/codecs";
 import { NotFoundError } from "#/lib/errors";
+import { exceedsAvailable, describeInsufficientUnallocated } from "#/lib/money";
 import { BankAccountSelectField } from "#/modules/bank-accounts/components/bank-account-select-field";
 import { bankAccountsQueryOption } from "#/modules/bank-accounts/query-options";
 import { debtQueryOption } from "#/modules/debts/query-options";
@@ -28,7 +28,7 @@ import { confirm } from "#/stores/use-confirm";
 
 import { useLogRepaymentMutation } from "../mutations";
 import { logRepaymentSchema } from "../schemas";
-import { describeInsufficientRepaymentAccount, getRepaymentDateRule } from "../utils";
+import { getRepaymentDateRule } from "../utils";
 
 type StoreState = DialogState & {
   debtId: Debt["id"] | null;
@@ -196,9 +196,10 @@ export function LogRepaymentDialog() {
                       );
                       if (!bankAccount) return undefined;
 
-                      return currencyCodec.decode(Number(value)) > bankAccount.unallocated
+                      return exceedsAvailable(value, bankAccount.unallocated)
                         ? {
-                            message: describeInsufficientRepaymentAccount({
+                            message: describeInsufficientUnallocated({
+                              purpose: "repayment",
                               bankAccount,
                               available: bankAccount.unallocated,
                             }),

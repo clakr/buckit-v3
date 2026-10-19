@@ -19,11 +19,10 @@ import {
 } from "#/components/ui/dialog";
 import { FieldGroup } from "#/components/ui/field";
 import { useAppForm } from "#/integrations/tanstack-form";
-import { currencyCodec } from "#/lib/codecs";
-import { formatCurrency, getCurrency, isCurrencyCode } from "#/lib/utils";
+import { formatMoney, exceedsAvailable, describeInsufficientUnallocated } from "#/lib/money";
+import { getCurrency, isCurrencyCode } from "#/lib/utils";
 import { useLogAllocationMutation } from "#/modules/allocations/mutations";
 import { logAllocationSchema } from "#/modules/allocations/schemas";
-import { describeInsufficientUnallocated } from "#/modules/allocations/utils";
 import { BankAccountSelectField } from "#/modules/bank-accounts/components/bank-account-select-field";
 import { bankAccountsQueryOption } from "#/modules/bank-accounts/query-options";
 import { bucketsQueryOptions } from "#/modules/buckets/query-options";
@@ -255,7 +254,7 @@ export function LogAllocationDialog() {
                       const bankAccount = findBankAccount(form.getFieldValue("bankAccountId"));
                       if (!bankAccount) return undefined;
 
-                      return currencyCodec.decode(Number(value)) > bankAccount.unallocated
+                      return exceedsAvailable(value, bankAccount.unallocated)
                         ? {
                             message: describeInsufficientUnallocated({
                               bankAccount,
@@ -280,9 +279,7 @@ export function LogAllocationDialog() {
                           <>
                             Available:{" "}
                             <span className="font-semibold">
-                              {formatCurrency(currencyCodec.encode(unallocated), {
-                                currency: currency.code,
-                              })}
+                              {formatMoney(unallocated, currency.code)}
                             </span>
                           </>
                         ) : undefined

@@ -23,19 +23,20 @@ function toCents(amount: number) {
   return Math.round(amount * 100);
 }
 
-function inCents(amount: z.ZodNumber) {
-  return z.codec(amount.refine(hasAtMostTwoDecimals, DECIMAL_PLACES_MESSAGE), z.number().int(), {
-    decode: toCents,
-    encode: (cents) => cents / 100,
-  });
+function inCents(min: number, minMessage: string) {
+  return z.codec(
+    z.coerce.number().min(min, minMessage).refine(hasAtMostTwoDecimals, DECIMAL_PLACES_MESSAGE),
+    z.number().int(),
+    { decode: toCents, encode: (cents) => cents / 100 },
+  );
 }
 
 /** An amount the user types: more than 0, at most 2 decimals. Parses to cents. */
-export const amountSchema = inCents(z.coerce.number().min(0.01, "Amount must be greater than 0."));
+export const amountSchema = inCents(0.01, "Amount must be greater than 0.");
 
 /** Like `amountSchema`, but 0 is allowed (e.g. a starting balance). Parses to cents. */
 export function nonNegativeAmountSchema(message: string) {
-  return inCents(z.coerce.number().min(0, message));
+  return inCents(0, message);
 }
 
 /** Cents as an amount for a form field's starting value. */

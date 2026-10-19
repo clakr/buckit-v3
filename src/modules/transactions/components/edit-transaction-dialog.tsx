@@ -18,8 +18,8 @@ import {
 } from "#/components/ui/dialog";
 import { FieldDescription, FieldGroup } from "#/components/ui/field";
 import { useAppForm } from "#/integrations/tanstack-form";
-import { currencyCodec } from "#/lib/codecs";
 import { NotFoundError } from "#/lib/errors";
+import { centsToAmountInput } from "#/lib/money";
 import { getRepaymentDateRule } from "#/modules/repayments/utils";
 import { useEditTransactionMutation } from "#/modules/transactions/mutations";
 import { transactionQueryOption } from "#/modules/transactions/query-options";
@@ -67,7 +67,7 @@ export function EditTransactionDialog() {
   const defaultValues: z.input<typeof editTransactionSchema> = {
     transactionId: transaction?.id ?? "",
     type: transaction?.type ?? "income",
-    amount: currencyCodec.encode(transaction?.amount ?? 0),
+    amount: centsToAmountInput(transaction?.amount ?? 0),
     date: transaction?.date ?? new Date(),
     note: transaction?.note ?? "",
   };

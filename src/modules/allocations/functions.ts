@@ -7,15 +7,14 @@ import type { DB } from "#/db";
 
 import { getDB } from "#/db";
 import { allocations } from "#/db/schema";
-import { currencyCodec } from "#/lib/codecs";
 import { InsufficientFundsError, NotFoundError } from "#/lib/errors";
+import { describeInsufficientUnallocated } from "#/lib/money";
 import { verifyUserAllocationMiddleware } from "#/modules/allocations/middlewares";
 import {
   editAllocationSchema,
   getAllocationsSchema,
   logAllocationSchema,
 } from "#/modules/allocations/schemas";
-import { describeInsufficientUnallocated } from "#/modules/allocations/utils";
 import { authMiddleware } from "#/modules/authentication/middlewares";
 import {
   checkUnallocated,
@@ -88,7 +87,7 @@ export const logAllocation = createServerFn({
     await checkAllocationAmount(db, context.userId, {
       kind: "add-allocation",
       bankAccountId: data.bankAccountId,
-      amount: currencyCodec.decode(data.amount),
+      amount: data.amount,
     });
 
     return db
@@ -97,7 +96,7 @@ export const logAllocation = createServerFn({
         id: uuidv7(),
         bankAccountId: data.bankAccountId,
         bucketId: data.bucketId,
-        amount: currencyCodec.decode(data.amount),
+        amount: data.amount,
         date: data.date,
         note: data.note,
       })
@@ -115,13 +114,13 @@ export const editAllocation = createServerFn({
     await checkAllocationAmount(db, context.userId, {
       kind: "replace-allocation",
       allocationId: data.allocationId,
-      amount: currencyCodec.decode(data.amount),
+      amount: data.amount,
     });
 
     return db
       .update(allocations)
       .set({
-        amount: currencyCodec.decode(data.amount),
+        amount: data.amount,
         date: data.date,
         note: data.note,
       })
