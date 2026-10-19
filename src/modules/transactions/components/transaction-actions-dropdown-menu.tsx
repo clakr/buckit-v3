@@ -10,7 +10,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "#/components/ui/dropdown-menu";
-import { AppError } from "#/lib/errors";
+import { AppError, UnauthorizedError } from "#/lib/errors";
 import { useEditTransactionDialogStore } from "#/modules/transactions/components/edit-transaction-dialog";
 import { validateDeleteTransaction } from "#/modules/transactions/functions";
 import { useDeleteTransactionMutation } from "#/modules/transactions/mutations";
@@ -32,6 +32,9 @@ export function TransactionActionsDropdownMenu({ transactionId }: Props) {
     try {
       check = await validateDeleteTransaction({ data: { transactionId } });
     } catch (error) {
+      // The Session ran out: the client is already signing out and says so.
+      if (error instanceof UnauthorizedError) return;
+
       console.error(error);
 
       // Rejecting here would leave the click with no feedback at all.

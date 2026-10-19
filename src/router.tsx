@@ -9,13 +9,10 @@ import { RouteRetryButton } from "#/components/route-retry-button";
 import { StateTemplate } from "#/components/state-template";
 import { getContext } from "#/integrations/tanstack-query/root-provider";
 import { describeErrorForUser } from "#/lib/errors";
-import { leaveExpiredSession } from "#/modules/authentication/session";
 import { routeTree } from "#/routeTree.gen";
 
 export function getRouter() {
-  const context = getContext({
-    onSessionExpired: (error) => void leaveExpiredSession(router, error),
-  });
+  const context = getContext();
 
   const router = createTanStackRouter({
     routeTree,
