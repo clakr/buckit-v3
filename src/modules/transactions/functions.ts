@@ -9,7 +9,7 @@ import type { DB } from "#/db";
 import { getDB } from "#/db";
 import { transactions, type Transaction } from "#/db/schema";
 import { ConflictError, InsufficientFundsError, NotFoundError } from "#/lib/errors";
-import { formatMoney } from "#/lib/money";
+import { describeInsufficientUnallocated, formatMoney } from "#/lib/money";
 import { checkUnallocated } from "#/modules/bank-accounts/figures.server";
 import { verifyUserBankAccountMiddleware } from "#/modules/bank-accounts/middlewares";
 import {
@@ -18,7 +18,6 @@ import {
   describeLinkedTransactionDeletion,
   getTransactionLocks,
   loadTransactionLink,
-  NEGATIVE_UNALLOCATED_MESSAGE,
   updateTransaction,
   type TransactionEdit,
 } from "#/modules/transactions/linked.server";
@@ -67,7 +66,7 @@ export const logTransaction = createServerFn({
     const db = getDB(env.db);
     const amount = data.amount;
 
-    // The write is the check: its error reaches the dialog's failure toast with this message.
+    // The write is the check, with the message the dialog shows as you type.
     const check = await checkUnallocated(db, context.userId, {
       kind: "add-transaction",
       bankAccountId: data.bankAccountId,
@@ -75,7 +74,13 @@ export const logTransaction = createServerFn({
       amount,
     });
 
-    if (!check.ok) throw new InsufficientFundsError(NEGATIVE_UNALLOCATED_MESSAGE);
+    if (!check.ok)
+      throw new InsufficientFundsError(
+        describeInsufficientUnallocated({
+          bankAccount: check.bankAccount,
+          available: check.available,
+        }),
+      );
 
     return db
       .insert(transactions)

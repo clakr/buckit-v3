@@ -24,7 +24,7 @@ type Props = {
 
 export function BankAccountActionsDropdownMenu({ account }: Props) {
   function handleOpenLogTransactionDialog() {
-    useLogTransactionDialogStore.getState().open({ account });
+    useLogTransactionDialogStore.getState().open({ bankAccountId: account.id });
   }
 
   function handleOpenLogAllocationDialog() {
