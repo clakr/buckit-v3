@@ -82,6 +82,8 @@ Three small correctness bugs were found and fixed while writing this spec:
 
 No ADR was written for the delete-confirmation asymmetry noted above — it's a direct, unsurprising consequence of deleting no independent history, not an independent trade-off.
 
+- **2026-10-21 — Log Transaction opens with an id and checks expenses as you type.** It used to render a Bank Account row taken when the row menu opened, and only the write caught an expense larger than Unallocated, unlike Log Allocation, Log Repayment and Record Debt. Its store holds `{ bankAccountId }`, and the dialog reads the account from `bankAccountsQueryOption()`, the list the Accounts page (its only opener) has already loaded, so it opens instantly with live figures. It shows loading, "Account not found" with Close, and "Could not load accounts" with Retry. For an expense it shows "Available: …" under the amount and flags an amount above Unallocated as you type, re-checking when the type changes; income can't overdraw and isn't checked. `logTransaction` rejects with the same `describeInsufficientUnallocated` message (`src/lib/money.ts`) instead of the generic "This would leave a negative unallocated balance" one.
+
 ## Future Considerations
 
 ### Categorization / Tags
