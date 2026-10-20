@@ -65,7 +65,6 @@ const ALLOCATION_COLUMNS: ColumnDef<AllocationRow>[] = [
   },
 ];
 
-/** The Allocation table's columns, leaving out the parent the page already shows. */
 export function getAllocationColumns({ omit }: { omit?: "bucket" | "bankAccount" } = {}) {
   return ALLOCATION_COLUMNS.filter((column) => column.id !== omit);
 }

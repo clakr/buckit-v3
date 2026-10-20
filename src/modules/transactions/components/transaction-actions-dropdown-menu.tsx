@@ -37,7 +37,6 @@ export function TransactionActionsDropdownMenu({ transactionId }: Props) {
 
       console.error(error);
 
-      // Rejecting here would leave the click with no feedback at all.
       await confirm("Can't Delete This Transaction", {
         description:
           error instanceof AppError

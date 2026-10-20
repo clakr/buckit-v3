@@ -68,7 +68,6 @@ export function RecordDebtDialog() {
     enabled: isOpen && direction === "receivable",
   });
 
-  // Funding a loan takes money out, so only accounts with something left to lend can fund it.
   const eligibleSourceAccounts = bankAccountsQuery.data?.filter(
     (account) => account.unallocated > 0,
   );
@@ -149,7 +148,6 @@ export function RecordDebtDialog() {
                           value={field.state.value}
                           onValueChange={(value) => {
                             field.handleChange(value?.toString() ?? "");
-                            // A picked source account is tied to the old currency.
                             form.setFieldValue("bankAccountId", undefined);
                           }}
                         />
@@ -159,8 +157,6 @@ export function RecordDebtDialog() {
                   <form.AppField
                     name="amount"
                     validators={{
-                      // The source account can be picked, or cleared by a currency change,
-                      // after the amount is in.
                       onChangeListenTo: ["bankAccountId"],
                       onChange: ({ value }) => {
                         const bankAccount = findSourceAccount(form.getFieldValue("bankAccountId"));
@@ -200,7 +196,6 @@ export function RecordDebtDialog() {
                   </form.AppField>
                 </InputGroup>
                 <form.Subscribe
-                  // Once touched, like the input's own invalid state; submitting touches every field.
                   selector={(state) =>
                     state.fieldMeta.amount?.isTouched ? state.fieldMeta.amount.errors : undefined
                   }

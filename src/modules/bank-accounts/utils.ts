@@ -13,7 +13,6 @@ export type BankAccountFigures = {
   totalAllocated: number;
 };
 
-/** Rows a pending change adds; rows it replaces or removes are left out of the totals instead. */
 export type PendingAddition = {
   transaction?: Pick<Transaction, "type" | "amount">;
   allocationAmount?: Allocation["amount"];

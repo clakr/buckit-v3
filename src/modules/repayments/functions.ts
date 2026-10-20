@@ -7,8 +7,6 @@ import { verifyUserDebtMiddleware } from "../debts/middlewares";
 import { editRepaymentSchema, logRepaymentSchema } from "./schemas";
 import { addRepayment, changeRepayment } from "./storage.server";
 
-// The write is the check: an AppError from the storage module reaches the dialog's failure toast.
-
 export const logRepayment = createServerFn({
   method: "POST",
 })

@@ -4,11 +4,6 @@ import { AppError, UnauthorizedError } from "#/lib/errors";
 
 type NameCheck = (name: string) => Promise<{ isValid: boolean; message: string }>;
 
-/**
- * A name field's async refinement: asks the server whether `name` is free. A taken name shows the
- * server's message; a failed check shows a retry message rather than the raw transport error,
- * unless it's an `AppError`, whose message is safe to show.
- */
 export function refineNameAvailability(checkName: NameCheck) {
   return async function (name: string, context: z.RefinementCtx<string>) {
     if (!name) return;

@@ -112,7 +112,6 @@ export function LogRepaymentDialog() {
     close();
   }
 
-  // Money only leaves the account on a payable; a receivable's repayment can't overdraw it.
   const isPayingOut =
     debt !== undefined && getLinkedTransactionType(debt.direction, "repayment") === "expense";
 
@@ -166,7 +165,6 @@ export function LogRepaymentDialog() {
                 <form.AppField
                   name="amount"
                   validators={{
-                    // The account can be picked after the amount is in.
                     onChangeListenTo: ["bankAccountId"],
                     onChange: ({ value }) => {
                       if (!isPayingOut) return undefined;

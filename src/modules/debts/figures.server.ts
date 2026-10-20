@@ -3,26 +3,18 @@ import type { BankAccount, Debt, Repayment } from "#/db/schema";
 
 import { toRepaymentEntry } from "#/modules/repayments/storage.server";
 
-// Computed on read, never stored — a stored status would go stale the moment a repayment
-// disappears through an unrelated code path (e.g. a Bank Account deletion).
 export type DebtStatus = "open" | "settled" | "forgiven";
 
-/**
- * A repayment as it reads, whichever way it's stored: logged through a Bank Account, its Linked
- * Transaction holds the amount, date and note; otherwise the repayment row does.
- */
 export type RepaymentEntry = {
   id: Repayment["id"];
   amount: number;
   date: Date;
   note: string | null;
-  /** The account its Linked Transaction moved money through; `null` for an off-app repayment. */
   bankAccount: Pick<BankAccount, "id" | "name"> | null;
   createdAt: Repayment["createdAt"];
 };
 
 export type DebtFigures = {
-  /** The amount minus every repayment. Negative when overpaid; forgiving doesn't change it. */
   outstanding: number;
   repaid: number;
   status: DebtStatus;
@@ -31,9 +23,7 @@ export type DebtFigures = {
 
 export type DebtWithFigures = Debt &
   DebtFigures & {
-    /** The account a receivable was lent from; `null` for a payable or an unfunded receivable. */
     originatingBankAccount: Pick<BankAccount, "id" | "name"> | null;
-    /** Oldest first, by date, then by when each was logged. */
     repayments: RepaymentEntry[];
   };
 
@@ -52,10 +42,6 @@ function withFigures(debt: DebtWithEntries): DebtWithFigures {
   };
 }
 
-/**
- * The user's Debts with their figures and resolved repayments. `debtIds` narrows to those Debts;
- * someone else's are left out like missing ones.
- */
 export async function getDebtsWithFigures(
   db: DB,
   { userId, debtIds }: { userId: string; debtIds?: Debt["id"][] },
@@ -91,7 +77,6 @@ export async function getDebtsWithFigures(
   );
 }
 
-/** The same Debt as if those repayments were gone: what a cascade would leave behind. */
 export function withoutRepayments(
   debt: DebtWithFigures,
   repaymentIds: ReadonlySet<Repayment["id"]>,

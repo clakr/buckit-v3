@@ -6,7 +6,6 @@ import { AppError, describeErrorForUser, UnauthorizedError } from "#/lib/errors"
 declare module "@tanstack/react-query" {
   interface Register {
     queryMeta: {
-      /** Not marked stale by a successful mutation; set on data no write can change. */
       keepOnWrite?: boolean;
     };
     mutationMeta: {
@@ -26,7 +25,6 @@ export function getContext() {
   const queryClient = new QueryClient({
     defaultOptions: {
       queries: {
-        // Retrying can't change an expected failure (e.g. a record that's gone), only delay it.
         retry: (failureCount, error) => !(error instanceof AppError) && failureCount < 3,
       },
     },

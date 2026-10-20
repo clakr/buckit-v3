@@ -10,7 +10,6 @@ import { getBucketsWithFigures } from "#/modules/buckets/figures.server";
 export type BucketDeletionImpact = {
   bucket: Pick<Bucket, "id" | "name">;
   allocationCount: number;
-  /** Bank Accounts this Bucket holds money from; their Unallocated rises by that amount. */
   bankAccounts: {
     id: BankAccount["id"];
     name: BankAccount["name"];
@@ -20,10 +19,6 @@ export type BucketDeletionImpact = {
   }[];
 };
 
-/**
- * What deleting a Bucket takes with it (its Allocations, by the FK cascade) and what survives but
- * changes. Balances don't move: the money stays in each Bank Account, it just stops being earmarked.
- */
 export async function loadBucketDeletionImpact(
   db: DB,
   userId: string,

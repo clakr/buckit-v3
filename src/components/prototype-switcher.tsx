@@ -1,27 +1,12 @@
 import { useEffect } from "react";
 
 type Props<VariantKey extends string> = {
-  /** Variant keys in cycle order, e.g. `["A", "B", "C"]`. */
   variants: readonly VariantKey[];
-  /** Currently selected key. */
   current: VariantKey;
-  /** Optional display names; the active variant's name shows above the bar. */
   names?: Partial<Record<VariantKey, string>>;
-  /** Called with the next key. Router-agnostic: wire it to `navigate({ search })`. */
   onChange: (variant: VariantKey) => void;
 };
 
-/**
- * Floating bottom bar for the `prototype` skill's UI branch: one button per
- * variant (click to jump), with the active variant's name above. ← / → also
- * cycle, wrapping around. Renders nothing in production builds, so a stray
- * prototype merge can't ship it.
- *
- * Usage on a TanStack Router route (see docs/agents/prototyping.md):
- *   validateSearch: (search) => ({ variant: VARIANTS.includes(search.variant) ? search.variant : undefined })
- *   <PrototypeSwitcher variants={VARIANTS} current={variant}
- *     onChange={(next) => navigate({ search: { variant: next }, replace: true })} />
- */
 export function PrototypeSwitcher<VariantKey extends string>({
   variants,
   current,

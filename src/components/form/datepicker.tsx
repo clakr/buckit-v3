@@ -12,7 +12,6 @@ import { useFieldContext } from "#/integrations/tanstack-form";
 
 type Props = {
   label: string;
-  /** Days that can't be picked, e.g. `{ before: debt.date }`. */
   disabled?: ComponentProps<typeof Calendar>["disabled"];
 };
 
@@ -23,7 +22,6 @@ export default function Datepicker({ label, disabled }: Props) {
 
   const isInvalid = field.state.meta.isTouched && !field.state.meta.isValid;
 
-  // Not `field.name`: two forms open at once (e.g. Register Account over Record Debt) share names.
   const id = useId();
   const errorId = `${id}-error`;
 

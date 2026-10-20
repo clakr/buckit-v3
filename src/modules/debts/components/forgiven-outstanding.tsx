@@ -11,9 +11,6 @@ type Props = {
   formatDebtAmount: (value: number) => string;
 };
 
-// A forgiven Debt has nothing left to collect or pay, so the figure steps aside for a "Forgiven"
-// label. The eye toggle still reveals what was outstanding when it was forgiven, struck through,
-// with the unpaid part of the bar hatched as written off rather than empty.
 export function ForgivenOutstanding({ amount, outstanding, formatDebtAmount }: Props) {
   const [isShown, setIsShown] = useState(false);
   const Icon = isShown ? IconEyeOff : IconEye;

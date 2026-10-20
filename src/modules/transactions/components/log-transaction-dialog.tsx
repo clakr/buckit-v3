@@ -30,7 +30,6 @@ export function LogTransactionDialog() {
   const { isOpen, payload, close } = useLogTransactionDialogStore();
   const { bankAccountId } = payload;
 
-  // The list the Accounts page already loaded: live figures, no extra request when opened there.
   const {
     status,
     refetch,
@@ -115,7 +114,6 @@ export function LogTransactionDialog() {
               content={<Button onClick={() => refetch()}>Retry</Button>}
             />
           ) : null}
-          {/* The list loaded, but the account went (e.g. deleted in another tab). */}
           {status === "success" && !account ? (
             <StateTemplate
               state="error"
@@ -152,10 +150,8 @@ export function LogTransactionDialog() {
                 <form.AppField
                   name="amount"
                   validators={{
-                    // The type can be switched to expense after the amount is in.
                     onChangeListenTo: ["type"],
                     onChange: ({ value }) =>
-                      // Income only ever raises Unallocated.
                       form.getFieldValue("type") === "expense" &&
                       exceedsAvailable(value, account.unallocated)
                         ? {

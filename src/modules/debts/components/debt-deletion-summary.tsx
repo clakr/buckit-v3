@@ -9,13 +9,10 @@ type Props = {
   deleteTransactions: boolean;
 };
 
-/** The accounts the linked Transactions moved money through, quoted for the dialog's copy. */
 export function getLinkedBankAccountsLabel(impact: DebtDeletionImpact) {
   return impact.bankAccounts.map((account) => `"${account.name}"`).join(", ");
 }
 
-// The dialog's description: what goes with the Debt (and, if ticked, its linked
-// Transactions), so the summary below only has to cover what survives but changes.
 export function getDebtDeletionDescription({ impact, deleteTransactions }: Props) {
   const { repaymentCount } = impact;
   const transactionCount = impact.linkedTransactionIds.length;
@@ -36,9 +33,6 @@ function formatBankAccountAmount(value: number, currency: string) {
   return formatMoney(value, currency);
 }
 
-// Same shape as `BankAccountDeletionSummary`: what survives but changes. Here that's each
-// linked account's balance, and only when the linked Transactions are deleted too —
-// keeping them changes nothing outside the Debt.
 export function DebtDeletionSummary({ impact, deleteTransactions }: Props) {
   const transactionCount = impact.linkedTransactionIds.length;
   const bankAccountsLabel = getLinkedBankAccountsLabel(impact);

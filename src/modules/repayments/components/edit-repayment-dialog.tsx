@@ -133,7 +133,6 @@ export function EditRepaymentDialog() {
               content={<Button onClick={() => refetch()}>Retry</Button>}
             />
           ) : null}
-          {/* The Debt loaded, but the repayment went with its account or Transaction. */}
           {status === "success" && !repayment ? (
             <StateTemplate
               state="error"

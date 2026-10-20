@@ -15,7 +15,6 @@ export const signUpUser = createServerFn({
   .validator(signUpUserSchema)
   .handler(({ data }) => signUpWithEmail(data));
 
-/** The signed-in User (`id`, `name`, `email`), or `null`. */
 export const getSession = createServerFn({
   method: "GET",
 }).handler(() => readSession());

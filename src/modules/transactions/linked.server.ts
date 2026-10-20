@@ -9,18 +9,12 @@ import {
   REPAYMENT_BEFORE_DEBT_MESSAGE,
 } from "#/modules/repayments/utils";
 
-// A Linked Transaction is one a Debt depends on: a receivable's origination, or a repayment logged
-// through a Bank Account. The Debt fixes parts of it, whichever page it's edited or deleted from.
-// This is the one place those rules live.
-
 type LinkedDebt = Pick<Debt, "id" | "name" | "direction" | "date">;
 
 export type TransactionLink = { kind: "origination" | "repayment"; debt: LinkedDebt } | null;
 
-/** What a Linked Transaction's Debt fixes in place. */
 export type TransactionLocks = { type: boolean; amount: boolean };
 
-/** An edit about to happen, in database amounts. */
 export type TransactionEdit = Pick<Transaction, "type" | "amount" | "date" | "note"> & {
   transactionId: Transaction["id"];
 };
@@ -56,8 +50,6 @@ export async function loadTransactionLink(
   return null;
 }
 
-// A repayment's type follows its Debt's direction; an origination is the receivable's amount,
-// which is never editable (delete the Debt and record it again).
 export function getTransactionLocks(link: TransactionLink): TransactionLocks {
   return { type: link !== null, amount: link?.kind === "origination" };
 }
@@ -83,10 +75,6 @@ function checkLinkRules(
   return null;
 }
 
-/**
- * Whether an edit keeps the Transaction's Debt rules and Unallocated at or above zero. `userId`
- * scopes the Unallocated lookup to the user's own accounts.
- */
 export async function checkTransactionEdit(
   db: DB,
   userId: string,
@@ -119,7 +107,6 @@ export async function checkTransactionEdit(
   return { ok: true };
 }
 
-/** Writes an edit already checked with `checkTransactionEdit`. */
 export function updateTransaction(db: DB, edit: TransactionEdit) {
   return db
     .update(transactions)
@@ -128,9 +115,6 @@ export function updateTransaction(db: DB, edit: TransactionEdit) {
     .returning();
 }
 
-// The FK only nulls a repayment's `transactionId`, which would leave a blank, zero-amount row in
-// the Debt's ledger. A repayment goes with its Transaction instead, so the Debt's outstanding goes
-// back up. A Debt the Transaction funded survives with no source account (the FK's SET NULL).
 export function isRepaymentBackedBy(transactionIds: SQLWrapper | Transaction["id"][]) {
   return inArray(repayments.transactionId, transactionIds);
 }

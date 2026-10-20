@@ -12,14 +12,11 @@ type Props = {
   label: string;
 } & ComponentProps<"input">;
 
-// A text input that shows its validation status once touched: a spinner while an async
-// validator runs, then a check or an error icon.
 export default function ValidatedInput({ label, ...rest }: Props) {
   const field = useFieldContext<string>();
 
   const isInvalid = field.state.meta.isTouched && !field.state.meta.isValid;
 
-  // Not `field.name`: two forms open at once (e.g. Register Account over Record Debt) share names.
   const id = useId();
   const errorId = `${id}-error`;
 

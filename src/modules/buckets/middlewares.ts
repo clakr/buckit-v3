@@ -21,7 +21,6 @@ export const verifyUserBucketMiddleware = createMiddleware({
       },
     });
 
-    // Someone else's bucket reads as missing too, so an ID can't be probed for existence.
     if (!result) throw new NotFoundError("This bucket doesn't exist or may have been deleted.");
 
     return next();

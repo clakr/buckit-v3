@@ -1,9 +1,5 @@
 import { createSerializationAdapter } from "@tanstack/react-router";
 
-/**
- * An expected failure: one the user can act on, so its message is written for them and safe to
- * show as-is. Anything else thrown is a bug or an outage, whose message stays out of the UI.
- */
 export class AppError extends Error {
   override name = "AppError";
 }
@@ -12,7 +8,6 @@ export class UnauthorizedError extends AppError {
   override name = "UnauthorizedError";
 }
 
-/** Also thrown for a record the user doesn't own, so an ID can't be probed for existence. */
 export class NotFoundError extends AppError {
   override name = "NotFoundError";
 }
@@ -21,12 +16,10 @@ export class ConflictError extends AppError {
   override name = "ConflictError";
 }
 
-/** A write that would take a Bank Account's Unallocated below zero. */
 export class InsufficientFundsError extends AppError {
   override name = "InsufficientFundsError";
 }
 
-/** What a failure toast or screen says: an `AppError`'s own message, otherwise `fallback`. */
 export function describeErrorForUser(error: unknown, fallback: string) {
   return error instanceof AppError ? error.message : fallback;
 }

@@ -4,13 +4,10 @@ import type { DB } from "#/db";
 
 import { allocations, bankAccounts, buckets, type BankAccount, type Bucket } from "#/db/schema";
 
-/** A Bucket's Allocations from Bank Accounts in one currency. */
 export type BucketSubtotal = { currency: BankAccount["currency"]; amount: number };
 
 export type BucketFigures = {
-  /** One per currency, sorted by currency code. Empty when the Bucket has no Allocations. */
   subtotals: BucketSubtotal[];
-  /** What the Bucket holds from each Bank Account. */
   allocatedByBankAccount: {
     bankAccountId: BankAccount["id"];
     currency: BankAccount["currency"];
@@ -47,10 +44,6 @@ function getSubtotals(allocatedByBankAccount: BucketFigures["allocatedByBankAcco
     .sort((a, b) => a.currency.localeCompare(b.currency));
 }
 
-/**
- * The user's Buckets with their Subtotals. `allocatedFrom` keeps only Buckets holding money from
- * that Bank Account.
- */
 export async function getBucketsWithFigures(
   db: DB,
   {

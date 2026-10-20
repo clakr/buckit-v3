@@ -26,7 +26,6 @@ export const getBuckets = createServerFn({
       userId: context.userId,
     });
 
-    // The list shows Subtotals only; what each Bank Account holds is for one Bucket's reads.
     return bucketsWithFigures.map((bucket) => ({
       id: bucket.id,
       userId: bucket.userId,
@@ -49,7 +48,6 @@ export const getBucket = createServerFn({
       },
     });
 
-    // Deleted between the middleware's ownership check and this read.
     if (!bucket) throw new NotFoundError("This bucket doesn't exist or may have been deleted.");
 
     return bucket;

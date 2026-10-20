@@ -9,16 +9,12 @@ import { cn } from "#/lib/utils";
 type Props = {
   direction: Debt["direction"];
   amount: Debt["amount"];
-  // Negative when overpaid.
   outstanding: number;
   repaid: number;
   repaymentsCount: number;
   formatDebtAmount: (value: number) => string;
 };
 
-// Repayment progress as a bar. An overpayment isn't an error, so instead of a negative figure the
-// excess overflows past the full bar, in a tone that depends on direction: a receivable overpaid
-// is in the user's favour (emerald), a payable overpaid is money they should get back (amber).
 export function DebtOutstandingMeter({
   direction,
   amount,

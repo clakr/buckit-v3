@@ -42,8 +42,6 @@ export function DebtLedgerTable({ debt, onLogRepayment }: Props) {
   const { outstanding, repaid } = debt;
   const progress = debt.amount === 0 ? 0 : (repaid / debt.amount) * 100;
 
-  // `getDebt` returns repayments oldest first, so the running balance reads
-  // top-to-bottom like a statement.
   let balance = debt.amount;
   const entries = debt.repayments.map((repayment) => {
     balance -= repayment.amount;
@@ -78,7 +76,6 @@ export function DebtLedgerTable({ debt, onLogRepayment }: Props) {
               {debt.direction === "receivable"
                 ? `Lent to ${debt.name}`
                 : `Borrowed from ${debt.name}`}
-              {/* A payable's creation never touches a Bank Account, so there's nothing to name. */}
               {debt.direction === "receivable" ? (
                 <BankAccountMovement preposition="from" bankAccount={debt.originatingBankAccount} />
               ) : null}
@@ -109,7 +106,6 @@ export function DebtLedgerTable({ debt, onLogRepayment }: Props) {
               <TableCell className="text-end text-emerald-600 tabular-nums">
                 −{formatDebtAmount(entry.amount)}
               </TableCell>
-              {/* Past zero there's nothing outstanding; the footer shows the overpayment. */}
               <TableCell className="text-end font-semibold tabular-nums">
                 {formatDebtAmount(Math.max(entry.balance, 0))}
               </TableCell>
@@ -153,8 +149,6 @@ export function DebtLedgerTable({ debt, onLogRepayment }: Props) {
               <TableCell className="text-end tabular-nums">−{formatDebtAmount(repaid)}</TableCell>
               <TableCell className="text-end font-semibold tabular-nums">
                 {debt.forgivenAt ? (
-                  // The ledger is the full record, so the forgiven amount stays visible here
-                  // rather than behind the list's show/hide toggle.
                   <span className="text-muted-foreground">
                     <span className="me-1.5 uppercase">Forgiven</span>
                     <span className="line-through">
@@ -162,8 +156,6 @@ export function DebtLedgerTable({ debt, onLogRepayment }: Props) {
                     </span>
                   </span>
                 ) : outstanding < 0 ? (
-                  // Overpaying isn't an error: in the user's favour on a receivable, money to
-                  // get back on a payable.
                   <span
                     className={cn(
                       "uppercase",

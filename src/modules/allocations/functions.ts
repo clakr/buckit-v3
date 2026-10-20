@@ -44,12 +44,9 @@ export const getAllocation = createServerFn({
         })
       : [];
 
-    // Gone between the ownership check and this read.
     if (!allocation || !figures)
       throw new NotFoundError("This allocation doesn't exist or may have been deleted.");
 
-    // The most this Allocation can be: what's unallocated, counting it as returned. The same
-    // figure `checkAllocationAmount` rejects an edit against.
     return {
       ...allocation,
       bankAccount: { name: figures.name, currency: figures.currency },
@@ -62,8 +59,6 @@ type AllocationAmountChange = Extract<
   { kind: "add-allocation" | "replace-allocation" }
 >;
 
-// "Available" is what the account can still set aside, counting an edited Allocation as returned,
-// so it's the most this Allocation can be.
 async function checkAllocationAmount(db: DB, userId: string, change: AllocationAmountChange) {
   const check = await checkUnallocated(db, userId, change);
 
@@ -138,10 +133,6 @@ export const deleteAllocation = createServerFn({
     return db.delete(allocations).where(eq(allocations.id, data.allocationId)).returning();
   });
 
-/**
- * The user's Allocations, optionally for one Bucket or one Bank Account. Every row carries both
- * parents, so any page can show either. Someone else's Bucket or Bank Account reads as empty.
- */
 export const getAllocations = createServerFn({
   method: "GET",
 })

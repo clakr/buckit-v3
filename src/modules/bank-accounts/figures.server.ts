@@ -20,7 +20,6 @@ import {
 export type BankAccountWithFigures = BankAccount &
   BankAccountFigures & { lastTransactionDate: Date | null };
 
-/** A write about to happen, in database amounts. */
 export type BankAccountChange =
   | {
       kind: "add-transaction";
@@ -43,7 +42,6 @@ export type UnallocatedCheck =
   | {
       ok: false;
       bankAccount: Pick<BankAccount, "id" | "name" | "currency">;
-      /** Unallocated before the change's additions: what the change could have used. */
       available: number;
     };
 
@@ -146,8 +144,6 @@ type ChangeScope = {
   pending: PendingAddition;
 };
 
-// Which Bank Accounts a change touches, which existing rows it replaces or removes, and what
-// it adds on top.
 function describeChange(db: DB, change: BankAccountChange): ChangeScope {
   switch (change.kind) {
     case "add-transaction":
@@ -208,8 +204,6 @@ function toTotals(row: Awaited<ReturnType<typeof loadBankAccountTotals>>[number]
   };
 }
 
-// Each touched account's figures without the rows the change replaces or removes, and with the
-// change applied. Both the check and the preview read these, so they can't disagree.
 async function loadChangedFigures(db: DB, userId: string, change: BankAccountChange) {
   const { scope, excludeTransactionIds, excludeAllocationIds, pending } = describeChange(
     db,
@@ -222,28 +216,20 @@ async function loadChangedFigures(db: DB, userId: string, change: BankAccountCha
     excludeAllocationIds,
   });
 
-  // Missing and someone else's look the same, and neither may pass as affordable.
   if (!rows.length) throw new NotFoundError("This account doesn't exist or may have been deleted.");
 
   return rows.map((row) => ({
     bankAccount: { id: row.id, name: row.name, currency: row.currency },
-    /** What the change could use: Unallocated before its additions. */
     available: getBankAccountFigures(toTotals(row)).unallocated,
     after: getBankAccountFigures(toTotals(row), pending),
   }));
 }
 
-/**
- * Whether a change keeps Unallocated at or above zero on every Bank Account it touches.
- * `userId` scopes the lookup, so a caller can't learn whether someone else's account can afford
- * an amount.
- */
 export async function checkUnallocated(
   db: DB,
   userId: string,
   change: BankAccountChange,
 ): Promise<UnallocatedCheck> {
-  // Income only ever raises Unallocated.
   if (change.kind === "add-transaction" && change.type === "income") return { ok: true };
   if (change.kind === "remove-transactions" && !change.transactionIds.length) return { ok: true };
 
@@ -263,7 +249,6 @@ export type BankAccountChangePreview = {
   after: BankAccountFigures;
 }[];
 
-/** Every Bank Account a change touches, with its figures now and once the change is made. */
 export async function previewBankAccountChange(
   db: DB,
   userId: string,

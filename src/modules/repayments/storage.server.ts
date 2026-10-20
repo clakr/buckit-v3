@@ -22,14 +22,8 @@ import { checkTransactionEdit, updateTransaction } from "#/modules/transactions/
 
 import { isRepaymentDateBeforeDebt, REPAYMENT_BEFORE_DEBT_MESSAGE } from "./utils";
 
-// A Repayment is stored one of two ways, never both: logged through a Bank Account, its Linked
-// Transaction holds the amount, date and note; logged without one, the repayment row does. This is
-// the one place that knows which, on the way in and on the way out.
-
-/** What a repayment records, in database amounts. */
 type RepaymentValues = Pick<Transaction, "amount" | "date" | "note">;
 
-/** A stored repayment with its Linked Transaction, as the figures module loads it. */
 type StoredRepayment = Pick<Repayment, "id" | "amount" | "date" | "note" | "createdAt"> & {
   transaction:
     | (Pick<Transaction, "amount" | "date" | "note"> & {
@@ -38,7 +32,6 @@ type StoredRepayment = Pick<Repayment, "id" | "amount" | "date" | "note" | "crea
     | null;
 };
 
-/** A repayment as it reads, whichever way it's stored. */
 export function toRepaymentEntry({ transaction, ...repayment }: StoredRepayment): RepaymentEntry {
   return {
     id: repayment.id,
@@ -81,10 +74,6 @@ async function checkRepaymentBankAccount(
   }
 }
 
-/**
- * Logs a repayment against the user's Debt: through `bankAccountId` as a Linked Transaction, or
- * without one as a pure record. Reopens the Debt if it was forgiven.
- */
 export async function addRepayment(
   db: DB,
   userId: string,
@@ -100,8 +89,6 @@ export async function addRepayment(
     throw new ConflictError(REPAYMENT_BEFORE_DEBT_MESSAGE);
   }
 
-  // A genuine payment must not be swallowed by a "closed" status, so logging one
-  // reopens a forgiven Debt in the same batch.
   const reopenDebtQuery = db
     .update(debts)
     .set({ forgivenAt: null })
@@ -152,16 +139,11 @@ export async function addRepayment(
   return repaymentRows[0];
 }
 
-/**
- * Corrects what a repayment recorded, wherever it's stored. A Linked Transaction is edited under
- * the same rules and Unallocated check as an edit from the account page.
- */
 export async function changeRepayment(
   db: DB,
   userId: string,
   input: RepaymentValues & { debtId: Debt["id"]; repaymentId: Repayment["id"] },
 ) {
-  // Scoped by `debtId` and its owner, so a repayment id can't be reached through another Debt.
   const repayment = await db.query.repayments.findFirst({
     where: { id: input.repaymentId, debtId: input.debtId, debt: { userId } },
     columns: { id: true },

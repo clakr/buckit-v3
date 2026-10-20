@@ -8,17 +8,12 @@ type Props = {
   impact: Awaited<ReturnType<typeof getBucketDeletionImpact>>;
 };
 
-// The dialog's description: what goes with the bucket, so the summary below only has to
-// cover what survives but changes.
 export function getBucketDeletionDescription({ impact }: Props) {
   const { bucket, allocationCount } = impact;
 
   return `Permanently delete "${bucket.name}"${allocationCount ? ` with its ${allocationCount} ${allocationCount === 1 ? "allocation" : "allocations"}` : ""}. This cannot be undone.`;
 }
 
-// Same shape as `BankAccountDeletionSummary`: what survives but changes. Here that's only
-// each account's unallocated balance — the money stays in the account, it just stops
-// being earmarked.
 export function BucketDeletionSummary({ impact }: Props) {
   return (
     <div className="flex flex-col gap-y-3">

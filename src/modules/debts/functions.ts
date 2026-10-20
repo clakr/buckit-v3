@@ -189,11 +189,8 @@ export const deleteDebt = createServerFn({
 
     const deleteDebtQuery = db.delete(debts).where(eq(debts.id, data.debtId)).returning();
 
-    // Keeping the linked Transactions never changes a Balance: nothing to check.
     if (!data.deleteTransactions) return deleteDebtQuery;
 
-    // Resolved before anything is deleted: the `debts` row's cascade takes its `repayments`
-    // rows, and with them the repayment → Transaction links.
     const { linkedTransactionIds, shortfall } = await loadDebtDeletionImpact(
       db,
       context.userId,
@@ -225,7 +222,6 @@ export const forgiveDebt = createServerFn({
     });
     if (!debt) throw new NotFoundError("This debt doesn't exist or may have been deleted.");
 
-    // Reachable from a stale list (e.g. another tab forgave or settled it), so the toast says why.
     if (debt.status === "forgiven") throw new ConflictError("This debt is already forgiven.");
     if (debt.status === "settled") {
       throw new ConflictError("A settled debt has nothing left to forgive.");

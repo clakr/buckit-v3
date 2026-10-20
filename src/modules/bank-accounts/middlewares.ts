@@ -17,7 +17,6 @@ export const verifyUserBankAccountMiddleware = createMiddleware({
 
     const result = await findOwnedBankAccount(db, context.userId, data.bankAccountId);
 
-    // Someone else's account reads as missing too, so an ID can't be probed for existence.
     if (!result) throw new NotFoundError("This account doesn't exist or may have been deleted.");
 
     return next();

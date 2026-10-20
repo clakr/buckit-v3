@@ -26,7 +26,6 @@ import { bucketsQueryOptions } from "#/modules/buckets/query-options";
 import { createDialogStore } from "#/stores/dialog-store";
 import { confirm } from "#/stores/use-confirm";
 
-/** The side the dialog was opened from, which stays fixed; the other side is picked. */
 export type LogAllocationStart =
   | { from: "bank-account"; bankAccountId: BankAccount["id"] }
   | { from: "bucket"; bucketId: Bucket["id"] };
@@ -108,9 +107,6 @@ export function LogAllocationDialog() {
 
   if (!start) return null;
 
-  // Both sides come from the live lists, whichever side the dialog was opened from, so the
-  // account's Available is never a copy taken when it opened. Validators run before the next
-  // render, so they look the account up by the form's current value.
   function findBankAccount(id: string) {
     return bankAccounts?.find((a) => a.id === id);
   }
@@ -131,7 +127,6 @@ export function LogAllocationDialog() {
 
   const isPending = bankAccountsStatus === "pending" || bucketsStatus === "pending";
 
-  // The form can't be filled in without the lists it picks from.
   const loadError =
     bankAccountsStatus === "error"
       ? { noun: "bank accounts", retry: refetchBankAccounts }
@@ -141,7 +136,6 @@ export function LogAllocationDialog() {
 
   const isLoaded = bankAccountsStatus === "success" && bucketsStatus === "success";
 
-  // Deleted since the menu that opened the dialog was drawn.
   const isFixedSideGone = isLoaded && fixedName === undefined;
 
   const isReady = isLoaded && !isFixedSideGone;
@@ -201,8 +195,6 @@ export function LogAllocationDialog() {
               }}
             >
               <FieldGroup>
-                {/* Reads as a sentence. From a bucket: "From BPI, set aside ₱500" (the amount needs
-                  the account's currency). From an account: "Set aside ₱500 into Emergency". */}
                 {start.from === "bucket" ? (
                   <form.AppField name="bankAccountId">
                     {() => (
@@ -228,7 +220,6 @@ export function LogAllocationDialog() {
                 <form.AppField
                   name="amount"
                   validators={{
-                    // From a bucket, the account is picked after the amount may already be in.
                     onChangeListenTo: ["bankAccountId"],
                     onChange: ({ value }) => {
                       const bankAccount = findBankAccount(form.getFieldValue("bankAccountId"));

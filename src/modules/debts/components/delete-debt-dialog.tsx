@@ -46,8 +46,6 @@ export function DeleteDebtDialog() {
 
   const mutation = useDeleteDebtMutation();
 
-  // Disabled while deleting: the global post-mutation invalidation would otherwise refetch the
-  // just-deleted record and flash "not found" before the dialog closes.
   const {
     status,
     error,
@@ -78,7 +76,6 @@ export function DeleteDebtDialog() {
     },
     onSubmit: async ({ value }) => {
       try {
-        // `name` is only the typed confirmation — the server's schema is strict.
         await mutation.mutateAsync({
           data: { debtId: value.debtId, deleteTransactions: value.deleteTransactions },
         });

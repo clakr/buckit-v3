@@ -12,8 +12,6 @@ export const logRepaymentSchema = z.strictObject({
   note: z.string(),
 });
 
-// No `bankAccountId` — a repayment's account is fixed once logged; only what it
-// recorded (amount/date/note) can be corrected.
 export const editRepaymentSchema = z.strictObject({
   ...verifyUserDebtMiddlewareSchema.shape,
   repaymentId: z.string().min(1, "No repayment ID provided"),

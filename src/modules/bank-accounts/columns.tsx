@@ -46,7 +46,6 @@ export const INDEX_COLUMNS: ColumnDef<Awaited<ReturnType<typeof getBankAccounts>
       const dateA = rowA.original.lastTransactionDate;
       const dateB = rowB.original.lastTransactionDate;
 
-      // no transactions → treat as oldest possible, so it always sorts last when descending
       const timeA = dateA ? dateA.getTime() : Number.NEGATIVE_INFINITY;
       const timeB = dateB ? dateB.getTime() : Number.NEGATIVE_INFINITY;
 

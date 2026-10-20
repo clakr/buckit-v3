@@ -27,7 +27,6 @@ export function createUniqueNameRule({
   indexName: string;
   takenMessage: string;
 }) {
-  // Two requests can both pass the check before either writes; the index then rejects the second.
   function isNameTakenError(error: unknown) {
     for (let cause = error; cause instanceof Error; cause = cause.cause) {
       if (
@@ -41,7 +40,6 @@ export function createUniqueNameRule({
   }
 
   return {
-    /** Whether `name` is free for this User. Renaming a record passes its id as `excludeId`. */
     async check(db: DB, userId: string, { name, excludeId }: { name: string; excludeId?: string }) {
       const [taken] = await db
         .select({ id: table.id })
@@ -58,7 +56,6 @@ export function createUniqueNameRule({
       return taken ? { isValid: false, message: takenMessage } : { isValid: true, message: "ok" };
     },
 
-    /** Runs an insert or update, turning the index's rejection into a `ConflictError`. */
     async write<Result>(query: Promise<Result>) {
       try {
         return await query;

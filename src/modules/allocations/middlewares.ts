@@ -28,7 +28,6 @@ export const verifyUserAllocationMiddleware = createMiddleware({
       )
       .limit(1);
 
-    // Someone else's reads as missing too, so an ID can't be probed for existence.
     if (!result) throw new NotFoundError("This allocation doesn't exist or may have been deleted.");
 
     return next();

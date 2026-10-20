@@ -24,7 +24,6 @@ export default function Select({ label, placeholder, options, ...rest }: Props) 
 
   const isInvalid = field.state.meta.isTouched && !field.state.meta.isValid;
 
-  // Not `field.name`: two forms open at once (e.g. Register Account over Record Debt) share names.
   const id = useId();
   const errorId = `${id}-error`;
 

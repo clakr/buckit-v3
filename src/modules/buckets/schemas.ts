@@ -21,7 +21,6 @@ export const editBucketSchema = z.strictObject({
     .max(100, "Name must be 100 characters or fewer"),
 });
 
-// `bucketId` is the bucket being renamed, left out of the comparison with its own name.
 export const validateBucketNameSchema = z.object({
   name: setUpBucketSchema.shape.name,
   bucketId: z.string().optional(),

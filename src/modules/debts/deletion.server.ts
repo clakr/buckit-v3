@@ -10,7 +10,6 @@ export type DebtDeletionImpact = {
   debt: Pick<Debt, "id" | "name">;
   repaymentCount: number;
   linkedTransactionIds: Transaction["id"][];
-  /** What also deleting the linked Transactions does to each account they moved money through. */
   bankAccounts: {
     id: BankAccount["id"];
     name: BankAccount["name"];
@@ -19,15 +18,9 @@ export type DebtDeletionImpact = {
     balanceAfter: number;
     unallocatedAfter: number;
   }[];
-  /** The first of those accounts whose Unallocated would go below zero; `deleteDebt` refuses. */
   shortfall: Pick<BankAccount, "id" | "name"> | null;
 };
 
-/**
- * What deleting a Debt takes with it (its repayments, by the FK cascade, and optionally every
- * Linked Transaction) and what that does to the accounts those Transactions moved money through.
- * `deleteDebt` reads the same impact, so the preview and the delete can't disagree.
- */
 export async function loadDebtDeletionImpact(
   db: DB,
   userId: string,

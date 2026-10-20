@@ -8,7 +8,6 @@ type BankAccountFiguresProps = {
   className?: string;
 };
 
-/** Balance + unallocated for a bank account select item, collapsed to one figure when they're equal. */
 export function BankAccountFigures({
   balance,
   unallocated,

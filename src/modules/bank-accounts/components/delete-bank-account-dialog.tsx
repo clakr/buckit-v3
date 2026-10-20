@@ -35,8 +35,6 @@ export function DeleteBankAccountDialog() {
 
   const mutation = useDeleteBankAccountMutation();
 
-  // Disabled while deleting: the global post-mutation invalidation would otherwise refetch the
-  // just-deleted record and flash "Account not found" before the dialog closes.
   const {
     status,
     error,
@@ -46,7 +44,6 @@ export function DeleteBankAccountDialog() {
     ...bankAccountDeletionImpactQueryOption(bankAccountId ?? ""),
     enabled: isOpen && !mutation.isPending,
   });
-  // Already gone, e.g. deleted in another tab: retrying can't bring it back.
   const notFoundError = error instanceof NotFoundError ? error : null;
   const bankAccount = impact?.bankAccount;
 

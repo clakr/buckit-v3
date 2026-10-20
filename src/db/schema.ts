@@ -188,7 +188,6 @@ export const debts = sqliteTable("debts", {
     .default(sql`(cast(unixepoch() as integer))`)
     .notNull(),
   note: text("note"),
-  // The only Debt state that can't be derived: presence means forgiven.
   forgivenAt: integer("forgiven_at", { mode: "timestamp_ms" }),
   createdAt: integer("created_at", { mode: "timestamp_ms" })
     .default(sql`(cast(unixepoch('subsecond') * 1000 as integer))`)
@@ -245,7 +244,6 @@ export const relations = defineRelations(
         to: r.users.id,
       }),
     },
-    //
     bankAccounts: {
       user: r.one.users({
         from: r.bankAccounts.userId,
@@ -301,16 +299,12 @@ export const relations = defineRelations(
   }),
 );
 
-//
-
 export type BankAccount = typeof bankAccounts.$inferSelect;
 export type Bucket = typeof buckets.$inferSelect;
 export type Transaction = typeof transactions.$inferSelect;
 export type Allocation = typeof allocations.$inferSelect;
 export type Debt = typeof debts.$inferSelect;
 export type Repayment = typeof repayments.$inferSelect;
-
-//
 
 export function lower(email: AnySQLiteColumn): SQL {
   return sql`lower(${email})`;

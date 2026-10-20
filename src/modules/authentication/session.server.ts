@@ -8,13 +8,6 @@ import type { signInUserSchema, signUpUserSchema } from "#/modules/authenticatio
 import { auth } from "#/integrations/better-auth";
 import { AppError, ConflictError, UnauthorizedError } from "#/lib/errors";
 
-/*
- * The current request's Session, as Better-Auth keeps it. Every Better-Auth call outside its HTTP
- * route goes through here, so its shapes and error codes stop at this module. Nothing returned
- * carries the session token, which the httpOnly cookie keeps out of the browser.
- */
-
-/** The signed-in User, or `null` without a Session. Only what the app shows. */
 export async function readSession() {
   const session = await auth.api.getSession({ headers: getRequestHeaders() });
 
@@ -25,7 +18,6 @@ export async function readSession() {
   return { id, name, email };
 }
 
-/** The signed-in User's id. Without a Session, throws `UnauthorizedError`, which signs the client out. */
 export async function requireUserId() {
   const user = await readSession();
 
@@ -43,7 +35,6 @@ export async function signInWithEmail(data: z.infer<typeof signInUserSchema>) {
       },
     });
   } catch (error) {
-    // Not `UnauthorizedError`: that means a Session ran out, and the client signs out on it.
     if (isAPIError(error) && error.body?.code === "INVALID_EMAIL_OR_PASSWORD") {
       throw new AppError("Incorrect email or password.");
     }

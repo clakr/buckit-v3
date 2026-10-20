@@ -65,7 +65,6 @@ export const getBankAccount = createServerFn({
       }),
     ]);
 
-    // Deleted between the middleware's ownership check and this read.
     if (!bankAccount || !figures)
       throw new NotFoundError("This account doesn't exist or may have been deleted.");
 

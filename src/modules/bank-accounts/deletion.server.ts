@@ -12,9 +12,6 @@ import {
 } from "#/modules/debts/figures.server";
 import { isRepaymentBackedBy } from "#/modules/transactions/linked.server";
 
-// The cascade rules of a Bank Account delete, as SQL, so the preview and the delete read the
-// same definition of what goes.
-
 function selectBankAccountTransactionIds(db: DB, bankAccountId: BankAccount["id"]) {
   return db
     .select({ id: transactions.id })
@@ -22,13 +19,10 @@ function selectBankAccountTransactionIds(db: DB, bankAccountId: BankAccount["id"
     .where(eq(transactions.bankAccountId, bankAccountId));
 }
 
-// A repayment goes with its Transaction (see `isRepaymentBackedBy`), so the Debt's outstanding
-// goes back up.
 function isRemovedRepayment(db: DB, bankAccountId: BankAccount["id"]) {
   return isRepaymentBackedBy(selectBankAccountTransactionIds(db, bankAccountId));
 }
 
-// An origination is left to the FK's `SET NULL`, so its Debt survives without a source account.
 function isOrphanedDebt(db: DB, bankAccountId: BankAccount["id"]) {
   return inArray(
     debts.originatingTransactionId,
@@ -48,9 +42,7 @@ export type BankAccountDeletionImpact = {
   transactionCount: number;
   allocationCount: number;
   removedRepaymentCount: number;
-  /** Buckets holding money from this account; their balance in its currency drops. */
   buckets: { id: string; name: string; before: number; after: number }[];
-  /** Debts linked through this account's Transactions. */
   debts: {
     id: string;
     name: string;
@@ -63,7 +55,6 @@ export type BankAccountDeletionImpact = {
   }[];
 };
 
-/** What deleting a Bank Account takes with it, and what survives but changes. */
 export async function loadBankAccountDeletionImpact(
   db: DB,
   userId: string,
@@ -105,7 +96,6 @@ export async function loadBankAccountDeletionImpact(
     transactionCount,
     allocationCount: bankAccount.allocations.length,
     removedRepaymentCount: removedRepaymentIds.size,
-    // A Bucket can hold several currencies; only its balance in this account's currency moves.
     buckets: affectedBuckets.map((bucket) => {
       const before =
         bucket.subtotals.find((subtotal) => subtotal.currency === bankAccount.currency)?.amount ??

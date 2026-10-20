@@ -11,8 +11,6 @@ type Props = {
 
 const deletedRecordsList = new Intl.ListFormat("en", { type: "conjunction" });
 
-// The dialog's description: what goes with the account, so the summary below only has to
-// cover what survives but changes.
 export function getBankAccountDeletionDescription({ impact }: Props) {
   const { bankAccount, transactionCount, allocationCount, removedRepaymentCount } = impact;
 
@@ -31,8 +29,6 @@ export function getBankAccountDeletionDescription({ impact }: Props) {
   return `Permanently delete "${bankAccount.name}"${deletedRecords.length ? ` with its ${deletedRecordsList.format(deletedRecords)}` : ""}. This cannot be undone.`;
 }
 
-// What survives but changes (a bucket's balance, a debt's outstanding) is the part the user
-// can't see from the account page, so it gets a before → after table.
 export function BankAccountDeletionSummary({ impact }: Props) {
   function formatAccountAmount(value: number) {
     return formatMoney(value, impact.bankAccount.currency);

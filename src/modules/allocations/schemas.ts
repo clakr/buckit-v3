@@ -22,7 +22,6 @@ export const editAllocationSchema = z.strictObject({
   amount: amountSchema,
 });
 
-// Neither: all of the user's Allocations. Either or both narrow it.
 export const getAllocationsSchema = z.object({
   bucketId: z.string().optional(),
   bankAccountId: z.string().optional(),

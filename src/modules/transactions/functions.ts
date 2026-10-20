@@ -44,7 +44,6 @@ export const getTransaction = createServerFn({
       },
     });
 
-    // Deleted between the middleware's ownership check and this read.
     if (!transaction)
       throw new NotFoundError("This transaction doesn't exist or may have been deleted.");
 
@@ -66,7 +65,6 @@ export const logTransaction = createServerFn({
     const db = getDB(env.db);
     const amount = data.amount;
 
-    // The write is the check, with the message the dialog shows as you type.
     const check = await checkUnallocated(db, context.userId, {
       kind: "add-transaction",
       bankAccountId: data.bankAccountId,

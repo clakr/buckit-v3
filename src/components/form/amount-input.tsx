@@ -16,16 +16,11 @@ import { getCurrency, isCurrencyCode } from "#/lib/utils";
 
 type Props = {
   label: string;
-  /** The currency code the amount is in; unknown or not yet chosen shows a placeholder. */
   currency: string | null | undefined;
-  /** Fixed for good: disabled, with a lock in place of the currency symbol. Say why in `description`. */
   locked?: boolean;
   description?: ReactNode;
 } & Omit<ComponentProps<typeof InputGroupInput>, "type" | "id" | "value" | "onChange" | "onBlur">;
 
-// A money amount in one currency: symbol, number input, code. Shows a spinner in place of the code
-// while an async validator runs. Any input prop passes through with no defaults of its own, so
-// each caller states its `min`, `step` and `required` to match its schema.
 export default function AmountInput({
   label,
   currency,
@@ -38,7 +33,6 @@ export default function AmountInput({
 
   const isInvalid = field.state.meta.isTouched && !field.state.meta.isValid;
 
-  // Not `field.name`: two forms open at once (e.g. Register Account over Record Debt) share names.
   const id = useId();
   const errorId = `${id}-error`;
   const descriptionId = `${id}-description`;

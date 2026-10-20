@@ -33,8 +33,6 @@ export function DeleteBucketDialog() {
 
   const mutation = useDeleteBucketMutation();
 
-  // Disabled while deleting: the global post-mutation invalidation would otherwise refetch the
-  // just-deleted record and flash "Bucket not found" before the dialog closes.
   const {
     status,
     error,
@@ -44,7 +42,6 @@ export function DeleteBucketDialog() {
     ...bucketDeletionImpactQueryOption(bucketId ?? ""),
     enabled: isOpen && !mutation.isPending,
   });
-  // Already gone, e.g. deleted in another tab: retrying can't bring it back.
   const notFoundError = error instanceof NotFoundError ? error : null;
   const bucket = impact?.bucket;
 
