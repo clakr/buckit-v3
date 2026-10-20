@@ -1,6 +1,7 @@
 import type { ComponentProps, ReactNode } from "react";
 
 import { IconLock } from "@tabler/icons-react";
+import { useId } from "react";
 
 import { Field, FieldDescription, FieldError, FieldLabel } from "#/components/ui/field";
 import {
@@ -37,7 +38,8 @@ export default function AmountInput({
 
   const isInvalid = field.state.meta.isTouched && !field.state.meta.isValid;
 
-  const id = field.name;
+  // Not `field.name`: two forms open at once (e.g. Register Account over Record Debt) share names.
+  const id = useId();
   const errorId = `${id}-error`;
   const descriptionId = `${id}-description`;
 
@@ -60,8 +62,11 @@ export default function AmountInput({
           onChange={(e) => field.handleChange(e.target.value)}
           onBlur={field.handleBlur}
           aria-invalid={isInvalid ? true : undefined}
-          aria-labelledby={isInvalid ? errorId : undefined}
-          aria-describedby={description ? descriptionId : undefined}
+          aria-describedby={
+            [description ? descriptionId : null, isInvalid ? errorId : null]
+              .filter(Boolean)
+              .join(" ") || undefined
+          }
         />
         <InputGroupAddon align="inline-end">
           {field.state.meta.isValidating ? (

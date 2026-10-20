@@ -2,6 +2,7 @@ import type { ComponentProps } from "react";
 
 import { IconCalendar } from "@tabler/icons-react";
 import { format } from "date-fns";
+import { useId } from "react";
 
 import { Button } from "#/components/ui/button";
 import { Calendar } from "#/components/ui/calendar";
@@ -22,7 +23,8 @@ export default function Datepicker({ label, disabled }: Props) {
 
   const isInvalid = field.state.meta.isTouched && !field.state.meta.isValid;
 
-  const id = field.name;
+  // Not `field.name`: two forms open at once (e.g. Register Account over Record Debt) share names.
+  const id = useId();
   const errorId = `${id}-error`;
 
   return (
@@ -38,7 +40,7 @@ export default function Datepicker({ label, disabled }: Props) {
               data-empty={!date}
               className="justify-start text-left font-normal data-[empty=true]:text-muted-foreground"
               aria-invalid={isInvalid ? true : undefined}
-              aria-labelledby={isInvalid ? errorId : undefined}
+              aria-describedby={isInvalid ? errorId : undefined}
             />
           }
         >

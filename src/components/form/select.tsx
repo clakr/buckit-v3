@@ -1,5 +1,7 @@
 import type { ComponentProps } from "react";
 
+import { useId } from "react";
+
 import { Field, FieldError, FieldLabel } from "#/components/ui/field";
 import {
   Select as UISelect,
@@ -22,7 +24,8 @@ export default function Select({ label, placeholder, options, ...rest }: Props) 
 
   const isInvalid = field.state.meta.isTouched && !field.state.meta.isValid;
 
-  const id = field.name;
+  // Not `field.name`: two forms open at once (e.g. Register Account over Record Debt) share names.
+  const id = useId();
   const errorId = `${id}-error`;
 
   return (
@@ -40,7 +43,7 @@ export default function Select({ label, placeholder, options, ...rest }: Props) 
           className="w-full"
           onBlur={field.handleBlur}
           aria-invalid={isInvalid ? true : undefined}
-          aria-labelledby={isInvalid ? errorId : undefined}
+          aria-describedby={isInvalid ? errorId : undefined}
         >
           <SelectValue placeholder={placeholder} />
         </SelectTrigger>

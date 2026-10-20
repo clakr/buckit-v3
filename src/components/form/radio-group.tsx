@@ -1,5 +1,7 @@
 import type { ComponentProps } from "react";
 
+import { useId } from "react";
+
 import { Field, FieldError, FieldLabel } from "#/components/ui/field";
 import { Label } from "#/components/ui/label";
 import { RadioGroup as UIRadioGroup, RadioGroupItem } from "#/components/ui/radio-group";
@@ -15,7 +17,8 @@ export default function RadioGroup({ label, options, ...rest }: Props) {
 
   const isInvalid = field.state.meta.isTouched && !field.state.meta.isValid;
 
-  const id = field.name;
+  // Not `field.name`: two forms open at once (e.g. Register Account over Record Debt) share names.
+  const id = useId();
   const errorId = `${id}-error`;
 
   return (
@@ -29,7 +32,7 @@ export default function RadioGroup({ label, options, ...rest }: Props) {
         onValueChange={field.handleChange}
         onBlur={field.handleBlur}
         aria-invalid={isInvalid ? true : undefined}
-        aria-labelledby={isInvalid ? errorId : undefined}
+        aria-describedby={isInvalid ? errorId : undefined}
       >
         {options.map((option) => (
           <div key={option.value} className="flex items-center gap-x-2">

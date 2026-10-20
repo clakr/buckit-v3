@@ -1,5 +1,7 @@
 import type { ComponentProps } from "react";
 
+import { useId } from "react";
+
 import { Field, FieldError, FieldLabel } from "#/components/ui/field";
 import { Input as UIInput } from "#/components/ui/input";
 import { useFieldContext } from "#/integrations/tanstack-form";
@@ -13,7 +15,8 @@ export default function Input({ label, ...rest }: Props) {
 
   const isInvalid = field.state.meta.isTouched && !field.state.meta.isValid;
 
-  const id = field.name;
+  // Not `field.name`: two forms open at once (e.g. Register Account over Record Debt) share names.
+  const id = useId();
   const errorId = `${id}-error`;
 
   return (
@@ -27,7 +30,7 @@ export default function Input({ label, ...rest }: Props) {
         onChange={(e) => field.handleChange(e.target.value)}
         onBlur={field.handleBlur}
         aria-invalid={isInvalid ? true : undefined}
-        aria-labelledby={isInvalid ? errorId : undefined}
+        aria-describedby={isInvalid ? errorId : undefined}
       />
       {isInvalid && <FieldError id={errorId} errors={field.state.meta.errors} />}
     </Field>

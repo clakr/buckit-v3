@@ -139,7 +139,7 @@ export function RecordDebtDialog() {
                 {(field) => <field.Input label="Counterparty Name" placeholder="John" required />}
               </form.AppField>
               <Field>
-                <FieldLabel htmlFor="amount">Amount</FieldLabel>
+                <FieldLabel htmlFor={`${form.formId}-amount`}>Amount</FieldLabel>
 
                 <InputGroup>
                   <InputGroupAddon>
@@ -184,7 +184,7 @@ export function RecordDebtDialog() {
                       return (
                         <InputGroupInput
                           type="number"
-                          id={field.name}
+                          id={`${form.formId}-amount`}
                           placeholder="0.00"
                           min={0.01}
                           step={0.01}
@@ -193,14 +193,16 @@ export function RecordDebtDialog() {
                           onChange={(e) => field.handleChange(e.target.value)}
                           onBlur={field.handleBlur}
                           aria-invalid={isInvalid ? true : undefined}
-                          aria-labelledby={isInvalid ? "amount-error" : undefined}
+                          aria-describedby={isInvalid ? `${form.formId}-amount-error` : undefined}
                         />
                       );
                     }}
                   </form.AppField>
                 </InputGroup>
                 <form.Subscribe selector={(state) => state.fieldMeta.amount?.errors}>
-                  {(amountErrors) => <FieldError id="amount-error" errors={amountErrors} />}
+                  {(amountErrors) => (
+                    <FieldError id={`${form.formId}-amount-error`} errors={amountErrors} />
+                  )}
                 </form.Subscribe>
               </Field>
               {direction === "receivable" ? (

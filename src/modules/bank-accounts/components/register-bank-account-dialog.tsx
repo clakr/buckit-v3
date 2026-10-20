@@ -102,7 +102,7 @@ export function RegisterBankAccountDialog() {
                 {(field) => <field.ValidatedInput label="Name" maxLength={100} />}
               </form.AppField>
               <Field>
-                <FieldLabel htmlFor="startingBalance">Starting Balance</FieldLabel>
+                <FieldLabel htmlFor={`${form.formId}-startingBalance`}>Starting Balance</FieldLabel>
 
                 <InputGroup>
                   <InputGroupAddon>
@@ -122,9 +122,8 @@ export function RegisterBankAccountDialog() {
                       return (
                         <InputGroupInput
                           type="number"
-                          id={field.name}
-                          placeholder="0.
-                            00"
+                          id={`${form.formId}-startingBalance`}
+                          placeholder="0.00"
                           min={0}
                           step={0.01}
                           required
@@ -132,7 +131,9 @@ export function RegisterBankAccountDialog() {
                           onChange={(e) => field.handleChange(e.target.value)}
                           onBlur={field.handleBlur}
                           aria-invalid={isInvalid ? true : undefined}
-                          aria-labelledby={isInvalid ? "startingBalance-error" : undefined}
+                          aria-describedby={
+                            isInvalid ? `${form.formId}-startingBalance-error` : undefined
+                          }
                         />
                       );
                     }}
@@ -140,7 +141,10 @@ export function RegisterBankAccountDialog() {
                 </InputGroup>
                 <form.Subscribe selector={(state) => state.errorMap.onChange?.startingBalance}>
                   {(startingBalanceErrors) => (
-                    <FieldError id="startingBalance-error" errors={startingBalanceErrors} />
+                    <FieldError
+                      id={`${form.formId}-startingBalance-error`}
+                      errors={startingBalanceErrors}
+                    />
                   )}
                 </form.Subscribe>
               </Field>

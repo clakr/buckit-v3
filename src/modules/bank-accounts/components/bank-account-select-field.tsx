@@ -1,6 +1,8 @@
 import type { UseQueryResult } from "@tanstack/react-query";
 import type { ReactNode } from "react";
 
+import { useId } from "react";
+
 import type { getBankAccounts } from "#/modules/bank-accounts/functions";
 
 import { Button } from "#/components/ui/button";
@@ -48,7 +50,8 @@ export function BankAccountSelectField({
 
   const isInvalid = field.state.meta.isTouched && !field.state.meta.isValid;
 
-  const id = field.name;
+  // Not `field.name`: two forms open at once (e.g. Register Account over Record Debt) share names.
+  const id = useId();
   const errorId = `${id}-error`;
 
   const { status, refetch } = bankAccountsQuery;
@@ -56,13 +59,12 @@ export function BankAccountSelectField({
 
   const picked = bankAccounts?.find((account) => account.id === field.state.value);
 
-  function formatFigure(value: number, accountCurrency: string) {
-    return formatMoney(value, accountCurrency);
-  }
+  // The error and empty states show text in place of the select, so the label has nothing to point at.
+  const showsSelect = status !== "error" && !isEmpty;
 
   return (
     <Field data-invalid={isInvalid || status === "error"}>
-      <FieldLabel htmlFor={id}>{label}</FieldLabel>
+      <FieldLabel htmlFor={showsSelect ? id : undefined}>{label}</FieldLabel>
       {description ? <FieldDescription>{description}</FieldDescription> : null}
 
       {status === "error" ? (
@@ -86,7 +88,7 @@ export function BankAccountSelectField({
             className="w-full"
             onBlur={field.handleBlur}
             aria-invalid={isInvalid ? true : undefined}
-            aria-labelledby={isInvalid ? errorId : undefined}
+            aria-describedby={isInvalid ? errorId : undefined}
           >
             <SelectValue placeholder={placeholder} />
           </SelectTrigger>
@@ -112,13 +114,13 @@ export function BankAccountSelectField({
       {picked ? (
         <FieldDescription>
           Balance{" "}
-          <span className="font-semibold">{formatFigure(picked.balance, picked.currency)}</span>
+          <span className="font-semibold">{formatMoney(picked.balance, picked.currency)}</span>
           {picked.balance === picked.unallocated ? null : (
             <>
               {" "}
               · Unallocated{" "}
               <span className="font-semibold">
-                {formatFigure(picked.unallocated, picked.currency)}
+                {formatMoney(picked.unallocated, picked.currency)}
               </span>
             </>
           )}
