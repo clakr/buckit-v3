@@ -4,8 +4,8 @@ export class AppError extends Error {
   override name = "AppError";
 }
 
-export class UnauthorizedError extends AppError {
-  override name = "UnauthorizedError";
+export class SessionExpiredError extends AppError {
+  override name = "SessionExpiredError";
 }
 
 export class NotFoundError extends AppError {
@@ -27,7 +27,7 @@ export function describeErrorForUser(error: unknown, fallback: string) {
 // Keyed by a literal `name` rather than `constructor.name`, which minification mangles.
 const APP_ERRORS = {
   AppError,
-  UnauthorizedError,
+  SessionExpiredError,
   NotFoundError,
   ConflictError,
   InsufficientFundsError,

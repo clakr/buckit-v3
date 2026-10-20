@@ -1,6 +1,6 @@
 import type { z } from "zod";
 
-import { AppError, UnauthorizedError } from "#/lib/errors";
+import { AppError, SessionExpiredError } from "#/lib/errors";
 
 type NameCheck = (name: string) => Promise<{ isValid: boolean; message: string }>;
 
@@ -13,8 +13,7 @@ export function refineNameAvailability(checkName: NameCheck) {
 
       if (!isValid) context.addIssue({ code: "custom", message });
     } catch (error) {
-      // The Session ran out: the client is already signing out and says so.
-      if (error instanceof UnauthorizedError) return;
+      if (error instanceof SessionExpiredError) return;
 
       console.error(error);
 

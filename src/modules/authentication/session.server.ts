@@ -6,7 +6,7 @@ import { isAPIError } from "better-auth/api";
 import type { signInUserSchema, signUpUserSchema } from "#/modules/authentication/schemas";
 
 import { auth } from "#/integrations/better-auth";
-import { AppError, ConflictError, UnauthorizedError } from "#/lib/errors";
+import { AppError, ConflictError, SessionExpiredError } from "#/lib/errors";
 
 export async function readSession() {
   const session = await auth.api.getSession({ headers: getRequestHeaders() });
@@ -21,7 +21,7 @@ export async function readSession() {
 export async function requireUserId() {
   const user = await readSession();
 
-  if (!user) throw new UnauthorizedError("Your session has expired. Please log in again.");
+  if (!user) throw new SessionExpiredError("Your session has expired. Please log in again.");
 
   return user.id;
 }

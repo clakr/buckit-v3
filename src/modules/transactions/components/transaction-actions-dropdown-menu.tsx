@@ -10,7 +10,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "#/components/ui/dropdown-menu";
-import { AppError, UnauthorizedError } from "#/lib/errors";
+import { AppError, SessionExpiredError } from "#/lib/errors";
 import { useEditTransactionDialogStore } from "#/modules/transactions/components/edit-transaction-dialog";
 import { validateDeleteTransaction } from "#/modules/transactions/functions";
 import { useDeleteTransactionMutation } from "#/modules/transactions/mutations";
@@ -32,8 +32,7 @@ export function TransactionActionsDropdownMenu({ transactionId }: Props) {
     try {
       check = await validateDeleteTransaction({ data: { transactionId } });
     } catch (error) {
-      // The Session ran out: the client is already signing out and says so.
-      if (error instanceof UnauthorizedError) return;
+      if (error instanceof SessionExpiredError) return;
 
       console.error(error);
 

@@ -1,7 +1,7 @@
 import { MutationCache, QueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 
-import { AppError, describeErrorForUser, UnauthorizedError } from "#/lib/errors";
+import { AppError, describeErrorForUser, SessionExpiredError } from "#/lib/errors";
 
 declare module "@tanstack/react-query" {
   interface Register {
@@ -37,8 +37,7 @@ export function getContext() {
         await queryClient.invalidateQueries({ predicate: (query) => !query.meta?.keepOnWrite });
       },
       onError: (error, __, ___, mutation) => {
-        // Signed out by `sessionExpiryMiddleware`, which says so itself.
-        if (error instanceof UnauthorizedError) return;
+        if (error instanceof SessionExpiredError) return;
 
         toast.error(mutation.meta?.error.title ?? "Oops!", {
           description: describeErrorForUser(
