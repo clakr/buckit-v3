@@ -146,7 +146,7 @@ export function EditAllocationDialog() {
                         ? {
                             message: describeInsufficientUnallocated({
                               bankAccount: allocation.bankAccount,
-                              available: allocation.available,
+                              availableCents: allocation.available,
                             }),
                           }
                         : undefined,

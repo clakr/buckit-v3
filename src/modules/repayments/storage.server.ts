@@ -68,7 +68,7 @@ async function checkRepaymentBankAccount(
       describeInsufficientUnallocated({
         purpose: "repayment",
         bankAccount: check.bankAccount,
-        available: check.available,
+        availableCents: check.available,
       }),
     );
   }

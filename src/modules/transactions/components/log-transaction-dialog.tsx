@@ -157,7 +157,7 @@ export function LogTransactionDialog() {
                         ? {
                             message: describeInsufficientUnallocated({
                               bankAccount: account,
-                              available: account.unallocated,
+                              availableCents: account.unallocated,
                             }),
                           }
                         : undefined,

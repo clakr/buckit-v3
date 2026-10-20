@@ -52,7 +52,7 @@ async function checkDebtSourceBankAccount(
       describeInsufficientUnallocated({
         purpose: "loan",
         bankAccount: check.bankAccount,
-        available: check.available,
+        availableCents: check.available,
       }),
     );
   }

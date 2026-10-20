@@ -49,14 +49,14 @@ export function exceedsAvailable(amountInput: unknown, availableCents: number) {
 
 export function describeInsufficientUnallocated({
   bankAccount,
-  available,
+  availableCents,
   purpose,
 }: {
   bankAccount: Pick<BankAccount, "name" | "currency">;
-  available: number;
+  availableCents: number;
   purpose?: "loan" | "repayment";
 }) {
   const forPurpose = purpose ? ` for this ${purpose}` : "";
 
-  return `Insufficient unallocated balance in ${bankAccount.name}${forPurpose}. Available: ${formatMoney(available, bankAccount.currency)}`;
+  return `Insufficient unallocated balance in ${bankAccount.name}${forPurpose}. Available: ${formatMoney(availableCents, bankAccount.currency)}`;
 }

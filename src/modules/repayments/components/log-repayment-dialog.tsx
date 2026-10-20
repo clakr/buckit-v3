@@ -179,7 +179,7 @@ export function LogRepaymentDialog() {
                             message: describeInsufficientUnallocated({
                               purpose: "repayment",
                               bankAccount,
-                              available: bankAccount.unallocated,
+                              availableCents: bankAccount.unallocated,
                             }),
                           }
                         : undefined;

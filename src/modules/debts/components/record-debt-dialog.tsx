@@ -167,7 +167,7 @@ export function RecordDebtDialog() {
                               message: describeInsufficientUnallocated({
                                 purpose: "loan",
                                 bankAccount,
-                                available: bankAccount.unallocated,
+                                availableCents: bankAccount.unallocated,
                               }),
                             }
                           : undefined;

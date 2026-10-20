@@ -229,7 +229,7 @@ export function LogAllocationDialog() {
                         ? {
                             message: describeInsufficientUnallocated({
                               bankAccount,
-                              available: bankAccount.unallocated,
+                              availableCents: bankAccount.unallocated,
                             }),
                           }
                         : undefined;

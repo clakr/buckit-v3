@@ -76,7 +76,7 @@ export const logTransaction = createServerFn({
       throw new InsufficientFundsError(
         describeInsufficientUnallocated({
           bankAccount: check.bankAccount,
-          available: check.available,
+          availableCents: check.available,
         }),
       );
 

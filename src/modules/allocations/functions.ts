@@ -66,7 +66,7 @@ async function checkAllocationAmount(db: DB, userId: string, change: AllocationA
     throw new InsufficientFundsError(
       describeInsufficientUnallocated({
         bankAccount: check.bankAccount,
-        available: check.available,
+        availableCents: check.available,
       }),
     );
 }
