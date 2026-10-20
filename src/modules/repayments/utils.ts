@@ -1,12 +1,12 @@
 import { format, isBefore, startOfDay } from "date-fns";
 
-const DAY_IN_MS = 24 * 60 * 60 * 1000;
+const ANY_TIMEZONE_DAY_START_SLACK_MS = 24 * 60 * 60 * 1000;
 
 export const REPAYMENT_BEFORE_DEBT_MESSAGE =
   "A repayment can't be dated before its debt was recorded.";
 
 export function isRepaymentDateBeforeDebt(repaymentDate: Date, debtDate: Date) {
-  return repaymentDate.getTime() < debtDate.getTime() - DAY_IN_MS;
+  return repaymentDate.getTime() < debtDate.getTime() - ANY_TIMEZONE_DAY_START_SLACK_MS;
 }
 
 export function getRepaymentDateRule(debtDate: Date) {
