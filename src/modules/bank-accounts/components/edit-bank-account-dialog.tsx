@@ -136,7 +136,7 @@ export function EditBankAccountDialog() {
                     onChangeAsyncDebounceMs: 500,
                     onChangeAsync: editBankAccountSchema.shape.name.superRefine(
                       refineNameAvailability((name) =>
-                        validateBankAccountName({ data: { bankAccountId: bankAccount.id, name } }),
+                        validateBankAccountName({ data: { excludeId: bankAccount.id, name } }),
                       ),
                     ),
                   }}

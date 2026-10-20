@@ -136,7 +136,7 @@ export function EditBucketDialog() {
                     onChangeAsyncDebounceMs: 500,
                     onChangeAsync: editBucketSchema.shape.name.superRefine(
                       refineNameAvailability((name) =>
-                        validateBucketName({ data: { bucketId: bucket.id, name } }),
+                        validateBucketName({ data: { excludeId: bucket.id, name } }),
                       ),
                     ),
                   }}

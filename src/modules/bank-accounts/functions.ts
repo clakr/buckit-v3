@@ -90,7 +90,7 @@ export const validateBankAccountName = createServerFn({
   .handler(async ({ context, data }) =>
     bankAccountName.check(getDB(env.db), context.userId, {
       name: data.name,
-      excludeId: data.bankAccountId,
+      excludeId: data.excludeId,
     }),
   );
 

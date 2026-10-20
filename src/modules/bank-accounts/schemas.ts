@@ -28,7 +28,7 @@ export const editBankAccountSchema = z.strictObject({
 
 export const validateBankAccountNameSchema = z.object({
   name: registerBankAccountSchema.shape.name,
-  bankAccountId: z.string().optional(),
+  excludeId: z.string().optional(),
 });
 
 export const getBankAccountsSchema = z

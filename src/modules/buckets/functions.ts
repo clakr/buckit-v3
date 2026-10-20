@@ -65,7 +65,7 @@ export const validateBucketName = createServerFn({
   .middleware([authMiddleware])
   .validator(validateBucketNameSchema)
   .handler(async ({ context, data }) =>
-    bucketName.check(getDB(env.db), context.userId, { name: data.name, excludeId: data.bucketId }),
+    bucketName.check(getDB(env.db), context.userId, { name: data.name, excludeId: data.excludeId }),
   );
 
 export const setUpBucket = createServerFn({

@@ -23,5 +23,5 @@ export const editBucketSchema = z.strictObject({
 
 export const validateBucketNameSchema = z.object({
   name: setUpBucketSchema.shape.name,
-  bucketId: z.string().optional(),
+  excludeId: z.string().optional(),
 });
