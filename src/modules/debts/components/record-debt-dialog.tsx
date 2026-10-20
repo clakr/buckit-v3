@@ -199,7 +199,12 @@ export function RecordDebtDialog() {
                     }}
                   </form.AppField>
                 </InputGroup>
-                <form.Subscribe selector={(state) => state.fieldMeta.amount?.errors}>
+                <form.Subscribe
+                  // Once touched, like the input's own invalid state; submitting touches every field.
+                  selector={(state) =>
+                    state.fieldMeta.amount?.isTouched ? state.fieldMeta.amount.errors : undefined
+                  }
+                >
                   {(amountErrors) => (
                     <FieldError id={`${form.formId}-amount-error`} errors={amountErrors} />
                   )}

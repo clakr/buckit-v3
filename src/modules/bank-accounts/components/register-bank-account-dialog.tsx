@@ -139,7 +139,14 @@ export function RegisterBankAccountDialog() {
                     }}
                   </form.AppField>
                 </InputGroup>
-                <form.Subscribe selector={(state) => state.errorMap.onChange?.startingBalance}>
+                <form.Subscribe
+                  // Once touched, like the input's own invalid state; submitting touches every field.
+                  selector={(state) =>
+                    state.fieldMeta.startingBalance?.isTouched
+                      ? state.fieldMeta.startingBalance.errors
+                      : undefined
+                  }
+                >
                   {(startingBalanceErrors) => (
                     <FieldError
                       id={`${form.formId}-startingBalance-error`}
