@@ -1,12 +1,9 @@
 import { z } from "zod";
 
-// Only same-origin paths. A leading `//` or `/\` would send the User to another site.
+const SAME_ORIGIN_PATH_PATTERN = /^\/(?![/\\])/;
+
 export const signInSearchSchema = z.object({
-  redirect: z
-    .string()
-    .regex(/^\/(?![/\\])/)
-    .optional()
-    .catch(undefined),
+  redirect: z.string().regex(SAME_ORIGIN_PATH_PATTERN).optional().catch(undefined),
 });
 
 export const signInUserSchema = z.object({

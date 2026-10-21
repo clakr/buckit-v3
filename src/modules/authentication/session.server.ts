@@ -56,7 +56,6 @@ export async function signInWithEmail(data: z.infer<typeof signInUserSchema>) {
     throw error;
   }
 
-  // Only after the new Session exists, so a wrong password doesn't end a working one.
   if (staleSession) {
     await auth.api.revokeSession({ body: { token: staleSession.session.token }, headers });
   }

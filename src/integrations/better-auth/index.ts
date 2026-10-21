@@ -7,6 +7,8 @@ import { env } from "cloudflare:workers";
 import { getDB } from "#/db";
 import { users, sessions, accounts, verifications } from "#/db/schema";
 
+const PATHS_ONLY_VIA_THROTTLED_SERVER_FUNCTIONS = ["/sign-in/email", "/sign-up/email"];
+
 export const auth = betterAuth({
   secret: env.BETTER_AUTH_SECRET,
   baseURL: env.BETTER_AUTH_URL,
@@ -22,9 +24,7 @@ export const auth = betterAuth({
   emailAndPassword: {
     enabled: true,
   },
-  // Sign-in and sign-up go through server functions, which throttle them. Closing the HTTP
-  // endpoints keeps `/api/auth/$` from being an unthrottled way around that.
-  disabledPaths: ["/sign-in/email", "/sign-up/email"],
+  disabledPaths: PATHS_ONLY_VIA_THROTTLED_SERVER_FUNCTIONS,
   advanced: {
     ipAddress: { ipAddressHeaders: ["cf-connecting-ip"] },
   },

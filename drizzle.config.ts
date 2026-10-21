@@ -2,7 +2,6 @@ import { defineConfig } from "drizzle-kit";
 import { existsSync, readdirSync } from "node:fs";
 import { join } from "node:path";
 
-// Wrangler/Miniflare keeps local D1 data here after `pnpm db:migrate:local`.
 const LOCAL_D1_DIR = ".wrangler/state/v3/d1/miniflare-D1DatabaseObject";
 
 function findLocalD1DatabaseFile() {
