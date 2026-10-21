@@ -46,7 +46,7 @@ _These aren't new work. They're recapped here so this file describes all the beh
 9. As a user, I want a "Withdraw" action in a Bucket's menu, so I can spend money I set aside in one step.
 10. As a user, I want the Withdraw dialog to let me pick only Bank Accounts this Bucket holds money from, each shown with how much it holds, so I can't withdraw from an account that put nothing in.
 11. As a user, I want to withdraw any amount up to what the Bucket holds from the chosen Bank Account, so I can give part of the tithe now and the rest later.
-12. As a user, I want a "Take all" shortcut that fills in everything the Bucket holds from the chosen Bank Account, so emptying it doesn't mean typing the figure by hand.
+12. ~~As a user, I want a "Take all" shortcut that fills in everything the Bucket holds from the chosen Bank Account.~~ _Dropped after #1 shipped: the button looked out of place. The dialog shows the held figure next to the amount, so the user types it instead._
 13. As a user, I want a Withdrawal to draw from exactly one Bank Account. To empty a Bucket funded from two accounts, I log two Withdrawals. This way one Withdrawal never mixes currencies.
 14. As a user, I want to give a Withdrawal a date, defaulting to today, and an optional note, such as "Tithe, October".
 15. As a user, I want the dialog to stop me as I type if the amount is more than the Bucket holds from that Bank Account, and the server to check again on save, with a message naming the Bucket, the Bank Account and the most I can withdraw.

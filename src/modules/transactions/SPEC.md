@@ -44,31 +44,33 @@ Every mutation that could reduce a Bank Account's Unallocated balance enforces t
 
 All three call `checkUnallocated` (`src/modules/bank-accounts/figures.server.ts`). Allocation, Debt and Repayment use the same check, so the rule lives in one place. **The write runs the check.** Each mutation runs it on the server right before writing and throws `InsufficientFundsError` when it fails. The Log and Edit dialogs have no separate check before submitting. When the write rejects, the failure toast shows the reason and the dialog stays open with the user's input. Delete keeps `validateDeleteTransaction`, because the confirm dialog needs its preview before the user confirms: what will be removed, or why it can't be.
 
-### Linked Transactions follow their Debt's rules
+### Linked Transactions follow their Debt's or Bucket's rules
 
-A Linked Transaction (see `CONTEXT.md`) follows its Debt's rules for edit and delete, from whichever page the user starts on. One module, `linked.server.ts`, holds the rules:
+A Linked Transaction (see `CONTEXT.md`) follows the rules of the Debt or Withdrawal it backs, for edit and delete, from whichever page the user starts on. One module, `linked.server.ts`, holds the rules:
 
 - `checkTransactionEdit` rejects these changes with `ConflictError`:
   - changing a Linked Transaction's type;
   - changing an origination's amount;
   - dating a repayment before its Debt.
 
-  It then runs the usual `Unallocated` check.
+  For a Debt link it then runs the usual `Unallocated` check. A Withdrawal's Transaction skips that check, because it moves Balance and the earmark by the same amount, so Unallocated can't change. Instead, raising its amount runs the held check (`checkHeld` in `src/modules/buckets/figures.server.ts`) and throws `InsufficientFundsError` past what the Bucket holds from that Bank Account. The message names the most the amount can be.
 
 - `editTransaction` and the Repayment storage module's `changeRepayment` both call it on the server.
 - `getTransaction` returns the link and the fields it locks. The Edit dialog disables those fields and says why.
+- The Bank Account's Transactions table marks a Withdrawal's Transaction with a link to its Bucket.
 - The database deletes a repayment along with its Transaction. `repayments.transactionId` is `ON DELETE CASCADE`, so deleting a Transaction deletes its repayment. So does deleting a Bank Account, which cascades to its Transactions. `isRepaymentBackedBy` only finds those repayments for the Bank Account deletion preview.
 
-Creating links, in `recordDebt` and `logRepayment`, stays in the Debts module, as does `deleteDebt`'s option to also delete the Transactions, because those are Debt actions.
+`withdrawals.transactionId` cascades the same way. Creating links, in `recordDebt`, `logRepayment` and `logWithdrawal`, stays in the Debts and Withdrawals modules, as does `deleteDebt`'s option to also delete the Transactions, because those are Debt actions.
 
 ### Delete uses a plain confirmation, not a typed one
 
 Bank Account and Bucket deletion use typed confirmation, where the user re-types the entity's name. ADR 0001 and ADR 0002 justify that because those deletes cascade and destroy other records. Transaction deletion uses the app's plain `confirm()` Yes/No dialog instead. **This is intentional, not an inconsistency.** Deleting a Transaction destroys no other history, and destroying other history is the condition the ADRs use to justify the stronger guard.
 
-Since the Debt module, two things can point at a Transaction, and neither changes that:
+Since the Debt and Withdrawal modules, three things can point at a Transaction, and none changes that:
 
 - A repayment backed by the Transaction is the same money recorded twice. The foreign key cascade deletes it with the Transaction, and the Debt's outstanding goes back up.
 - A Debt the Transaction funded stays, with no source account, through the foreign key's `SET NULL`. This matches story 25 in `docs/specs/debt-module.md`.
+- A Withdrawal backed by the Transaction is deleted by the foreign key cascade, and the money goes back into the Bucket. This matches story 24 in `docs/specs/withdrawal.md`.
 
 Before the confirm dialog opens, `validateDeleteTransaction` builds a specific message. It names the type and formatted amount being removed and whichever consequence above applies. If the delete would leave Unallocated negative, it returns a rejection instead.
 
@@ -78,12 +80,12 @@ Transactions only appear on a Bank Account's detail page, in `TRANSACTIONS_COLUM
 
 ## Features
 
-| #   | Feature            | Status                                                                                                                                |
-| --- | ------------------ | ------------------------------------------------------------------------------------------------------------------------------------- |
-| 1   | Log Transaction    | **Implemented and correct.** Enforces `Unallocated ≥ 0` for expenses.                                                                 |
-| 2   | View Transaction   | **Implemented and correct**, only on the owning Bank Account's detail page.                                                           |
-| 3   | Edit Transaction   | **Implemented and correct.** Recomputes `Unallocated` with the edit applied. A Linked Transaction keeps its Debt's rules (see above). |
-| 4   | Delete Transaction | **Implemented and correct.** Hard delete with a plain confirmation. It also deletes a repayment the Transaction backs (see above).    |
+| #   | Feature            | Status                                                                                                                                            |
+| --- | ------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1   | Log Transaction    | **Implemented and correct.** Enforces `Unallocated ≥ 0` for expenses.                                                                             |
+| 2   | View Transaction   | **Implemented and correct**, only on the owning Bank Account's detail page.                                                                       |
+| 3   | Edit Transaction   | **Implemented and correct.** Recomputes `Unallocated` with the edit applied. A Linked Transaction keeps its Debt's or Bucket's rules (see above). |
+| 4   | Delete Transaction | **Implemented and correct.** Hard delete with a plain confirmation. It also deletes a repayment or Withdrawal the Transaction backs (see above).  |
 
 ## Fixed during this session
 
