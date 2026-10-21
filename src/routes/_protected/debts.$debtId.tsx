@@ -20,7 +20,7 @@ export const Route = createFileRoute("/_protected/debts/$debtId")({
     debtQueryOptions: debtQueryOption(params.debtId),
   }),
   loader: async ({ context: { queryClient, debtQueryOptions } }) => {
-    return loadOrThrowRouteNotFound(queryClient.query(debtQueryOptions));
+    await loadOrThrowRouteNotFound(queryClient.query(debtQueryOptions));
   },
   pendingComponent: () => (
     <Main>

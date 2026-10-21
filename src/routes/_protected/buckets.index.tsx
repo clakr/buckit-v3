@@ -18,7 +18,7 @@ export const Route = createFileRoute("/_protected/buckets/")({
   head: () => ({ meta: [{ title: formatPageTitle("Buckets") }] }),
   context: () => ({ bucketsQueryOptions }),
   loader: async ({ context: { queryClient, bucketsQueryOptions } }) => {
-    return queryClient.query(bucketsQueryOptions);
+    await queryClient.query(bucketsQueryOptions);
   },
   pendingComponent: () => (
     <Main>

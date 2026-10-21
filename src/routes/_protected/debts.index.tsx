@@ -18,7 +18,7 @@ export const Route = createFileRoute("/_protected/debts/")({
   head: () => ({ meta: [{ title: formatPageTitle("Debts") }] }),
   context: () => ({ debtsQueryOptions }),
   loader: async ({ context: { queryClient, debtsQueryOptions } }) => {
-    return queryClient.query(debtsQueryOptions);
+    await queryClient.query(debtsQueryOptions);
   },
   pendingComponent: () => (
     <Main>

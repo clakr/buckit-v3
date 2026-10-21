@@ -29,7 +29,7 @@ export const Route = createFileRoute("/_protected/buckets/$bucketId")({
   loader: async ({
     context: { queryClient, bucketQueryOptions, allocationsQueryOptions, withdrawalsQueryOptions },
   }) => {
-    return loadOrThrowRouteNotFound(
+    await loadOrThrowRouteNotFound(
       Promise.all([
         queryClient.query(bucketQueryOptions),
         queryClient.query(allocationsQueryOptions),

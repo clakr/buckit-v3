@@ -1,7 +1,12 @@
 import type { QueryClient } from "@tanstack/react-query";
 
 import { TanStackDevtools } from "@tanstack/react-devtools";
-import { HeadContent, Scripts, createRootRouteWithContext } from "@tanstack/react-router";
+import {
+  HeadContent,
+  ScriptOnce,
+  Scripts,
+  createRootRouteWithContext,
+} from "@tanstack/react-router";
 import { TanStackRouterDevtoolsPanel } from "@tanstack/react-router-devtools";
 
 import { ConfirmDialog } from "#/components/confirm-dialog";
@@ -44,7 +49,7 @@ function RootDocument({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
-        <script dangerouslySetInnerHTML={{ __html: THEME_INIT_SCRIPT }} />
+        <ScriptOnce children={THEME_INIT_SCRIPT} />
         <HeadContent />
       </head>
       <body className="font-sans wrap-anywhere antialiased">

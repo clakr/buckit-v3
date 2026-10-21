@@ -28,7 +28,7 @@ export const Route = createFileRoute("/_protected/accounts/$accountId")({
   loader: async ({
     context: { queryClient, bankAccountQueryOptions, allocationsQueryOptions },
   }) => {
-    return loadOrThrowRouteNotFound(
+    await loadOrThrowRouteNotFound(
       Promise.all([
         queryClient.query(bankAccountQueryOptions),
         queryClient.query(allocationsQueryOptions),

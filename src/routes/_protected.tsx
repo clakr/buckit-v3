@@ -24,8 +24,8 @@ import { WithdrawDialog } from "#/modules/withdrawals/components/withdraw-dialog
 
 export const Route = createFileRoute("/_protected")({
   ssr: "data-only",
-  component: RouteComponent,
   beforeLoad: ({ context }) => requireSignedIn(context),
+  component: RouteComponent,
 });
 
 function RouteComponent() {
