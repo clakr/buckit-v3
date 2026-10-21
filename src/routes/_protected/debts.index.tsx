@@ -9,11 +9,13 @@ import { StateTemplate } from "#/components/state-template";
 import { Button } from "#/components/ui/button";
 import { DataTable } from "#/components/ui/data-table";
 import { MODULE_ICONS } from "#/lib/constants";
+import { formatPageTitle } from "#/lib/utils";
 import { INDEX_COLUMNS } from "#/modules/debts/columns";
 import { useRecordDebtDialogStore } from "#/modules/debts/components/record-debt-dialog";
 import { debtsQueryOptions } from "#/modules/debts/query-options";
 
 export const Route = createFileRoute("/_protected/debts/")({
+  head: () => ({ meta: [{ title: formatPageTitle("Debts") }] }),
   context: () => ({ debtsQueryOptions }),
   loader: async ({ context: { queryClient, debtsQueryOptions } }) => {
     return queryClient.query(debtsQueryOptions);

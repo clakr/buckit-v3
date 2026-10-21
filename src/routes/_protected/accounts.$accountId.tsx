@@ -12,6 +12,7 @@ import { DataTable } from "#/components/ui/data-table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "#/components/ui/tabs";
 import { NotFoundError } from "#/lib/errors";
 import { formatMoney } from "#/lib/money";
+import { formatPageTitle } from "#/lib/utils";
 import { getAllocationColumns } from "#/modules/allocations/columns";
 import { allocationsQueryOption } from "#/modules/allocations/query-options";
 import { TRANSACTIONS_COLUMNS } from "#/modules/bank-accounts/columns";
@@ -19,6 +20,7 @@ import { useEditBankAccountDialogStore } from "#/modules/bank-accounts/component
 import { bankAccountQueryOption } from "#/modules/bank-accounts/query-options";
 
 export const Route = createFileRoute("/_protected/accounts/$accountId")({
+  head: () => ({ meta: [{ title: formatPageTitle("Account") }] }),
   context: ({ params }) => ({
     bankAccountQueryOptions: bankAccountQueryOption(params.accountId),
     allocationsQueryOptions: allocationsQueryOption({ bankAccountId: params.accountId }),

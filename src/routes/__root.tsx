@@ -7,6 +7,7 @@ import { TanStackRouterDevtoolsPanel } from "@tanstack/react-router-devtools";
 import { ConfirmDialog } from "#/components/confirm-dialog";
 import { Toaster } from "#/components/ui/sonner";
 import TanStackQueryDevtools from "#/integrations/tanstack-query/devtools";
+import { APP_NAME } from "#/lib/constants";
 import appCss from "#/styles.css?url";
 
 interface MyRouterContext {
@@ -26,7 +27,7 @@ export const Route = createRootRouteWithContext<MyRouterContext>()({
         content: "width=device-width, initial-scale=1",
       },
       {
-        title: "Buckit",
+        title: APP_NAME,
       },
     ],
     links: [

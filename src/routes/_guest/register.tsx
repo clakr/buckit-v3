@@ -6,10 +6,12 @@ import registerImage from "#/assets/register.webp";
 import { Button } from "#/components/ui/button";
 import { Field, FieldDescription, FieldGroup, FieldSeparator } from "#/components/ui/field";
 import { useAppForm } from "#/integrations/tanstack-form";
+import { formatPageTitle } from "#/lib/utils";
 import { signUpUserSchema } from "#/modules/authentication/schemas";
 import { signUp } from "#/modules/authentication/session";
 
 export const Route = createFileRoute("/_guest/register")({
+  head: () => ({ meta: [{ title: formatPageTitle("Register") }] }),
   component: RouteComponent,
 });
 

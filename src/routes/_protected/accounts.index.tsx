@@ -9,11 +9,13 @@ import { StateTemplate } from "#/components/state-template";
 import { Button } from "#/components/ui/button";
 import { DataTable } from "#/components/ui/data-table";
 import { MODULE_ICONS } from "#/lib/constants";
+import { formatPageTitle } from "#/lib/utils";
 import { INDEX_COLUMNS } from "#/modules/bank-accounts/columns";
 import { useRegisterBankAccountDialogStore } from "#/modules/bank-accounts/components/register-bank-account-dialog";
 import { bankAccountsQueryOption } from "#/modules/bank-accounts/query-options";
 
 export const Route = createFileRoute("/_protected/accounts/")({
+  head: () => ({ meta: [{ title: formatPageTitle("Accounts") }] }),
   context: () => ({ bankAccountsQueryOptions: bankAccountsQueryOption() }),
   loader: async ({ context: { queryClient, bankAccountsQueryOptions } }) => {
     return queryClient.query(bankAccountsQueryOptions);

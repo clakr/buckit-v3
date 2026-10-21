@@ -9,11 +9,13 @@ import { StateTemplate } from "#/components/state-template";
 import { Button } from "#/components/ui/button";
 import { DataTable } from "#/components/ui/data-table";
 import { MODULE_ICONS } from "#/lib/constants";
+import { formatPageTitle } from "#/lib/utils";
 import { INDEX_COLUMNS } from "#/modules/buckets/columns";
 import { useSetUpBucketDialogStore } from "#/modules/buckets/components/set-up-bucket-dialog";
 import { bucketsQueryOptions } from "#/modules/buckets/query-options";
 
 export const Route = createFileRoute("/_protected/buckets/")({
+  head: () => ({ meta: [{ title: formatPageTitle("Buckets") }] }),
   context: () => ({ bucketsQueryOptions }),
   loader: async ({ context: { queryClient, bucketsQueryOptions } }) => {
     return queryClient.query(bucketsQueryOptions);

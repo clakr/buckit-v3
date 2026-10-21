@@ -10,6 +10,7 @@ import { Button } from "#/components/ui/button";
 import { DataTable } from "#/components/ui/data-table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "#/components/ui/tabs";
 import { NotFoundError } from "#/lib/errors";
+import { formatPageTitle } from "#/lib/utils";
 import { getAllocationColumns } from "#/modules/allocations/columns";
 import { allocationsQueryOption } from "#/modules/allocations/query-options";
 import { useEditBucketDialogStore } from "#/modules/buckets/components/edit-bucket-dialog";
@@ -19,6 +20,7 @@ import { useWithdrawDialogStore } from "#/modules/withdrawals/components/withdra
 import { withdrawalsQueryOption } from "#/modules/withdrawals/query-options";
 
 export const Route = createFileRoute("/_protected/buckets/$bucketId")({
+  head: () => ({ meta: [{ title: formatPageTitle("Bucket") }] }),
   context: ({ params }) => ({
     bucketQueryOptions: bucketQueryOption(params.bucketId),
     allocationsQueryOptions: allocationsQueryOption({ bucketId: params.bucketId }),

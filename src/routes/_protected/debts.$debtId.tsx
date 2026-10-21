@@ -8,12 +8,14 @@ import { RouteRetryButton } from "#/components/route-retry-button";
 import { StateTemplate } from "#/components/state-template";
 import { Button } from "#/components/ui/button";
 import { NotFoundError } from "#/lib/errors";
+import { formatPageTitle } from "#/lib/utils";
 import { DebtLedgerTable } from "#/modules/debts/components/debt-ledger-table";
 import { useEditDebtDialogStore } from "#/modules/debts/components/edit-debt-dialog";
 import { debtQueryOption } from "#/modules/debts/query-options";
 import { useLogRepaymentDialogStore } from "#/modules/repayments/components/log-repayment-dialog";
 
 export const Route = createFileRoute("/_protected/debts/$debtId")({
+  head: () => ({ meta: [{ title: formatPageTitle("Debt") }] }),
   context: ({ params }) => ({
     debtQueryOptions: debtQueryOption(params.debtId),
   }),

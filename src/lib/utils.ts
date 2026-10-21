@@ -1,6 +1,6 @@
 import type { Currency } from "#/lib/types";
 
-import { CURRENCIES } from "#/lib/constants";
+import { APP_NAME, CURRENCIES } from "#/lib/constants";
 
 export { cn } from "cn";
 
@@ -65,4 +65,8 @@ export function formatDate(value: Date, opts?: Intl.DateTimeFormat) {
     year: "numeric",
     ...opts,
   }).format(value);
+}
+
+export function formatPageTitle(pageName: string) {
+  return `${pageName} · ${APP_NAME}`;
 }

@@ -5,6 +5,8 @@ import {
   IconLayoutDashboard,
 } from "@tabler/icons-react";
 
+export const APP_NAME = "Buckit";
+
 export const MODULE_ICONS = {
   dashboard: IconLayoutDashboard,
   accounts: IconBuildingBank,
