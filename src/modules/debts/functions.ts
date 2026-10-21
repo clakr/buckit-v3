@@ -26,20 +26,11 @@ export const getDebts = createServerFn({
   .middleware([authMiddleware])
   .handler(async ({ context }) => getDebtsWithFigures(getDB(env.db), { userId: context.userId }));
 
-// `recordDebt` has no bank-account middleware of its own, so this is its ownership check too.
-async function checkDebtSourceBankAccount(
+async function checkLoanFunds(
   db: DB,
   userId: string,
-  data: { bankAccountId: string; currency: Debt["currency"]; amount: Debt["amount"] },
+  data: { bankAccountId: string; amount: Debt["amount"] },
 ) {
-  const account = await findOwnedBankAccount(db, userId, data.bankAccountId, {
-    currency: data.currency,
-  });
-
-  // An unusable source account isn't a shortfall: wrong currency, missing, or not the user's.
-  if (!account) throw new NotFoundError("The source account is invalid for this debt.");
-
-  // Funding a receivable takes money out, under the same never-negative rule as any other.
   const check = await checkUnallocated(db, userId, {
     kind: "add-transaction",
     bankAccountId: data.bankAccountId,
@@ -87,11 +78,13 @@ export const recordDebt = createServerFn({
       return debt;
     }
 
-    await checkDebtSourceBankAccount(db, context.userId, {
-      bankAccountId: data.bankAccountId,
+    const sourceBankAccount = await findOwnedBankAccount(db, context.userId, data.bankAccountId, {
       currency: data.currency,
-      amount,
     });
+
+    if (!sourceBankAccount) throw new NotFoundError("The source account is invalid for this debt.");
+
+    await checkLoanFunds(db, context.userId, { bankAccountId: data.bankAccountId, amount });
 
     const transactionId = uuidv7();
 

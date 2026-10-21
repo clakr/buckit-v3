@@ -43,19 +43,11 @@ export function toRepaymentEntry({ transaction, ...repayment }: StoredRepayment)
   };
 }
 
-async function checkRepaymentBankAccount(
+async function checkRepaymentFunds(
   db: DB,
   userId: string,
-  data: Pick<Transaction, "bankAccountId" | "type" | "amount"> & { currency: Debt["currency"] },
+  data: Pick<Transaction, "bankAccountId" | "type" | "amount">,
 ) {
-  // The server fns have no bank-account middleware, so this is the account's ownership check.
-  const account = await findOwnedBankAccount(db, userId, data.bankAccountId, {
-    currency: data.currency,
-  });
-
-  // An unusable account isn't a shortfall: wrong currency, missing, or not the user's.
-  if (!account) throw new NotFoundError("The selected account is invalid for this repayment.");
-
   const check = await checkUnallocated(db, userId, {
     kind: "add-transaction",
     bankAccountId: data.bankAccountId,
@@ -114,9 +106,14 @@ export async function addRepayment(
 
   const type = getLinkedTransactionType(debt.direction, "repayment");
 
-  await checkRepaymentBankAccount(db, userId, {
-    bankAccountId: input.bankAccountId,
+  const bankAccount = await findOwnedBankAccount(db, userId, input.bankAccountId, {
     currency: debt.currency,
+  });
+
+  if (!bankAccount) throw new NotFoundError("The selected account is invalid for this repayment.");
+
+  await checkRepaymentFunds(db, userId, {
+    bankAccountId: input.bankAccountId,
     type,
     amount: input.amount,
   });
