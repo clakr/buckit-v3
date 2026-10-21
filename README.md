@@ -12,7 +12,7 @@ pnpm db:migrate:local
 pnpm dev
 ```
 
-`pnpm dev` serves the app on port 3000. `pnpm db:seed` fills the local database with sample data.
+`pnpm dev` serves the app on port 3000.
 
 ## Check and build
 
