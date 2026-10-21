@@ -1,16 +1,20 @@
 import { createServerFn } from "@tanstack/react-start";
 import { env } from "cloudflare:workers";
-import { inArray } from "drizzle-orm";
+import { eq, inArray } from "drizzle-orm";
 import { uuidv7 } from "uuidv7";
 
+import type { DB } from "#/db";
+
 import { getDB } from "#/db";
-import { bankAccounts, transactions, withdrawals } from "#/db/schema";
-import { InsufficientFundsError } from "#/lib/errors";
+import { bankAccounts, transactions, withdrawals, type Withdrawal } from "#/db/schema";
+import { ConflictError, InsufficientFundsError, NotFoundError } from "#/lib/errors";
 import { describeInsufficientHeld } from "#/lib/money";
 import { verifyUserBankAccountMiddleware } from "#/modules/bank-accounts/middlewares";
 import { checkHeld, getBucketsWithFigures } from "#/modules/buckets/figures.server";
 import { verifyUserBucketMiddleware } from "#/modules/buckets/middlewares";
-import { logWithdrawalSchema } from "#/modules/withdrawals/schemas";
+import { checkTransactionEdit, updateTransaction } from "#/modules/transactions/linked.server";
+import { verifyUserWithdrawalMiddleware } from "#/modules/withdrawals/middlewares";
+import { editWithdrawalSchema, logWithdrawalSchema } from "#/modules/withdrawals/schemas";
 
 export const getWithdrawals = createServerFn({
   method: "GET",
@@ -42,6 +46,54 @@ export const getWithdrawals = createServerFn({
       note: transaction.note,
       bankAccount: transaction.bankAccount,
     }));
+  });
+
+export const getWithdrawal = createServerFn({
+  method: "GET",
+})
+  .middleware([verifyUserWithdrawalMiddleware])
+  .handler(async ({ context, data }) => {
+    const db = getDB(env.db);
+
+    const withdrawal = await db.query.withdrawals.findFirst({
+      columns: { id: true, bucketId: true },
+      where: { id: data.withdrawalId },
+      with: {
+        bucket: { columns: { name: true } },
+        transaction: {
+          columns: { amount: true, date: true, note: true },
+          with: {
+            bankAccount: { columns: { id: true, name: true, currency: true } },
+          },
+        },
+      },
+    });
+
+    const bankAccount = withdrawal?.transaction.bankAccount;
+
+    if (!withdrawal || !bankAccount)
+      throw new NotFoundError("This withdrawal doesn't exist or may have been deleted.");
+
+    const { transaction, bucket } = withdrawal;
+
+    const [figures] = await getBucketsWithFigures(db, {
+      userId: context.userId,
+      bucketId: withdrawal.bucketId,
+    });
+
+    const held =
+      figures?.heldByBankAccount.find((row) => row.bankAccountId === bankAccount.id)?.amount ?? 0;
+
+    return {
+      id: withdrawal.id,
+      amount: transaction.amount,
+      date: transaction.date,
+      note: transaction.note,
+      bucket,
+      bankAccount,
+      // The Withdrawal's own amount is already out of what the Bucket holds, so it counts as available.
+      available: held + transaction.amount,
+    };
   });
 
 // The Bank Accounts a Bucket holds money from, with how much it holds from each.
@@ -120,4 +172,59 @@ export const logWithdrawal = createServerFn({
     ]);
 
     return withdrawalRows[0];
+  });
+
+async function findWithdrawalTransaction(db: DB, withdrawalId: Withdrawal["id"]) {
+  const withdrawal = await db.query.withdrawals.findFirst({
+    columns: { id: true },
+    where: { id: withdrawalId },
+    with: { transaction: { columns: { id: true, type: true } } },
+  });
+
+  if (!withdrawal)
+    throw new NotFoundError("This withdrawal doesn't exist or may have been deleted.");
+
+  return withdrawal.transaction;
+}
+
+export const editWithdrawal = createServerFn({
+  method: "POST",
+})
+  .middleware([verifyUserWithdrawalMiddleware])
+  .validator(editWithdrawalSchema)
+  .handler(async ({ context, data }) => {
+    const db = getDB(env.db);
+
+    const transaction = await findWithdrawalTransaction(db, data.withdrawalId);
+
+    const edit = {
+      transactionId: transaction.id,
+      type: transaction.type,
+      amount: data.amount,
+      date: data.date,
+      note: data.note,
+    };
+
+    const check = await checkTransactionEdit(db, context.userId, edit);
+
+    if (!check.ok) {
+      throw check.reason === "linked"
+        ? new ConflictError(check.message)
+        : new InsufficientFundsError(check.message);
+    }
+
+    return updateTransaction(db, edit);
+  });
+
+// Deleting the Transaction cascades to the Withdrawal. The Bucket and Unallocated can only gain.
+export const deleteWithdrawal = createServerFn({
+  method: "POST",
+})
+  .middleware([verifyUserWithdrawalMiddleware])
+  .handler(async ({ data }) => {
+    const db = getDB(env.db);
+
+    const transaction = await findWithdrawalTransaction(db, data.withdrawalId);
+
+    return db.delete(transactions).where(eq(transactions.id, transaction.id)).returning();
   });

@@ -9,6 +9,7 @@ import { Badge } from "#/components/ui/badge";
 import { Tooltip, TooltipContent, TooltipTrigger } from "#/components/ui/tooltip";
 import { formatMoney } from "#/lib/money";
 import { formatDateTime, formatToRelative } from "#/lib/utils";
+import { WithdrawalActionsDropdownMenu } from "#/modules/withdrawals/components/withdrawal-actions-dropdown-menu";
 
 type WithdrawalRow = Awaited<ReturnType<typeof getWithdrawals>>[number];
 
@@ -50,5 +51,10 @@ export const WITHDRAWAL_COLUMNS: ColumnDef<WithdrawalRow>[] = [
   },
   {
     accessorKey: "note",
+  },
+  {
+    accessorKey: "actions",
+    header: "",
+    cell: ({ row }) => <WithdrawalActionsDropdownMenu withdrawalId={row.original.id} />,
   },
 ];

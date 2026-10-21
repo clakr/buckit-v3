@@ -19,6 +19,7 @@ import { EditRepaymentDialog } from "#/modules/repayments/components/edit-repaym
 import { LogRepaymentDialog } from "#/modules/repayments/components/log-repayment-dialog";
 import { EditTransactionDialog } from "#/modules/transactions/components/edit-transaction-dialog";
 import { LogTransactionDialog } from "#/modules/transactions/components/log-transaction-dialog";
+import { EditWithdrawalDialog } from "#/modules/withdrawals/components/edit-withdrawal-dialog";
 import { WithdrawDialog } from "#/modules/withdrawals/components/withdraw-dialog";
 
 export const Route = createFileRoute("/_protected")({
@@ -48,6 +49,7 @@ function RouteComponent() {
       <LogTransactionDialog />
       <LogAllocationDialog />
       <WithdrawDialog />
+      <EditWithdrawalDialog />
       <EditTransactionDialog />
       <EditAllocationDialog />
       <EditBankAccountDialog />
