@@ -17,10 +17,12 @@ import { FieldGroup } from "#/components/ui/field";
 import { useAppForm } from "#/integrations/tanstack-form";
 import { NotFoundError } from "#/lib/errors";
 import {
+  amountSchema,
   centsToAmountInput,
-  formatMoney,
-  exceedsAvailable,
+  describeAllocationAlreadyWithdrawn,
   describeInsufficientUnallocated,
+  exceedsAvailable,
+  formatMoney,
 } from "#/lib/money";
 import { useEditAllocationMutation } from "#/modules/allocations/mutations";
 import { allocationQueryOption } from "#/modules/allocations/query-options";
@@ -141,15 +143,28 @@ export function EditAllocationDialog() {
                 <form.AppField
                   name="amount"
                   validators={{
-                    onChange: ({ value }) =>
-                      exceedsAvailable(value, allocation.available)
-                        ? {
-                            message: describeInsufficientUnallocated({
-                              bankAccount: allocation.bankAccount,
-                              availableCents: allocation.available,
-                            }),
-                          }
-                        : undefined,
+                    onChange: ({ value }) => {
+                      if (exceedsAvailable(value, allocation.available))
+                        return {
+                          message: describeInsufficientUnallocated({
+                            bankAccount: allocation.bankAccount,
+                            availableCents: allocation.available,
+                          }),
+                        };
+
+                      const amount = amountSchema.safeParse(value);
+                      if (amount.success && amount.data < allocation.alreadyWithdrawn)
+                        return {
+                          message: describeAllocationAlreadyWithdrawn({
+                            bucket: allocation.bucket,
+                            bankAccount: allocation.bankAccount,
+                            withdrawnCents: allocation.alreadyWithdrawn,
+                            change: "edit",
+                          }),
+                        };
+
+                      return undefined;
+                    },
                   }}
                 >
                   {(field) => (
@@ -166,6 +181,18 @@ export function EditAllocationDialog() {
                           <span className="font-semibold">
                             {formatMoney(allocation.available, allocation.bankAccount.currency)}
                           </span>
+                          {allocation.alreadyWithdrawn > 0 ? (
+                            <>
+                              {" "}
+                              · Lowest allowed:{" "}
+                              <span className="font-semibold">
+                                {formatMoney(
+                                  allocation.alreadyWithdrawn,
+                                  allocation.bankAccount.currency,
+                                )}
+                              </span>
+                            </>
+                          ) : null}
                         </>
                       }
                     />

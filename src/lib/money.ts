@@ -72,3 +72,23 @@ export function describeInsufficientHeld({
 }) {
   return `${bucket.name} doesn't hold that much from ${bankAccount.name}. Available: ${formatMoney(availableCents, bankAccount.currency)}`;
 }
+
+// A Bucket can't hold less than nothing from a Bank Account, so a lowered or deleted Allocation
+// can't take back money that's already been withdrawn.
+export function describeAllocationAlreadyWithdrawn({
+  bucket,
+  bankAccount,
+  withdrawnCents,
+  change,
+}: {
+  bucket: Pick<Bucket, "name">;
+  bankAccount: Pick<BankAccount, "name" | "currency">;
+  withdrawnCents: number;
+  change: "edit" | "delete";
+}) {
+  const withdrawn = formatMoney(withdrawnCents, bankAccount.currency);
+  const consequence =
+    change === "delete" ? "so it can't be deleted" : `so its amount can't go below ${withdrawn}`;
+
+  return `${withdrawn} of this allocation has already been withdrawn from ${bucket.name} (${bankAccount.name}), ${consequence}.`;
+}

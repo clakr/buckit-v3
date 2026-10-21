@@ -28,7 +28,7 @@ export function AllocationActionsDropdownMenu({ allocationId }: Props) {
   async function handleDeleteAllocation() {
     const confirmed = await confirm("Delete Allocation?", {
       description:
-        "Delete this allocation? The money will return to the account's unallocated pool.",
+        "Delete this allocation? Whatever its bucket still holds of it returns to the account's unallocated pool. If some has already been withdrawn, it can't be deleted.",
       confirmLabel: "Delete Allocation",
       cancelLabel: "Cancel",
     });

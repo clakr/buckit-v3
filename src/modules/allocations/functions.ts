@@ -6,9 +6,9 @@ import { uuidv7 } from "uuidv7";
 import type { DB } from "#/db";
 
 import { getDB } from "#/db";
-import { allocations } from "#/db/schema";
+import { allocations, type Allocation } from "#/db/schema";
 import { InsufficientFundsError, NotFoundError } from "#/lib/errors";
-import { describeInsufficientUnallocated } from "#/lib/money";
+import { describeAllocationAlreadyWithdrawn, describeInsufficientUnallocated } from "#/lib/money";
 import { verifyUserAllocationMiddleware } from "#/modules/allocations/middlewares";
 import {
   editAllocationSchema,
@@ -22,6 +22,7 @@ import {
   type BankAccountChange,
 } from "#/modules/bank-accounts/figures.server";
 import { verifyUserBankAccountMiddleware } from "#/modules/bank-accounts/middlewares";
+import { checkHeld, getBucketsWithFigures } from "#/modules/buckets/figures.server";
 import { verifyUserBucketMiddleware } from "#/modules/buckets/middlewares";
 
 export const getAllocation = createServerFn({
@@ -37,20 +38,32 @@ export const getAllocation = createServerFn({
       },
     });
 
-    const [figures] = allocation
-      ? await getBankAccountsWithFigures(db, {
-          userId: context.userId,
-          bankAccountId: allocation.bankAccountId,
-        })
-      : [];
-
-    if (!allocation || !figures)
+    if (!allocation)
       throw new NotFoundError("This allocation doesn't exist or may have been deleted.");
+
+    const [[figures], [bucket]] = await Promise.all([
+      getBankAccountsWithFigures(db, {
+        userId: context.userId,
+        bankAccountId: allocation.bankAccountId,
+      }),
+      getBucketsWithFigures(db, { userId: context.userId, bucketId: allocation.bucketId }),
+    ]);
+
+    if (!figures || !bucket)
+      throw new NotFoundError("This allocation doesn't exist or may have been deleted.");
+
+    const held =
+      bucket.heldByBankAccount.find((row) => row.bankAccountId === allocation.bankAccountId)
+        ?.amount ?? 0;
 
     return {
       ...allocation,
+      bucket: { name: bucket.name },
       bankAccount: { name: figures.name, currency: figures.currency },
       available: figures.unallocated + allocation.amount,
+      // Whatever of this Allocation the Bucket no longer holds has been withdrawn, so it's also the
+      // lowest the amount can go.
+      alreadyWithdrawn: Math.max(0, allocation.amount - held),
     };
   });
 
@@ -69,6 +82,46 @@ async function checkAllocationAmount(db: DB, userId: string, change: AllocationA
         availableCents: check.available,
       }),
     );
+}
+
+// Lowering or deleting an Allocation takes money back out of its Bucket, which can't go below
+// what's already been withdrawn from that Bank Account.
+async function assertAllocationReductionHeld(
+  db: DB,
+  userId: string,
+  {
+    allocationId,
+    amount,
+    change,
+  }: { allocationId: Allocation["id"]; amount: number; change: "edit" | "delete" },
+) {
+  const allocation = await db.query.allocations.findFirst({
+    columns: { amount: true, bucketId: true, bankAccountId: true },
+    where: { id: allocationId },
+  });
+
+  if (!allocation)
+    throw new NotFoundError("This allocation doesn't exist or may have been deleted.");
+
+  const reduction = allocation.amount - amount;
+  if (reduction <= 0) return;
+
+  const held = await checkHeld(db, userId, {
+    bucketId: allocation.bucketId,
+    bankAccountId: allocation.bankAccountId,
+    reduction,
+  });
+
+  if (held.ok) return;
+
+  throw new InsufficientFundsError(
+    describeAllocationAlreadyWithdrawn({
+      bucket: held.bucket,
+      bankAccount: held.bankAccount,
+      withdrawnCents: allocation.amount - held.available,
+      change,
+    }),
+  );
 }
 
 export const logAllocation = createServerFn({
@@ -106,6 +159,12 @@ export const editAllocation = createServerFn({
   .handler(async ({ context, data }) => {
     const db = getDB(env.db);
 
+    await assertAllocationReductionHeld(db, context.userId, {
+      allocationId: data.allocationId,
+      amount: data.amount,
+      change: "edit",
+    });
+
     await checkAllocationAmount(db, context.userId, {
       kind: "replace-allocation",
       allocationId: data.allocationId,
@@ -127,8 +186,14 @@ export const deleteAllocation = createServerFn({
   method: "POST",
 })
   .middleware([verifyUserAllocationMiddleware])
-  .handler(async ({ data }) => {
+  .handler(async ({ context, data }) => {
     const db = getDB(env.db);
+
+    await assertAllocationReductionHeld(db, context.userId, {
+      allocationId: data.allocationId,
+      amount: 0,
+      change: "delete",
+    });
 
     return db.delete(allocations).where(eq(allocations.id, data.allocationId)).returning();
   });
