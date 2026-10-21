@@ -199,20 +199,16 @@ export const repayments = sqliteTable("repayments", {
   debtId: text("debt_id")
     .notNull()
     .references(() => debts.id, { onDelete: "cascade" }),
-  // Only set when there's no `transactionId` — a real Transaction is the source of truth
-  // for amount/date/note once one exists, never duplicated onto this row too.
   amount: integer("amount"),
   date: integer("date", { mode: "timestamp" }),
   note: text("note"),
   transactionId: text("transaction_id")
     .unique()
-    .references(() => transactions.id, { onDelete: "set null" }),
+    .references(() => transactions.id, { onDelete: "cascade" }),
   createdAt: integer("created_at", { mode: "timestamp_ms" })
     .default(sql`(cast(unixepoch('subsecond') * 1000 as integer))`)
     .notNull(),
 });
-
-//
 
 export const relations = defineRelations(
   {

@@ -2,7 +2,7 @@ import { count, eq, inArray } from "drizzle-orm";
 
 import type { DB } from "#/db";
 
-import { bankAccounts, debts, repayments, transactions, type BankAccount } from "#/db/schema";
+import { debts, repayments, transactions, type BankAccount } from "#/db/schema";
 import { NotFoundError } from "#/lib/errors";
 import { getBucketsWithFigures } from "#/modules/buckets/figures.server";
 import {
@@ -28,13 +28,6 @@ function isOrphanedDebt(db: DB, bankAccountId: BankAccount["id"]) {
     debts.originatingTransactionId,
     selectBankAccountTransactionIds(db, bankAccountId),
   );
-}
-
-export function deleteBankAccountWithCascade(db: DB, bankAccountId: BankAccount["id"]) {
-  return db.batch([
-    db.delete(repayments).where(isRemovedRepayment(db, bankAccountId)),
-    db.delete(bankAccounts).where(eq(bankAccounts.id, bankAccountId)).returning(),
-  ]);
 }
 
 export type BankAccountDeletionImpact = {

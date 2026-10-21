@@ -8,10 +8,7 @@ import { bankAccounts } from "#/db/schema";
 import { ConflictError, NotFoundError } from "#/lib/errors";
 import { createUniqueNameRule } from "#/lib/unique-name.server";
 import { authMiddleware } from "#/modules/authentication/middlewares";
-import {
-  deleteBankAccountWithCascade,
-  loadBankAccountDeletionImpact,
-} from "#/modules/bank-accounts/deletion.server";
+import { loadBankAccountDeletionImpact } from "#/modules/bank-accounts/deletion.server";
 import { getBankAccountsWithFigures } from "#/modules/bank-accounts/figures.server";
 import { verifyUserBankAccountMiddleware } from "#/modules/bank-accounts/middlewares";
 import {
@@ -160,8 +157,6 @@ export const deleteBankAccount = createServerFn({
   method: "POST",
 })
   .middleware([verifyUserBankAccountMiddleware])
-  .handler(async ({ data }) => {
-    const [, deleted] = await deleteBankAccountWithCascade(getDB(env.db), data.bankAccountId);
-
-    return deleted;
-  });
+  .handler(async ({ data }) =>
+    getDB(env.db).delete(bankAccounts).where(eq(bankAccounts.id, data.bankAccountId)).returning(),
+  );

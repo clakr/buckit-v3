@@ -119,14 +119,6 @@ export function isRepaymentBackedBy(transactionIds: SQLWrapper | Transaction["id
   return inArray(repayments.transactionId, transactionIds);
 }
 
-export function deleteLinkedTransaction(db: DB, transactionId: Transaction["id"]) {
-  return db.batch([
-    db.delete(repayments).where(isRepaymentBackedBy([transactionId])),
-    db.delete(transactions).where(eq(transactions.id, transactionId)).returning(),
-  ]);
-}
-
-/** What deleting the Transaction does to its Debt, as a sentence for the confirmation. */
 export function describeLinkedTransactionDeletion(link: TransactionLink) {
   if (link?.kind === "repayment")
     return `Its repayment on ${link.debt.name}'s debt will be removed too, so the outstanding goes back up.`;

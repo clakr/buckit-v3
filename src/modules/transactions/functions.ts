@@ -2,6 +2,7 @@ import type { z } from "zod";
 
 import { createServerFn } from "@tanstack/react-start";
 import { env } from "cloudflare:workers";
+import { eq } from "drizzle-orm";
 import { uuidv7 } from "uuidv7";
 
 import type { DB } from "#/db";
@@ -14,7 +15,6 @@ import { checkUnallocated } from "#/modules/bank-accounts/figures.server";
 import { verifyUserBankAccountMiddleware } from "#/modules/bank-accounts/middlewares";
 import {
   checkTransactionEdit,
-  deleteLinkedTransaction,
   describeLinkedTransactionDeletion,
   getTransactionLocks,
   loadTransactionLink,
@@ -179,7 +179,5 @@ export const deleteTransaction = createServerFn({
 
     if (!check.ok) throw new InsufficientFundsError(DELETE_NEGATIVE_UNALLOCATED_MESSAGE);
 
-    const [, deleted] = await deleteLinkedTransaction(db, data.transactionId);
-
-    return deleted;
+    return db.delete(transactions).where(eq(transactions.id, data.transactionId)).returning();
   });
