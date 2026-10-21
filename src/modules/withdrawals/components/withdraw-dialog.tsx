@@ -18,12 +18,7 @@ import {
 import { FieldGroup } from "#/components/ui/field";
 import { useAppForm } from "#/integrations/tanstack-form";
 import { NotFoundError } from "#/lib/errors";
-import {
-  centsToAmountInput,
-  describeInsufficientHeld,
-  exceedsAvailable,
-  formatMoney,
-} from "#/lib/money";
+import { describeInsufficientHeld, exceedsAvailable, formatMoney } from "#/lib/money";
 import { bucketQueryOption } from "#/modules/buckets/query-options";
 import { useLogWithdrawalMutation } from "#/modules/withdrawals/mutations";
 import { withdrawalSourcesQueryOption } from "#/modules/withdrawals/query-options";
@@ -242,17 +237,7 @@ export function WithdrawDialog() {
                             Available:{" "}
                             <span className="font-semibold">
                               {formatMoney(selectedSource.held, selectedSource.currency)}
-                            </span>{" "}
-                            <Button
-                              type="button"
-                              variant="link"
-                              size="xs"
-                              onClick={() =>
-                                field.handleChange(centsToAmountInput(selectedSource.held))
-                              }
-                            >
-                              Take all
-                            </Button>
+                            </span>
                           </>
                         ) : undefined
                       }

@@ -1,4 +1,4 @@
-import { IconDots, IconEye, IconMinus, IconPlus } from "@tabler/icons-react";
+import { IconDots, IconEye, IconPlus } from "@tabler/icons-react";
 import { Link } from "@tanstack/react-router";
 
 import type { getBuckets } from "#/modules/buckets/functions";
@@ -54,7 +54,7 @@ export function BucketActionsDropdownMenu({ bucket }: Props) {
             Allocate Money
           </DropdownMenuItem>
           <DropdownMenuItem onClick={handleOpenWithdrawDialog}>
-            <IconMinus />
+            <svg />
             Withdraw Money
           </DropdownMenuItem>
         </DropdownMenuGroup>
