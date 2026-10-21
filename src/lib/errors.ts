@@ -42,10 +42,14 @@ const APP_ERRORS = {
   InsufficientFundsError,
 };
 
+function isAppErrorName(name: string): name is keyof typeof APP_ERRORS {
+  return Object.hasOwn(APP_ERRORS, name);
+}
+
 export const appErrorSerializationAdapter = createSerializationAdapter({
   key: "app-error",
   test: (value): value is AppError => value instanceof AppError,
   toSerializable: (error) => ({ name: error.name, message: error.message }),
   fromSerializable: ({ name, message }) =>
-    new (APP_ERRORS[name as keyof typeof APP_ERRORS] ?? AppError)(message),
+    new (isAppErrorName(name) ? APP_ERRORS[name] : AppError)(message),
 });
