@@ -7,16 +7,18 @@ import { Button } from "#/components/ui/button";
 import { Field, FieldDescription, FieldGroup, FieldSeparator } from "#/components/ui/field";
 import { useAppForm } from "#/integrations/tanstack-form";
 import { formatPageTitle } from "#/lib/utils";
-import { signInUserSchema } from "#/modules/authentication/schemas";
+import { signInSearchSchema, signInUserSchema } from "#/modules/authentication/schemas";
 import { signIn } from "#/modules/authentication/session";
 
 export const Route = createFileRoute("/_guest/")({
+  validateSearch: signInSearchSchema,
   head: () => ({ meta: [{ title: formatPageTitle("Login") }] }),
   component: RouteComponent,
 });
 
 function RouteComponent() {
   const router = useRouter();
+  const { redirect } = Route.useSearch();
 
   const defaultValues: z.infer<typeof signInUserSchema> = {
     email: "",
@@ -28,7 +30,7 @@ function RouteComponent() {
     validators: {
       onChange: signInUserSchema,
     },
-    onSubmit: ({ value: data }) => signIn(router, data),
+    onSubmit: ({ value: data }) => signIn(router, data, redirect),
   });
 
   return (

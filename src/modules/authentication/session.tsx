@@ -13,7 +13,11 @@ import { closeAllDialogs } from "#/stores/dialog-store";
 
 let isLeaving = false;
 
-export async function signIn(router: RegisteredRouter, data: z.infer<typeof signInUserSchema>) {
+export async function signIn(
+  router: RegisteredRouter,
+  data: z.infer<typeof signInUserSchema>,
+  redirectTo?: string,
+) {
   try {
     await signInUser({ data });
   } catch (error) {
@@ -26,7 +30,7 @@ export async function signIn(router: RegisteredRouter, data: z.infer<typeof sign
     return;
   }
 
-  await enterSession(router);
+  await enterSession(router, redirectTo);
 }
 
 export async function signUp(router: RegisteredRouter, data: z.infer<typeof signUpUserSchema>) {
@@ -84,23 +88,25 @@ export async function leaveExpiredSession(router: RegisteredRouter, error: Sessi
 
   toast.error("Signed Out", { description: error.message });
 
-  await leaveSession(router);
+  await leaveSession(router, router.state.location.href);
 }
 
-async function enterSession(router: RegisteredRouter) {
+async function enterSession(router: RegisteredRouter, redirectTo?: string) {
   closeAllDialogs();
   router.options.context.queryClient.clear();
 
-  await router.navigate({ to: "/dashboard", replace: true });
+  await (redirectTo
+    ? router.navigate({ href: redirectTo, replace: true })
+    : router.navigate({ to: "/dashboard", replace: true }));
 }
 
-async function leaveSession(router: RegisteredRouter) {
+async function leaveSession(router: RegisteredRouter, redirectTo?: string) {
   closeAllDialogs();
 
   router.options.context.queryClient.setQueryData(sessionQueryOption().queryKey, null);
 
   try {
-    await router.navigate({ to: "/", replace: true });
+    await router.navigate({ to: "/", search: { redirect: redirectTo }, replace: true });
   } finally {
     router.options.context.queryClient.clear();
     isLeaving = false;

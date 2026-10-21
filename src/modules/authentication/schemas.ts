@@ -1,5 +1,14 @@
 import { z } from "zod";
 
+// Only same-origin paths. A leading `//` or `/\` would send the User to another site.
+export const signInSearchSchema = z.object({
+  redirect: z
+    .string()
+    .regex(/^\/(?![/\\])/)
+    .optional()
+    .catch(undefined),
+});
+
 export const signInUserSchema = z.object({
   email: z.email("Please enter a valid email address").toLowerCase().trim(),
   password: z
