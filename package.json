@@ -66,6 +66,7 @@
     "@rolldown/plugin-babel": "0.2.4",
     "@tailwindcss/typography": "0.5.20",
     "@tanstack/devtools-vite": "0.8.5",
+    "@tanstack/intent": "0.5.6",
     "@tanstack/router-cli": "1.167.38",
     "@testing-library/dom": "10.4.2",
     "@testing-library/react": "16.3.3",
@@ -88,6 +89,15 @@
     "onlyBuiltDependencies": [
       "esbuild",
       "lightningcss"
+    ]
+  },
+  "intent": {
+    "skills": [
+      "@tanstack/*",
+      "drizzle-kit"
+    ],
+    "exclude": [
+      "@tanstack/devtools-event-client"
     ]
   }
 }
