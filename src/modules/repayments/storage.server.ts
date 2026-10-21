@@ -149,8 +149,7 @@ export async function changeRepayment(
       transaction: { columns: { id: true, type: true } },
     },
   });
-  // `debt` is only nullable in the relation's type; `debtId` is NOT NULL.
-  if (!repayment?.debt) {
+  if (!repayment) {
     throw new NotFoundError("This repayment doesn't exist or may have been deleted.");
   }
 

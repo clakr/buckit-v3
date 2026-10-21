@@ -3,6 +3,7 @@ import { eq, inArray, type SQLWrapper } from "drizzle-orm";
 import type { DB } from "#/db";
 
 import { repayments, transactions, type Debt, type Transaction } from "#/db/schema";
+import { NotFoundError } from "#/lib/errors";
 import { checkUnallocated } from "#/modules/bank-accounts/figures.server";
 import {
   isRepaymentDateBeforeDebt,
@@ -44,7 +45,7 @@ export async function loadTransactionLink(
     }),
   ]);
 
-  if (repayment?.debt) return { kind: "repayment", debt: repayment.debt };
+  if (repayment) return { kind: "repayment", debt: repayment.debt };
   if (fundedDebt) return { kind: "origination", debt: fundedDebt };
 
   return null;
@@ -88,11 +89,10 @@ export async function checkTransactionEdit(
     loadTransactionLink(db, edit.transactionId),
   ]);
 
-  // Callers sit behind an ownership check; a row gone since then has nothing left to break.
-  if (current) {
-    const message = checkLinkRules(link, current, edit);
-    if (message) return { ok: false, reason: "linked", message };
-  }
+  if (!current) throw new NotFoundError("This transaction doesn't exist or may have been deleted.");
+
+  const message = checkLinkRules(link, current, edit);
+  if (message) return { ok: false, reason: "linked", message };
 
   const unallocated = await checkUnallocated(db, userId, {
     kind: "replace-transaction",

@@ -290,6 +290,7 @@ export const relations = defineRelations(
       debt: r.one.debts({
         from: r.repayments.debtId,
         to: r.debts.id,
+        optional: false,
       }),
       transaction: r.one.transactions({
         from: r.repayments.transactionId,
