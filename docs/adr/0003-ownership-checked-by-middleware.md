@@ -26,5 +26,5 @@ The 2026-10-20 Authentication architecture review suggested dropping the middlew
 
 - Don't remove an ownership middleware from a server function without first scoping every read and write in its handler by User.
 - A new server function that takes a record id must attach that module's ownership middleware, including for ids of other modules' records (as `logAllocation` attaches both the Bank Account and the Bucket middleware).
-- Helpers called from behind the middleware, like `checkTransactionEdit`, may assume ownership is already settled.
+- Helpers called from behind the middleware, like `assertTransactionEditAllowed`, may assume ownership is already settled.
 - Modules that scope their own lookups anyway (Repayment storage, the figures and deletion loaders) keep doing so. That costs nothing, and it makes them safe to reuse elsewhere.

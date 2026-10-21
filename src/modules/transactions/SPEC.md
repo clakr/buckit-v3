@@ -39,7 +39,7 @@ The amount is stored in minor units of the owning Bank Account's currency (see t
 Every mutation that could reduce a Bank Account's Unallocated balance enforces the rule:
 
 - `logTransaction`, for expenses only.
-- `editTransaction`, which recomputes with the new amount and type in place of the old ones, through `checkTransactionEdit`.
+- `editTransaction`, which recomputes with the new amount and type in place of the old ones, through `assertTransactionEditAllowed`.
 - `deleteTransaction`, which recomputes without the transaction.
 
 All three call `checkUnallocated` (`src/modules/bank-accounts/figures.server.ts`). Allocation, Debt and Repayment use the same check, so the rule lives in one place. **The write runs the check.** Each mutation runs it on the server right before writing and throws `InsufficientFundsError` when it fails. The Log and Edit dialogs have no separate check before submitting. When the write rejects, the failure toast shows the reason and the dialog stays open with the user's input. Delete keeps `validateDeleteTransaction`, because the confirm dialog needs its preview before the user confirms: what will be removed, or why it can't be.
@@ -48,14 +48,14 @@ All three call `checkUnallocated` (`src/modules/bank-accounts/figures.server.ts`
 
 A Linked Transaction (see `CONTEXT.md`) follows the rules of the Debt or Withdrawal it backs, for edit and delete, from whichever page the user starts on. One module, `linked.server.ts`, holds the rules:
 
-- `checkTransactionEdit` rejects these changes with `ConflictError`:
+- `assertTransactionEditAllowed` rejects these changes with `ConflictError`:
   - changing a Linked Transaction's type;
   - changing an origination's amount;
   - dating a repayment before its Debt.
 
   For a Debt link it then runs the usual `Unallocated` check. A Withdrawal's Transaction skips that check, because it moves Balance and the earmark by the same amount, so Unallocated can't change. Instead, raising its amount runs the held check (`checkHeld` in `src/modules/buckets/figures.server.ts`) and throws `InsufficientFundsError` past what the Bucket holds from that Bank Account. The message names the most the amount can be.
 
-- `editTransaction` and the Repayment storage module's `changeRepayment` both call it on the server.
+- `editTransaction`, the Repayment storage module's `changeRepayment` and `editWithdrawal` all call it on the server.
 - `getTransaction` returns the link and the fields it locks. The Edit dialog disables those fields and says why.
 - The Bank Account's Transactions table marks a Withdrawal's Transaction with a link to its Bucket.
 - The database deletes a repayment along with its Transaction. `repayments.transactionId` is `ON DELETE CASCADE`, so deleting a Transaction deletes its repayment. So does deleting a Bank Account, which cascades to its Transactions. `isRepaymentBackedBy` only finds those repayments for the Bank Account deletion preview.
