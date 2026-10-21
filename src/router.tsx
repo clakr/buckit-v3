@@ -5,6 +5,7 @@ import {
 import { setupRouterSsrQueryIntegration } from "@tanstack/react-router-ssr-query";
 
 import { Main } from "#/components/main";
+import { NotFoundScreen } from "#/components/not-found-screen";
 import { RouteRetryButton } from "#/components/route-retry-button";
 import { StateTemplate } from "#/components/state-template";
 import { getContext } from "#/integrations/tanstack-query/root-provider";
@@ -25,6 +26,7 @@ export function getRouter() {
     },
     defaultErrorComponent: DefaultErrorComponent,
     defaultPendingComponent: DefaultPendingComponent,
+    defaultNotFoundComponent: DefaultNotFoundComponent,
   });
 
   setupRouterSsrQueryIntegration({ router, queryClient: context.queryClient });
@@ -53,6 +55,15 @@ function DefaultPendingComponent() {
     <Main>
       <StateTemplate state="loading" title="Loading" description="Just a moment..." />
     </Main>
+  );
+}
+
+function DefaultNotFoundComponent() {
+  return (
+    <NotFoundScreen
+      title="Page not found"
+      description="We couldn't find the page you're looking for. It may have been moved or no longer exists."
+    />
   );
 }
 
