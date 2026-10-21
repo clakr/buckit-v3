@@ -2,6 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import z from "zod";
 
 import type { Transaction } from "#/db/schema";
+import type { getTransaction } from "#/modules/transactions/functions";
 
 import { StateTemplate } from "#/components/state-template";
 import { Button } from "#/components/ui/button";
@@ -27,6 +28,19 @@ import { confirm } from "#/stores/use-confirm";
 export const useEditTransactionDialogStore = createDialogStore<{
   transactionId: Transaction["id"] | null;
 }>({ transactionId: null });
+
+function describeTransactionLink(
+  link: NonNullable<Awaited<ReturnType<typeof getTransaction>>["link"]>,
+) {
+  switch (link.kind) {
+    case "repayment":
+      return `This is a repayment on ${link.debt.name}'s debt, so its type is fixed and it can't be dated before the debt.`;
+    case "origination":
+      return `This funded ${link.debt.name}'s debt, so its type and amount are fixed. To correct the amount, delete the debt and record it again.`;
+    case "withdrawal":
+      return `This is a withdrawal from ${link.bucket.name}, so its type is fixed and its amount can't exceed what the bucket holds from this account.`;
+  }
+}
 
 export function EditTransactionDialog() {
   const { isOpen, payload, close } = useEditTransactionDialogStore();
@@ -73,7 +87,7 @@ export function EditTransactionDialog() {
 
   const repaymentDateRule =
     transaction?.link?.kind === "repayment"
-      ? getRepaymentDateRule(transaction.link.debtDate)
+      ? getRepaymentDateRule(transaction.link.debt.date)
       : undefined;
 
   async function handleOnOpenChange(open: boolean) {
@@ -150,11 +164,7 @@ export function EditTransactionDialog() {
                   )}
                 </form.AppField>
                 {transaction.link ? (
-                  <FieldDescription>
-                    {transaction.link.kind === "repayment"
-                      ? `This is a repayment on ${transaction.link.debtName}'s debt, so its type is fixed and it can't be dated before the debt.`
-                      : `This funded ${transaction.link.debtName}'s debt, so its type and amount are fixed. To correct the amount, delete the debt and record it again.`}
-                  </FieldDescription>
+                  <FieldDescription>{describeTransactionLink(transaction.link)}</FieldDescription>
                 ) : null}
                 <form.AppField name="amount">
                   {(field) => (

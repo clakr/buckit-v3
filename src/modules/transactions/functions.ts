@@ -51,7 +51,7 @@ export const getTransaction = createServerFn({
 
     return {
       ...transaction,
-      link: link ? { kind: link.kind, debtName: link.debt.name, debtDate: link.debt.date } : null,
+      link,
       locks: getTransactionLocks(link),
     };
   });

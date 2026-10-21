@@ -2,9 +2,11 @@ import { eq, inArray, type SQLWrapper } from "drizzle-orm";
 
 import type { DB } from "#/db";
 
-import { repayments, transactions, type Debt, type Transaction } from "#/db/schema";
+import { repayments, transactions, type Bucket, type Debt, type Transaction } from "#/db/schema";
 import { NotFoundError } from "#/lib/errors";
+import { describeInsufficientHeld } from "#/lib/money";
 import { checkUnallocated } from "#/modules/bank-accounts/figures.server";
+import { checkHeld } from "#/modules/buckets/figures.server";
 import {
   isRepaymentDateBeforeDebt,
   REPAYMENT_BEFORE_DEBT_MESSAGE,
@@ -12,7 +14,10 @@ import {
 
 type LinkedDebt = Pick<Debt, "id" | "name" | "direction" | "date">;
 
-export type TransactionLink = { kind: "origination" | "repayment"; debt: LinkedDebt } | null;
+export type TransactionLink =
+  | { kind: "origination" | "repayment"; debt: LinkedDebt }
+  | { kind: "withdrawal"; bucket: Pick<Bucket, "id" | "name"> }
+  | null;
 
 export type TransactionLocks = { type: boolean; amount: boolean };
 
@@ -22,7 +27,7 @@ export type TransactionEdit = Pick<Transaction, "type" | "amount" | "date" | "no
 
 export type TransactionEditCheck =
   | { ok: true }
-  | { ok: false; reason: "linked" | "unallocated"; message: string };
+  | { ok: false; reason: "linked" | "unallocated" | "held"; message: string };
 
 export const NEGATIVE_UNALLOCATED_MESSAGE =
   "This change would result in a negative unallocated balance. Adjust the amount or add more income first.";
@@ -33,7 +38,7 @@ export async function loadTransactionLink(
 ): Promise<TransactionLink> {
   const debtColumns = { id: true, name: true, direction: true, date: true } as const;
 
-  const [repayment, fundedDebt] = await Promise.all([
+  const [repayment, fundedDebt, withdrawal] = await Promise.all([
     db.query.repayments.findFirst({
       columns: { id: true },
       where: { transactionId },
@@ -43,8 +48,14 @@ export async function loadTransactionLink(
       columns: debtColumns,
       where: { originatingTransactionId: transactionId },
     }),
+    db.query.withdrawals.findFirst({
+      columns: { id: true },
+      where: { transactionId },
+      with: { bucket: { columns: { id: true, name: true } } },
+    }),
   ]);
 
+  if (withdrawal) return { kind: "withdrawal", bucket: withdrawal.bucket };
   if (repayment) return { kind: "repayment", debt: repayment.debt };
   if (fundedDebt) return { kind: "origination", debt: fundedDebt };
 
@@ -65,7 +76,11 @@ function checkLinkRules(
   const locks = getTransactionLocks(link);
 
   if (locks.type && edit.type !== current.type)
-    return `This transaction is linked to ${link.debt.name}'s debt, so its type can't change.`;
+    return link.kind === "withdrawal"
+      ? `This transaction is a withdrawal from ${link.bucket.name}, so its type can't change.`
+      : `This transaction is linked to ${link.debt.name}'s debt, so its type can't change.`;
+
+  if (link.kind === "withdrawal") return null;
 
   if (locks.amount && edit.amount !== current.amount)
     return `This transaction funded ${link.debt.name}'s debt, so its amount can't change. To correct it, delete the debt and record it again.`;
@@ -83,7 +98,7 @@ export async function checkTransactionEdit(
 ): Promise<TransactionEditCheck> {
   const [current, link] = await Promise.all([
     db.query.transactions.findFirst({
-      columns: { type: true, amount: true },
+      columns: { type: true, amount: true, bankAccountId: true },
       where: { id: edit.transactionId },
     }),
     loadTransactionLink(db, edit.transactionId),
@@ -93,6 +108,10 @@ export async function checkTransactionEdit(
 
   const message = checkLinkRules(link, current, edit);
   if (message) return { ok: false, reason: "linked", message };
+
+  // A Withdrawal's Transaction moves Balance and the earmark together, so Unallocated can't change;
+  // only what the Bucket holds from the account limits it.
+  if (link?.kind === "withdrawal") return checkWithdrawalAmount(db, userId, link, current, edit);
 
   const unallocated = await checkUnallocated(db, userId, {
     kind: "replace-transaction",
@@ -105,6 +124,35 @@ export async function checkTransactionEdit(
     return { ok: false, reason: "unallocated", message: NEGATIVE_UNALLOCATED_MESSAGE };
 
   return { ok: true };
+}
+
+async function checkWithdrawalAmount(
+  db: DB,
+  userId: string,
+  link: Extract<TransactionLink, { kind: "withdrawal" }>,
+  current: Pick<Transaction, "amount" | "bankAccountId">,
+  edit: TransactionEdit,
+): Promise<TransactionEditCheck> {
+  const increase = edit.amount - current.amount;
+  if (increase <= 0) return { ok: true };
+
+  const held = await checkHeld(db, userId, {
+    bucketId: link.bucket.id,
+    bankAccountId: current.bankAccountId,
+    reduction: increase,
+  });
+
+  if (held.ok) return { ok: true };
+
+  return {
+    ok: false,
+    reason: "held",
+    message: describeInsufficientHeld({
+      bucket: held.bucket,
+      bankAccount: held.bankAccount,
+      availableCents: current.amount + held.available,
+    }),
+  };
 }
 
 export function updateTransaction(db: DB, edit: TransactionEdit) {
@@ -120,6 +168,9 @@ export function isRepaymentBackedBy(transactionIds: SQLWrapper | Transaction["id
 }
 
 export function describeLinkedTransactionDeletion(link: TransactionLink) {
+  if (link?.kind === "withdrawal")
+    return `Its withdrawal from ${link.bucket.name} will be removed too, so the money goes back into the bucket.`;
+
   if (link?.kind === "repayment")
     return `Its repayment on ${link.debt.name}'s debt will be removed too, so the outstanding goes back up.`;
 

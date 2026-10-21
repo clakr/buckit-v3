@@ -287,6 +287,10 @@ export const relations = defineRelations(
         from: r.transactions.bankAccountId,
         to: r.bankAccounts.id,
       }),
+      withdrawal: r.one.withdrawals({
+        from: r.transactions.id,
+        to: r.withdrawals.transactionId,
+      }),
     },
     allocations: {
       bankAccount: r.one.bankAccounts({

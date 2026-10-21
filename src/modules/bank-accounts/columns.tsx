@@ -1,6 +1,7 @@
 import type { ColumnDef } from "@tanstack/react-table";
 
-import { IconCircleDashed, IconCircleDottedLetterH } from "@tabler/icons-react";
+import { IconBucket, IconCircleDashed, IconCircleDottedLetterH } from "@tabler/icons-react";
+import { Link } from "@tanstack/react-router";
 
 import type { Transaction } from "#/db/schema";
 import type { getBankAccount, getBankAccounts } from "#/modules/bank-accounts/functions";
@@ -101,13 +102,24 @@ export const TRANSACTIONS_COLUMNS: ColumnDef<
   },
   {
     accessorKey: "type",
-    cell: ({ getValue }) => {
-      const type = getValue<Transaction["type"]>();
+    cell: ({ row }) => {
+      const { type, withdrawal } = row.original;
 
       return (
-        <Badge variant={type === "income" ? "default" : "secondary"} className="capitalize">
-          {type}
-        </Badge>
+        <span className="flex items-center gap-x-2">
+          <Badge variant={type === "income" ? "default" : "secondary"} className="capitalize">
+            {type}
+          </Badge>
+          {withdrawal ? (
+            <Badge
+              variant="outline"
+              render={<Link to="/buckets/$bucketId" params={{ bucketId: withdrawal.bucket.id }} />}
+            >
+              <IconBucket />
+              From {withdrawal.bucket.name}
+            </Badge>
+          ) : null}
+        </span>
       );
     },
   },

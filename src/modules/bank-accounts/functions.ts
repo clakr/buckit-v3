@@ -49,6 +49,10 @@ export const getBankAccount = createServerFn({
                 currency: true,
               },
             },
+            withdrawal: {
+              columns: { id: true },
+              with: { bucket: { columns: { id: true, name: true } } },
+            },
           },
         },
       },
