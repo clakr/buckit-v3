@@ -22,5 +22,11 @@ export const auth = betterAuth({
   emailAndPassword: {
     enabled: true,
   },
+  // Sign-in and sign-up go through server functions, which throttle them. Closing the HTTP
+  // endpoints keeps `/api/auth/$` from being an unthrottled way around that.
+  disabledPaths: ["/sign-in/email", "/sign-up/email"],
+  advanced: {
+    ipAddress: { ipAddressHeaders: ["cf-connecting-ip"] },
+  },
   plugins: [tanstackStartCookies()],
 });

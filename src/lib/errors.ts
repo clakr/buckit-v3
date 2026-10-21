@@ -20,6 +20,10 @@ export class InsufficientFundsError extends AppError {
   override name = "InsufficientFundsError";
 }
 
+export class RateLimitedError extends AppError {
+  override name = "RateLimitedError";
+}
+
 export function describeErrorForUser(error: unknown, fallback: string) {
   return error instanceof AppError ? error.message : fallback;
 }
@@ -40,6 +44,7 @@ const APP_ERRORS = {
   NotFoundError,
   ConflictError,
   InsufficientFundsError,
+  RateLimitedError,
 };
 
 function isAppErrorName(name: string): name is keyof typeof APP_ERRORS {

@@ -1,6 +1,10 @@
 import { createServerFn } from "@tanstack/react-start";
 
-import { authMiddleware, privateResponseMiddleware } from "#/modules/authentication/middlewares";
+import {
+  authAttemptLimitMiddleware,
+  authMiddleware,
+  privateResponseMiddleware,
+} from "#/modules/authentication/middlewares";
 import { signUpUserSchema, signInUserSchema } from "#/modules/authentication/schemas";
 import {
   readSession,
@@ -12,7 +16,7 @@ import {
 export const signUpUser = createServerFn({
   method: "POST",
 })
-  .middleware([privateResponseMiddleware])
+  .middleware([authAttemptLimitMiddleware("sign-up")])
   .validator(signUpUserSchema)
   .handler(({ data }) => signUpWithEmail(data));
 
@@ -27,6 +31,6 @@ export const signOutUser = createServerFn({ method: "POST" })
   .handler(() => signOutSession());
 
 export const signInUser = createServerFn({ method: "POST" })
-  .middleware([privateResponseMiddleware])
+  .middleware([authAttemptLimitMiddleware("sign-in")])
   .validator(signInUserSchema)
   .handler(({ data }) => signInWithEmail(data));

@@ -1,12 +1,13 @@
 import type { z } from "zod";
 
-import { getRequestHeaders } from "@tanstack/react-start/server";
+import { getRequestHeader, getRequestHeaders } from "@tanstack/react-start/server";
 import { isAPIError } from "better-auth/api";
+import { env } from "cloudflare:workers";
 
 import type { signInUserSchema, signUpUserSchema } from "#/modules/authentication/schemas";
 
 import { auth } from "#/integrations/better-auth";
-import { AppError, ConflictError, SessionExpiredError } from "#/lib/errors";
+import { AppError, ConflictError, RateLimitedError, SessionExpiredError } from "#/lib/errors";
 
 export async function readSession() {
   const session = await auth.api.getSession({ headers: getRequestHeaders() });
@@ -26,13 +27,26 @@ export async function requireUserId() {
   return user.id;
 }
 
+export async function consumeAuthAttempt(action: "sign-in" | "sign-up") {
+  const clientIp = getRequestHeader("cf-connecting-ip") ?? "unknown";
+  const { success } = await env.AUTH_ATTEMPT_LIMITER.limit({ key: `${action}:${clientIp}` });
+
+  if (!success) {
+    throw new RateLimitedError("Too many attempts. Please wait a minute and try again.");
+  }
+}
+
 export async function signInWithEmail(data: z.infer<typeof signInUserSchema>) {
+  const headers = getRequestHeaders();
+  const staleSession = await auth.api.getSession({ headers, query: { disableRefresh: true } });
+
   try {
     await auth.api.signInEmail({
       body: {
         email: data.email,
         password: data.password,
       },
+      headers,
     });
   } catch (error) {
     if (isAPIError(error) && error.body?.code === "INVALID_EMAIL_OR_PASSWORD") {
@@ -40,6 +54,11 @@ export async function signInWithEmail(data: z.infer<typeof signInUserSchema>) {
     }
 
     throw error;
+  }
+
+  // Only after the new Session exists, so a wrong password doesn't end a working one.
+  if (staleSession) {
+    await auth.api.revokeSession({ body: { token: staleSession.session.token }, headers });
   }
 }
 
@@ -51,6 +70,7 @@ export async function signUpWithEmail(data: z.infer<typeof signUpUserSchema>) {
         email: data.email,
         password: data.password,
       },
+      headers: getRequestHeaders(),
     });
   } catch (error) {
     if (isAPIError(error) && error.body?.code === "USER_ALREADY_EXISTS_USE_ANOTHER_EMAIL") {
