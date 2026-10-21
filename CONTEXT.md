@@ -37,7 +37,7 @@ A Transaction a Debt or a Withdrawal depends on. For a Debt, it is either a `rec
 Money earmarked from a Bank Account toward a Bucket. It stays in the Bank Account's Balance but reduces its Unallocated amount.
 
 **Withdrawal**:
-Money the User spends out of a Bucket, such as giving the tithe set aside over several months. It is one action that draws any amount, up to what the Bucket holds from one Bank Account, and moves that money out of the account as an `expense` Transaction. That Transaction is its Linked Transaction and holds the amount, date and note. A Withdrawal always has one. Deleting either one deletes the other. A Withdrawal can't move to a different Bucket or Bank Account. Moving money from one Bucket to another is not a Withdrawal, and no such feature exists.
+Money the User spends out of a Bucket, such as giving the tithe set aside over several months. It is one action that draws any amount, up to what the Bucket holds from one Bank Account, and moves that money out of the account as an `expense` Transaction. That Transaction is its Linked Transaction and holds the amount, date and note. A Withdrawal always has one. Deleting the Transaction deletes the Withdrawal, and so does deleting the Withdrawal's Bank Account. Deleting the Withdrawal deletes its Transaction, except when its Bucket is deleted: the Transaction then stays as a plain `expense`, because that money really left. A Withdrawal can't move to a different Bucket or Bank Account. Moving money from one Bucket to another is not a Withdrawal, and no such feature exists.
 _Avoid_: Spend, Payout. Don't confuse it with taking cash out of a bank, which would be a transfer between Bank Accounts.
 
 **Debt**:
