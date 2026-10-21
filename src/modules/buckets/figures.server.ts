@@ -27,7 +27,6 @@ export type BucketFigures = {
 
 export type BucketWithFigures = Bucket & BucketFigures;
 
-// Drizzle's `sum()` decodes to a string; amounts are integer cents, so Number is exact.
 function sumAllocationsByBankAccount(db: DB, scope: SQL | undefined) {
   return db
     .select({

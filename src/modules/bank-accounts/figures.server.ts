@@ -95,7 +95,6 @@ function getLatestTransactionDate(db: DB) {
     .where(eq(transactions.bankAccountId, bankAccounts.id));
 }
 
-// Drizzle's `sum()` decodes to a string, and SUM over no rows is NULL: hence coalesce + Number.
 function loadBankAccountTotals(
   db: DB,
   {

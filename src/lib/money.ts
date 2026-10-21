@@ -4,8 +4,6 @@ import type { BankAccount, Bucket } from "#/db/schema";
 
 const DECIMAL_PLACES_MESSAGE = "Use at most 2 decimal places.";
 
-// Floats can't represent most cents exactly (2100.01 * 100 = 210001.00000000003), so compare to
-// the nearest cent within a tolerance instead of `Number.isInteger`.
 function hasAtMostTwoDecimals(amount: number) {
   return Math.abs(amount * 100 - Math.round(amount * 100)) < 1e-6;
 }

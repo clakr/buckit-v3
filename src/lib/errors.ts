@@ -33,7 +33,6 @@ const APP_ERRORS = {
   InsufficientFundsError,
 };
 
-// Without this a thrown AppError reaches the client as a plain Error, so `instanceof` fails.
 export const appErrorSerializationAdapter = createSerializationAdapter({
   key: "app-error",
   test: (value): value is AppError => value instanceof AppError,

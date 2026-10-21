@@ -6,10 +6,6 @@ import { Button } from "#/components/ui/button";
 
 type Props = { title: string; description: string };
 
-/**
- * Full-page not-found state with a way back to the dashboard. Signed-out visitors following the
- * link are sent to login by the protected layout's guard.
- */
 export function NotFoundScreen({ title, description }: Props) {
   return (
     <Main>
