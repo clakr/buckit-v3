@@ -16,7 +16,7 @@ The work is tracked as GitHub issues on `clakr/buckit-v3`, which hold its status
 
 ## Problem statement
 
-A User sets money aside in a Bucket, such as a tithe saved every payday, and eventually spends all or part of it. The app has no way to do that. Before this spec, a Bucket only accumulated, and money left it only when an Allocation was edited or deleted. To spend the tithe, the User had to delete or shrink each Allocation and then log an `expense` Transaction on the Bank Account, in that order, because logging the expense first fails the `Unallocated ≥ 0` rule. That route takes several steps, the order is a trap, and it erases the record that the money was ever set aside.
+A User sets money aside in a Bucket, such as a tithe saved every payday, and eventually spends all or part of it. The app has no way to do that. Before this spec, a Bucket only accumulated, and money left it only when an Allocation was edited or deleted. To spend the tithe, the User had to delete or shrink each Allocation and then log an `expense` Transaction on the Bank Account, in that order, because logging the expense first fails the `Unallocated ≥ 0` rule. That route takes several steps, fails if done in the wrong order, and erases the record that the money was ever set aside.
 
 ## Solution
 
@@ -24,7 +24,7 @@ A **Withdrawal** spends money out of a Bucket in one action. The User picks the 
 
 [ADR 0004](../adr/0004-withdrawals-spend-from-buckets.md) records why this relaxes the old "never spend from a Bucket" boundary, and why Transactions still never attach to a Bucket. `CONTEXT.md` defines `Withdrawal`.
 
-A grilling and domain-modeling session on 2026-10-21 produced this spec. Nothing is built yet. Story 29 (ownership) applies to every ticket.
+A grilling and domain-modeling session on 2026-10-21 produced this spec. Story 29 (ownership) applies to every ticket.
 
 ## User stories
 
@@ -46,7 +46,7 @@ _These aren't new work. They're recapped here so this file describes all the beh
 9. As a user, I want a "Withdraw" action in a Bucket's menu, so I can spend money I set aside in one step.
 10. As a user, I want the Withdraw dialog to let me pick only Bank Accounts this Bucket holds money from, each shown with how much it holds, so I can't withdraw from an account that put nothing in.
 11. As a user, I want to withdraw any amount up to what the Bucket holds from the chosen Bank Account, so I can give part of the tithe now and the rest later.
-12. ~~As a user, I want a "Take all" shortcut that fills in everything the Bucket holds from the chosen Bank Account.~~ _Dropped after #1 shipped: the button looked out of place. The dialog shows the held figure next to the amount, so the user types it instead._
+12. ~~As a user, I want a "Take all" shortcut that fills in everything the Bucket holds from the chosen Bank Account.~~ _Dropped after #1 shipped, because the button looked out of place. The dialog shows the held figure next to the amount, so the user types it instead._
 13. As a user, I want a Withdrawal to draw from exactly one Bank Account. To empty a Bucket funded from two accounts, I log two Withdrawals. This way one Withdrawal never mixes currencies.
 14. As a user, I want to give a Withdrawal a date, defaulting to today, and an optional note, such as "Tithe, October".
 15. As a user, I want the dialog to stop me as I type if the amount is more than the Bucket holds from that Bank Account, and the server to check again on save, with a message naming the Bucket, the Bank Account and the most I can withdraw.
@@ -130,4 +130,4 @@ Deferred, for the reason the other specs in `docs/specs/` give: the repo has no 
 ## Further notes
 
 - `CONTEXT.md` defines `Withdrawal` and holds the updated `Bucket`, `Subtotal`, `Unallocated` and `Linked Transaction` entries. This spec assumes them.
-- The name was chosen over "Disbursement", "Spend" and "Payout". Taking cash out at an ATM would be a transfer between Bank Accounts in this app, not a Withdrawal, so the two shouldn't be confused.
+- We picked the name over "Disbursement", "Spend" and "Payout". Taking cash out at an ATM would be a transfer between Bank Accounts in this app, not a Withdrawal, so the two shouldn't be confused.

@@ -68,7 +68,7 @@ The database enforces the same rule with a unique index on `(user_id, lower(name
 
 ### Deletion destroys data instead of being blocked
 
-**This reverses an earlier policy.** The old version blocked deleting any account with transactions or allocations. Run `git show bc77e36^:src/modules/accounts/specs/05-delete-account.md` to see it. Now, deleting a Bank Account hard-deletes it, and the existing `onDelete: "cascade"` foreign key deletes all of its Transactions and Allocations. Deleting the Transactions also cascades to the Withdrawals drawn from the account, through `withdrawals.transactionId`. A typed confirmation guards it, where the user re-types the account name, instead of a check that blocks it. This was chosen because it's simpler and causes less day-to-day friction. The cost is that a mistaken delete can't be undone. See [`docs/adr/0001-hard-delete-bank-accounts.md`](../../../docs/adr/0001-hard-delete-bank-accounts.md).
+**This reverses an earlier policy.** The old version blocked deleting any account with transactions or allocations. Run `git show bc77e36^:src/modules/accounts/specs/05-delete-account.md` to see it. Now, deleting a Bank Account hard-deletes it, and the existing `onDelete: "cascade"` foreign key deletes all of its Transactions and Allocations. Deleting the Transactions also cascades to the Withdrawals drawn from the account, through `withdrawals.transactionId`. A typed confirmation guards it, where the user re-types the account name, instead of a check that blocks it. We chose this because it's simpler and causes less day-to-day friction. The cost is that a mistaken delete can't be undone. See [`docs/adr/0001-hard-delete-bank-accounts.md`](../../../docs/adr/0001-hard-delete-bank-accounts.md).
 
 ### `updatedAt` deferred
 
