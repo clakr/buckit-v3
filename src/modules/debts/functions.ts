@@ -153,8 +153,8 @@ export const editDebt = createServerFn({
 
     if (!debt) throw new NotFoundError("This debt doesn't exist or may have been deleted.");
 
-    if (debt.direction === "receivable" && data.amount !== undefined) {
-      throw new ConflictError("A receivable debt's amount can't be changed.");
+    if (debt.direction !== data.direction) {
+      throw new ConflictError("A debt's direction can't be changed.");
     }
 
     const [updated] = await db
@@ -163,7 +163,7 @@ export const editDebt = createServerFn({
         name: data.name,
         date: data.date,
         note: data.note || null,
-        ...(data.amount === undefined ? {} : { amount: data.amount }),
+        ...(data.direction === "payable" ? { amount: data.amount } : {}),
       })
       .where(eq(debts.id, data.debtId))
       .returning();

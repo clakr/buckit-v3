@@ -20,7 +20,7 @@ import { NotFoundError } from "#/lib/errors";
 import { centsToAmountInput } from "#/lib/money";
 import { useEditDebtMutation } from "#/modules/debts/mutations";
 import { debtQueryOption } from "#/modules/debts/query-options";
-import { editDebtSchema } from "#/modules/debts/schemas";
+import { editDebtFormSchema } from "#/modules/debts/schemas";
 import { createDialogStore } from "#/stores/dialog-store";
 import { confirm } from "#/stores/use-confirm";
 
@@ -46,7 +46,7 @@ export function EditDebtDialog() {
 
   const isAmountLocked = debt?.direction === "receivable";
 
-  const defaultValues: z.input<typeof editDebtSchema> = {
+  const defaultValues: z.input<typeof editDebtFormSchema> = {
     debtId: debt?.id ?? "",
     name: debt?.name ?? "",
     amount: centsToAmountInput(debt?.amount ?? 0),
@@ -57,11 +57,16 @@ export function EditDebtDialog() {
   const form = useAppForm({
     defaultValues,
     validators: {
-      onChange: editDebtSchema,
+      onChange: editDebtFormSchema,
     },
     onSubmit: async ({ value }) => {
-      // A receivable's amount is locked, so it's never sent — the server rejects it.
-      const data = isAmountLocked ? { ...value, amount: undefined } : value;
+      if (!debt) return;
+
+      const { amount, ...details } = value;
+      const data =
+        debt.direction === "receivable"
+          ? { ...details, direction: debt.direction }
+          : { ...details, direction: debt.direction, amount };
 
       try {
         await mutation.mutateAsync({ data });
