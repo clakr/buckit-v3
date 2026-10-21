@@ -73,7 +73,7 @@ export function DebtDeletionSummary({ impact, deleteTransactions }: Props) {
         <p className="text-muted-foreground">
           {transactionCount} linked{" "}
           {transactionCount === 1 ? "transaction stays" : "transactions stay"} in{" "}
-          {bankAccountsLabel} — no balance changes.
+          {bankAccountsLabel}, so no balance changes.
         </p>
       )}
     </div>

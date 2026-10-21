@@ -201,14 +201,14 @@ export function LogRepaymentDialog() {
                   {() => (
                     <BankAccountSelectField
                       label="Bank Account"
-                      description="Optional — leave empty if this isn't a real money movement."
+                      description="Optional. Leave it empty if no money moved through a tracked account."
                       placeholder="No bank account"
                       currency={debt.currency}
                       bankAccountsQuery={{ status, refetch }}
                       bankAccounts={bankAccounts}
                       emptyContent={
                         <p className="text-muted-foreground">
-                          No {debt.currency} accounts — this repayment is recorded without one.
+                          No {debt.currency} accounts, so this repayment is logged without one.
                         </p>
                       }
                     />

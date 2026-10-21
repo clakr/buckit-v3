@@ -210,7 +210,7 @@ export function RecordDebtDialog() {
                   {() => (
                     <BankAccountSelectField
                       label="Funding Source"
-                      description="Optional — leave empty if this isn't coming out of a tracked account."
+                      description="Optional. Leave it empty if the money isn't coming out of a tracked account."
                       placeholder="No source account"
                       currency={currency}
                       bankAccountsQuery={bankAccountsQuery}
@@ -232,7 +232,7 @@ export function RecordDebtDialog() {
                 </form.AppField>
               ) : (
                 <p className="text-muted-foreground">
-                  No account needed yet — this is recorded as a pure IOU until you log a repayment.
+                  No account needed yet. This debt is an IOU until you log a repayment.
                 </p>
               )}
               <form.AppField name="date">

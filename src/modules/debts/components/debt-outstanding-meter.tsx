@@ -78,7 +78,7 @@ export function DebtOutstandingMeter({
               {isOverpaid ? (
                 <p className="text-muted-foreground">
                   {isReceivable
-                    ? "They paid you more than they owed — a credit in your favour."
+                    ? "They paid you more than they owed. The difference is a credit in your favour."
                     : "You paid more than you owed. Ask for the difference back."}
                 </p>
               ) : null}
