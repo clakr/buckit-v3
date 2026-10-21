@@ -1,11 +1,18 @@
 ---
-status: ready-for-agent
 module: withdrawals
 ---
 
 # Spec: Withdrawal
 
-This project uses no issue tracker, so this file is the checklist. Its `status` frontmatter takes the place of a tracker's triage label. Update the status, for example to `in-progress` or `done`, as work goes on.
+The work is tracked as GitHub issues on `clakr/buckit-v3`, which hold its status. This file holds the design.
+
+| Issue                                             | Ticket                                                                 | Stories    | Blocked by |
+| ------------------------------------------------- | ---------------------------------------------------------------------- | ---------- | ---------- |
+| [#1](https://github.com/clakr/buckit-v3/issues/1) | Log a Withdrawal and see it on the Bucket                              | 9 to 18    | none       |
+| [#2](https://github.com/clakr/buckit-v3/issues/2) | Make a Withdrawal's linked Transaction behave on the Bank Account page | 19, 23, 24 | #1         |
+| [#3](https://github.com/clakr/buckit-v3/issues/3) | Edit and delete a Withdrawal from the Bucket page                      | 20 to 22   | #1         |
+| [#4](https://github.com/clakr/buckit-v3/issues/4) | Block Allocation edits and deletes that leave a Bucket below zero      | 25         | #1         |
+| [#5](https://github.com/clakr/buckit-v3/issues/5) | Account for Withdrawals when deleting a Bucket or Bank Account         | 26 to 28   | #1         |
 
 ## Problem statement
 
@@ -17,7 +24,7 @@ A **Withdrawal** spends money out of a Bucket in one action. The User picks the 
 
 [ADR 0004](../adr/0004-withdrawals-spend-from-buckets.md) records why this relaxes the old "never spend from a Bucket" boundary, and why Transactions still never attach to a Bucket. `CONTEXT.md` defines `Withdrawal`.
 
-A grilling and domain-modeling session on 2026-10-21 produced this spec. Nothing is built yet.
+A grilling and domain-modeling session on 2026-10-21 produced this spec. Nothing is built yet. Story 29 (ownership) applies to every ticket.
 
 ## User stories
 
