@@ -9,12 +9,12 @@ import type { DB } from "#/db";
 
 import { getDB } from "#/db";
 import { transactions, type Transaction } from "#/db/schema";
-import { ConflictError, InsufficientFundsError, NotFoundError } from "#/lib/errors";
+import { InsufficientFundsError, NotFoundError } from "#/lib/errors";
 import { describeInsufficientUnallocated, formatMoney } from "#/lib/money";
 import { checkUnallocated } from "#/modules/bank-accounts/figures.server";
 import { verifyUserBankAccountMiddleware } from "#/modules/bank-accounts/middlewares";
 import {
-  checkTransactionEdit,
+  assertTransactionEditAllowed,
   describeLinkedTransactionDeletion,
   getTransactionLocks,
   loadTransactionLink,
@@ -112,13 +112,7 @@ export const editTransaction = createServerFn({
     const db = getDB(env.db);
     const edit = toTransactionEdit(data);
 
-    const check = await checkTransactionEdit(db, context.userId, edit);
-
-    if (!check.ok) {
-      throw check.reason === "linked"
-        ? new ConflictError(check.message)
-        : new InsufficientFundsError(check.message);
-    }
+    await assertTransactionEditAllowed(db, context.userId, edit);
 
     return updateTransaction(db, edit);
   });

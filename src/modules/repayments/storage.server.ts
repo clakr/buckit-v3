@@ -18,7 +18,10 @@ import { describeInsufficientUnallocated } from "#/lib/money";
 import { checkUnallocated } from "#/modules/bank-accounts/figures.server";
 import { findOwnedBankAccount } from "#/modules/bank-accounts/ownership.server";
 import { getLinkedTransactionType } from "#/modules/debts/utils";
-import { checkTransactionEdit, updateTransaction } from "#/modules/transactions/linked.server";
+import {
+  assertTransactionEditAllowed,
+  updateTransaction,
+} from "#/modules/transactions/linked.server";
 
 import { isRepaymentDateBeforeDebt, REPAYMENT_BEFORE_DEBT_MESSAGE } from "./utils";
 
@@ -191,13 +194,7 @@ export async function changeRepayment(
     date: input.date,
     note: input.note,
   };
-  const check = await checkTransactionEdit(db, userId, edit);
-
-  if (!check.ok) {
-    throw check.reason === "linked"
-      ? new ConflictError(check.message)
-      : new InsufficientFundsError(check.message);
-  }
+  await assertTransactionEditAllowed(db, userId, edit);
 
   await updateTransaction(db, edit);
 

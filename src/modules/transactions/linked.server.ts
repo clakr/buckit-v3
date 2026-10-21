@@ -3,7 +3,7 @@ import { eq, inArray, type SQLWrapper } from "drizzle-orm";
 import type { DB } from "#/db";
 
 import { repayments, transactions, type Bucket, type Debt, type Transaction } from "#/db/schema";
-import { NotFoundError } from "#/lib/errors";
+import { ConflictError, InsufficientFundsError, NotFoundError } from "#/lib/errors";
 import { describeInsufficientHeld } from "#/lib/money";
 import { checkUnallocated } from "#/modules/bank-accounts/figures.server";
 import { checkHeld } from "#/modules/buckets/figures.server";
@@ -24,10 +24,6 @@ export type TransactionLocks = { type: boolean; amount: boolean };
 export type TransactionEdit = Pick<Transaction, "type" | "amount" | "date" | "note"> & {
   transactionId: Transaction["id"];
 };
-
-export type TransactionEditCheck =
-  | { ok: true }
-  | { ok: false; reason: "linked" | "unallocated" | "held"; message: string };
 
 export const NEGATIVE_UNALLOCATED_MESSAGE =
   "This change would result in a negative unallocated balance. Adjust the amount or add more income first.";
@@ -91,11 +87,8 @@ function checkLinkRules(
   return null;
 }
 
-export async function checkTransactionEdit(
-  db: DB,
-  userId: string,
-  edit: TransactionEdit,
-): Promise<TransactionEditCheck> {
+// Throws ConflictError when a link rule blocks the edit, InsufficientFundsError when money runs short.
+export async function assertTransactionEditAllowed(db: DB, userId: string, edit: TransactionEdit) {
   const [current, link] = await Promise.all([
     db.query.transactions.findFirst({
       columns: { type: true, amount: true, bankAccountId: true },
@@ -107,11 +100,12 @@ export async function checkTransactionEdit(
   if (!current) throw new NotFoundError("This transaction doesn't exist or may have been deleted.");
 
   const message = checkLinkRules(link, current, edit);
-  if (message) return { ok: false, reason: "linked", message };
+  if (message) throw new ConflictError(message);
 
   // A Withdrawal's Transaction moves Balance and the earmark together, so Unallocated can't change;
   // only what the Bucket holds from the account limits it.
-  if (link?.kind === "withdrawal") return checkWithdrawalAmount(db, userId, link, current, edit);
+  if (link?.kind === "withdrawal")
+    return assertWithdrawalAmountHeld(db, userId, link, current, edit);
 
   const unallocated = await checkUnallocated(db, userId, {
     kind: "replace-transaction",
@@ -120,21 +114,18 @@ export async function checkTransactionEdit(
     amount: edit.amount,
   });
 
-  if (!unallocated.ok)
-    return { ok: false, reason: "unallocated", message: NEGATIVE_UNALLOCATED_MESSAGE };
-
-  return { ok: true };
+  if (!unallocated.ok) throw new InsufficientFundsError(NEGATIVE_UNALLOCATED_MESSAGE);
 }
 
-async function checkWithdrawalAmount(
+async function assertWithdrawalAmountHeld(
   db: DB,
   userId: string,
   link: Extract<TransactionLink, { kind: "withdrawal" }>,
   current: Pick<Transaction, "amount" | "bankAccountId">,
   edit: TransactionEdit,
-): Promise<TransactionEditCheck> {
+) {
   const increase = edit.amount - current.amount;
-  if (increase <= 0) return { ok: true };
+  if (increase <= 0) return;
 
   const held = await checkHeld(db, userId, {
     bucketId: link.bucket.id,
@@ -142,17 +133,15 @@ async function checkWithdrawalAmount(
     reduction: increase,
   });
 
-  if (held.ok) return { ok: true };
+  if (held.ok) return;
 
-  return {
-    ok: false,
-    reason: "held",
-    message: describeInsufficientHeld({
+  throw new InsufficientFundsError(
+    describeInsufficientHeld({
       bucket: held.bucket,
       bankAccount: held.bankAccount,
       availableCents: current.amount + held.available,
     }),
-  };
+  );
 }
 
 export function updateTransaction(db: DB, edit: TransactionEdit) {

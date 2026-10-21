@@ -7,12 +7,15 @@ import type { DB } from "#/db";
 
 import { getDB } from "#/db";
 import { bankAccounts, transactions, withdrawals, type Withdrawal } from "#/db/schema";
-import { ConflictError, InsufficientFundsError, NotFoundError } from "#/lib/errors";
+import { InsufficientFundsError, NotFoundError } from "#/lib/errors";
 import { describeInsufficientHeld } from "#/lib/money";
 import { verifyUserBankAccountMiddleware } from "#/modules/bank-accounts/middlewares";
 import { checkHeld, getBucketsWithFigures } from "#/modules/buckets/figures.server";
 import { verifyUserBucketMiddleware } from "#/modules/buckets/middlewares";
-import { checkTransactionEdit, updateTransaction } from "#/modules/transactions/linked.server";
+import {
+  assertTransactionEditAllowed,
+  updateTransaction,
+} from "#/modules/transactions/linked.server";
 import { verifyUserWithdrawalMiddleware } from "#/modules/withdrawals/middlewares";
 import { editWithdrawalSchema, logWithdrawalSchema } from "#/modules/withdrawals/schemas";
 
@@ -205,13 +208,7 @@ export const editWithdrawal = createServerFn({
       note: data.note,
     };
 
-    const check = await checkTransactionEdit(db, context.userId, edit);
-
-    if (!check.ok) {
-      throw check.reason === "linked"
-        ? new ConflictError(check.message)
-        : new InsufficientFundsError(check.message);
-    }
+    await assertTransactionEditAllowed(db, context.userId, edit);
 
     return updateTransaction(db, edit);
   });
