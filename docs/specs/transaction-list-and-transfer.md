@@ -3,94 +3,96 @@ status: ready-for-agent
 module: transactions
 ---
 
-# Spec: Transaction — Cross-Account List/Search and Transfer
+# Spec: Transaction list across accounts, search and transfer
 
-No issue tracker is used for this project. This file is the actionable checklist — its `status: ready-for-agent` frontmatter stands in for the triage label a tracker would normally carry. Update the status (e.g. `in-progress`, `done`) as work proceeds.
+This project uses no issue tracker, so this file is the checklist. Its `status: ready-for-agent` frontmatter takes the place of a tracker's triage label. Update the status, for example to `in-progress` or `done`, as work goes on.
 
-## Problem Statement
+## Problem statement
 
-Transactions today are only ever viewable embedded in a single Bank Account's detail page (`TRANSACTIONS_COLUMNS` tab). A user with more than one account (the seeded data already has two — "Chase Checking" and "Wise EUR Account") has no way to see, filter, or search their activity across accounts in one place. Separately, moving money between two of a user's own Bank Accounts today requires manually creating two unrelated Transactions (an expense on one, an income on the other) with nothing tying them together — easy to get wrong (mismatched amounts, forgetting one side) and leaves no visible trace that they're related.
+Today a user can only see Transactions inside one Bank Account's detail page, in the `TRANSACTIONS_COLUMNS` tab. A user with more than one account can't see, filter or search their activity across accounts in one place. The seeded data already has two accounts, "Chase Checking" and "Wise EUR Account".
+
+Moving money between two of a user's own Bank Accounts has its own problem. Today the user creates two unrelated Transactions by hand, an expense on one account and an income on the other, and nothing ties them together. It's easy to get wrong, with mismatched amounts or a forgotten side, and nothing shows that the two are related.
 
 ## Solution
 
-Two capabilities added to the Transactions module:
+Two additions to the Transactions module:
 
-1. A cross-account Transactions list view, filterable by account, type, and date range, with a text search over the note field.
-2. A **Transfer** action: pick a source and destination Bank Account (same currency only — see Implementation Decisions) and an amount; creates two Transactions atomically — an expense on the source, an income on the destination — sharing a note that identifies them as a transfer pair.
+1. A Transactions list across all accounts, filterable by account, type and date range, with a text search over the note.
+2. A **Transfer** action. The user picks a source and a destination Bank Account, which must share a currency (see Implementation decisions), and an amount. The app creates two Transactions in one atomic write, an expense on the source and an income on the destination, with notes that mark them as a transfer pair.
 
-## User Stories
+## User stories
 
 ### Existing behavior (already implemented)
 
-_Not new work — recapped here so this file stays a complete behavioral reference for the Transactions module, not just a diff of what's changing. Full detail lives in `src/modules/transactions/SPEC.md`._
+_These aren't new work. They're recapped here so this file describes all of the Transactions module's behavior, not only what's changing. `src/modules/transactions/SPEC.md` has the full detail._
 
-1. As a user, I want to log a new Transaction (income or expense) against one of my Bank Accounts with an amount, date, and optional note, so that I can record money moving in or out.
-2. As a user, I want the app to prevent me from logging an expense that would push the account's Unallocated balance below zero, so I can trust that number is always actually available.
+1. As a user, I want to log a new Transaction, income or expense, against one of my Bank Accounts with an amount, date, and optional note, so that I can record money moving in or out.
+2. As a user, I want the app to stop me from logging an expense that would push the account's Unallocated balance below zero, so I can trust that number is really available.
 3. As a user, I want to see each Transaction's type, amount, date, and note on its Bank Account's detail page, so I can review the account's activity.
 4. As a user, I want to edit an existing Transaction's type, amount, date, or note, so I can correct a mistake.
-5. As a user, I want editing a Transaction to enforce the same Unallocated ≥ 0 rule as logging one, so I can't retroactively make the account's numbers invalid.
+5. As a user, I want editing a Transaction to follow the same Unallocated ≥ 0 rule as logging one, so I can't make the account's numbers invalid after the fact.
 6. As a user, I want to delete a Transaction I logged by mistake, so it no longer counts toward the account's Balance.
-7. As a user, I want to be told exactly what will be removed (the type and amount) before I delete a Transaction, so I understand the scope of the action.
-8. As a user, I want deletion to be blocked if removing the Transaction would leave the account's Unallocated balance negative, so the invariant holds even when undoing history.
-9. As a user, I want a simple yes/no confirmation when deleting a Transaction (not a typed-confirmation gate), since deleting one Transaction doesn't cascade to destroy any other records.
-10. As a user, I want a Transaction's amount to always be interpreted in its Bank Account's currency, since a Transaction has no currency of its own.
+7. As a user, I want to be told exactly what will be removed, the type and amount, before I delete a Transaction, so I understand what the action removes.
+8. As a user, I want deletion blocked if removing the Transaction would leave the account's Unallocated balance negative, so the rule holds even when I undo history.
+9. As a user, I want a plain yes/no confirmation when deleting a Transaction, not a typed confirmation, because deleting one Transaction doesn't delete any other records.
+10. As a user, I want a Transaction's amount to always be in its Bank Account's currency, because a Transaction has no currency of its own.
 
-### Cross-account list/search
+### List and search across accounts
 
-11. As a user with multiple Bank Accounts, I want to see all my Transactions in one place across every account, so I don't have to check each account's detail page separately.
-12. As a user, I want each row in that list to show which Bank Account it belongs to, so I can tell them apart.
-13. As a user, I want to filter that list by Bank Account, so I can narrow to one account without leaving the unified view.
-14. As a user, I want to filter that list by Type (income/expense), so I can isolate spending or earnings.
-15. As a user, I want to filter that list by a date range, so I can review a specific period (e.g. "last month").
+11. As a user with several Bank Accounts, I want to see all my Transactions from every account in one place, so I don't have to check each account's detail page separately.
+12. As a user, I want each row in that list to show which Bank Account it belongs to, so I can tell rows apart.
+13. As a user, I want to filter that list by Bank Account, so I can see only one account without leaving the list.
+14. As a user, I want to filter that list by type, income or expense, so I can see only spending or only earnings.
+15. As a user, I want to filter that list by a date range, so I can review a specific period, such as last month.
 16. As a user, I want to search that list by note text, so I can find a specific Transaction I remember details about.
-17. As a user, I want that list sorted by date (most recent first) by default, matching how the per-account Transactions tab already behaves, so the behavior is consistent.
-18. As a user, I want to open, edit, or delete a Transaction directly from that unified list, so I don't have to navigate to its specific account first.
-19. As a user, I want to log a new Transaction directly from that unified list (picking which account it belongs to), so I don't have to go find the account first.
-20. As a user, I want the unified Transactions list to only ever show my own Transactions, never another user's, so my financial data stays private — same ownership boundary as every other view in this app.
+17. As a user, I want that list sorted by date with the most recent first by default, as the per-account Transactions tab already is, so both behave the same.
+18. As a user, I want to open, edit, or delete a Transaction directly from that list, so I don't have to go to its account first.
+19. As a user, I want to log a new Transaction directly from that list, picking the account it belongs to, so I don't have to find the account first.
+20. As a user, I want the Transactions list to only ever show my own Transactions, never another user's, so my financial data stays private. Every other view in this app has the same ownership rule.
 
 ### Transfer between own accounts
 
 21. As a user, I want to transfer money directly from one of my own Bank Accounts to another, so I don't have to fake it with two disconnected Transactions.
 22. As a user, I want to pick the source account, destination account, and amount in one flow, so I don't have to visit each account separately to log the two halves.
-23. As a user, I want the app to prevent transferring between two accounts of different currencies, so I never get an unintended, unconverted exchange-rate mismatch (matches the constraint already documented in `bank-accounts/SPEC.md`).
-24. As a user, I want the app to prevent transferring an account into itself, so I can't accidentally create a meaningless no-op pair of Transactions.
-25. As a user, I want the app to prevent a transfer that would push the source account's Unallocated balance below zero, so the same money-safety guarantee that applies to a normal expense also applies here.
-26. As a user, I want a transfer to never be blocked by the destination account's state, so that receiving money never has a failure mode — only the sending side can be invalid.
-27. As a user, I want both halves of a transfer to be created together or not at all, so I never end up with only one side logged if something goes wrong mid-way.
-28. As a user, I want the two Transactions created by a transfer to be recognizable as a pair (e.g. by their note), so I can tell a transfer apart from an unrelated coincidental expense/income of the same amount.
+23. As a user, I want the app to block transfers between two accounts of different currencies, so I never get an unconverted amount by mistake. `bank-accounts/SPEC.md` already documents this rule.
+24. As a user, I want the app to block a transfer from an account into itself, so I can't create a pointless pair of Transactions by accident.
+25. As a user, I want the app to block a transfer that would push the source account's Unallocated balance below zero, so a transfer gets the same protection as a normal expense.
+26. As a user, I want the destination account's state to never block a transfer, because receiving money can't fail. Only the sending side can be invalid.
+27. As a user, I want both halves of a transfer created together or not at all, so I never end up with only one side logged if something fails halfway.
+28. As a user, I want the two Transactions a transfer creates to be recognizable as a pair, such as by their note, so I can tell a transfer apart from an unrelated expense and income that happen to share an amount.
 29. As a user, I want a confirmation toast when a transfer succeeds, so I know both sides were logged.
-30. As a user, I want to be able to edit or delete either half of a transfer afterward using the normal Edit/Delete Transaction flow, so I'm not stuck with a special-cased UI just because it originated from a transfer.
+30. As a user, I want to edit or delete either half of a transfer afterward through the normal Edit and Delete Transaction flow, so a transfer doesn't need its own special UI.
 
-## Implementation Decisions
+## Implementation decisions
 
-- **Modules touched**: `transactions` only. No schema changes to `bank-accounts`, `buckets`, or `allocations`.
-- **Schema — no new columns or tables.** Per the existing note in [`bank-accounts/SPEC.md`](../../src/modules/bank-accounts/SPEC.md), a transfer is modeled as **two ordinary Transaction rows** — an `expense` on the source account, an `income` on the destination account — connected only by a shared, auto-generated note (e.g. `"Transfer to {destination account name}"` / `"Transfer from {source account name}"`). There is **no real link** between the two rows (no `transferGroupId` or similar) — this is a deliberate choice to avoid new schema for a cosmetic grouping need; a stronger link is real future work if it turns out users need to "undo a transfer" as one action (see Out of Scope).
-- **New server function**: `transferBetweenAccounts`, validated against a new `transferSchema` (`sourceBankAccountId`, `destinationBankAccountId`, `amount`, optional `note`, `date`). Rejects if `sourceBankAccountId === destinationBankAccountId`, rejects if the two accounts' `currency` differ, and reuses the existing unallocated-balance check (same as `validateLogTransaction`'s expense path) against the **source account only** — the destination account never needs a check, since receiving income can never push a balance invalid. On success, inserts both Transaction rows in a single DB transaction (atomic — story 17).
-- **New UI**: a `TransferDialog` (source account select, destination account select excluding whichever is picked as source, amount, optional note, date) mounted globally in `_protected.tsx`, matching the existing dialog-store pattern (`useLogTransactionDialogStore`, etc). Entry points: a "Transfer" item on `BankAccountActionsDropdownMenu` (pre-filling that account as source) and a toolbar action on the new cross-account Transactions list.
-- **New route**: a top-level `/transactions` route (sibling to `/accounts` and `/buckets`), backed by a new `getTransactions({ filters })` server function that queries across all of the user's Bank Accounts (ownership enforced the same way `getBankAccounts` enforces it — scoped by `userId`, not by a single `bankAccountId`). Returns each Transaction joined with its Bank Account's `name`/`currency`. Filters: `bankAccountId`, `type`, `dateFrom`/`dateTo`, and a `search` string matched against `note`.
-- **New columns**: `UNIFIED_TRANSACTIONS_COLUMNS` (Date, Account, Type, Amount, Note, Actions — reusing the existing `TransactionActionsDropdownMenu` unchanged). The existing per-account `TRANSACTIONS_COLUMNS` is untouched.
-- **No new pure-function seam for the list.** `getTransactions` is a straightforward filtered read, same shape as `getBankAccounts`/`getBuckets` — nothing to unit-test in isolation beyond the query itself.
-- **Route wiring**: since this route's query key is filter-derived (`validateSearch` for `bankAccountId`/`type`/`dateFrom`/`dateTo`/`search`), use `loaderDeps` + route `context()` to derive the filtered `getTransactions` queryOptions once, shared between the loader and the component — rather than each independently re-deriving it from search params, which is the divergence bug TkDodo's [reliable query prefetching with TanStack Router](https://tkdodo.eu/blog/reliable-query-prefetching-with-tanstack-router) post warns about.
-- **One check for Transfer**: call `checkUnallocated` with an `add-transaction` expense on the source account, exactly as `logTransaction` does for a plain expense — no new check needed, since a transfer's source-side validation is identical in shape to logging an expense Transaction.
+- **Modules touched.** Only `transactions`. No schema changes to `bank-accounts`, `buckets` or `allocations`.
+- **Schema: no new columns or tables.** As [`bank-accounts/SPEC.md`](../../src/modules/bank-accounts/SPEC.md) already notes, a transfer is **two ordinary Transaction rows**, an `expense` on the source account and an `income` on the destination. Only their generated notes connect them, such as `"Transfer to {destination account name}"` and `"Transfer from {source account name}"`. There is **no real link** between the two rows, such as a `transferGroupId`. That choice is deliberate, to avoid new schema for what is only a grouping in the UI. A stronger link is future work, if users turn out to need to undo a transfer as one action (see Out of scope).
+- **New server function `transferBetweenAccounts`.** A new `transferSchema` validates its input: `sourceBankAccountId`, `destinationBankAccountId`, `amount`, an optional `note`, and `date`. It rejects the transfer if `sourceBankAccountId === destinationBankAccountId` or if the two accounts' `currency` differs. It reuses the existing unallocated-balance check, as `validateLogTransaction`'s expense path does, on the **source account only**. The destination never needs a check, because income can never make a balance invalid. On success, it inserts both Transaction rows in one database transaction, so the write is atomic (story 27).
+- **New UI.** A `TransferDialog` with a source account select, a destination account select that leaves out the chosen source, an amount, an optional note, and a date. `_protected.tsx` mounts it for the whole app, following the existing dialog-store pattern such as `useLogTransactionDialogStore`. It opens from a "Transfer" item on `BankAccountActionsDropdownMenu`, which pre-fills that account as the source, and from a toolbar action on the new Transactions list.
+- **New route.** A top-level `/transactions` route, next to `/accounts` and `/buckets`. A new `getTransactions({ filters })` server function backs it and queries across all of the user's Bank Accounts. It checks ownership the same way `getBankAccounts` does, by scoping to `userId`, not by a single `bankAccountId`. It returns each Transaction with its Bank Account's `name` and `currency`. Its filters are `bankAccountId`, `type`, `dateFrom` and `dateTo`, and a `search` string matched against `note`.
+- **New columns.** `UNIFIED_TRANSACTIONS_COLUMNS` has Date, Account, Type, Amount, Note and Actions, and reuses the existing `TransactionActionsDropdownMenu` unchanged. The existing per-account `TRANSACTIONS_COLUMNS` stays as it is.
+- **The list needs no pure function for tests.** `getTransactions` is a plain filtered read, the same shape as `getBankAccounts` and `getBuckets`, so the only thing to test is the query itself.
+- **Route wiring.** This route's query key comes from its filters, which `validateSearch` reads as `bankAccountId`, `type`, `dateFrom`, `dateTo` and `search`. Use `loaderDeps` and the route's `context()` to build the filtered `getTransactions` queryOptions once, and share them between the loader and the component. If each built them from the search params on its own, the two could differ. TkDodo's post [reliable query prefetching with TanStack Router](https://tkdodo.eu/blog/reliable-query-prefetching-with-tanstack-router) describes that bug.
+- **One check for Transfer.** Call `checkUnallocated` with an `add-transaction` expense on the source account, exactly as `logTransaction` does for a plain expense. No new check is needed, because checking a transfer's source is the same as checking an expense.
 
-## Testing Decisions
+## Testing decisions
 
-Deferred, for the same reason already recorded in `docs/specs/bank-account-crud.md` and `docs/specs/bucket-crud.md`: no test harness exists yet anywhere in this repo (`vitest` is a dependency but unconfigured — no config, no test files, no D1-test-runner infrastructure for `transferBetweenAccounts`/`getTransactions`, which call `getDB(env.db)` via `cloudflare:workers`). The one thing worth calling out: `transferBetweenAccounts`'s validation logic (same-currency check, self-transfer check, source-side unallocated check) is expressible as a small pure function separable from the DB insert, the same way `getBankAccountFigures` already is — a good first candidate once a Vitest seam is actually chosen for this repo.
+Deferred, for the reason `docs/specs/bank-account-crud.md` and `docs/specs/bucket-crud.md` already give. The repo has no test setup yet. `vitest` is a dependency, but there is no config, no test files, and no D1 test runner for `transferBetweenAccounts` and `getTransactions`, which call `getDB(env.db)` from `cloudflare:workers`. One thing stands out. `transferBetweenAccounts`'s validation, meaning the same-currency check, the self-transfer check and the source's unallocated check, can be a small pure function apart from the database insert, as `getBankAccountFigures` already is. It's a good first candidate once the repo picks a way to run Vitest.
 
-## Out of Scope
+## Out of scope
 
-- **Categorization/Tags** — a Category is metadata attached to a Transaction, but is its own module with its own CRUD lifecycle (create/rename/delete a named category), not a Transaction-module concern. Noted as separate, related future work — not spec'd here.
-- **`Distribution`** (a saved, reusable, manually-triggered preset that logs an income Transaction and splits it via Allocations) — a separate, not-yet-designed module. See the `Distribution` entry in [`CONTEXT.md`](../../CONTEXT.md) and the Future Considerations section of [`src/modules/transactions/SPEC.md`](../../src/modules/transactions/SPEC.md). Not touched by this spec.
-- **A real link between a transfer's two Transaction rows** (e.g. a `transferGroupId` column enabling "undo transfer" as one action, or preventing one half from being edited/deleted without the other). The shared-note approach is deliberately soft — see Implementation Decisions. Revisit only if that turns out to be a real, felt need.
-- **Cross-currency transfers** (with conversion) — rejected outright for this pass, matching the constraint already documented in `bank-accounts/SPEC.md`.
-- **Scheduled/recurring transfers** — a separate, not-yet-considered idea.
-- Any change to the Bank Account, Bucket, or Allocation modules.
-- Any automated tests for this pass (see Testing Decisions).
+- **Categories and tags.** A Category is metadata on a Transaction, but it needs its own module with its own lifecycle for creating, renaming and deleting named categories. It doesn't belong in the Transaction module. It is related future work, and this spec doesn't specify it.
+- **`Distribution`**, a saved preset the User triggers by hand that logs an income Transaction and splits it through Allocations. It is a separate module, not designed yet. See the `Distribution` entry in [`CONTEXT.md`](../../CONTEXT.md) and the Future considerations section of [`src/modules/transactions/SPEC.md`](../../src/modules/transactions/SPEC.md). This spec doesn't touch it.
+- **A real link between a transfer's two Transaction rows**, such as a `transferGroupId` column. It would allow undoing a transfer as one action, or stop one half from being edited or deleted without the other. The shared note is a weak link on purpose (see Implementation decisions). Revisit only if users clearly need it.
+- **Transfers between currencies, with conversion.** Rejected for this pass, matching the rule `bank-accounts/SPEC.md` already documents.
+- **Scheduled or recurring transfers.** A separate idea nobody has considered yet.
+- Any change to the Bank Account, Bucket or Allocation modules.
+- Automated tests for this pass. See Testing decisions.
 
-## Further Notes
+## Further notes
 
-- Resolved vocabulary for `Transaction` lives in `CONTEXT.md`; full module rationale lives in `src/modules/transactions/SPEC.md`. This spec assumes both as context rather than repeating them.
-- Categorization and `Distribution` are real, named future work directly adjacent to this module, but deliberately not spec'd here — each needs its own module and its own pass (see Out of Scope).
-- **2026-10-15 — delete and edit failures say what went wrong.** Stories 6–7 still hold. Story 7's message also names what goes with the Transaction: a Debt repayment it backs (deleted with it, so the Debt's outstanding goes back up) or a Debt it funded (kept, with no source account). Deleting one that is already gone shows "Can't Delete This Transaction" with the reason, where before the click did nothing. The Edit dialog shows "Transaction not found" with Close for a missing Transaction, instead of "check your connection" with Retry. Its submit check shows the real reason (e.g. the Transaction was deleted meanwhile) instead of a generic message.
-- **2026-10-15 — editing a Linked Transaction follows its Debt.** Story 5 still holds: every edit keeps Unallocated at or above zero. An ordinary Transaction's type, amount, date and note stay editable. For a Transaction a Debt depends on (see **Linked Transaction** in `CONTEXT.md`), the type is fixed, an origination's amount is fixed, and a repayment can't be dated before its Debt. The Edit dialog disables those fields and says why, and the server rejects the change with the reason.
-- **2026-10-15 — Log and Edit check once, at the write.** Stories 4–5 still hold. The dialogs no longer call a separate `validateLogTransaction` / `validateEditTransaction` before submitting; those are gone. The write runs the Unallocated check (and, for an edit, the Linked Transaction rules) and rejects with the reason. That reason shows in the failure toast, e.g. "Failed to Log Transaction: This change would result in a negative unallocated balance…", and the dialog stays open with the input. Each submit is one request instead of two.
+- `CONTEXT.md` defines `Transaction`, and `src/modules/transactions/SPEC.md` holds the full module rationale. This spec assumes both instead of repeating them.
+- Categories and `Distribution` are named future work right next to this module, but this spec leaves them out on purpose. Each needs its own module and its own pass (see Out of scope).
+- **2026-10-15. Delete and edit failures say what went wrong.** Stories 6 and 7 still hold. Story 7's message also names anything that goes with the Transaction. A Debt repayment it backs is deleted with it, so the Debt's outstanding goes back up. A Debt it funded stays, with no source account. Deleting a Transaction that is already gone shows "Can't Delete This Transaction" with the reason, where before the click did nothing. For a missing Transaction, the Edit dialog shows "Transaction not found" with Close, instead of "check your connection" with Retry. Its submit check shows the real reason, such as the Transaction having been deleted in the meantime, instead of a generic message.
+- **2026-10-15. Editing a Linked Transaction follows its Debt.** Story 5 still holds, so every edit keeps Unallocated at or above zero. An ordinary Transaction's type, amount, date and note stay editable. For a Transaction a Debt depends on (see **Linked Transaction** in `CONTEXT.md`), the type is fixed, an origination's amount is fixed, and a repayment can't be dated before its Debt. The Edit dialog disables those fields and says why, and the server rejects the change with the reason.
+- **2026-10-15. Log and Edit check once, at the write.** Stories 4 and 5 still hold. The dialogs no longer call a separate `validateLogTransaction` or `validateEditTransaction` before submitting, and both functions are gone. The write runs the Unallocated check, plus the Linked Transaction rules for an edit, and rejects with the reason. The failure toast shows that reason, such as "Failed to Log Transaction: This change would result in a negative unallocated balance…", and the dialog stays open with the input. Each submit is one request instead of two.

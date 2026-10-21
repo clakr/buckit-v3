@@ -1,65 +1,71 @@
-# Module Spec: Buckets
+# Module spec: Buckets
 
 ## Overview
 
-A Bucket is a user-defined savings category that money gets earmarked into from one or more Bank Accounts via Allocations. It has no currency of its own and no balance of its own — its only content is the sum of its Allocations, displayed as a subtotal per source currency. A Bucket is a permanent goal-style accumulator: money only ever enters it (Allocation) or leaves it (editing/deleting an Allocation). It is never spent from directly — Transactions always attach to a Bank Account, never to a Bucket. See [`CONTEXT.md`](../../../CONTEXT.md) for the glossary entry and the planned `Goal` entity.
+A Bucket is a user-defined savings category. Allocations earmark money into it from one or more Bank Accounts. It has no currency and no balance of its own. Its only content is the sum of its Allocations, shown as one subtotal per source currency. A Bucket only accumulates. Money enters it through an Allocation and leaves only when an Allocation is edited or deleted. Nobody spends from a Bucket directly, because Transactions always attach to a Bank Account and never to a Bucket. See [`CONTEXT.md`](../../../CONTEXT.md) for the glossary entry and the planned `Goal` entity.
 
 ## Entity
 
 ### Bucket
 
-| Field       | Type     | Notes                                                          |
-| ----------- | -------- | -------------------------------------------------------------- |
-| `id`        | string   | auto-generated (uuidv7)                                        |
-| `userId`    | string   | FK → Users (ownership boundary)                                |
-| `name`      | string   | user-given label, unique per user (case-insensitive), editable |
-| `createdAt` | datetime |                                                                |
+| Field       | Type     | Notes                                                         |
+| ----------- | -------- | ------------------------------------------------------------- |
+| `id`        | string   | generated (uuidv7)                                            |
+| `userId`    | string   | foreign key to Users, which decides ownership                 |
+| `name`      | string   | label the user gives, unique per user ignoring case, editable |
+| `createdAt` | datetime |                                                               |
 
-No currency, no balance/target column. No `updatedAt` — same reasoning as Bank Account: no sync/API client, no per-User concurrent-edit conflict scenario to detect (see `authentication/SPEC.md` on multi-device Sessions).
+It has no currency, balance or target column. It has no `updatedAt`, for the same reason as Bank Account. No sync or API client exists, and a User's Sessions have no concurrent-edit conflict to detect (see `authentication/SPEC.md` on multi-device Sessions).
 
-## Design Decisions
+## Design decisions
 
-### Savings Goal, Not a Spending Envelope
+### A savings goal, not a spending envelope
 
-A Bucket only ever accumulates or gives back earmarked money — there is no schema path for recording "$20 spent from Groceries" as a Bucket-scoped expense. `transactions.bucketId` does not exist and never will under this model; spending always happens at the Bank Account level via Transactions, disconnected from any Bucket. This is a permanent design boundary, not a gap to be filled later. Target/progress tracking on top of this (e.g. "$5,000 toward a trip") is deferred to a separate, unbuilt `Goal` entity — see Future Considerations below.
+A Bucket only accumulates earmarked money or gives it back. The schema has no way to record "$20 spent from Groceries" as an expense against a Bucket. `transactions.bucketId` doesn't exist and never will under this model. Spending always happens on a Bank Account through Transactions, with no Bucket involved. This boundary is permanent, not a gap to fill later. Tracking a target and progress on top of a Bucket, such as "$5,000 toward a trip", belongs to a separate, unbuilt `Goal` entity. See Future considerations below.
 
-### No Currency of Its Own
+### No currency of its own
 
-A Bucket can receive Allocations from Bank Accounts in different currencies. There is no cross-currency conversion or a single "total" — Subtotals are grouped and displayed per source currency (computed by the Bucket figures module, `figures.server.ts`; see bank-accounts `SPEC.md`'s "Verified During This Spec Pass" note, which checked the same thing from the other side).
+A Bucket can receive Allocations from Bank Accounts in different currencies. The app doesn't convert between currencies or show a single total. The Bucket figures module, `figures.server.ts`, groups the Subtotals by source currency and the UI shows each one. The "Verified during this spec pass" section in the bank-accounts `SPEC.md` checked the same thing from the Bank Account side.
 
-### Name Uniqueness
+### Name uniqueness
 
-Name must be unique per user, case-insensitive (SQLite's `lower()` on both sides, the same folding the index uses; it folds ASCII letters only, so "Ñ" and "ñ" count as different names), trimmed — same pattern as Bank Account. Enforced on create and edit; the edit check excludes the bucket's own current name, so changing only its case is allowed. One rule, `bucketName` in `functions.ts` (built with `createUniqueNameRule` from `src/lib/unique-name.server.ts`, shared by Bank Account and Bucket), serves the dialogs (through the `validateBucketName` server function, which takes an optional `bucketId` to exclude) and the writes, which call it in-process. The database enforces the same rule with a unique index on `(user_id, lower(name))` (migration `20261015050303_bucket_name_case_insensitive`), so two simultaneous requests can't both create "Trip" and "trip"; a write the index rejects throws the same `ConflictError` as a failed check. The older case-sensitive `unique(userId, name)` constraint stays: dropping a table-level constraint needs a table rebuild, and on D1 dropping `buckets` would cascade-delete every Allocation.
+A name must be unique per user, ignoring case, after trimming, the same rule as Bank Account. The check compares SQLite's `lower()` of both names, which is the same folding the index uses. It only folds ASCII letters, so "Ñ" and "ñ" count as different names. Create and edit both run the check. The edit check excludes the bucket's own current name, so changing only its case is allowed.
 
-### Deletion Is Destructive, Not Blocked
+One rule, `bucketName` in `functions.ts`, serves both the dialogs and the writes. It's built with `createUniqueNameRule` from `src/lib/unique-name.server.ts`, which Bank Account and Bucket share. The dialogs reach it through the `validateBucketName` server function, which takes an optional `excludeId` for the Bucket being renamed. The writes call it directly on the server.
 
-**Implemented.** Hard delete, cascading to all of the Bucket's Allocations (matches the existing `onDelete: "cascade"` FK on `allocations.bucketId`), gated by a typed confirmation (user must re-type the bucket name) rather than a blocking check — mirrors the Bank Account precedent exactly. See [`docs/adr/0002-hard-delete-buckets.md`](../../../docs/adr/0002-hard-delete-buckets.md). Because `Unallocated` is computed on read, cascading the Allocations away automatically returns that money to each source Bank Account's unallocated pool — the confirmation dialog discloses this consequence (per-account, per-currency breakdown) before the user confirms. The preview is computed on the server by `loadBucketDeletionImpact` (`deletion.server.ts`), through the `getBucketDeletionImpact` server function: the Bucket's name, its Allocation count, and for each Bank Account it holds money from, that account's Unallocated before and after. It reads both figures modules, so it uses the same definitions of Subtotal and Unallocated as everything else.
+The database enforces the same rule with a unique index on `(user_id, lower(name))`, from migration `20261015050303_bucket_name_case_insensitive`. Two requests at the same moment therefore can't create both "Trip" and "trip". When the index rejects a write, the write throws the same `ConflictError` as a failed check. The older case-sensitive `unique(userId, name)` constraint stays. Dropping a table-level constraint needs a table rebuild, and on D1, dropping `buckets` would cascade-delete every Allocation.
 
-### Edit Is Name-Only
+### Deletion destroys data instead of being blocked
 
-**Implemented.** Rename only, same case-insensitive uniqueness check as create (excluding the bucket's own current name). There is no other mutable field on the entity.
+**Implemented.** Deleting a Bucket hard-deletes it, and the existing `onDelete: "cascade"` foreign key on `allocations.bucketId` deletes all of its Allocations. A typed confirmation guards it, where the user re-types the bucket name, instead of a check that blocks it. This copies the Bank Account decision. See [`docs/adr/0002-hard-delete-buckets.md`](../../../docs/adr/0002-hard-delete-buckets.md).
+
+The app computes `Unallocated` on read, so once the cascade removes the Allocations, that money is back in each source Bank Account's unallocated pool. The confirmation dialog shows this before the user confirms, broken down by account and currency. The server computes the preview in `loadBucketDeletionImpact` (`deletion.server.ts`), through the `getBucketDeletionImpact` server function. It returns the Bucket's name, its Allocation count, and, for each Bank Account the Bucket holds money from, that account's Unallocated before and after. It reads both figures modules, so its Subtotal and Unallocated match every other screen.
+
+### Edit only renames
+
+**Implemented.** Edit only changes the name, with the same case-insensitive uniqueness check as create, excluding the bucket's own current name. The entity has no other field that can change.
 
 ## Features
 
-| #   | Feature                    | Status                                                                                                                                                                                                                                                 |
-| --- | -------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| 1   | Create Bucket              | **Implemented and correct.** Name only, validated (uniqueness, 1–100 chars, trimmed).                                                                                                                                                                  |
-| 2   | View Buckets List          | **Implemented and correct**, with one deliberate limitation: the per-currency subtotal column is not sortable (see below).                                                                                                                             |
-| 3   | View Bucket Detail         | **Implemented and correct**, as a flat Allocations table only — no aggregate/summary header (see below).                                                                                                                                               |
-| 4   | Edit Bucket                | **Implemented and correct.** Name only.                                                                                                                                                                                                                |
-| 5   | Delete Bucket              | **Implemented and correct.** Hard delete, cascades Allocations, gated by typed confirmation (re-type bucket name); dialog discloses the per-account amounts being returned to Unallocated.                                                             |
-| 6   | Log/Edit/Delete Allocation | **Implemented and correct** — lives in the sibling `allocations` module, not this one. Enforces `Unallocated ≥ 0` against the source Bank Account on log and edit; delete needs no guard since removing an Allocation only ever increases Unallocated. |
-| —   | Spend From a Bucket        | **Rejected as a concept for this entity**, permanently. Spending is always recorded as a Bank Account Transaction.                                                                                                                                     |
-| —   | Goal / Target Tracking     | **Out of scope, deferred** to a planned, undesigned `Goal` module. See Future Considerations.                                                                                                                                                          |
+| #   | Feature                    | Status                                                                                                                                                                                                                    |
+| --- | -------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1   | Create Bucket              | **Implemented and correct.** Name only, validated as unique, 1 to 100 characters, and trimmed.                                                                                                                            |
+| 2   | View Buckets List          | **Implemented and correct**, with one deliberate limit. The per-currency subtotal column can't be sorted (see below).                                                                                                     |
+| 3   | View Bucket Detail         | **Implemented and correct**, as a flat Allocations table with no summary header (see below).                                                                                                                              |
+| 4   | Edit Bucket                | **Implemented and correct.** Name only.                                                                                                                                                                                   |
+| 5   | Delete Bucket              | **Implemented and correct.** Hard delete that cascades to Allocations, behind a typed confirmation of the bucket name. The dialog shows how much returns to each account's Unallocated.                                   |
+| 6   | Log/Edit/Delete Allocation | **Implemented and correct**, in the sibling `allocations` module. Log and edit enforce `Unallocated ≥ 0` on the source Bank Account. Delete needs no check, because removing an Allocation can only increase Unallocated. |
+| n/a | Spend From a Bucket        | **Rejected permanently for this entity.** Spending is always a Bank Account Transaction.                                                                                                                                  |
+| n/a | Goal / Target Tracking     | **Out of scope.** Deferred to a planned, undesigned `Goal` module. See Future considerations.                                                                                                                             |
 
-## Gaps Identified This Session (Deliberate, Not Bugs)
+## Gaps found this session, deliberate and not bugs
 
-- ~~**No shared subtotal utility.**~~ **Resolved 2026-10-15.** By then the sum was repeated in three places (the list's Subtotal cell, the Bucket delete preview, the Bank Account delete preview), so it moved into the Bucket figures module, `figures.server.ts`. `getBucketsWithFigures(db, { userId, bucketId?, allocatedFrom? })` returns each Bucket with its Subtotals (one per currency, sorted by currency code) and what it holds from each Bank Account, from one grouped query scoped to the user. `getBuckets` returns Subtotals instead of raw Allocation rows; `getBucket` returns only the Bucket's own row; the detail table reads its Allocations through the Allocation module's `getAllocations({ bucketId })`. The delete preview reads what the Bucket holds from each Bank Account (see Deletion Is Destructive, Not Blocked).
-- **Subtotal column is unsortable.** Sorting it correctly requires converting each row's per-currency amounts using a current exchange rate, computed row-by-row — an efficient, well-designed approach for that conversion hasn't been built yet. Left unsortable rather than shipping a naive/slow version.
-- **Bucket detail page has no aggregate summary.** It's a flat Allocations table today, matching the Bank Account detail page's Allocations table but without the equivalent balance/unallocated/total summary header Bank Account shows. Deliberately deferred until the summary's design (what to show, per-currency handling) is worked out, rather than bolting one on ad hoc. When it is, its figures can come from the Bucket figures module.
+- ~~**No shared subtotal utility.**~~ **Resolved 2026-10-15.** By then three places repeated the sum: the list's Subtotal cell, the Bucket delete preview and the Bank Account delete preview. The sum moved into the Bucket figures module, `figures.server.ts`. `getBucketsWithFigures(db, { userId, bucketId?, allocatedFrom? })` runs one grouped query scoped to the user. It returns each Bucket with its Subtotals, one per currency and sorted by currency code, and with what it holds from each Bank Account. `getBuckets` returns Subtotals instead of raw Allocation rows, and `getBucket` returns only the Bucket's own row. The detail table reads its Allocations through the Allocation module's `getAllocations({ bucketId })`. The delete preview reads what the Bucket holds from each Bank Account (see Deletion destroys data instead of being blocked).
+- **The Subtotal column can't be sorted.** Sorting it correctly means converting each row's per-currency amounts at a current exchange rate, row by row, and nobody has built an efficient way to do that yet. The column stays unsortable instead of shipping a slow or naive version.
+- **The Bucket detail page has no summary.** Today it is a flat Allocations table, like the Allocations table on the Bank Account detail page. It doesn't have the balance, unallocated and total header that the Bank Account page shows. That header is deferred until someone designs what it shows and how it handles several currencies. When that happens, its figures can come from the Bucket figures module.
 
-## Future Considerations
+## Future considerations
 
-### `Goal` Module (Planned, Undesigned)
+### `Goal` module (planned, undesigned)
 
-Target/progress tracking (e.g. "$5,000 toward a trip") does not exist today and is intentionally not modeled yet. One concrete question to resolve when it's designed: does `Goal` end up as a column added directly to `buckets` (e.g. a nullable `targetAmount`), or as a wholly separate model/table that references one or more Buckets? Both are live options — do not assume either shape until this gets its own design pass. See the `Goal` entry in [`CONTEXT.md`](../../../CONTEXT.md).
+Tracking a target and progress, such as "$5,000 toward a trip", doesn't exist today, and the app doesn't model it yet on purpose. When someone designs it, one question needs an answer. `Goal` could be a column on `buckets`, such as a nullable `targetAmount`, or a separate table that references one or more Buckets. Both are still possible, so don't assume either shape until it gets its own design pass. See the `Goal` entry in [`CONTEXT.md`](../../../CONTEXT.md).

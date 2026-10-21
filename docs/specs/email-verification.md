@@ -3,55 +3,55 @@ status: ready-for-agent
 module: authentication
 ---
 
-# Spec: Email Verification
+# Spec: Email verification
 
-No issue tracker is used for this project. This file is the actionable checklist — its `status: ready-for-agent` frontmatter stands in for the triage label a tracker would normally carry. Update the status (e.g. `in-progress`, `done`) as work proceeds.
+This project uses no issue tracker, so this file is the checklist. Its `status: ready-for-agent` frontmatter takes the place of a tracker's triage label. Update the status, for example to `in-progress` or `done`, as work goes on.
 
-## Problem Statement
+## Problem statement
 
-`users.emailVerified` exists in the schema but nothing ever sets it — there's no mechanism to send or consume a verification link, so the flag is permanently `false` for every User, for everyone.
+The schema has `users.emailVerified`, but nothing ever sets it. No code sends or consumes a verification link, so the flag is always `false` for every User.
 
 ## Solution
 
-Automatically send a verification email right after sign-up (with a manual resend option), and mark the User's email verified when they click the link — built on Better-Auth's existing `sendVerificationEmail`/`verifyEmail` primitives. This spec deliberately makes the flag _accurate_ only; it does not make verification status _consequential_ anywhere else in the app — see Out of Scope.
+Send a verification email right after sign-up, offer a manual resend, and mark the User's email verified when they click the link. Build it on Better-Auth's existing `sendVerificationEmail` and `verifyEmail` functions. This spec only makes the flag _accurate_. Verification status changes nothing else in the app. See Out of scope.
 
-## User Stories
+## User stories
 
-1. As a newly-registered User, I want a verification email sent automatically after I sign up, so I can confirm my email without an extra step.
+1. As a newly registered User, I want a verification email sent automatically after I sign up, so I can confirm my email without an extra step.
 2. As a User who clicks the verification link, I want my account marked verified and to land back in the app, so I know it worked.
 3. As a User whose verification link has expired, I want a clear error message, so I know to request a new one.
 4. As a User who didn't receive or lost the verification email, I want a way to request it again, so I'm not stuck.
 5. As a User who is already verified and clicks an old verification link again, I want no error and no side effect, so a stale bookmarked or forwarded link doesn't break anything.
-6. As a developer, I want the verification email sent through the same shared `sendEmail` seam as password reset, so exactly one place in the codebase knows how to send transactional email.
-7. As a developer, I want the verification server functions testable without a live email provider, so CI never depends on an external service.
-8. As a developer, I want `emailVerified` to actually flip to `true` in the database on success, so future features that read it (see Future Considerations) can trust it.
+6. As a developer, I want the verification email sent through the same shared `sendEmail` function as password reset, so exactly one place in the codebase knows how to send transactional email.
+7. As a developer, I want to test the verification server functions without a live email provider, so CI never depends on an external service.
+8. As a developer, I want `emailVerified` to flip to `true` in the database on success, so future features that read it (see Future considerations) can trust it.
 
-## Implementation Decisions
+## Implementation decisions
 
-- **Reuses the `sendEmail` seam** introduced by the Forgot / Reset Password spec (`docs/specs/forgot-password.md`). Whichever of the two specs is implemented first creates the seam; the other just imports it. Provider choice is the same open decision noted there — not duplicated here.
-- **`integrations/better-auth/index.ts`**: add `emailVerification.sendVerificationEmail: async ({ user, url }) => sendEmail({ to: user.email, subject: "Verify your email", html: <link to `url`> })` and `emailVerification.sendOnSignUp: true` — this fires automatically right after `signUpEmail`, which `signUpUser` (`modules/authentication/functions.ts`) already calls. Token expiry stays on Better-Auth's own default unless a reason to change it comes up.
-- **`modules/authentication/functions.ts`**: add `resendVerificationEmail`, wrapped in `authMiddleware` and using `context.user.email` — **never** a client-supplied email. This matters: an endpoint that emails an arbitrary caller-supplied address would let anyone use it to spam/enumerate, the same failure class as the IDOR bugs already found and fixed elsewhere in this module's ownership checks (see `allocations/SPEC.md`, `transactions/SPEC.md`). Wraps `auth.api.sendVerificationEmail({ body: { email: context.user.email } })`.
-- **New route**: `src/routes/verify-email.tsx`, top-level — deliberately outside both the `_guest` and `_protected` route groups. Sign-up already auto-signs the User in (per `signUpUser`/`register.tsx`'s existing redirect-to-`/dashboard` flow), so this link is normally clicked while authenticated, but Better-Auth's `verifyEmail` endpoint itself doesn't require a session, so the route shouldn't force one either. Calls `auth.api.verifyEmail({ query: { token } })` server-side, then redirects to `/dashboard`.
-- **Re-verifying is a no-op, not an error.** Clicking an already-consumed or already-verified link succeeds silently (matches Better-Auth's own endpoint behavior) — the route must not special-case or error on this.
-- **No UI change anywhere else.** `_protected.tsx`, `SidebarFooter`, and every existing route are untouched. Verification status has zero visible effect on the app beyond `users.emailVerified` becoming `true` in the database.
+- **Reuse the `sendEmail` function** from the Forgot / Reset Password spec (`docs/specs/forgot-password.md`). Whichever spec ships first creates it, and the other imports it. The choice of email provider is the same open decision that spec records, so this spec doesn't repeat it.
+- **`integrations/better-auth/index.ts`.** Add `emailVerification.sendVerificationEmail: async ({ user, url }) => sendEmail({ to: user.email, subject: "Verify your email", html: <link to `url`> })` and `emailVerification.sendOnSignUp: true`. Better-Auth then sends the email right after `signUpEmail`, which `signUpUser` in `modules/authentication/functions.ts` already calls. Token expiry stays at Better-Auth's default unless a reason to change it comes up.
+- **`modules/authentication/functions.ts`.** Add `resendVerificationEmail`, wrapped in `authMiddleware`. It uses `context.user.email` and **never** an email the client sends. An endpoint that emails any address a caller supplies would let anyone use it for spam or to enumerate accounts. That is the same class of bug as the IDOR bugs this module's ownership checks already fixed (see `allocations/SPEC.md` and `transactions/SPEC.md`). It calls `auth.api.sendVerificationEmail({ body: { email: context.user.email } })`.
+- **New route `src/routes/verify-email.tsx`, at the top level.** It sits outside both the `_guest` and `_protected` route groups on purpose. Sign-up already signs the User in, through the existing redirect to `/dashboard` in `signUpUser` and `register.tsx`, so the User usually clicks this link while signed in. Better-Auth's `verifyEmail` endpoint doesn't require a session, though, so the route shouldn't require one either. The route calls `auth.api.verifyEmail({ query: { token } })` on the server, then redirects to `/dashboard`.
+- **Verifying again does nothing and isn't an error.** Clicking a used link, or a link for an already-verified User, succeeds silently, as Better-Auth's endpoint does. The route must not special-case it or raise an error.
+- **No other UI changes.** `_protected.tsx`, `SidebarFooter` and every existing route stay as they are. Verification status has no visible effect on the app. The only change is that `users.emailVerified` becomes `true` in the database.
 
-## Testing Decisions
+## Testing decisions
 
-- **No prior art exists** — same caveat as the Forgot / Reset Password spec: this repo has zero test files today despite `vitest` being configured. Greenfield; base test setup is foundational work for whichever spec lands first.
-- Test `resendVerificationEmail` and the `verify-email` route's server-side handler directly — call/invoke them like any other server function, not through rendered UI.
-- Mock the `sendEmail` seam; assert it's called with the right recipient and a verification URL.
-- **Dedicated test for the ownership edge**: assert `resendVerificationEmail` always uses the authenticated User's own session email, never anything a caller could pass in — this is the one correctness-sensitive case worth its own test, per the IDOR precedent noted above.
-- Assert verifying an already-verified account succeeds as a no-op (no thrown error, no double side effect).
-- Don't test Better-Auth's own token internals — only this app's wiring around them.
+- **The repo has no tests yet**, the same caveat as the Forgot / Reset Password spec. `vitest` is configured, but there are no test files. Whichever spec ships first sets up the base test configuration.
+- Test `resendVerificationEmail` and the `verify-email` route's server handler directly, by calling them like any other server function, not through rendered UI.
+- Mock `sendEmail`, and assert it receives the right recipient and a verification URL.
+- **Give the ownership case its own test.** Assert that `resendVerificationEmail` always uses the signed-in User's own session email, never anything a caller passes in. It is the one case where a mistake is a security bug, as the IDOR fixes above show.
+- Assert that verifying an already-verified account succeeds and does nothing: no thrown error and no repeated side effect.
+- Don't test Better-Auth's own token internals, only this app's code around them.
 
-## Out of Scope
+## Out of scope
 
-- **Any gating of sign-in or app usage based on `emailVerified`** — explicitly deferred; the user asked to leave this for future consideration. This spec only makes the flag accurate, not consequential.
-- Any nag banner or UI indicator of verification status.
-- Choosing/wiring the concrete email provider — shared open decision with the Forgot / Reset Password spec, not duplicated here.
-- Blocking sensitive actions (e.g. changing email) behind verification — noted as a candidate in the original audit (`authentication/SPEC.md`), not designed or built here.
+- **Gating sign-in or app use on `emailVerified`.** The user asked to leave this for later. This spec only makes the flag accurate.
+- A nag banner or any other UI showing verification status.
+- Choosing and wiring the email provider. This is the open decision shared with the Forgot / Reset Password spec, and that spec records it.
+- Requiring verification for sensitive actions such as changing the email. The original audit in `authentication/SPEC.md` lists this as a candidate, and this spec doesn't design or build it.
 
-## Further Notes
+## Further notes
 
-- See `src/modules/authentication/SPEC.md` → Future Considerations → Email Verification for the full list of candidate use cases (gate password reset, nag banner, gate email change) that remain undecided and are not this spec's job to resolve.
-- If the Forgot / Reset Password spec is implemented first, this spec inherits its `sendEmail` seam as-is; if this one lands first, that spec should do the same in reverse.
+- The Email verification section of Future considerations in `src/modules/authentication/SPEC.md` lists the candidate uses, such as gating password reset, a nag banner and gating email change. They are undecided, and this spec doesn't decide them.
+- If the Forgot / Reset Password spec ships first, this spec uses its `sendEmail` function unchanged. If this spec ships first, that spec does the same in reverse.

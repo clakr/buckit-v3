@@ -3,77 +3,77 @@ status: ready-for-agent
 module: bank-accounts
 ---
 
-# Spec: Bank Account — Edit, Delete, and Creation Disclosures
+# Spec: Bank Account edit, delete, and creation disclosures
 
-No issue tracker is used for this project. This file is the actionable checklist — its `status: ready-for-agent` frontmatter stands in for the triage label a tracker would normally carry. Update the status (e.g. `in-progress`, `done`) as work proceeds.
+This project uses no issue tracker, so this file is the checklist. Its `status: ready-for-agent` frontmatter takes the place of a tracker's triage label. Update the status, for example to `in-progress` or `done`, as work goes on.
 
-## Problem Statement
+## Problem statement
 
-A user can create and view Bank Accounts, but cannot fix a mistake afterward. Renaming an account (even to correct a typo) is impossible — the "Edit" menu item exists but is disabled. Removing an account they no longer use is equally impossible — "Delete" is disabled too. Worse, a user only discovers that an account's currency and starting balance can never be changed _after_ they've already created the account and started logging transactions against it — there's no warning at the point where the mistake would actually be prevented.
+A user can create and view Bank Accounts but can't fix a mistake afterward. They can't rename an account, even to correct a typo, because the "Edit" menu item exists but is disabled. They can't remove an account they no longer use either, because "Delete" is disabled too. A user also only learns that an account's currency and starting balance can never change _after_ creating it and logging transactions against it. Nothing warns them at the point where they could still avoid the mistake.
 
 ## Solution
 
-Add Edit (rename only) and Delete (permanently remove an account and everything logged against it, protected by typed confirmation) as working actions on a Bank Account. Add inline disclosure text to the Create Account form so a user knows, before submitting, that currency and starting balance can never be changed afterward.
+Make Edit and Delete work on a Bank Account. Edit only renames. Delete permanently removes an account and everything logged against it, behind a typed confirmation. Add inline text to the Create Account form, so a user knows before submitting that currency and starting balance can never change afterward.
 
-## User Stories
+## User stories
 
 1. As a user, I want to see a list of all my bank accounts with their current balance and unallocated balance, so that I can get an overview of my finances at a glance.
 2. As a user, I want to see each account's currency, so that I know what currency its numbers are in.
 3. As a user, I want to see when an account last had a transaction, so that I can spot stale or unused accounts.
 4. As a user, I want to open an account's detail page and see its transactions and allocations, so that I can review its full history.
-5. As a user, I want to see an account's computed balance, total allocated, and unallocated amount on its detail page, so that I understand exactly where my money stands.
+5. As a user, I want to see an account's computed balance, total allocated, and unallocated amount on its detail page, so that I know exactly where my money stands.
 6. As a user, I want to create a new bank account with a name, currency, and starting balance, so that I can start tracking a new source of money.
-7. As a user, I want the app to prevent me from creating two accounts with the same name (case-insensitively), so that I don't confuse similarly-named accounts.
+7. As a user, I want the app to stop me from creating two accounts with the same name, ignoring case, so that I don't confuse similarly named accounts.
 8. As a user, I want to be warned, before I submit, that an account's currency can never be changed later, so that I choose the right one the first time.
 9. As a user, I want to be warned, before I submit, that an account's starting balance can never be edited later, so that I enter the correct opening amount the first time.
-10. As a user, I want those warnings to be simple inline field text rather than an extra confirmation step or checkbox, so that creating an account stays quick and low-friction.
-11. As a user, I want to be prevented from entering a negative starting balance, so that I can't create an account that violates the "balance can never be negative" rule from day one.
-12. As a user, I want to rename an existing bank account, so that I can fix a typo or reflect a change in how I think about it (e.g. "Savings" → "Emergency Fund").
-13. As a user, I want renaming to enforce the same uniqueness rule as creation (case-insensitive, excluding the account's own current name), so that I can't create a duplicate and can still save without changing anything.
-14. As a user, I want to see, on the edit form, that Currency and Starting Balance are not present/editable, so that I'm not confused about why those fields are missing.
+10. As a user, I want those warnings to be plain inline field text instead of an extra confirmation step or checkbox, so that creating an account stays quick.
+11. As a user, I want to be stopped from entering a negative starting balance, so that I can't create an account that breaks the "balance can never be negative" rule from day one.
+12. As a user, I want to rename an existing bank account, so that I can fix a typo or change how I label it, such as "Savings" to "Emergency Fund".
+13. As a user, I want renaming to follow the same uniqueness rule as creation, ignoring case and excluding the account's own current name, so that I can't create a duplicate and can still save without changing anything.
+14. As a user, I want the edit form to show that Currency and Starting Balance can't be edited, so that I'm not confused about why those fields are missing.
 15. As a user, I want a confirmation toast when I successfully rename an account, so that I know the change was saved.
-16. As a user, I want to delete a bank account I no longer use, so that my accounts list doesn't accumulate clutter from closed or abandoned accounts.
-17. As a user, I want to be told exactly how many transactions and allocations will be destroyed before I delete an account, so that I understand the scope of the action.
+16. As a user, I want to delete a bank account I no longer use, so that closed or abandoned accounts don't clutter my accounts list.
+17. As a user, I want to be told exactly how many transactions and allocations will be destroyed before I delete an account, so that I understand what the action removes.
 18. As a user, I want to type the account's name to confirm deletion, so that I can't destroy an account's entire history with a single accidental click.
-19. As a user, I want deleting an account to also remove all of its transactions and allocations, so that I don't end up with orphaned data cluttering buckets or reports.
-20. As a user, I want to be redirected back to the accounts list after deleting the account I was currently viewing, so that I'm not left on a broken detail page for an account that no longer exists.
-21. As a user, I want a confirmation toast when an account is deleted, so that I have feedback the action completed.
-22. As a user, I want my bank account's balance to be computed automatically from its starting balance and its transactions, so that I never have to manually keep it in sync.
-23. As a user, I want the app to prevent any change (logging a transaction, editing a transaction, deleting a transaction, editing an allocation) that would push my unallocated balance below zero, so that I can trust the "unallocated" number is always actually available.
-24. As a user, I want a bank account's balance to never go negative, so that this module accurately represents cash-like money I actually have, not credit or debt.
-25. As a user, I want to eventually transfer money directly between two of my own bank accounts of the same currency, so that I don't have to fake a transfer using two unrelated transactions. (Captured for a future pass — not part of this spec's build.)
+19. As a user, I want deleting an account to also remove all of its transactions and allocations, so that no orphaned data clutters buckets or reports.
+20. As a user, I want to be redirected back to the accounts list after deleting the account I was viewing, so that I'm not left on a broken detail page for an account that no longer exists.
+21. As a user, I want a confirmation toast when an account is deleted, so that I know the action completed.
+22. As a user, I want my bank account's balance computed from its starting balance and its transactions, so that I never have to keep it in sync by hand.
+23. As a user, I want the app to block any change that would push my unallocated balance below zero, such as logging, editing or deleting a transaction, or editing an allocation, so that I can trust the "unallocated" number is really available.
+24. As a user, I want a bank account's balance to never go negative, so that this module represents cash-like money I actually have, not credit or debt.
+25. As a user, I want to eventually transfer money directly between two of my own bank accounts of the same currency, so that I don't have to fake a transfer with two unrelated transactions. This is recorded for a future pass and is not part of this spec's build.
 
-## Implementation Decisions
+## Implementation decisions
 
-- **Modules touched**: `src/modules/bank-accounts` only (`functions.ts`, `schemas.ts`, `mutations.ts`, `components/`). No other module needs to change.
-- **New server functions**:
-  - `editBankAccount` — behind the existing `verifyUserBankAccountMiddleware`. Validates `name` (trim, required, max 100 chars, unique per user excluding the account's own current name). Updates `name` only. No other field is accepted by this mutation, by design.
-  - `deleteBankAccount` — behind the existing `verifyUserBankAccountMiddleware`. Performs a hard delete of the `bankAccounts` row. No server-side "can this be deleted" guard is needed — the existing `onDelete: "cascade"` foreign keys remove the account's `transactions` and `allocations` rows automatically, and there is no blocking rule (see `docs/adr/0001-hard-delete-bank-accounts.md`).
-- **Existing function to extend**: `validateBankAccountName` needs an optional "exclude this account id" parameter so the edit flow can validate uniqueness while still allowing a no-op save (submitting without changing the name).
-- **Schema changes**: none. No `updatedAt` column is being added (explicitly deferred — no current driver for it).
-- **UI — Create**: `RegisterBankAccountDialog` gets inline helper/description text under the Currency and Starting Balance fields stating they're permanent. No new step, no checkbox gate — the form's shape and submit flow are otherwise unchanged.
-- **UI — Edit**: new dialog with a single Name field, pre-filled with the current value, using the same pattern as the Create dialog's name field (debounced async validation calling the extended `validateBankAccountName`). Wires into the currently-`disabled` "Edit" item in `BankAccountActionsDropdownMenu`.
-- **UI — Delete**: new dedicated confirmation dialog — **not** the existing lightweight `confirm()` store used elsewhere in the app (that's a plain Yes/No dialog; there's no precedent in this codebase for typed confirmation, since `deleteTransaction`/`deleteAllocation` both use the plain version). This is a deliberate, one-off escalation in friction specific to Bank Account deletion, not a pattern to carry elsewhere without a separate discussion. The dialog body must state the exact count of transactions and allocations that will be destroyed, and the destructive action stays disabled until the typed input exactly matches the account's name. Wires into the currently-`disabled` "Delete" item in `BankAccountActionsDropdownMenu`.
-- **Post-delete navigation**: deleting from the account detail page redirects to `/accounts`. Deleting from the accounts list just removes the row — no navigation needed.
+- **Modules touched.** Only `src/modules/bank-accounts`, in `functions.ts`, `schemas.ts`, `mutations.ts` and `components/`. No other module changes.
+- **New server functions.**
+  - `editBankAccount` runs behind the existing `verifyUserBankAccountMiddleware`. It validates `name`: trimmed, required, at most 100 characters, and unique per user, excluding the account's own current name. It updates `name` only. By design, this mutation accepts no other field.
+  - `deleteBankAccount` runs behind the existing `verifyUserBankAccountMiddleware` and hard-deletes the `bankAccounts` row. It needs no server-side "can this be deleted" check. The existing `onDelete: "cascade"` foreign keys remove the account's `transactions` and `allocations` rows, and no rule blocks deletion (see `docs/adr/0001-hard-delete-bank-accounts.md`).
+- **Existing function to extend.** `validateBankAccountName` needs an optional parameter for an account id to exclude. The edit flow can then check uniqueness while still letting the user submit without changing the name.
+- **Schema changes.** None. This spec adds no `updatedAt` column, because nothing needs one yet.
+- **Create dialog.** `RegisterBankAccountDialog` gets description text under the Currency and Starting Balance fields saying they're permanent. It adds no step and no checkbox, and the form's fields and submit flow stay the same.
+- **Edit dialog.** A new dialog with a single Name field, pre-filled with the current value. It follows the Create dialog's name field, with debounced async validation through the extended `validateBankAccountName`. It replaces the disabled "Edit" item in `BankAccountActionsDropdownMenu`.
+- **Delete dialog.** A new, dedicated confirmation dialog. It does **not** use the app's existing `confirm()` store, which is a plain Yes/No dialog. Nothing in this codebase uses typed confirmation yet, because `deleteTransaction` and `deleteAllocation` both use the plain dialog. This extra friction is a one-off for Bank Account deletion, and other features shouldn't copy it without a separate discussion. The dialog must state exactly how many transactions and allocations the delete destroys. The delete button stays disabled until the typed input matches the account's name exactly. It replaces the disabled "Delete" item in `BankAccountActionsDropdownMenu`.
+- **Navigation after delete.** Deleting from the account detail page redirects to `/accounts`. Deleting from the accounts list removes the row, with no navigation.
 
-## Testing Decisions
+## Testing decisions
 
-Deferred for this pass, by explicit request — the developer is new to this and doesn't want to take it on alongside everything else here. Recorded for whenever it's picked back up:
+Deferred for this pass, because the developer asked to. They are new to testing and don't want to take it on alongside everything else here. Recorded for whenever someone picks it up:
 
-- The one clean seam in this module is `getBankAccountFigures` (`src/modules/bank-accounts/utils.ts`) — a pure function of `(totals, pending addition) → { balance, unallocated, totalAllocated }`, isolated from the database and the Cloudflare Workers runtime. It's the natural starting point: plain Vitest, no mocking required. (It replaced `getBankAccountUnallocatedBalance` on 2026-10-14; the SQL totals feeding it live in `figures.server.ts`.)
-- No test harness exists yet for the D1-backed server functions in this module (`registerBankAccount`, and the new `editBankAccount`/`deleteBankAccount`). They call `getDB(env.db)` via `cloudflare:workers`, which needs `@cloudflare/vitest-pool-workers` (or equivalent) to exercise in a test. That's new infrastructure for the whole repo, not a one-module decision — intentionally not introduced here.
+- `getBankAccountFigures` in `src/modules/bank-accounts/utils.ts` is the one part of this module that is easy to test in isolation. It is a pure function that takes the totals and a pending addition and returns `{ balance, unallocated, totalAllocated }`. It doesn't touch the database or the Cloudflare Workers runtime, so plain Vitest works with no mocking. It replaced `getBankAccountUnallocatedBalance` on 2026-10-14, and the SQL totals it receives come from `figures.server.ts`.
+- This module's D1-backed server functions, `registerBankAccount` plus the new `editBankAccount` and `deleteBankAccount`, have no test setup yet. They call `getDB(env.db)` from `cloudflare:workers`, so testing them needs `@cloudflare/vitest-pool-workers` or something like it. That would be new tooling for the whole repo, not a decision for one module, so this spec doesn't add it.
 
-## Out of Scope
+## Out of scope
 
-- Transfers between own bank accounts (captured in User Story 25; same-currency-only constraint already decided for whenever it's built).
-- Account types / overdraft support — rejected outright for this entity; belongs to a future, unbuilt Debt module.
-- `updatedAt` column / audit trail on `bankAccounts` — no current driver.
+- Transfers between the user's own bank accounts. User Story 25 records them, and it's already decided that both accounts must share a currency.
+- Account types and overdrafts. These are rejected for this entity and belong to a future Debt module.
+- An `updatedAt` column or audit trail on `bankAccounts`, because nothing needs one yet.
 - Editing currency or starting balance after creation, in any form.
-- Soft-delete / archive — explicitly rejected in favor of hard delete (see ADR 0001).
-- Any automated tests for this pass (see Testing Decisions).
-- The module rename (`accounts` → `bank-accounts` folder and identifiers) — already completed separately, prior to this spec.
+- Soft-delete or archive. ADR 0001 rejects it in favor of hard delete.
+- Automated tests for this pass. See Testing decisions.
+- Renaming the module folder and identifiers from `accounts` to `bank-accounts`. That was done separately, before this spec.
 
-## Further Notes
+## Further notes
 
-- Resolved vocabulary lives in `CONTEXT.md` (repo root). Full module rationale (entity shape, invariants, verified-correct behaviors) lives in `src/modules/bank-accounts/SPEC.md`. The delete-policy trade-off is recorded in `docs/adr/0001-hard-delete-bank-accounts.md`. Read those before implementing — this spec assumes their context rather than repeating it.
-- An earlier version of this exact module (with working Edit and Delete) existed and was deleted in commit `bc77e36`. Its Delete policy _blocked_ deletion instead of cascading — that's a deliberate reversal here, not an oversight; see the ADR before "fixing" it back.
+- `CONTEXT.md` at the repo root holds the resolved vocabulary. `src/modules/bank-accounts/SPEC.md` holds the full module rationale, including the entity shape, invariants and behaviors verified as correct. `docs/adr/0001-hard-delete-bank-accounts.md` records the delete-policy trade-off. Read those before implementing, because this spec assumes them instead of repeating them.
+- An earlier version of this module, with working Edit and Delete, existed until commit `bc77e36` deleted it. Its Delete _blocked_ deletion instead of cascading. Cascading here is a deliberate reversal, so read the ADR before "fixing" it back.

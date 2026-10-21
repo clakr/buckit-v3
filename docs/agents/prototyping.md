@@ -4,7 +4,7 @@ How the `prototype` skill's UI branch should run in this repo.
 
 ## Use the existing switcher
 
-`src/components/prototype-switcher.tsx` is the floating variant bar (one button per variant, click to jump). **Import it; don't recreate it.** It's router-agnostic (`onChange` callback), also cycles with ← / → (ignored while typing in an input), and renders nothing in production builds.
+`src/components/prototype-switcher.tsx` is the floating variant bar, with one button per variant. **Import it, and don't recreate it.** It doesn't depend on the router, because it reports changes through an `onChange` callback. The left and right arrow keys also cycle variants, except while focus is in an input. It renders nothing in production builds.
 
 ## Wiring on a route
 
@@ -30,7 +30,7 @@ const navigate = useNavigate({ from: Route.fullPath });
   current={variant}
   names={{ A: "Opening entry", B: "Heading popover", C: "Side card" }}
   onChange={(next) => navigate({ search: { variant: next }, replace: true })}
-/>
+/>;
 ```
 
 ## Cleaning up

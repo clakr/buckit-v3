@@ -4,16 +4,16 @@ status: accepted
 
 # Bank Account deletion is a hard, cascading delete
 
-Deleting a Bank Account permanently deletes all of its Transactions and Allocations (matches the existing `onDelete: "cascade"` foreign keys), gated only by a typed confirmation (re-typing the account name) — not by blocking deletion when the account has history.
+Deleting a Bank Account permanently deletes all of its Transactions and Allocations, matching the existing `onDelete: "cascade"` foreign keys. The only gate is a typed confirmation, where the user re-types the account name. The app doesn't block deletion when the account has history.
 
-This reverses a previously-implemented policy: an earlier version of this module (removed in `bc77e36`, see `src/modules/accounts/specs/05-delete-account.md` in that commit's parent) blocked deletion entirely unless the account had zero transactions and zero allocations, forcing the user to manually delete all related records first.
+This reverses an earlier policy. A previous version of this module blocked deletion unless the account had no transactions and no allocations, so the user had to delete every related record by hand first. Commit `bc77e36` removed that version, and `src/modules/accounts/specs/05-delete-account.md` in that commit's parent describes it.
 
-## Considered Options
+## Considered options
 
-- **Block deletion when non-empty** (the old behavior): safer against accidental data loss, but pushes tedious manual cleanup onto the user before they can remove an account they no longer want.
-- **Archive/soft-delete**: preserves history and avoids the cascade risk entirely, but requires a schema change (a status/`archivedAt` column) and its own set of "what does an archived account look like" decisions.
-- **Hard cascade delete + typed confirmation** (chosen): simplest to use and to implement; typed confirmation raises the bar enough to prevent a stray click, but a deliberate delete is unrecoverable.
+- **Block deletion when non-empty.** This was the old behavior. It protects against accidental data loss, but the user must clean up by hand before removing an account they no longer want.
+- **Archive or soft-delete.** This keeps history and avoids the cascade risk. It needs a schema change, such as a status or `archivedAt` column, plus decisions about how an archived account looks and behaves.
+- **Hard cascade delete with typed confirmation.** Chosen. It is the simplest to use and to build. The typed confirmation stops a stray click, but a deliberate delete can't be recovered.
 
 ## Consequences
 
-A user who deletes a Bank Account by mistake loses that account's entire transaction and allocation history with no recovery path — there is no soft-delete or trash/undo. If that turns out to be a real problem in practice, revisit toward archiving rather than re-adding a blocking check.
+A user who deletes a Bank Account by mistake loses its whole transaction and allocation history, and can't get it back. No soft-delete, trash or undo exists. If that becomes a real problem, move toward archiving instead of bringing back the blocking check.

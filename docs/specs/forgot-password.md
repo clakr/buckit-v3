@@ -3,59 +3,59 @@ status: ready-for-agent
 module: authentication
 ---
 
-# Spec: Forgot / Reset Password
+# Spec: Forgot / reset password
 
-No issue tracker is used for this project. This file is the actionable checklist — its `status: ready-for-agent` frontmatter stands in for the triage label a tracker would normally carry. Update the status (e.g. `in-progress`, `done`) as work proceeds.
+This project uses no issue tracker, so this file is the checklist. Its `status: ready-for-agent` frontmatter takes the place of a tracker's triage label. Update the status, for example to `in-progress` or `done`, as work goes on.
 
-## Problem Statement
+## Problem statement
 
-A User who forgets their password has no way to recover access today — the only path is contacting the app's operator directly, which doesn't scale for an app meant to have real external Users beyond its original author (see `authentication/SPEC.md`'s locked decision that this is a genuinely multi-user product).
+A User who forgets their password has no way to get back in today. The only option is to contact the app's operator, which doesn't work for an app meant to have real Users beyond its original author. `authentication/SPEC.md` records the decision that this is a multi-user product.
 
 ## Solution
 
-Let a signed-out User request a password-reset email from the sign-in page, follow a time-limited link to a page where they set a new password, and sign in with it — built on Better-Auth's existing `requestPasswordReset`/`resetPassword` primitives, which this app hasn't wired up yet.
+From the sign-in page, a signed-out User requests a password-reset email. A time-limited link takes them to a page where they set a new password, and they sign in with it. Build it on Better-Auth's existing `requestPasswordReset` and `resetPassword` functions, which this app hasn't wired up yet.
 
-## User Stories
+## User stories
 
 1. As a signed-out User who forgot their password, I want a "Forgot password?" link on the sign-in page, so that I can start recovery without contacting support.
 2. As a signed-out User requesting a reset, I want to enter my email and submit, so that a reset link is sent to my inbox if that email has an account.
-3. As a signed-out User who submitted a reset request, I want the same confirmation message regardless of whether that email is registered, so the flow doesn't leak which emails exist in the system.
-4. As a User who clicks the reset link in their email, I want to land on a page where I can set a new password, so I can regain access without knowing my old one.
-5. As a User setting a new password, I want to confirm it by typing it twice, so I don't lock myself out with a typo.
-6. As a User setting a new password, I want the same 8–128 character rule already enforced at sign-up, so the rule is consistent everywhere a password is set.
+3. As a signed-out User who submitted a reset request, I want the same confirmation message whether or not that email is registered, so the flow doesn't reveal which emails have accounts.
+4. As a User who clicks the reset link in their email, I want to land on a page where I can set a new password, so I can get back in without knowing my old one.
+5. As a User setting a new password, I want to type it twice, so I don't lock myself out with a typo.
+6. As a User setting a new password, I want the same 8 to 128 character rule that sign-up uses, so every place that sets a password follows one rule.
 7. As a User whose reset link has expired or was already used, I want a clear error message, so I know to request a new one instead of assuming something is broken.
-8. As a User who successfully resets their password, I want to land back on the sign-in page, so I can immediately sign in with the new password.
-9. As a User who successfully resets their password, I want every other active Session of mine revoked, so a lost device or leaked link can't retain access after I've regained control.
-10. As a developer, I want the reset-password email sent through one shared `sendEmail` seam, so swapping providers later — or mocking it in tests — never touches business logic.
-11. As a developer, I want the two new server functions testable without a live email provider, so CI never depends on an external service.
+8. As a User who successfully resets their password, I want to land back on the sign-in page, so I can sign in with the new password right away.
+9. As a User who successfully resets their password, I want every other Session of mine revoked, so a lost device or leaked link can't keep access after I've taken control back.
+10. As a developer, I want the reset email sent through one shared `sendEmail` function, so switching providers later, or mocking it in tests, never touches business logic.
+11. As a developer, I want to test the two new server functions without a live email provider, so CI never depends on an external service.
 
-## Implementation Decisions
+## Implementation decisions
 
-- **New shared seam — `sendEmail`.** A single function, e.g. `sendEmail({ to, subject, html }): Promise<void>`, is the one new integration point both this spec and the Email Verification spec (`docs/specs/email-verification.md`) build on. Nothing in this codebase sends email today (no Resend/SMTP/nodemailer dependency exists). Whichever of the two specs is implemented first creates this seam; the other imports it. **Which provider it wraps is an explicit open decision, not made in this spec — see Further Notes.**
-- **`integrations/better-auth/index.ts`**: add `emailAndPassword.sendResetPassword: async ({ user, url }) => sendEmail({ to: user.email, subject: "Reset your password", html: <link to `url`> })`, and `emailAndPassword.revokeSessionsOnPasswordReset: true` (a real Better-Auth option — confirmed in `node_modules/better-auth/dist/api/routes/password.mjs`; deletes all of the User's Sessions once the reset succeeds). Token expiry stays on Better-Auth's own default (`resetPasswordTokenExpiresIn`, 1 hour) unless a reason to change it comes up.
-- **`modules/authentication/schemas.ts`**: add `requestPasswordResetSchema` (email only, same `z.email().toLowerCase().trim()` shape as `signInUserSchema`), and `resetPasswordSchema` (password + confirmPassword, same 8–128-char + refine-match shape as `signUpUserSchema`). The token itself is a URL param, not a form field.
-- **`modules/authentication/functions.ts`**: add `requestPasswordReset` (wraps `auth.api.requestPasswordReset({ body: { email, redirectTo: "/reset-password" } })`) and `resetPassword` (wraps `auth.api.resetPassword({ body: { newPassword, token } })`). Neither needs `authMiddleware` — both are for signed-out Users by definition.
-- **New routes**: `src/routes/_guest/forgot-password.tsx` (email-only form, mirrors `_guest/index.tsx`'s `useAppForm` structure) and `src/routes/_guest/reset-password.tsx` (password + confirm form, reads `token` from the URL search params via TanStack Router's `validateSearch`, mirrors `_guest/register.tsx`'s structure). Both live in the `_guest` route group like the existing sign-in/sign-up pages.
-- **`/` (sign-in page)**: add a "Forgot password?" link near the password field, pointing to `/forgot-password`.
-- **No-leak response**: Better-Auth's `requestPasswordReset` endpoint already responds identically whether or not the email exists. The UI must show one generic "If that email has an account, a reset link was sent" message regardless of the response shape — never branch client-side on whether the email was found.
-- **Error surfacing**: expired/invalid-token and other failures use the same `error instanceof Error ? error.message : String(error)` → `toast.error` pattern already used in `index.tsx`/`register.tsx` — no new error-handling convention needed.
+- **A new shared `sendEmail` function.** One function, such as `sendEmail({ to, subject, html }): Promise<void>`, is the single new integration point. Both this spec and the Email Verification spec (`docs/specs/email-verification.md`) build on it. Nothing in this codebase sends email today, and there is no Resend, SMTP or nodemailer dependency. Whichever spec ships first creates `sendEmail`, and the other imports it. **This spec doesn't decide which provider it wraps. See Further notes.**
+- **`integrations/better-auth/index.ts`.** Add `emailAndPassword.sendResetPassword: async ({ user, url }) => sendEmail({ to: user.email, subject: "Reset your password", html: <link to `url`> })` and `emailAndPassword.revokeSessionsOnPasswordReset: true`. The second is a real Better-Auth option, confirmed in `node_modules/better-auth/dist/api/routes/password.mjs`. It deletes all of the User's Sessions once the reset succeeds. Token expiry stays at Better-Auth's default `resetPasswordTokenExpiresIn` of 1 hour unless a reason to change it comes up.
+- **`modules/authentication/schemas.ts`.** Add `requestPasswordResetSchema`, which takes only an email with the same `z.email().toLowerCase().trim()` rule as `signInUserSchema`. Add `resetPasswordSchema`, which takes a password and confirmPassword with the same 8 to 128 character rule and matching refine as `signUpUserSchema`. The token comes from a URL param, not a form field.
+- **`modules/authentication/functions.ts`.** Add `requestPasswordReset`, which calls `auth.api.requestPasswordReset({ body: { email, redirectTo: "/reset-password" } })`, and `resetPassword`, which calls `auth.api.resetPassword({ body: { newPassword, token } })`. Neither uses `authMiddleware`, because both serve signed-out Users.
+- **New routes.** `src/routes/_guest/forgot-password.tsx` is an email-only form that follows the `useAppForm` structure of `_guest/index.tsx`. `src/routes/_guest/reset-password.tsx` is a password and confirm form that follows `_guest/register.tsx`. It reads `token` from the URL search params through TanStack Router's `validateSearch`. Both live in the `_guest` route group with the existing sign-in and sign-up pages.
+- **The sign-in page at `/`.** Add a "Forgot password?" link near the password field, pointing to `/forgot-password`.
+- **The response reveals nothing.** Better-Auth's `requestPasswordReset` endpoint already responds the same way whether or not the email exists. The UI must always show one message, "If that email has an account, a reset link was sent", whatever the response looks like. The client must never branch on whether the email was found.
+- **Showing errors.** An expired or invalid token and other failures go through the pattern `index.tsx` and `register.tsx` already use. They turn the error into a message with `error instanceof Error ? error.message : String(error)` and pass it to `toast.error`. No new error-handling convention is needed.
 
-## Testing Decisions
+## Testing decisions
 
-- **No prior art exists.** This repo has `vitest` configured (`devDependencies`, a `test` script) but zero `*.test.ts(x)` files anywhere — this would be the first test suite written, not a continuation of an established pattern. The implementing agent should establish the base test setup (test runner config, any DB test-fixture strategy) as foundational work; that setup isn't designed here.
-- Test the two new server functions (`requestPasswordReset`, `resetPassword`) directly — call them like any other exported `createServerFn` handler and assert on return values / thrown errors. Don't test through rendered routes/UI.
-- Mock the `sendEmail` seam rather than hitting a real provider. Assert `requestPasswordReset` calls `sendEmail` with the requesting User's address and a token-bearing URL; assert `resetPassword` does **not** call `sendEmail`.
-- Don't test Better-Auth's own internals (token generation, hashing, expiry math) — that's the library's tested behavior. Test only this app's wiring: the two server functions, the two new schemas' validation boundaries, and the `sendEmail` call shape.
+- **The repo has no tests yet.** `vitest` is configured, with a `devDependencies` entry and a `test` script, but no `*.test.ts(x)` files exist. This would be the first test suite, so there is no pattern to follow. The implementing agent sets up the base test configuration first, including the runner config and how tests get a database. This spec doesn't design that setup.
+- Test the two new server functions, `requestPasswordReset` and `resetPassword`, directly. Call them like any other exported `createServerFn` handler and assert on return values and thrown errors. Don't test through rendered routes or UI.
+- Mock `sendEmail` instead of calling a real provider. Assert that `requestPasswordReset` calls `sendEmail` with the requesting User's address and a URL that carries a token. Assert that `resetPassword` does **not** call `sendEmail`.
+- Don't test Better-Auth's internals, such as token generation, hashing or expiry math, because the library tests those itself. Test only this app's code: the two server functions, where the two new schemas accept and reject input, and the arguments passed to `sendEmail`.
 
-## Out of Scope
+## Out of scope
 
-- Choosing and wiring a concrete email provider (Resend, Postmark, SES, etc.) — open decision, not resolved here (see Further Notes).
-- Rate-limiting reset requests specifically — falls under this app's existing, separately-flagged, unaudited rate-limiting gap (`authentication/SPEC.md` → Future Considerations → Rate Limiting), not re-solved by this spec.
-- Email verification — separate spec (`docs/specs/email-verification.md`).
-- Account-lockout or suspicious-activity notifications beyond revoking Sessions on a successful reset.
-- Any redesign of `/` or `/register` beyond adding the one "Forgot password?" link.
+- Choosing and wiring an email provider, such as Resend, Postmark or SES. This is still open. See Further notes.
+- Rate-limiting reset requests. It belongs to the app's known rate-limiting gap, which `authentication/SPEC.md` records under Future considerations, in Rate limiting and brute-force protection. No one has audited that gap yet, and this spec doesn't solve it.
+- Email verification, which has its own spec (`docs/specs/email-verification.md`).
+- Account lockout or suspicious-activity notifications, beyond revoking Sessions after a successful reset.
+- Any redesign of `/` or `/register` beyond the one "Forgot password?" link.
 
-## Further Notes
+## Further notes
 
-- **Email provider is explicitly undecided.** The user was asked directly and said they haven't thought about it yet — nothing is locked in. Resend was the natural recommendation (HTTP API, works on Cloudflare Workers without needing raw TCP sockets, a common Better-Auth pairing) but that's not a decision, just a note for whoever picks this up. Until a provider is chosen, `sendEmail` can be stubbed (e.g. `console.log` in dev) so the rest of the flow is buildable and testable without blocking on it.
-- See `src/modules/authentication/SPEC.md` for the audit this spec grew out of, including the multi-user-by-design decision that motivates building self-service recovery at all.
+- **The email provider is undecided.** The user said they haven't thought about it yet, so nothing is locked in. Resend is the likely recommendation. It has an HTTP API, so it works on Cloudflare Workers without raw TCP sockets, and it's often paired with Better-Auth. That's a note for whoever picks this up, not a decision. Until someone picks a provider, `sendEmail` can be a stub, such as a `console.log` in dev, so the rest of the flow can be built and tested without waiting.
+- `src/modules/authentication/SPEC.md` holds the audit this spec came from, including the multi-user decision that is the reason for building self-service recovery at all.

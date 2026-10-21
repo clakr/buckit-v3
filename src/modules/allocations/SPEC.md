@@ -1,75 +1,77 @@
-# Module Spec: Allocations
+# Module spec: Allocations
 
 ## Overview
 
-An Allocation is money earmarked from a Bank Account toward a Bucket. It does not leave the Bank Account's Balance, but reduces that account's computed Unallocated amount. It has no currency of its own — it's always rendered in the owning Bank Account's currency. See [`CONTEXT.md`](../../../CONTEXT.md) for the glossary entry.
+An Allocation is money earmarked from a Bank Account toward a Bucket. It stays in the Bank Account's Balance but reduces that account's computed Unallocated amount. It has no currency of its own, and the app always shows it in the owning Bank Account's currency. See [`CONTEXT.md`](../../../CONTEXT.md) for the glossary entry.
 
 ## Entity
 
 ### Allocation
 
-| Field           | Type     | Notes                                                                   |
-| --------------- | -------- | ----------------------------------------------------------------------- |
-| `id`            | string   | auto-generated (uuidv7)                                                 |
-| `bankAccountId` | string   | FK → BankAccount, `onDelete: cascade`                                   |
-| `bucketId`      | string   | FK → Bucket, `onDelete: cascade`                                        |
-| `amount`        | integer  | minor units (cents) via the Money module (`src/lib/money.ts`), in the Bank Account's currency |
-| `note`          | string   | nullable                                                                |
-| `date`          | datetime | user-editable, defaults to now on creation                              |
-| `createdAt`     | datetime |                                                                         |
+| Field           | Type     | Notes                                                                                             |
+| --------------- | -------- | ------------------------------------------------------------------------------------------------- |
+| `id`            | string   | generated (uuidv7)                                                                                |
+| `bankAccountId` | string   | foreign key to BankAccount, `onDelete: cascade`                                                   |
+| `bucketId`      | string   | foreign key to Bucket, `onDelete: cascade`                                                        |
+| `amount`        | integer  | minor units (cents) through the Money module (`src/lib/money.ts`), in the Bank Account's currency |
+| `note`          | string   | nullable                                                                                          |
+| `date`          | datetime | the user can edit it, and it defaults to now on creation                                          |
+| `createdAt`     | datetime |                                                                                                   |
 
-No `updatedAt` column — same reasoning as every other entity in this app (no sync/API client, no per-User concurrent-edit conflict scenario to detect). No `currency` column — same reasoning as Transaction (see below).
+It has no `updatedAt` column, for the same reason as every other entity in this app. No sync or API client exists, and a User's Sessions have no concurrent-edit conflict to detect. It has no `currency` column, for the same reason as Transaction (see below).
 
-## Design Decisions
+## Design decisions
 
-### `Unallocated ≥ 0` Invariant
+### The `Unallocated ≥ 0` rule
 
-Enforced on every mutation that could reduce a Bank Account's Unallocated balance: `logAllocation` and `editAllocation` (recomputing with the edited amount substituted in). **The write is the check:** both run one private check, `checkAllocationAmount`, in-process right before writing, and throw `InsufficientFundsError`. Its message (`describeInsufficientUnallocated` in `src/lib/money.ts`) names the Bank Account and what it has Available — for an edit, counting the edited Allocation as returned, so it's the most that Allocation can be. The dialogs show that same Available figure under the amount and compare against it locally, as you type, with the same message: the Log dialog from the chosen Bank Account's figures (re-checking when the account changes), the Edit dialog from `getAllocation`'s `available`. No request goes out for this; if the figure is stale (something changed the account meanwhile), the write rejects and the failure toast shows the reason. Delete needs no guard: removing an Allocation only ever increases Unallocated. This is the same invariant, and the same check (`checkUnallocated` in `src/modules/bank-accounts/figures.server.ts`), that Transaction's mutations enforce — see `transactions/SPEC.md`.
+Every mutation that could reduce a Bank Account's Unallocated balance enforces the rule. Those are `logAllocation` and `editAllocation`, where the edit recomputes Unallocated with the new amount in place of the old one. **The write runs the check.** Both call one private check, `checkAllocationAmount`, on the server right before writing, and throw `InsufficientFundsError` when it fails. The error message, from `describeInsufficientUnallocated` in `src/lib/money.ts`, names the Bank Account and its Available amount. For an edit, Available counts the edited Allocation as returned, so it is the most that Allocation can be.
 
-### No Currency of Its Own
+The dialogs show the same Available figure under the amount field and compare against it as the user types, with the same message. The Log dialog takes the figure from the chosen Bank Account and checks again when the account changes. The Edit dialog takes it from `getAllocation`'s `available`. This check sends no request. If the figure is out of date because something changed the account in the meantime, the write rejects and the failure toast shows the reason. Delete needs no check, because removing an Allocation can only increase Unallocated. Transaction's mutations enforce the same rule with the same check, `checkUnallocated` in `src/modules/bank-accounts/figures.server.ts`. See `transactions/SPEC.md`.
 
-An Allocation's amount is stored in minor units of the owning Bank Account's currency (see the Money module, `src/lib/money.ts`), same pattern as Transaction. `getAllocation` returns its Bank Account's `name` and `currency` (from the account's figures, which also give its `available`) to render the amount correctly. It throws `NotFoundError` for a missing (or someone else's) Allocation, so the Edit dialog shows "Allocation not found" with Close rather than a Retry that can't help.
+### No currency of its own
 
-### Visible From Both Parents, No Standalone View
+An Allocation's amount is stored in minor units of the owning Bank Account's currency (see the Money module, `src/lib/money.ts`), as with Transaction. `getAllocation` returns its Bank Account's `name` and `currency` so the UI can format the amount. Both come from the account's figures, which also give its `available`. It throws `NotFoundError` for a missing Allocation or someone else's, so the Edit dialog shows "Allocation not found" with Close instead of a Retry that can't help.
 
-Unlike Transaction (embedded only in its Bank Account's detail page), an Allocation is embedded in **two** places: the Bucket detail page (a flat table) and the Bank Account detail page (an "Allocations" tab alongside "Transactions"). Both read through this module: `getAllocations({ bucketId?, bankAccountId? })` returns the user's Allocations, each with its Bank Account's `id`/`name`/`currency` and its Bucket's `id`/`name`, and `getAllocationColumns({ omit })` gives one column set minus the parent the page already shows. Scoping always goes through the user's own Bank Accounts, so someone else's Bucket or Bank Account reads as an empty list (the page's own query has already shown "not found"). There is no standalone, cross-account/cross-bucket Allocation list today. See Future Considerations.
+### Shown inside both parents, with no list of its own
 
-### Logging Starts From Either Parent
+A Transaction appears only on its Bank Account's detail page. An Allocation appears in **two** places: the Bucket detail page, as a flat table, and the Bank Account detail page, in an "Allocations" tab next to "Transactions". Both read through this module. `getAllocations({ bucketId?, bankAccountId? })` returns the user's Allocations, each with its Bank Account's `id`, `name` and `currency` and its Bucket's `id` and `name`. `getAllocationColumns({ omit })` returns one set of columns without the parent the page already shows. The query always goes through the user's own Bank Accounts, so someone else's Bucket or Bank Account comes back as an empty list, after the page's own query has already shown "not found". No list of Allocations across all accounts and buckets exists today. See Future considerations.
 
-The Log dialog opens from a Bank Account's menu or a Bucket's menu, and callers pass only that side's id (`{ from: "bank-account", bankAccountId }` or `{ from: "bucket", bucketId }`). That side stays fixed; the dialog shows a picker for the other. It loads the user's Bank Accounts (with figures) and Buckets itself, whichever side it opened from, so the account's Available always comes from the live list. While either list loads it shows a loading state; if one fails, "Could not load …" with Retry; if the fixed side was deleted meanwhile, "Bank account not found" or "Bucket not found" with Close. The Bank Account picker is the shared `BankAccountSelectField` (`src/modules/bank-accounts/components/bank-account-select-field.tsx`), the same one the Record Debt and Log Repayment dialogs use.
+### Logging starts from either parent
 
-### Reassignment Is Not Supported — By Design
+The Log dialog opens from a Bank Account's menu or a Bucket's menu. Callers pass only that side's id, as `{ from: "bank-account", bankAccountId }` or `{ from: "bucket", bucketId }`. That side stays fixed, and the dialog shows a picker for the other side. Whichever side it opened from, it loads the user's Bank Accounts, with figures, and Buckets itself, so the account's Available always comes from the live list. While either list loads, it shows a loading state. If a list fails to load, it shows "Could not load …" with Retry. If the fixed side was deleted in the meantime, it shows "Bank account not found" or "Bucket not found" with Close. The Bank Account picker is the shared `BankAccountSelectField` (`src/modules/bank-accounts/components/bank-account-select-field.tsx`), the same one the Record Debt and Log Repayment dialogs use.
 
-`editAllocationSchema` only accepts `amount`, `date`, and `note`. There is no way to move an existing Allocation to a different Bucket or fund it from a different Bank Account after creation — the only path is delete, then log a new one. This is a permanent boundary, not a gap: it mirrors Bucket's "edit is name-only" precedent, and re-parenting an Allocation is really "undo this earmark, make a new one," which delete + log already covers without a dedicated flow.
+### No moving an Allocation, by design
 
-### Delete Uses Plain Confirmation, Not Typed Confirmation
+`editAllocationSchema` only accepts `amount`, `date` and `note`. After creation, an Allocation can't move to a different Bucket or take its money from a different Bank Account. The only way is to delete it and log a new one. This boundary is permanent. It follows Bucket's rule that edit only renames. Moving an Allocation really means undoing one earmark and making another, and delete followed by log already does that without a dedicated flow.
 
-Same reasoning as Transaction (per ADR 0001/0002's typed-confirmation precedent for Bank Account/Bucket, which cascade and destroy other records): nothing references an Allocation as a parent, so deleting one has no cascade. `AllocationActionsDropdownMenu` uses the app's plain `confirm()` Yes/No dialog, which states that the money returns to the account's unallocated pool. No ADR needed — this is a direct, unsurprising consequence of "no cascade," not an independent trade-off.
+### Delete uses a plain confirmation, not a typed one
+
+The reason is the same as for Transaction. ADR 0001 and ADR 0002 use typed confirmation for Bank Account and Bucket, because deleting those cascades and destroys other records. Nothing references an Allocation as a parent, so deleting one cascades nowhere. `AllocationActionsDropdownMenu` uses the app's plain `confirm()` Yes/No dialog, which says the money returns to the account's unallocated pool. This needs no ADR, because it follows directly from having no cascade.
 
 ## Features
 
-| #   | Feature           | Status                                                                                                                                                                                                    |
-| --- | ----------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 1   | Log Allocation    | **Implemented and correct.** Enforces `Unallocated ≥ 0`.                                                                                                                                                  |
-| 2   | View Allocation   | **Implemented and correct**, embedded in both the Bucket detail page and the Bank Account detail page. No standalone list (see Future Considerations).                                                    |
-| 3   | Edit Allocation   | **Implemented and correct.** Amount/date/note only; recomputes `Unallocated` with the edit applied before allowing it. Reassigning Bucket/Bank Account is a permanent non-feature (see Design Decisions). |
-| 4   | Delete Allocation | **Implemented and correct.** Hard delete, no cascade, plain confirmation.                                                                                                                                 |
+| #   | Feature           | Status                                                                                                                                                                                                                                |
+| --- | ----------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1   | Log Allocation    | **Implemented and correct.** Enforces `Unallocated ≥ 0`.                                                                                                                                                                              |
+| 2   | View Allocation   | **Implemented and correct**, shown inside both the Bucket detail page and the Bank Account detail page. No list of its own (see Future considerations).                                                                               |
+| 3   | Edit Allocation   | **Implemented and correct.** Only amount, date and note. It recomputes `Unallocated` with the edit applied before allowing it. Moving an Allocation to another Bucket or Bank Account will never be a feature (see Design decisions). |
+| 4   | Delete Allocation | **Implemented and correct.** Hard delete, no cascade, plain confirmation.                                                                                                                                                             |
 
-## Fixed During This Session
+## Fixed during this session
 
-Four bugs were found and fixed while writing this spec:
+Writing this spec turned up four bugs, all fixed:
 
-- **`schemas.ts` — dead date validation.** `date: z.date().min(1, "Date is required.")` had the exact same no-op `.min(1)` bound already found and fixed in `transactions/schemas.ts` — no real date could ever fail it. Removed.
-- **`schemas.ts` — amount bound didn't match its own error message.** `amount: z.coerce.number().min(1, "Amount must be greater than 0.")`, present in four places (`validateLogAllocationAmountSchema`, `logAllocationSchema`, `validateEditAllocationAmountSchema`, `editAllocationSchema`), silently rejected valid sub-unit amounts (e.g. ₱0.50) the error message claimed were fine. Same bug already fixed once in Transaction; changed all four bounds to `.min(0.01, ...)`.
-- **`log-allocation-dialog.tsx` and `edit-allocation-dialog.tsx` — copy-pasted `aria-labelledby`.** Both amount fields pointed `aria-labelledby` at `"startingBalance-error"` (a leftover from the bank-accounts starting-balance field) instead of their own error id. Fixed to reference each field's own `errorId`.
-- **`middlewares.ts` — broken ownership check (IDOR).** `verifyUserAllocationMiddleware` guarded with `if (!result) throw`, but `result` came from `db.select()...limit(1)`, which is always an array — even empty — so the guard never fired. Any authenticated user who knew another user's `allocationId` could read/edit/delete it via `getAllocation`/`editAllocation`/`deleteAllocation`, none of which re-check ownership downstream. The identical bug existed in `transactions/middlewares.ts` (`verifyUserTransactionMiddleware`) and was fixed in the same pass, committed together. Bucket/BankAccount's equivalent middleware were unaffected — they use `.findFirst()`, which returns `undefined` on no match, so their falsy check already worked.
+- **`schemas.ts` had a date check that did nothing.** `date: z.date().min(1, "Date is required.")` had the same useless `.min(1)` bound already fixed in `transactions/schemas.ts`. No real date could fail it, so it was removed.
+- **`schemas.ts` had an amount bound that contradicted its own error message.** `amount: z.coerce.number().min(1, "Amount must be greater than 0.")` appeared in four schemas: `validateLogAllocationAmountSchema`, `logAllocationSchema`, `validateEditAllocationAmountSchema` and `editAllocationSchema`. It rejected valid amounts under one unit, such as ₱0.50, that the message said were fine. Transaction had already had the same bug fixed. All four bounds became `.min(0.01, ...)`.
+- **`log-allocation-dialog.tsx` and `edit-allocation-dialog.tsx` had a copy-pasted `aria-labelledby`.** Both amount fields pointed `aria-labelledby` at `"startingBalance-error"`, left over from the bank-accounts starting-balance field, instead of their own error id. Each now references its own `errorId`.
+- **`middlewares.ts` had a broken ownership check, an IDOR.** `verifyUserAllocationMiddleware` checked `if (!result) throw`. But `result` came from `db.select()...limit(1)`, which always returns an array, even an empty one, so the check never threw. Any signed-in user who knew another user's `allocationId` could read, edit or delete it through `getAllocation`, `editAllocation` or `deleteAllocation`, and none of those check ownership again later. `verifyUserTransactionMiddleware` in `transactions/middlewares.ts` had the same bug, and the same commit fixed both. The Bucket and BankAccount middleware didn't have the bug. They use `.findFirst()`, which returns `undefined` when nothing matches, so their check already worked.
 
-## Future Considerations
+## Future considerations
 
-### Cross-Account/Cross-Bucket Allocation List
+### Allocation list across accounts and buckets
 
-**Undesigned, deliberately out of scope.** No standalone Allocation list/search exists today — only the two embedded views (Bucket detail, Bank Account detail tab). Could eventually mirror the cross-account Transaction list ([`docs/specs/transaction-list-and-transfer.md`](../../../docs/specs/transaction-list-and-transfer.md)) once/if that pattern is wanted here — same shape of feature, not yet spec'd for Allocation.
+**Specified, not built.** Today there is no list or search of Allocations of its own, only the two views inside the Bucket detail page and the Bank Account detail tab. [`docs/specs/allocation-cross-account-and-bucket-list.md`](../../../docs/specs/allocation-cross-account-and-bucket-list.md) specifies one. It follows the Transaction list across accounts in [`docs/specs/transaction-list-and-transfer.md`](../../../docs/specs/transaction-list-and-transfer.md).
 
-### `Distribution` (Planned, Undesigned)
+### `Distribution` (planned, undesigned)
 
-A saved, reusable, manually-triggered preset that logs one `income` Transaction on a fixed Bank Account and then splits the amount via Allocations across Buckets (and, once they exist, Goals/Debts). See the `Distribution` entry in [`CONTEXT.md`](../../../CONTEXT.md). Relevant here because triggering a Distribution would call into this module's `logAllocation` programmatically, once designed.
+A saved preset the User triggers by hand. It logs one `income` Transaction on a fixed Bank Account, then splits the amount through Allocations across Buckets, and across Goals and Debts once those exist. See the `Distribution` entry in [`CONTEXT.md`](../../../CONTEXT.md). It matters here because, once designed, triggering a Distribution would call this module's `logAllocation` from code.

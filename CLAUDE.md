@@ -10,8 +10,8 @@ Default five-role vocabulary (`needs-triage`, `needs-info`, `ready-for-agent`, `
 
 ### Domain docs
 
-Single-context: root `CONTEXT.md` + `docs/adr/`. See `docs/agents/domain.md`.
+One context, documented in the root `CONTEXT.md` and `docs/adr/`. See `docs/agents/domain.md`.
 
 ### Prototyping
 
-UI prototypes reuse the committed `PrototypeSwitcher`; don't recreate it. See `docs/agents/prototyping.md`.
+UI prototypes reuse the committed `PrototypeSwitcher`, so don't recreate it. See `docs/agents/prototyping.md`.

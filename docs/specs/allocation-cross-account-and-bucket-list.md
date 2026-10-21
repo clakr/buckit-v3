@@ -3,73 +3,73 @@ status: ready-for-agent
 module: allocations
 ---
 
-# Spec: Allocation — Cross-Account/Cross-Bucket List
+# Spec: Allocation list across accounts and buckets
 
-No issue tracker is used for this project. This file is the actionable checklist — its `status: ready-for-agent` frontmatter stands in for the triage label a tracker would normally carry. Update the status (e.g. `in-progress`, `done`) as work proceeds.
+This project uses no issue tracker, so this file is the checklist. Its `status: ready-for-agent` frontmatter takes the place of a tracker's triage label. Update the status, for example to `in-progress` or `done`, as work goes on.
 
-## Problem Statement
+## Problem statement
 
-An Allocation today is only ever viewable embedded in one of its two parents: the Bucket detail page (a flat table of every Allocation into that Bucket) or the Bank Account detail page (an "Allocations" tab next to "Transactions"). A user with more than one Bank Account and more than one Bucket has no way to see, filter, or search their earmarking activity across both dimensions at once — reviewing "everything I allocated last month" means visiting every Bucket or every Account detail page individually.
+Today a user can only see an Allocation inside one of its two parents. The Bucket detail page has a flat table of every Allocation into that Bucket, and the Bank Account detail page has an "Allocations" tab next to "Transactions". A user with more than one Bank Account and more than one Bucket can't see, filter or search their earmarking across both at once. To review "everything I allocated last month", they have to visit every Bucket or every Account detail page one by one.
 
 ## Solution
 
-A cross-account, cross-bucket Allocations list view, filterable by Bank Account, by Bucket, and by date range, with a text search over the note field. Log/Edit/Delete an Allocation directly from this unified list, the same as from either embedded view today.
+One Allocations list across all accounts and buckets, filterable by Bank Account, by Bucket and by date range, with a text search over the note. The user can log, edit and delete an Allocation directly from this list, the same as from either embedded view today.
 
-## User Stories
+## User stories
 
 ### Existing behavior (already implemented)
 
-_Not new work — recapped here so this file stays a complete behavioral reference for what's changing, not just a diff. Full detail lives in `src/modules/allocations/SPEC.md`._
+_These aren't new work. They're recapped here so this file describes all the behavior, not only what's changing. `src/modules/allocations/SPEC.md` has the full detail._
 
 1. As a user, I want to log a new Allocation from one of my Bank Accounts into a Bucket, with an amount, date, and optional note, so that I can set money aside toward it.
-2. As a user, I want the app to prevent me from logging an Allocation that would push the source Bank Account's Unallocated balance below zero, so that number stays trustworthy.
+2. As a user, I want the app to stop me from logging an Allocation that would push the source Bank Account's Unallocated balance below zero, so that number stays trustworthy.
 3. As a user, I want to see every Allocation into a Bucket on that Bucket's detail page, so I can review its full funding history.
-4. As a user, I want to see every Allocation out of a Bank Account on that account's detail page (in its "Allocations" tab), so I can review what I've earmarked from it.
+4. As a user, I want to see every Allocation out of a Bank Account in the "Allocations" tab of that account's detail page, so I can review what I've earmarked from it.
 5. As a user, I want to edit an existing Allocation's amount, date, or note, so I can correct a mistake.
-6. As a user, I want editing an Allocation to enforce the same Unallocated ≥ 0 rule as logging one, so I can't retroactively make the account's numbers invalid.
+6. As a user, I want editing an Allocation to follow the same Unallocated ≥ 0 rule as logging one, so I can't make the account's numbers invalid after the fact.
 7. As a user, I want to delete an Allocation I logged by mistake, so its money returns to the source account's unallocated pool.
-8. As a user, I want a simple yes/no confirmation when deleting an Allocation (not a typed-confirmation gate), since deleting one Allocation doesn't cascade to destroy any other records.
-9. As a user, I want an Allocation's amount to always be interpreted in its Bank Account's currency, since an Allocation has no currency of its own.
-10. As a user, I want it to stay true that I can't reassign an existing Allocation to a different Bucket or Bank Account — if I earmarked money to the wrong place, I delete it and log a new one instead. _(Confirms an existing, permanent boundary — not new work.)_
+8. As a user, I want a plain yes/no confirmation when deleting an Allocation, not a typed confirmation, because deleting one Allocation doesn't delete any other records.
+9. As a user, I want an Allocation's amount to always be in its Bank Account's currency, because an Allocation has no currency of its own.
+10. As a user, I want it to stay true that I can't move an existing Allocation to a different Bucket or Bank Account. If I earmarked money to the wrong place, I delete it and log a new one. _(This confirms an existing, permanent boundary. It isn't new work.)_
 
-### Cross-account/cross-bucket list
+### List across accounts and buckets
 
-11. As a user with multiple Bank Accounts and Buckets, I want to see all my Allocations in one place, so I don't have to check each Bucket's or each Account's detail page separately.
-12. As a user, I want each row in that list to show both which Bank Account it came from and which Bucket it went into, so I can tell them apart without the context of a specific parent page.
-13. As a user, I want to filter that list by Bank Account, so I can narrow to money leaving one account without leaving the unified view.
-14. As a user, I want to filter that list by Bucket, so I can narrow to money entering one Bucket without leaving the unified view.
-15. As a user, I want to filter that list by a date range, so I can review a specific period (e.g. "last month").
+11. As a user with several Bank Accounts and Buckets, I want to see all my Allocations in one place, so I don't have to check each Bucket's or each Account's detail page separately.
+12. As a user, I want each row in that list to show both the Bank Account it came from and the Bucket it went into, so I can tell rows apart without a parent page around them.
+13. As a user, I want to filter that list by Bank Account, so I can see only the money leaving one account without leaving the list.
+14. As a user, I want to filter that list by Bucket, so I can see only the money entering one Bucket without leaving the list.
+15. As a user, I want to filter that list by a date range, so I can review a specific period, such as last month.
 16. As a user, I want to search that list by note text, so I can find a specific Allocation I remember details about.
-17. As a user, I want that list sorted by date (most recent first) by default, matching how the embedded Allocations tables already behave, so the behavior is consistent.
-18. As a user, I want to open, edit, or delete an Allocation directly from that unified list, so I don't have to navigate to its specific Bucket or Account first.
-19. As a user, I want to log a new Allocation directly from that unified list — picking both which Bank Account it comes from and which Bucket it goes into — so I don't have to go find the account first.
-20. As a user, I want the unified Allocations list to only ever show my own Allocations, never another user's, so my financial data stays private — same ownership boundary as every other view in this app.
+17. As a user, I want that list sorted by date with the most recent first by default, as the embedded Allocations tables already are, so both behave the same.
+18. As a user, I want to open, edit, or delete an Allocation directly from that list, so I don't have to go to its Bucket or Account first.
+19. As a user, I want to log a new Allocation directly from that list, picking both the Bank Account it comes from and the Bucket it goes into, so I don't have to find the account first.
+20. As a user, I want the Allocations list to only ever show my own Allocations, never another user's, so my financial data stays private. Every other view in this app has the same ownership rule.
 
-## Implementation Decisions
+## Implementation decisions
 
-- **Modules touched**: `allocations` only. No schema changes to `bank-accounts`, `buckets`, or `transactions`.
-- **Schema**: none. No new columns or tables — this is a read/filter feature over the existing `allocations` table.
-- **Server function**: `getAllocations({ filters })` — partly built (2026-10-15): it already takes `bucketId`/`bankAccountId` and feeds both detail pages; the date range and `search` filters remain. Originally: querying across all of the user's Bank Accounts and Buckets (ownership enforced the same way `getBankAccounts`/`getBuckets` enforce it — scoped by `userId` via a join through `bankAccounts`, not by a single `bankAccountId`/`bucketId`). Returns each Allocation joined with its Bank Account's `name`/`currency` and its Bucket's `name`. Filters: `bankAccountId`, `bucketId`, `dateFrom`/`dateTo`, and a `search` string matched against `note`. Same shape as the already-spec'd (unbuilt) `getTransactions` in `docs/specs/transaction-list-and-transfer.md` — no new pure-function seam needed, it's a straightforward filtered read like `getBankAccounts`/`getBuckets`.
-- **New route**: a top-level `/allocations` route (sibling to `/accounts` and `/buckets`).
-- **Columns**: `getAllocationColumns()` with nothing omitted (Date, Bucket, Bank Account, Amount, Note, Actions). Built 2026-10-15; it replaced the per-Bucket and per-Account `ALLOCATIONS_COLUMNS`, which the detail pages now get as `getAllocationColumns({ omit })`.
-- **`LogAllocationDialog` gains a start with nothing fixed.** As of 2026-10-15 it opens from either side by id (`{ from: "bank-account", bankAccountId }` or `{ from: "bucket", bucketId }`), loads both lists itself, and already has a Bank Account picker (shown when opened from a Bucket) and a Bucket picker (shown when opened from a Bank Account). The unified list needs a third start that shows both pickers.
-- **Entry point**: a "Log Allocation" toolbar action on the new unified list, opening `LogAllocationDialog` with no preset account.
-- **Route wiring**: since this route's query key is filter-derived (`validateSearch` for `bankAccountId`/`bucketId`/`dateFrom`/`dateTo`/`search`), use `loaderDeps` + route `context()` to derive the filtered `getAllocations` queryOptions once, shared between the loader and the component — rather than each independently re-deriving it from search params, which is the divergence bug TkDodo's [reliable query prefetching with TanStack Router](https://tkdodo.eu/blog/reliable-query-prefetching-with-tanstack-router) post warns about.
+- **Modules touched.** Only `allocations`. No schema changes to `bank-accounts`, `buckets` or `transactions`.
+- **Schema.** None. No new columns or tables, because this feature only reads and filters the existing `allocations` table.
+- **Server function `getAllocations({ filters })`.** Partly built on 2026-10-15. It already takes `bucketId` and `bankAccountId` and feeds both detail pages. The date range and `search` filters are still to do. The original plan, still the target, is a query across all of the user's Bank Accounts and Buckets. It checks ownership the same way `getBankAccounts` and `getBuckets` do, by scoping to `userId` through a join on `bankAccounts`, not by a single `bankAccountId` or `bucketId`. It returns each Allocation with its Bank Account's `name` and `currency` and its Bucket's `name`. Its filters are `bankAccountId`, `bucketId`, `dateFrom` and `dateTo`, and a `search` string matched against `note`. It has the same shape as `getTransactions` in `docs/specs/transaction-list-and-transfer.md`, which is specified but not built. It needs nothing new to test in isolation, because it is a plain filtered read like `getBankAccounts` and `getBuckets`.
+- **New route.** A top-level `/allocations` route, next to `/accounts` and `/buckets`.
+- **Columns.** `getAllocationColumns()` with nothing omitted: Date, Bucket, Bank Account, Amount, Note and Actions. Built on 2026-10-15. It replaced the separate `ALLOCATIONS_COLUMNS` for Buckets and for Accounts, and the detail pages now call `getAllocationColumns({ omit })`.
+- **`LogAllocationDialog` needs a way to open with nothing fixed.** Since 2026-10-15 it opens from either side by id, as `{ from: "bank-account", bankAccountId }` or `{ from: "bucket", bucketId }`. It loads both lists itself. It shows a Bank Account picker when opened from a Bucket and a Bucket picker when opened from a Bank Account. The new list needs a third way to open it that shows both pickers.
+- **Entry point.** A "Log Allocation" toolbar action on the new list opens `LogAllocationDialog` with no account preset.
+- **Route wiring.** This route's query key comes from its filters, which `validateSearch` reads as `bankAccountId`, `bucketId`, `dateFrom`, `dateTo` and `search`. Use `loaderDeps` and the route's `context()` to build the filtered `getAllocations` queryOptions once, and share them between the loader and the component. If each built them from the search params on its own, the two could differ. TkDodo's post [reliable query prefetching with TanStack Router](https://tkdodo.eu/blog/reliable-query-prefetching-with-tanstack-router) describes that bug.
 
-## Testing Decisions
+## Testing decisions
 
-Deferred, for the same reason already recorded in `docs/specs/bank-account-crud.md`, `docs/specs/bucket-crud.md`, and `docs/specs/transaction-list-and-transfer.md`: no test harness exists yet anywhere in this repo (`vitest` is a dependency but unconfigured — no config, no test files, no D1-test-runner infrastructure for server functions like `getAllocations`, which calls `getDB(env.db)` via `cloudflare:workers`). Nothing here needs its own seam beyond that infrastructure question: `getAllocations` is a plain filtered read, same shape as `getBankAccounts`/`getBuckets`, with no new validation logic to isolate — logging/editing from the unified list reuses the dialogs' local Available check and the writes' in-process check unchanged.
+Deferred, for the reason `docs/specs/bank-account-crud.md`, `docs/specs/bucket-crud.md` and `docs/specs/transaction-list-and-transfer.md` already give. The repo has no test setup yet. `vitest` is a dependency, but there is no config, no test files, and no D1 test runner for server functions like `getAllocations`, which calls `getDB(env.db)` from `cloudflare:workers`. Apart from that tooling question, nothing here needs to be testable on its own. `getAllocations` is a plain filtered read with the same shape as `getBankAccounts` and `getBuckets`, and it adds no validation logic. Logging and editing from the new list reuse, unchanged, the dialogs' local Available check and the check each write runs on the server.
 
-## Out of Scope
+## Out of scope
 
-- **`Distribution`** (a saved, reusable, manually-triggered preset that logs an income Transaction and splits it via Allocations) — a separate, not-yet-designed module, itself blocked on the undesigned `Goal`/`Debt` shape fork. See the `Distribution` entry in [`CONTEXT.md`](../../CONTEXT.md) and the Future Considerations section of [`src/modules/allocations/SPEC.md`](../../src/modules/allocations/SPEC.md). Not touched by this spec.
-- **Allocation reassignment** (moving an existing Allocation to a different Bucket or Bank Account) — permanent non-feature, confirmed in `src/modules/allocations/SPEC.md`. Delete + log a new Allocation covers this; not revisited here.
-- **A combined Bank Account + Bucket "matrix" view** (e.g. a grid of Account × Bucket subtotals) — a different, bigger feature than a filterable list; not considered here.
-- Any change to the Bank Account, Bucket, or Transactions modules.
-- Any automated tests for this pass (see Testing Decisions).
+- **`Distribution`**, a saved preset the User triggers by hand that logs an income Transaction and splits it through Allocations. It is a separate module, not designed yet, and it waits on the undesigned shapes of `Goal` and `Debt`. See the `Distribution` entry in [`CONTEXT.md`](../../CONTEXT.md) and the Future considerations section of [`src/modules/allocations/SPEC.md`](../../src/modules/allocations/SPEC.md). This spec doesn't touch it.
+- **Moving an Allocation** to a different Bucket or Bank Account. `src/modules/allocations/SPEC.md` confirms this will never be a feature. The user deletes the Allocation and logs a new one instead.
+- **A grid of Bank Accounts by Buckets**, such as a table of Account × Bucket subtotals. That is a different and bigger feature than a filterable list, and this spec doesn't consider it.
+- Any change to the Bank Account, Bucket or Transactions modules.
+- Automated tests for this pass. See Testing decisions.
 
-## Further Notes
+## Further notes
 
-- Resolved vocabulary for `Allocation` lives in `CONTEXT.md`; full module rationale lives in `src/modules/allocations/SPEC.md`. This spec assumes both as context rather than repeating them.
-- This spec deliberately mirrors `docs/specs/transaction-list-and-transfer.md`'s list half in shape (filtered cross-parent view, same "no new seam" testing conclusion) — Allocation's version adds a second filter dimension (Bucket, alongside Bank Account) since Allocation, unlike Transaction, has two parents instead of one.
-- `docs/specs/transaction-list-and-transfer.md` doesn't itself call out that its analogous `LogTransactionDialog` would need the same in-dialog-account-picker extension for its unified list's "log new transaction" entry point (its story 19) — that gap applies there too, just not made explicit in that file. Worth a look when that spec gets built.
+- `CONTEXT.md` defines `Allocation`, and `src/modules/allocations/SPEC.md` holds the full module rationale. This spec assumes both instead of repeating them.
+- This spec copies the structure of the list half of `docs/specs/transaction-list-and-transfer.md` on purpose. Both are filtered views across parents, and both conclude that nothing new needs isolating for tests. Allocation's version adds a second filter, Bucket, next to Bank Account, because an Allocation has two parents and a Transaction has one.
+- `docs/specs/transaction-list-and-transfer.md` doesn't mention that its `LogTransactionDialog` would need the same account picker inside the dialog for the list's "log new transaction" entry point, its story 19. The gap applies there too. Check it when that spec gets built.

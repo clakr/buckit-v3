@@ -1,103 +1,116 @@
-# Module Spec: Transactions
+# Module spec: Transactions
 
 ## Overview
 
-A Transaction is a record of money moving into (`income`) or out of (`expense`) a Bank Account. It always attaches to exactly one Bank Account — never to a Bucket — and is the sole input to that account's computed Balance. Transactions have no currency of their own; amounts are stored in minor units of the owning Bank Account's currency. See [`CONTEXT.md`](../../../CONTEXT.md) for the glossary entry.
+A Transaction is a record of money moving into (`income`) or out of (`expense`) a Bank Account. It always belongs to exactly one Bank Account and never to a Bucket, and it is the only input to that account's computed Balance. Transactions have no currency of their own. Amounts are stored in minor units of the owning Bank Account's currency. See [`CONTEXT.md`](../../../CONTEXT.md) for the glossary entry.
 
 ## Entity
 
 ### Transaction
 
-| Field           | Type     | Notes                                                                     |
-| --------------- | -------- | ------------------------------------------------------------------------- |
-| `id`            | string   | auto-generated (uuidv7)                                                   |
-| `bankAccountId` | string   | FK → BankAccount, `onDelete: cascade`                                     |
-| `type`          | enum     | `income` \| `expense`                                                     |
-| `amount`        | integer  | minor units (cents) via the Money module (`src/lib/money.ts`), in the owning account's currency |
-| `note`          | string   | nullable                                                                  |
-| `date`          | datetime | user-editable, defaults to now on creation                                |
-| `createdAt`     | datetime |                                                                           |
+| Field           | Type     | Notes                                                                                               |
+| --------------- | -------- | --------------------------------------------------------------------------------------------------- |
+| `id`            | string   | generated (uuidv7)                                                                                  |
+| `bankAccountId` | string   | foreign key to BankAccount, `onDelete: cascade`                                                     |
+| `type`          | enum     | `income` \| `expense`                                                                               |
+| `amount`        | integer  | minor units (cents) through the Money module (`src/lib/money.ts`), in the owning account's currency |
+| `note`          | string   | nullable                                                                                            |
+| `date`          | datetime | the user can edit it, and it defaults to now on creation                                            |
+| `createdAt`     | datetime |                                                                                                     |
 
-No `updatedAt` column and no `bucketId` column — same reasoning as Bank Account/Bucket for the former (no sync/API client, no per-User concurrent-edit conflict scenario to detect), and a permanent design boundary for the latter (see Design Decisions).
+It has no `updatedAt` column, for the same reason as Bank Account and Bucket. No sync or API client exists, and a User's Sessions have no concurrent-edit conflict to detect. It has no `bucketId` column either, and that boundary is permanent (see Design decisions).
 
-## Design Decisions
+## Design decisions
 
-### Balance Contribution
+### How a Transaction counts toward Balance
 
-A Transaction's `type` determines its sign in the Balance formula: `Balance = startingBalance + Σ(income amounts) − Σ(expense amounts)`, computed on read by the Bank Account figures module (`getBankAccountFigures` in `src/modules/bank-accounts/utils.ts`, fed SQL totals by `src/modules/bank-accounts/figures.server.ts`). Transaction itself has no derived/stored balance field.
+A Transaction's `type` sets its sign in the Balance formula: `Balance = startingBalance + Σ(income amounts) − Σ(expense amounts)`. The Bank Account figures module computes it on read. `getBankAccountFigures` in `src/modules/bank-accounts/utils.ts` does the arithmetic, and `src/modules/bank-accounts/figures.server.ts` supplies the SQL totals. A Transaction stores no balance of its own.
 
-### No Currency of Its Own
+### No currency of its own
 
-Amount is stored in minor units of the owning Bank Account's currency (see the Money module, `src/lib/money.ts`). There is no per-Transaction currency field — `getTransaction` joins the Bank Account's `currency` column specifically to render amounts correctly.
+The amount is stored in minor units of the owning Bank Account's currency (see the Money module, `src/lib/money.ts`). A Transaction has no currency field, so `getTransaction` joins the Bank Account's `currency` column to format amounts.
 
-### Permanent Boundary: Never Attaches to a Bucket
+### Permanent boundary: never attaches to a Bucket
 
-`transactions.bucketId` does not exist and never will under this model. Spending/income always happens at the Bank Account level; Buckets only ever change via Allocations. This mirrors the boundary already documented in `buckets/SPEC.md`.
+`transactions.bucketId` doesn't exist and never will under this model. Spending and income always happen on a Bank Account, and a Bucket only changes through Allocations. `buckets/SPEC.md` documents the same boundary.
 
-### `Unallocated ≥ 0` Invariant
+### The `Unallocated ≥ 0` rule
 
-Enforced on every mutation that could reduce a Bank Account's Unallocated balance: `logTransaction` (expense only), `editTransaction` (recomputes with the edited amount/type substituted in, via `checkTransactionEdit`), and `deleteTransaction` (recomputes with the transaction removed). All three delegate to `checkUnallocated` (`src/modules/bank-accounts/figures.server.ts`), the same check Allocation, Debt and Repayment use — the single place this rule lives. **The write is the check:** each runs it in-process right before writing and throws `InsufficientFundsError`. The Log and Edit dialogs have no separate pre-submit check; a rejected write shows its reason in the failure toast and the dialog stays open with the user's input. Delete keeps `validateDeleteTransaction`, because the confirm dialog needs its preview (what will be removed, or why it can't be) before the user confirms.
+Every mutation that could reduce a Bank Account's Unallocated balance enforces the rule:
 
-### Linked Transactions Follow Their Debt's Rules
+- `logTransaction`, for expenses only.
+- `editTransaction`, which recomputes with the new amount and type in place of the old ones, through `checkTransactionEdit`.
+- `deleteTransaction`, which recomputes without the transaction.
 
-A Linked Transaction (see `CONTEXT.md`) is edited and deleted under its Debt's rules, from whichever page. The rules live in one module, `linked.server.ts`:
+All three call `checkUnallocated` (`src/modules/bank-accounts/figures.server.ts`). Allocation, Debt and Repayment use the same check, so the rule lives in one place. **The write runs the check.** Each mutation runs it on the server right before writing and throws `InsufficientFundsError` when it fails. The Log and Edit dialogs have no separate check before submitting. When the write rejects, the failure toast shows the reason and the dialog stays open with the user's input. Delete keeps `validateDeleteTransaction`, because the confirm dialog needs its preview before the user confirms: what will be removed, or why it can't be.
 
-- `checkTransactionEdit` rejects, with `ConflictError`:
+### Linked Transactions follow their Debt's rules
+
+A Linked Transaction (see `CONTEXT.md`) follows its Debt's rules for edit and delete, from whichever page the user starts on. One module, `linked.server.ts`, holds the rules:
+
+- `checkTransactionEdit` rejects these changes with `ConflictError`:
   - changing a Linked Transaction's type;
   - changing an origination's amount;
   - dating a repayment before its Debt.
 
   It then runs the usual `Unallocated` check.
 
-- `editTransaction` and the Repayment storage module (`changeRepayment`) both call it in-process.
-- `getTransaction` returns the link and which fields it locks. The Edit dialog disables those fields and says why.
-- `deleteLinkedTransaction` and `isRepaymentBackedBy` apply the "repayment goes with its Transaction" rule for both Transaction and Bank Account deletes.
+- `editTransaction` and the Repayment storage module's `changeRepayment` both call it on the server.
+- `getTransaction` returns the link and the fields it locks. The Edit dialog disables those fields and says why.
+- The database deletes a repayment along with its Transaction. `repayments.transactionId` is `ON DELETE CASCADE`, so deleting a Transaction deletes its repayment. So does deleting a Bank Account, which cascades to its Transactions. `isRepaymentBackedBy` only finds those repayments for the Bank Account deletion preview.
 
-Creating links (`recordDebt`, `logRepayment`) and `deleteDebt`'s "also delete the Transactions" stay in the Debts module, since those are Debt actions.
+Creating links, in `recordDebt` and `logRepayment`, stays in the Debts module, as does `deleteDebt`'s option to also delete the Transactions, because those are Debt actions.
 
-### Delete Uses Plain Confirmation, Not Typed Confirmation
+### Delete uses a plain confirmation, not a typed one
 
-Unlike Bank Account and Bucket deletion (per ADR 0001/0002: typed confirmation — re-type the entity's name — because those deletes cascade and destroy other records), Transaction deletion uses the app's plain `confirm()` Yes/No dialog. **This is intentional and correct, not an inconsistency**: deleting one destroys no independent history — the condition the ADRs use to justify the stronger gate for Bank Account/Bucket. Since Debts, two things can point at a Transaction, and neither changes that: a repayment backed by it is the same money recorded twice, so it is deleted in the same D1 batch (the FK's `SET NULL` would otherwise leave a blank, zero-amount row in the Debt's ledger, and the Debt's outstanding goes back up); a Debt it funded survives with no source account (the FK's `SET NULL`), same as story 25 in `docs/specs/debt-module.md`. `validateDeleteTransaction` still computes and surfaces a specific message before the confirm dialog opens: the type and formatted amount that will be removed, plus either consequence above, or a rejection if it would leave Unallocated negative.
+Bank Account and Bucket deletion use typed confirmation, where the user re-types the entity's name. ADR 0001 and ADR 0002 justify that because those deletes cascade and destroy other records. Transaction deletion uses the app's plain `confirm()` Yes/No dialog instead. **This is intentional, not an inconsistency.** Deleting a Transaction destroys no other history, and destroying other history is the condition the ADRs use to justify the stronger guard.
 
-### No Standalone List/Search View
+Since the Debt module, two things can point at a Transaction, and neither changes that:
 
-Transactions are only ever viewed embedded in a Bank Account's detail page (`TRANSACTIONS_COLUMNS`, sorted by date desc). There is no cross-account list, filter, or search today — see Future Considerations.
+- A repayment backed by the Transaction is the same money recorded twice. The foreign key cascade deletes it with the Transaction, and the Debt's outstanding goes back up.
+- A Debt the Transaction funded stays, with no source account, through the foreign key's `SET NULL`. This matches story 25 in `docs/specs/debt-module.md`.
+
+Before the confirm dialog opens, `validateDeleteTransaction` builds a specific message. It names the type and formatted amount being removed and whichever consequence above applies. If the delete would leave Unallocated negative, it returns a rejection instead.
+
+### No list or search of its own
+
+Transactions only appear on a Bank Account's detail page, in `TRANSACTIONS_COLUMNS`, sorted by date with the newest first. There is no list, filter or search across accounts today. See Future considerations.
 
 ## Features
 
 | #   | Feature            | Status                                                                                                                                |
 | --- | ------------------ | ------------------------------------------------------------------------------------------------------------------------------------- |
 | 1   | Log Transaction    | **Implemented and correct.** Enforces `Unallocated ≥ 0` for expenses.                                                                 |
-| 2   | View Transaction   | **Implemented and correct**, embedded in the owning Bank Account's detail page only.                                                  |
-| 3   | Edit Transaction   | **Implemented and correct.** Recomputes `Unallocated` with the edit applied; a Linked Transaction keeps its Debt's rules (see above). |
-| 4   | Delete Transaction | **Implemented and correct.** Hard delete, plain confirmation; removes a backing repayment (see above).                                |
+| 2   | View Transaction   | **Implemented and correct**, only on the owning Bank Account's detail page.                                                           |
+| 3   | Edit Transaction   | **Implemented and correct.** Recomputes `Unallocated` with the edit applied. A Linked Transaction keeps its Debt's rules (see above). |
+| 4   | Delete Transaction | **Implemented and correct.** Hard delete with a plain confirmation. It also deletes a repayment the Transaction backs (see above).    |
 
-## Fixed During This Session
+## Fixed during this session
 
-Three small correctness bugs were found and fixed while writing this spec:
+Writing this spec turned up three small correctness bugs, all fixed:
 
-- **`schemas.ts` — dead date validation.** `date: z.date().min(1, "Date is required.")` had a `.min(1)` bound that resolves to `1970-01-01T00:00:00.001Z` — no real date could ever fail it, and `z.date()` alone already rejects missing/invalid values. Removed the no-op `.min(1)`.
-- **`schemas.ts` — amount bound didn't match its own error message.** `amount: z.coerce.number().min(1, "Amount must be greater than 0.")` actually required the amount to be ≥ 1 whole currency unit, silently rejecting valid sub-unit amounts (e.g. ₱0.50) the error message claimed were fine. Changed the bound to `.min(0.01, ...)`.
-- **`forms.tsx` — copy-pasted `aria-labelledby`.** The amount field's input pointed `aria-labelledby` at `"startingBalance-error"` (a leftover from the bank-accounts starting-balance field) instead of its own error id. Fixed to reference the field's own `errorId`.
+- **`schemas.ts` had a date check that did nothing.** In `date: z.date().min(1, "Date is required.")`, the `.min(1)` bound means `1970-01-01T00:00:00.001Z`. No real date could fail it, and `z.date()` alone already rejects missing or invalid values. The `.min(1)` was removed.
+- **`schemas.ts` had an amount bound that contradicted its own error message.** `amount: z.coerce.number().min(1, "Amount must be greater than 0.")` required at least 1 whole currency unit. It rejected valid amounts under one unit, such as ₱0.50, that the message said were fine. The bound became `.min(0.01, ...)`.
+- **`forms.tsx` had a copy-pasted `aria-labelledby`.** The amount input pointed `aria-labelledby` at `"startingBalance-error"`, left over from the bank-accounts starting-balance field, instead of its own error id. It now references the field's own `errorId`.
 
-No ADR was written for the delete-confirmation asymmetry noted above — it's a direct, unsurprising consequence of deleting no independent history, not an independent trade-off.
+No ADR covers the difference in delete confirmation described above. It follows directly from a Transaction delete destroying no other history.
 
-- **2026-10-21 — Log Transaction opens with an id and checks expenses as you type.** It used to render a Bank Account row taken when the row menu opened, and only the write caught an expense larger than Unallocated, unlike Log Allocation, Log Repayment and Record Debt. Its store holds `{ bankAccountId }`, and the dialog reads the account from `bankAccountsQueryOption()`, the list the Accounts page (its only opener) has already loaded, so it opens instantly with live figures. It shows loading, "Account not found" with Close, and "Could not load accounts" with Retry. For an expense it shows "Available: …" under the amount and flags an amount above Unallocated as you type, re-checking when the type changes; income can't overdraw and isn't checked. `logTransaction` rejects with the same `describeInsufficientUnallocated` message (`src/lib/money.ts`) instead of the generic "This would leave a negative unallocated balance" one.
+- **2026-10-21. Log Transaction opens with an id and checks expenses as the user types.** It used to render a Bank Account row captured when the row menu opened. Only the write caught an expense larger than Unallocated, unlike Log Allocation, Log Repayment and Record Debt. Its store now holds `{ bankAccountId }`. The dialog reads the account from `bankAccountsQueryOption()`, the list the Accounts page has already loaded, and that page is the dialog's only opener. So it opens instantly with live figures. It shows a loading state, "Account not found" with Close, and "Could not load accounts" with Retry. For an expense, it shows "Available: …" under the amount and flags an amount above Unallocated as the user types, checking again when the type changes. Income can't overdraw, so it isn't checked. `logTransaction` rejects with the same `describeInsufficientUnallocated` message (`src/lib/money.ts`) instead of the generic "This would leave a negative unallocated balance" one.
 
-## Future Considerations
+## Future considerations
 
-### Categorization / Tags
+### Categories and tags
 
-Not implemented. Today a Transaction's only classification is the binary `income`/`expense` `type`. A category/tag system (e.g. "Groceries", "Rent") is a planned feature the user intends to build — but as its own module (`categories`) with its own CRUD lifecycle, not as part of this one. Noted here only because Transaction would gain a `categoryId` reference once it exists; not designed yet, and deliberately not scoped into this module's build.
+Not implemented. Today a Transaction's only classification is its `income` or `expense` `type`. The user plans a category and tag system, such as "Groceries" and "Rent". It will be its own module, `categories`, with its own lifecycle for creating, renaming and deleting categories, not part of this module. It's noted here only because Transaction would gain a `categoryId` reference once it exists. It isn't designed yet, and this module's build leaves it out on purpose.
 
-### Cross-Account Transaction List/Search
+### Transaction list and search across accounts
 
-**Spec'd, not yet built.** A view across all of a user's Bank Accounts, filterable by account/type/date and searchable by note. See [`docs/specs/transaction-list-and-transfer.md`](../../../docs/specs/transaction-list-and-transfer.md).
+**Specified, not built.** A view across all of a user's Bank Accounts, filterable by account, type and date, and searchable by note. See [`docs/specs/transaction-list-and-transfer.md`](../../../docs/specs/transaction-list-and-transfer.md).
 
-### `Distribution` (Planned, Undesigned)
+### `Distribution` (planned, undesigned)
 
-A saved, reusable, manually-triggered preset that logs one `income` Transaction on a fixed Bank Account and then splits the amount via Allocations across Buckets (and, once they exist, Goals/Debts). See the `Distribution` entry in [`CONTEXT.md`](../../../CONTEXT.md) for the full definition. Relevant here because triggering a Distribution is, in part, a programmatic call into this module's `logTransaction`.
+A saved preset the User triggers by hand. It logs one `income` Transaction on a fixed Bank Account, then splits the amount through Allocations across Buckets, and across Goals and Debts once those exist. See the `Distribution` entry in [`CONTEXT.md`](../../../CONTEXT.md) for the full definition. It matters here because triggering a Distribution partly means calling this module's `logTransaction` from code.
 
-### Transfer Between Own Accounts
+### Transfer between own accounts
 
-**Spec'd, not yet built.** Same-currency-only, modeled as two ordinary Transactions (an expense on the source account, an income on the destination account) connected only by a shared, auto-generated note — no new schema. See [`docs/specs/transaction-list-and-transfer.md`](../../../docs/specs/transaction-list-and-transfer.md), which also documents this in `bank-accounts/SPEC.md`.
+**Specified, not built.** Both accounts must share a currency. A transfer is two ordinary Transactions, an expense on the source account and an income on the destination, connected only by generated notes, with no new schema. See [`docs/specs/transaction-list-and-transfer.md`](../../../docs/specs/transaction-list-and-transfer.md). `bank-accounts/SPEC.md` documents the same design.
