@@ -60,7 +60,7 @@ Make Edit and Delete work on a Bank Account. Edit only renames. Delete permanent
 
 Deferred for this pass, because the developer asked to. They are new to testing and don't want to take it on alongside everything else here. Recorded for whenever someone picks it up:
 
-- `getBankAccountFigures` in `src/modules/bank-accounts/utils.ts` is the one part of this module that is easy to test in isolation. It is a pure function that takes the totals and a pending addition and returns `{ balance, unallocated, totalAllocated }`. It doesn't touch the database or the Cloudflare Workers runtime, so plain Vitest works with no mocking. It replaced `getBankAccountUnallocatedBalance` on 2026-10-14, and the SQL totals it receives come from `figures.server.ts`.
+- `getBankAccountFigures` in `src/modules/bank-accounts/utils.ts` is the one part of this module that is easy to test in isolation. It is a pure function that takes the totals and a pending addition and returns `{ balance, unallocated, totalEarmarked }`. It doesn't touch the database or the Cloudflare Workers runtime, so plain Vitest works with no mocking. It replaced `getBankAccountUnallocatedBalance` on 2026-10-14, and the SQL totals it receives come from `figures.server.ts`.
 - This module's D1-backed server functions, `registerBankAccount` plus the new `editBankAccount` and `deleteBankAccount`, have no test setup yet. They call `getDB(env.db)` from `cloudflare:workers`, so testing them needs `@cloudflare/vitest-pool-workers` or something like it. That would be new tooling for the whole repo, not a decision for one module, so this spec doesn't add it.
 
 ## Out of scope

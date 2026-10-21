@@ -73,7 +73,7 @@ export const getBankAccount = createServerFn({
       ...bankAccount,
       balance: figures.balance,
       unallocated: figures.unallocated,
-      totalAllocated: figures.totalAllocated,
+      totalEarmarked: figures.totalEarmarked,
     };
   });
 

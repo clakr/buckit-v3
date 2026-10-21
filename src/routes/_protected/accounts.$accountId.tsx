@@ -82,7 +82,7 @@ function RouteComponent() {
   const { data: bankAccount } = useSuspenseQuery(bankAccountQueryOptions);
   const { data: allocations } = useSuspenseQuery(allocationsQueryOptions);
 
-  const { balance, unallocated, totalAllocated } = bankAccount;
+  const { balance, unallocated, totalEarmarked } = bankAccount;
 
   function handleOpenEditBankAccountDialog() {
     useEditBankAccountDialogStore.getState().open({ bankAccountId: accountId });
@@ -126,8 +126,8 @@ function RouteComponent() {
               <dl className="grid grid-cols-[auto_minmax(0,1fr)] gap-x-4 [&>dt]:text-end [&>dt]:font-semibold">
                 <dd>Unallocated:</dd>
                 <dt>{formatMoney(unallocated, bankAccount.currency)}</dt>
-                <dd>Total Allocated:</dd>
-                <dt>{formatMoney(totalAllocated, bankAccount.currency)}</dt>
+                <dd>Total Earmarked:</dd>
+                <dt>{formatMoney(totalEarmarked, bankAccount.currency)}</dt>
               </dl>
             </CardContent>
             <CardFooter className=" border-t text-sm font-semibold">
