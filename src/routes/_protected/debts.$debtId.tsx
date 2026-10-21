@@ -7,7 +7,7 @@ import { Main } from "#/components/main";
 import { RouteRetryButton } from "#/components/route-retry-button";
 import { StateTemplate } from "#/components/state-template";
 import { Button } from "#/components/ui/button";
-import { NotFoundError } from "#/lib/errors";
+import { loadOrThrowRouteNotFound } from "#/lib/errors";
 import { formatPageTitle } from "#/lib/utils";
 import { DebtLedgerTable } from "#/modules/debts/components/debt-ledger-table";
 import { useEditDebtDialogStore } from "#/modules/debts/components/edit-debt-dialog";
@@ -20,7 +20,7 @@ export const Route = createFileRoute("/_protected/debts/$debtId")({
     debtQueryOptions: debtQueryOption(params.debtId),
   }),
   loader: async ({ context: { queryClient, debtQueryOptions } }) => {
-    return queryClient.query(debtQueryOptions);
+    return loadOrThrowRouteNotFound(queryClient.query(debtQueryOptions));
   },
   pendingComponent: () => (
     <Main>
@@ -33,36 +33,32 @@ export const Route = createFileRoute("/_protected/debts/$debtId")({
       />
     </Main>
   ),
-  errorComponent: ({ error }) => {
-    if (error instanceof NotFoundError)
-      return (
-        <Main>
-          <Heading className="capitalize">Debt</Heading>
-          <StateTemplate
-            state="error"
-            title="Debt not found"
-            description={error.message}
-            content={
-              <Button variant="secondary" render={<Link to=".." />}>
-                Go back to debts
-              </Button>
-            }
-          />
-        </Main>
-      );
-
-    return (
-      <Main>
-        <Heading className="capitalize">Debt</Heading>
-        <StateTemplate
-          state="error"
-          title="Could not load debt"
-          description="We weren't able to retrieve this debt. Please check your connection and try again."
-          content={<RouteRetryButton />}
-        />
-      </Main>
-    );
-  },
+  notFoundComponent: () => (
+    <Main>
+      <Heading className="capitalize">Debt</Heading>
+      <StateTemplate
+        state="error"
+        title="Debt not found"
+        description="This debt doesn't exist or may have been deleted."
+        content={
+          <Button variant="secondary" render={<Link to="/debts" />}>
+            Go back to debts
+          </Button>
+        }
+      />
+    </Main>
+  ),
+  errorComponent: () => (
+    <Main>
+      <Heading className="capitalize">Debt</Heading>
+      <StateTemplate
+        state="error"
+        title="Could not load debt"
+        description="We weren't able to retrieve this debt. Please check your connection and try again."
+        content={<RouteRetryButton />}
+      />
+    </Main>
+  ),
   component: RouteComponent,
 });
 

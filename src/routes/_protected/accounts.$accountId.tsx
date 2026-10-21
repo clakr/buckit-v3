@@ -10,7 +10,7 @@ import { Button } from "#/components/ui/button";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "#/components/ui/card";
 import { DataTable } from "#/components/ui/data-table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "#/components/ui/tabs";
-import { NotFoundError } from "#/lib/errors";
+import { loadOrThrowRouteNotFound } from "#/lib/errors";
 import { formatMoney } from "#/lib/money";
 import { formatPageTitle } from "#/lib/utils";
 import { getAllocationColumns } from "#/modules/allocations/columns";
@@ -28,10 +28,12 @@ export const Route = createFileRoute("/_protected/accounts/$accountId")({
   loader: async ({
     context: { queryClient, bankAccountQueryOptions, allocationsQueryOptions },
   }) => {
-    return Promise.all([
-      queryClient.query(bankAccountQueryOptions),
-      queryClient.query(allocationsQueryOptions),
-    ]);
+    return loadOrThrowRouteNotFound(
+      Promise.all([
+        queryClient.query(bankAccountQueryOptions),
+        queryClient.query(allocationsQueryOptions),
+      ]),
+    );
   },
   pendingComponent: () => (
     <Main>
@@ -44,36 +46,32 @@ export const Route = createFileRoute("/_protected/accounts/$accountId")({
       />
     </Main>
   ),
-  errorComponent: ({ error }) => {
-    if (error instanceof NotFoundError)
-      return (
-        <Main>
-          <Heading className="capitalize">Account</Heading>
-          <StateTemplate
-            state="error"
-            title="Account not found"
-            description={error.message}
-            content={
-              <Button variant="secondary" render={<Link to=".." />}>
-                Go back to accounts
-              </Button>
-            }
-          />
-        </Main>
-      );
-
-    return (
-      <Main>
-        <Heading className="capitalize">Account</Heading>
-        <StateTemplate
-          state="error"
-          title="Could not load account"
-          description="We weren't able to retrieve this account. Please check your connection and try again."
-          content={<RouteRetryButton />}
-        />
-      </Main>
-    );
-  },
+  notFoundComponent: () => (
+    <Main>
+      <Heading className="capitalize">Account</Heading>
+      <StateTemplate
+        state="error"
+        title="Account not found"
+        description="This account doesn't exist or may have been deleted."
+        content={
+          <Button variant="secondary" render={<Link to="/accounts" />}>
+            Go back to accounts
+          </Button>
+        }
+      />
+    </Main>
+  ),
+  errorComponent: () => (
+    <Main>
+      <Heading className="capitalize">Account</Heading>
+      <StateTemplate
+        state="error"
+        title="Could not load account"
+        description="We weren't able to retrieve this account. Please check your connection and try again."
+        content={<RouteRetryButton />}
+      />
+    </Main>
+  ),
   component: RouteComponent,
 });
 

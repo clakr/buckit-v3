@@ -1,4 +1,4 @@
-import { createSerializationAdapter } from "@tanstack/react-router";
+import { createSerializationAdapter, notFound } from "@tanstack/react-router";
 
 export class AppError extends Error {
   override name = "AppError";
@@ -22,6 +22,15 @@ export class InsufficientFundsError extends AppError {
 
 export function describeErrorForUser(error: unknown, fallback: string) {
   return error instanceof AppError ? error.message : fallback;
+}
+
+export async function loadOrThrowRouteNotFound<T>(load: Promise<T>) {
+  try {
+    return await load;
+  } catch (error) {
+    if (error instanceof NotFoundError) throw notFound();
+    throw error;
+  }
 }
 
 // Keyed by a literal `name` rather than `constructor.name`, which minification mangles.

@@ -9,7 +9,7 @@ import { StateTemplate } from "#/components/state-template";
 import { Button } from "#/components/ui/button";
 import { DataTable } from "#/components/ui/data-table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "#/components/ui/tabs";
-import { NotFoundError } from "#/lib/errors";
+import { loadOrThrowRouteNotFound } from "#/lib/errors";
 import { formatPageTitle } from "#/lib/utils";
 import { getAllocationColumns } from "#/modules/allocations/columns";
 import { allocationsQueryOption } from "#/modules/allocations/query-options";
@@ -29,11 +29,13 @@ export const Route = createFileRoute("/_protected/buckets/$bucketId")({
   loader: async ({
     context: { queryClient, bucketQueryOptions, allocationsQueryOptions, withdrawalsQueryOptions },
   }) => {
-    return Promise.all([
-      queryClient.query(bucketQueryOptions),
-      queryClient.query(allocationsQueryOptions),
-      queryClient.query(withdrawalsQueryOptions),
-    ]);
+    return loadOrThrowRouteNotFound(
+      Promise.all([
+        queryClient.query(bucketQueryOptions),
+        queryClient.query(allocationsQueryOptions),
+        queryClient.query(withdrawalsQueryOptions),
+      ]),
+    );
   },
   pendingComponent: () => (
     <Main>
@@ -46,36 +48,32 @@ export const Route = createFileRoute("/_protected/buckets/$bucketId")({
       />
     </Main>
   ),
-  errorComponent: ({ error }) => {
-    if (error instanceof NotFoundError)
-      return (
-        <Main>
-          <Heading className="capitalize">Bucket</Heading>
-          <StateTemplate
-            state="error"
-            title="Bucket not found"
-            description={error.message}
-            content={
-              <Button variant="secondary" render={<Link to=".." />}>
-                Go back to buckets
-              </Button>
-            }
-          />
-        </Main>
-      );
-
-    return (
-      <Main>
-        <Heading className="capitalize">Bucket</Heading>
-        <StateTemplate
-          state="error"
-          title="Could not load bucket"
-          description="We weren't able to retrieve this bucket. Please check your connection and try again."
-          content={<RouteRetryButton />}
-        />
-      </Main>
-    );
-  },
+  notFoundComponent: () => (
+    <Main>
+      <Heading className="capitalize">Bucket</Heading>
+      <StateTemplate
+        state="error"
+        title="Bucket not found"
+        description="This bucket doesn't exist or may have been deleted."
+        content={
+          <Button variant="secondary" render={<Link to="/buckets" />}>
+            Go back to buckets
+          </Button>
+        }
+      />
+    </Main>
+  ),
+  errorComponent: () => (
+    <Main>
+      <Heading className="capitalize">Bucket</Heading>
+      <StateTemplate
+        state="error"
+        title="Could not load bucket"
+        description="We weren't able to retrieve this bucket. Please check your connection and try again."
+        content={<RouteRetryButton />}
+      />
+    </Main>
+  ),
   component: RouteComponent,
 });
 
