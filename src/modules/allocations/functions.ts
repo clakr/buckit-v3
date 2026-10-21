@@ -63,7 +63,7 @@ export const getAllocation = createServerFn({
       bucket: { name: bucket.name },
       bankAccount: { name: figures.name, currency: figures.currency },
       available: figures.unallocated + allocation.amount,
-      alreadyWithdrawn: Math.max(0, allocation.amount - held),
+      lowestAllowedAmount: Math.max(0, allocation.amount - held),
     };
   });
 

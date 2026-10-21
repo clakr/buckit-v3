@@ -153,12 +153,12 @@ export function EditAllocationDialog() {
                         };
 
                       const amount = amountSchema.safeParse(value);
-                      if (amount.success && amount.data < allocation.alreadyWithdrawn)
+                      if (amount.success && amount.data < allocation.lowestAllowedAmount)
                         return {
                           message: describeAllocationAlreadyWithdrawn({
                             bucket: allocation.bucket,
                             bankAccount: allocation.bankAccount,
-                            withdrawnCents: allocation.alreadyWithdrawn,
+                            withdrawnCents: allocation.lowestAllowedAmount,
                             change: "edit",
                           }),
                         };
@@ -181,13 +181,13 @@ export function EditAllocationDialog() {
                           <span className="font-semibold">
                             {formatMoney(allocation.available, allocation.bankAccount.currency)}
                           </span>
-                          {allocation.alreadyWithdrawn > 0 ? (
+                          {allocation.lowestAllowedAmount > 0 ? (
                             <>
                               {" "}
                               · Lowest allowed:{" "}
                               <span className="font-semibold">
                                 {formatMoney(
-                                  allocation.alreadyWithdrawn,
+                                  allocation.lowestAllowedAmount,
                                   allocation.bankAccount.currency,
                                 )}
                               </span>
