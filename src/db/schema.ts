@@ -1,5 +1,6 @@
 import { defineRelations, SQL, sql } from "drizzle-orm";
 import {
+  check,
   sqliteTable,
   text,
   integer,
@@ -194,21 +195,30 @@ export const debts = sqliteTable("debts", {
     .notNull(),
 });
 
-export const repayments = sqliteTable("repayments", {
-  id: text("id").primaryKey(),
-  debtId: text("debt_id")
-    .notNull()
-    .references(() => debts.id, { onDelete: "cascade" }),
-  amount: integer("amount"),
-  date: integer("date", { mode: "timestamp" }),
-  note: text("note"),
-  transactionId: text("transaction_id")
-    .unique()
-    .references(() => transactions.id, { onDelete: "cascade" }),
-  createdAt: integer("created_at", { mode: "timestamp_ms" })
-    .default(sql`(cast(unixepoch('subsecond') * 1000 as integer))`)
-    .notNull(),
-});
+export const repayments = sqliteTable(
+  "repayments",
+  {
+    id: text("id").primaryKey(),
+    debtId: text("debt_id")
+      .notNull()
+      .references(() => debts.id, { onDelete: "cascade" }),
+    amount: integer("amount"),
+    date: integer("date", { mode: "timestamp" }),
+    note: text("note"),
+    transactionId: text("transaction_id")
+      .unique()
+      .references(() => transactions.id, { onDelete: "cascade" }),
+    createdAt: integer("created_at", { mode: "timestamp_ms" })
+      .default(sql`(cast(unixepoch('subsecond') * 1000 as integer))`)
+      .notNull(),
+  },
+  (t) => [
+    check(
+      "repayments_one_storage_form",
+      sql`(${t.transactionId} IS NOT NULL AND ${t.amount} IS NULL AND ${t.date} IS NULL AND ${t.note} IS NULL) OR (${t.transactionId} IS NULL AND ${t.amount} IS NOT NULL AND ${t.date} IS NOT NULL)`,
+    ),
+  ],
+);
 
 export const relations = defineRelations(
   {

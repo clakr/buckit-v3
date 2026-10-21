@@ -33,12 +33,29 @@ type StoredRepayment = Pick<Repayment, "id" | "amount" | "date" | "note" | "crea
 };
 
 export function toRepaymentEntry({ transaction, ...repayment }: StoredRepayment): RepaymentEntry {
+  if (transaction) {
+    return {
+      id: repayment.id,
+      amount: transaction.amount,
+      date: transaction.date,
+      note: transaction.note,
+      bankAccount: transaction.bankAccount,
+      createdAt: repayment.createdAt,
+    };
+  }
+
+  if (repayment.amount === null || repayment.date === null) {
+    throw new Error(
+      `Repayment ${repayment.id} has neither a Transaction nor its own amount and date.`,
+    );
+  }
+
   return {
     id: repayment.id,
-    amount: transaction?.amount ?? repayment.amount ?? 0,
-    date: transaction?.date ?? repayment.date ?? repayment.createdAt,
-    note: transaction?.note ?? repayment.note,
-    bankAccount: transaction?.bankAccount ?? null,
+    amount: repayment.amount,
+    date: repayment.date,
+    note: repayment.note,
+    bankAccount: null,
     createdAt: repayment.createdAt,
   };
 }
