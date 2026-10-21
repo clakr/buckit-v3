@@ -63,8 +63,6 @@ export const getAllocation = createServerFn({
       bucket: { name: bucket.name },
       bankAccount: { name: figures.name, currency: figures.currency },
       available: figures.unallocated + allocation.amount,
-      // Whatever of this Allocation the Bucket no longer holds has been withdrawn, so it's also the
-      // lowest the amount can go.
       alreadyWithdrawn: Math.max(0, allocation.amount - held),
     };
   });
@@ -86,8 +84,6 @@ async function checkAllocationAmount(db: DB, userId: string, change: AllocationA
     );
 }
 
-// Lowering or deleting an Allocation takes money back out of its Bucket, which can't go below
-// what's already been withdrawn from that Bank Account.
 async function assertAllocationReductionHeld(
   db: DB,
   userId: string,

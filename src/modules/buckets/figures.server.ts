@@ -18,7 +18,6 @@ export type BucketSubtotal = { currency: BankAccount["currency"]; amount: number
 
 export type BucketFigures = {
   subtotals: BucketSubtotal[];
-  // Allocations from each Bank Account minus Withdrawals drawn from it.
   heldByBankAccount: {
     bankAccountId: BankAccount["id"];
     currency: BankAccount["currency"];
@@ -100,7 +99,6 @@ export async function getBucketsWithFigures(
   ]);
 
   return bucketRows.map((bucket) => {
-    // Keyed by Bank Account, so a pair with Withdrawals but no Allocations left still shows.
     const heldById = new Map<BankAccount["id"], BucketFigures["heldByBankAccount"][number]>();
     for (const row of allocated.filter((row) => row.bucketId === bucket.id)) {
       heldById.set(row.bankAccountId, {
@@ -143,7 +141,6 @@ export type HeldCheck =
       available: number;
     };
 
-// What a Bucket holds from one Bank Account can never go negative.
 export async function checkHeld(
   db: DB,
   userId: string,

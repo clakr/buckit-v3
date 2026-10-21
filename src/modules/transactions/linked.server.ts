@@ -87,7 +87,6 @@ function checkLinkRules(
   return null;
 }
 
-// Throws ConflictError when a link rule blocks the edit, InsufficientFundsError when money runs short.
 export async function assertTransactionEditAllowed(db: DB, userId: string, edit: TransactionEdit) {
   const [current, link] = await Promise.all([
     db.query.transactions.findFirst({
@@ -102,8 +101,6 @@ export async function assertTransactionEditAllowed(db: DB, userId: string, edit:
   const message = checkLinkRules(link, current, edit);
   if (message) throw new ConflictError(message);
 
-  // A Withdrawal's Transaction moves Balance and the earmark together, so Unallocated can't change;
-  // only what the Bucket holds from the account limits it.
   if (link?.kind === "withdrawal")
     return assertWithdrawalAmountHeld(db, userId, link, current, edit);
 

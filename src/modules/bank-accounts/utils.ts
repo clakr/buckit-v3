@@ -4,8 +4,7 @@ export type BankAccountTotals = {
   startingBalance: BankAccount["startingBalance"];
   incomeTotal: number;
   expenseTotal: number;
-  // Allocations minus Withdrawals: what is still earmarked.
-  allocatedTotal: number;
+  earmarkedTotal: number;
 };
 
 export type BankAccountFigures = {
@@ -20,7 +19,7 @@ export type PendingAddition = {
 };
 
 export function getBankAccountFigures(
-  { startingBalance, incomeTotal, expenseTotal, allocatedTotal }: BankAccountTotals,
+  { startingBalance, incomeTotal, expenseTotal, earmarkedTotal }: BankAccountTotals,
   pending: PendingAddition = {},
 ): BankAccountFigures {
   const pendingTransactionAmount = !pending.transaction
@@ -30,7 +29,7 @@ export function getBankAccountFigures(
       : -pending.transaction.amount;
 
   const balance = startingBalance + incomeTotal - expenseTotal + pendingTransactionAmount;
-  const totalAllocated = allocatedTotal + (pending.allocationAmount ?? 0);
+  const totalAllocated = earmarkedTotal + (pending.allocationAmount ?? 0);
 
   return {
     balance,

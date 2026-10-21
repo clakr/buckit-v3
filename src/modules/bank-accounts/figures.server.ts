@@ -73,8 +73,6 @@ function sumAllocationAmounts(db: DB, excludedIds: string[]) {
     );
 }
 
-// A Withdrawal's Transaction is already an expense in Balance, so its amount comes back out of the
-// allocated total: the money left the Balance and the earmark together.
 function sumWithdrawalAmounts(db: DB, excludedTransactionIds: string[]) {
   return db
     .select({ total: sql`coalesce(sum(${transactions.amount}), 0)` })
@@ -117,7 +115,7 @@ function loadBankAccountTotals(
         sql<number>`(${sumTransactionAmounts(db, "expense", excludeTransactionIds)})`.mapWith(
           Number,
         ),
-      allocatedTotal:
+      earmarkedTotal:
         sql<number>`(${sumAllocationAmounts(db, excludeAllocationIds)}) - (${sumWithdrawalAmounts(db, excludeTransactionIds)})`.mapWith(
           Number,
         ),
@@ -145,13 +143,13 @@ export async function getBankAccountsWithFigures(
     ),
   });
 
-  return rows.map(({ incomeTotal, expenseTotal, allocatedTotal, ...bankAccount }) => ({
+  return rows.map(({ incomeTotal, expenseTotal, earmarkedTotal, ...bankAccount }) => ({
     ...bankAccount,
     ...getBankAccountFigures({
       startingBalance: bankAccount.startingBalance,
       incomeTotal,
       expenseTotal,
-      allocatedTotal,
+      earmarkedTotal,
     }),
   }));
 }
@@ -219,7 +217,7 @@ function toTotals(row: Awaited<ReturnType<typeof loadBankAccountTotals>>[number]
     startingBalance: row.startingBalance,
     incomeTotal: row.incomeTotal,
     expenseTotal: row.expenseTotal,
-    allocatedTotal: row.allocatedTotal,
+    earmarkedTotal: row.earmarkedTotal,
   };
 }
 

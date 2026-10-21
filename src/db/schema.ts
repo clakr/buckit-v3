@@ -225,7 +225,6 @@ export const withdrawals = sqliteTable("withdrawals", {
   bucketId: text("bucket_id")
     .notNull()
     .references(() => buckets.id, { onDelete: "cascade" }),
-  // Amount, date, note and Bank Account live only on the Transaction.
   transactionId: text("transaction_id")
     .notNull()
     .unique()

@@ -97,12 +97,10 @@ export const getWithdrawal = createServerFn({
       note: transaction.note,
       bucket,
       bankAccount,
-      // The Withdrawal's own amount is already out of what the Bucket holds, so it counts as available.
       available: held + transaction.amount,
     };
   });
 
-// The Bank Accounts a Bucket holds money from, with how much it holds from each.
 export const getWithdrawalSources = createServerFn({
   method: "GET",
 })
@@ -216,7 +214,6 @@ export const editWithdrawal = createServerFn({
     return updateTransaction(db, edit);
   });
 
-// Deleting the Transaction cascades to the Withdrawal. The Bucket and Unallocated can only gain.
 export const deleteWithdrawal = createServerFn({
   method: "POST",
 })
