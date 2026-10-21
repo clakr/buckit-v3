@@ -30,8 +30,8 @@ export function getContext() {
     },
     mutationCache: new MutationCache({
       onSuccess: async (_, __, ___, mutation) => {
-        toast.success(mutation.meta?.success.title ?? "Nice!", {
-          description: mutation.meta?.success.description ?? "Action proceeded successfully",
+        toast.success(mutation.meta?.success.title ?? "Done", {
+          description: mutation.meta?.success.description ?? "The action succeeded.",
         });
 
         await queryClient.invalidateQueries({ predicate: (query) => !query.meta?.keepOnWrite });
@@ -39,10 +39,10 @@ export function getContext() {
       onError: (error, __, ___, mutation) => {
         if (error instanceof SessionExpiredError) return;
 
-        toast.error(mutation.meta?.error.title ?? "Oops!", {
+        toast.error(mutation.meta?.error.title ?? "Something Went Wrong", {
           description: describeErrorForUser(
             error,
-            mutation.meta?.error.description ?? "Action did not proceed. Please try again.",
+            mutation.meta?.error.description ?? "The action failed. Please try again.",
           ),
         });
       },

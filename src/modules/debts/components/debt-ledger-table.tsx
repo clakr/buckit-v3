@@ -201,5 +201,5 @@ function BankAccountMovement({
 }
 
 function EntryNote({ note }: { note: string }) {
-  return <span className="block text-xs font-normal text-muted-foreground">“{note}”</span>;
+  return <span className="block text-xs font-normal text-muted-foreground">"{note}"</span>;
 }
