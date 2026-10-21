@@ -54,7 +54,7 @@ export const Route = createFileRoute("/_protected/accounts/$accountId")({
         title="Account not found"
         description="This account doesn't exist or may have been deleted."
         content={
-          <Button variant="secondary" render={<Link to="/accounts" />}>
+          <Button variant="secondary" nativeButton={false} render={<Link to="/accounts" />}>
             Go back to accounts
           </Button>
         }

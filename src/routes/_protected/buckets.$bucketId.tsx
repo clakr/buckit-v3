@@ -56,7 +56,7 @@ export const Route = createFileRoute("/_protected/buckets/$bucketId")({
         title="Bucket not found"
         description="This bucket doesn't exist or may have been deleted."
         content={
-          <Button variant="secondary" render={<Link to="/buckets" />}>
+          <Button variant="secondary" nativeButton={false} render={<Link to="/buckets" />}>
             Go back to buckets
           </Button>
         }

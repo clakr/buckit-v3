@@ -41,7 +41,7 @@ export const Route = createFileRoute("/_protected/debts/$debtId")({
         title="Debt not found"
         description="This debt doesn't exist or may have been deleted."
         content={
-          <Button variant="secondary" render={<Link to="/debts" />}>
+          <Button variant="secondary" nativeButton={false} render={<Link to="/debts" />}>
             Go back to debts
           </Button>
         }
