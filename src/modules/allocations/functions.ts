@@ -22,7 +22,11 @@ import {
   type BankAccountChange,
 } from "#/modules/bank-accounts/figures.server";
 import { verifyUserBankAccountMiddleware } from "#/modules/bank-accounts/middlewares";
-import { checkHeld, getBucketsWithFigures } from "#/modules/buckets/figures.server";
+import {
+  checkHeld,
+  getBucketsWithFigures,
+  getHeldFromBankAccount,
+} from "#/modules/buckets/figures.server";
 import { verifyUserBucketMiddleware } from "#/modules/buckets/middlewares";
 
 export const getAllocation = createServerFn({
@@ -52,9 +56,7 @@ export const getAllocation = createServerFn({
     if (!figures || !bucket)
       throw new NotFoundError("This allocation doesn't exist or may have been deleted.");
 
-    const held =
-      bucket.heldByBankAccount.find((row) => row.bankAccountId === allocation.bankAccountId)
-        ?.amount ?? 0;
+    const held = getHeldFromBankAccount(bucket, allocation.bankAccountId);
 
     return {
       ...allocation,

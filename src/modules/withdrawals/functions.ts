@@ -10,7 +10,11 @@ import { bankAccounts, transactions, withdrawals, type Withdrawal } from "#/db/s
 import { InsufficientFundsError, NotFoundError } from "#/lib/errors";
 import { describeInsufficientHeld } from "#/lib/money";
 import { verifyUserBankAccountMiddleware } from "#/modules/bank-accounts/middlewares";
-import { checkHeld, getBucketsWithFigures } from "#/modules/buckets/figures.server";
+import {
+  checkHeld,
+  getBucketsWithFigures,
+  getHeldFromBankAccount,
+} from "#/modules/buckets/figures.server";
 import { verifyUserBucketMiddleware } from "#/modules/buckets/middlewares";
 import {
   assertTransactionEditAllowed,
@@ -84,8 +88,7 @@ export const getWithdrawal = createServerFn({
       bucketId: withdrawal.bucketId,
     });
 
-    const held =
-      figures?.heldByBankAccount.find((row) => row.bankAccountId === bankAccount.id)?.amount ?? 0;
+    const held = figures ? getHeldFromBankAccount(figures, bankAccount.id) : 0;
 
     return {
       id: withdrawal.id,

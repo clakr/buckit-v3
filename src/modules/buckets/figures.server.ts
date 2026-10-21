@@ -127,6 +127,13 @@ export async function getBucketsWithFigures(
   });
 }
 
+export function getHeldFromBankAccount(
+  bucket: Pick<BucketFigures, "heldByBankAccount">,
+  bankAccountId: BankAccount["id"],
+) {
+  return bucket.heldByBankAccount.find((held) => held.bankAccountId === bankAccountId)?.amount ?? 0;
+}
+
 export type HeldCheck =
   | { ok: true }
   | {
@@ -154,8 +161,7 @@ export async function checkHeld(
   if (!bucket) throw new NotFoundError("This bucket doesn't exist or may have been deleted.");
   if (!bankAccount) throw new NotFoundError("This account doesn't exist or may have been deleted.");
 
-  const available =
-    bucket.heldByBankAccount.find((held) => held.bankAccountId === bankAccountId)?.amount ?? 0;
+  const available = getHeldFromBankAccount(bucket, bankAccountId);
 
   if (reduction > available) {
     return { ok: false, bucket: { id: bucket.id, name: bucket.name }, bankAccount, available };
