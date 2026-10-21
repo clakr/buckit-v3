@@ -1,4 +1,4 @@
-import { IconDots, IconEye, IconPlus } from "@tabler/icons-react";
+import { IconDots, IconEye, IconMinus, IconPlus } from "@tabler/icons-react";
 import { Link } from "@tanstack/react-router";
 
 import type { getBuckets } from "#/modules/buckets/functions";
@@ -13,6 +13,7 @@ import {
   DropdownMenuTrigger,
 } from "#/components/ui/dropdown-menu";
 import { useLogAllocationDialogStore } from "#/modules/allocations/components/log-allocation-dialog";
+import { useWithdrawDialogStore } from "#/modules/withdrawals/components/withdraw-dialog";
 
 import { useDeleteBucketDialogStore } from "./delete-bucket-dialog";
 import { useEditBucketDialogStore } from "./edit-bucket-dialog";
@@ -26,6 +27,10 @@ export function BucketActionsDropdownMenu({ bucket }: Props) {
 
   function handleOpenLogAllocationDialog() {
     useLogAllocationDialogStore.getState().open({ start: { from: "bucket", bucketId } });
+  }
+
+  function handleOpenWithdrawDialog() {
+    useWithdrawDialogStore.getState().open({ bucketId });
   }
 
   function handleOpenEditBucketDialog() {
@@ -47,6 +52,10 @@ export function BucketActionsDropdownMenu({ bucket }: Props) {
           <DropdownMenuItem onClick={handleOpenLogAllocationDialog}>
             <IconPlus />
             Allocate Money
+          </DropdownMenuItem>
+          <DropdownMenuItem onClick={handleOpenWithdrawDialog}>
+            <IconMinus />
+            Withdraw Money
           </DropdownMenuItem>
         </DropdownMenuGroup>
         <DropdownMenuSeparator />

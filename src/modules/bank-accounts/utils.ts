@@ -4,6 +4,7 @@ export type BankAccountTotals = {
   startingBalance: BankAccount["startingBalance"];
   incomeTotal: number;
   expenseTotal: number;
+  // Allocations minus Withdrawals: what is still earmarked.
   allocatedTotal: number;
 };
 

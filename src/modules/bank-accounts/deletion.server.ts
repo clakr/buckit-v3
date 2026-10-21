@@ -94,8 +94,7 @@ export async function loadBankAccountDeletionImpact(
         bucket.subtotals.find((subtotal) => subtotal.currency === bankAccount.currency)?.amount ??
         0;
       const released =
-        bucket.allocatedByBankAccount.find((allocated) => allocated.bankAccountId === bankAccountId)
-          ?.amount ?? 0;
+        bucket.heldByBankAccount.find((held) => held.bankAccountId === bankAccountId)?.amount ?? 0;
 
       return { id: bucket.id, name: bucket.name, before, after: before - released };
     }),

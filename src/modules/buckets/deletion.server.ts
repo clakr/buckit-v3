@@ -36,7 +36,7 @@ export async function loadBucketDeletionImpact(
   if (!bucket) throw new NotFoundError("This bucket doesn't exist or may have been deleted.");
 
   const releasedByBankAccountId = new Map(
-    bucket.allocatedByBankAccount.map((allocated) => [allocated.bankAccountId, allocated.amount]),
+    bucket.heldByBankAccount.map((held) => [held.bankAccountId, held.amount]),
   );
 
   return {

@@ -6,6 +6,7 @@ import {
   allocations,
   bankAccounts,
   transactions,
+  withdrawals,
   type Allocation,
   type BankAccount,
   type Transaction,
@@ -72,6 +73,23 @@ function sumAllocationAmounts(db: DB, excludedIds: string[]) {
     );
 }
 
+// A Withdrawal's Transaction is already an expense in Balance, so its amount comes back out of the
+// allocated total: the money left the Balance and the earmark together.
+function sumWithdrawalAmounts(db: DB, excludedTransactionIds: string[]) {
+  return db
+    .select({ total: sql`coalesce(sum(${transactions.amount}), 0)` })
+    .from(withdrawals)
+    .innerJoin(transactions, eq(transactions.id, withdrawals.transactionId))
+    .where(
+      and(
+        eq(transactions.bankAccountId, bankAccounts.id),
+        excludedTransactionIds.length
+          ? notInArray(transactions.id, excludedTransactionIds)
+          : undefined,
+      ),
+    );
+}
+
 function getLatestTransactionDate(db: DB) {
   return db
     .select({ date: sql`max(${transactions.date})` })
@@ -99,9 +117,10 @@ function loadBankAccountTotals(
         sql<number>`(${sumTransactionAmounts(db, "expense", excludeTransactionIds)})`.mapWith(
           Number,
         ),
-      allocatedTotal: sql<number>`(${sumAllocationAmounts(db, excludeAllocationIds)})`.mapWith(
-        Number,
-      ),
+      allocatedTotal:
+        sql<number>`(${sumAllocationAmounts(db, excludeAllocationIds)}) - (${sumWithdrawalAmounts(db, excludeTransactionIds)})`.mapWith(
+          Number,
+        ),
       lastTransactionDate: sql<Date | null>`(${getLatestTransactionDate(db)})`.mapWith(
         transactions.date,
       ),

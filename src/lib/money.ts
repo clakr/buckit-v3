@@ -1,6 +1,6 @@
 import z from "zod";
 
-import type { BankAccount } from "#/db/schema";
+import type { BankAccount, Bucket } from "#/db/schema";
 
 const DECIMAL_PLACES_MESSAGE = "Use at most 2 decimal places.";
 
@@ -59,4 +59,16 @@ export function describeInsufficientUnallocated({
   const forPurpose = purpose ? ` for this ${purpose}` : "";
 
   return `Insufficient unallocated balance in ${bankAccount.name}${forPurpose}. Available: ${formatMoney(availableCents, bankAccount.currency)}`;
+}
+
+export function describeInsufficientHeld({
+  bucket,
+  bankAccount,
+  availableCents,
+}: {
+  bucket: Pick<Bucket, "name">;
+  bankAccount: Pick<BankAccount, "name" | "currency">;
+  availableCents: number;
+}) {
+  return `${bucket.name} doesn't hold that much from ${bankAccount.name}. Available: ${formatMoney(availableCents, bankAccount.currency)}`;
 }

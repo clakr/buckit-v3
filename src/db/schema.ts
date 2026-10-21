@@ -220,6 +220,21 @@ export const repayments = sqliteTable(
   ],
 );
 
+export const withdrawals = sqliteTable("withdrawals", {
+  id: text("id").primaryKey(),
+  bucketId: text("bucket_id")
+    .notNull()
+    .references(() => buckets.id, { onDelete: "cascade" }),
+  // Amount, date, note and Bank Account live only on the Transaction.
+  transactionId: text("transaction_id")
+    .notNull()
+    .unique()
+    .references(() => transactions.id, { onDelete: "cascade" }),
+  createdAt: integer("created_at", { mode: "timestamp_ms" })
+    .default(sql`(cast(unixepoch('subsecond') * 1000 as integer))`)
+    .notNull(),
+});
+
 export const relations = defineRelations(
   {
     users,
@@ -232,6 +247,7 @@ export const relations = defineRelations(
     allocations,
     debts,
     repayments,
+    withdrawals,
   },
   (r) => ({
     users: {
@@ -264,6 +280,7 @@ export const relations = defineRelations(
         to: r.users.id,
       }),
       allocations: r.many.allocations(),
+      withdrawals: r.many.withdrawals(),
     },
     transactions: {
       bankAccount: r.one.bankAccounts({
@@ -292,6 +309,18 @@ export const relations = defineRelations(
       }),
       repayments: r.many.repayments(),
     },
+    withdrawals: {
+      bucket: r.one.buckets({
+        from: r.withdrawals.bucketId,
+        to: r.buckets.id,
+        optional: false,
+      }),
+      transaction: r.one.transactions({
+        from: r.withdrawals.transactionId,
+        to: r.transactions.id,
+        optional: false,
+      }),
+    },
     repayments: {
       debt: r.one.debts({
         from: r.repayments.debtId,
@@ -312,6 +341,7 @@ export type Transaction = typeof transactions.$inferSelect;
 export type Allocation = typeof allocations.$inferSelect;
 export type Debt = typeof debts.$inferSelect;
 export type Repayment = typeof repayments.$inferSelect;
+export type Withdrawal = typeof withdrawals.$inferSelect;
 
 export function lower(email: AnySQLiteColumn): SQL {
   return sql`lower(${email})`;
