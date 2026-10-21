@@ -72,7 +72,7 @@ The table exists, but nothing in this app writes or reads a Verification row tod
 Two route-tree layouts guard every route, through `src/modules/authentication/guards.ts`:
 
 - `_guest.tsx`'s `beforeLoad` is `requireSignedOut`. It redirects to `/dashboard` if a Session exists, which keeps signed-in users off the login and register pages.
-- `_protected.tsx`'s `beforeLoad` is `requireSignedIn`. It redirects to `/` if no Session exists. It also puts `{ user }`, with `id`, `name` and `email`, in the route context for every nested route, where components such as `SidebarFooter` read it.
+- `_protected.tsx`'s `beforeLoad` is `requireSignedIn`. It redirects to `/` if no Session exists, with the page the User asked for as `?redirect=`, so signing in brings them back to it. It also puts `{ user }`, with `id`, `name` and `email`, in the route context for every nested route, where components such as `SidebarFooter` read it.
 
 Both read the Session through `sessionQueryOption()` (`query-options.ts`). The result stays cached until the Session module clears it on sign-in or sign-out, so navigating doesn't ask the server again. `authMiddleware` is still the real check on every request.
 
@@ -80,16 +80,26 @@ Both read the Session through `sessionQueryOption()` (`query-options.ts`). The r
 
 `signOutUser` calls Better-Auth's `auth.api.signOut()` behind `authMiddleware`, which ends the Session on the server. On the client, every path into or out of a Session goes through `src/modules/authentication/session.tsx` (see the 2026-10-20 update below). It empties the TanStack Query cache on the way in and on the way out, because query results belong to one User and must not show up for whoever signs in next on the same device.
 
-### No explicit rate limiting
+### Sign-in and sign-up are throttled per client IP
 
-Better-Auth's built-in rate limiter is **on only in production** by default. It allows at most 100 requests per 10-second window and keeps its counts in **memory** unless a `secondaryStorage` is configured. This was checked in `node_modules/better-auth` itself, not taken from the docs. Nothing in `integrations/better-auth/index.ts` changes it. On Cloudflare Workers, isolates don't share memory, so the real protection against credential stuffing and brute force is weaker than the window and limit suggest. This session didn't fix it, because it was outside the agreed audit scope, and Future considerations records it. It is a real gap that needs a deliberate decision, such as a `secondaryStorage` backed by KV or D1, instead of an unchecked default.
+Each client IP gets 5 sign-in attempts and 5 sign-up attempts per 60 seconds, counted by a Cloudflare Workers Rate Limiting binding that every isolate shares. Past that, the call fails with `RateLimitedError`, "Too many attempts. Please wait a minute and try again." Better-Auth's HTTP endpoints for email sign-in and sign-up are closed, so the throttled server functions are the only way in. [ADR 0005](../../../docs/adr/0005-auth-attempts-throttled-by-workers-rate-limiting.md) has the options and trade-offs.
+
+Until 2026-10-21 there was no working limit at all. Better-Auth runs its rate limiter only inside its HTTP router, and the server functions call `auth.api` directly, so they skipped it.
+
+### A new Session replaces the old one
+
+Once signing in succeeds, it revokes the Session the browser held before, if any, through `auth.api.revokeSession`, so no stale Session is left behind. It waits for success, so a wrong password doesn't end a working Session. The guest guard keeps signed-in Users off the login page, so this only matters for a direct call or a Session the client didn't know about. Sign-in and sign-up both pass the request headers, so the new Session records the IP address (from `cf-connecting-ip`) and the user agent.
+
+### Sign-up says when an email is already registered
+
+"An account with this email already exists. Try signing in." tells anyone that the email has an account. This is kept on purpose. A generic response only hides that if sign-up never tells the User what happened, which needs email verification first, and the clear message is better for a real User who forgot they signed up. The throttle limits how fast anyone can check emails this way.
 
 ## Features
 
 | #   | Feature                            | Status                                                                                                                                                                                               |
 | --- | ---------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 1   | Sign Up (email/password)           | **Implemented and correct.** First and last name, email, a password of 8 to 128 characters, and a matching confirm password.                                                                         |
-| 2   | Sign In (email/password)           | **Implemented and correct.**                                                                                                                                                                         |
+| 1   | Sign Up (email/password)           | **Implemented and correct.** First and last name, email, a password of 8 to 128 characters, and a matching confirm password. Throttled per client IP.                                                |
+| 2   | Sign In (email/password)           | **Implemented and correct.** Throttled per client IP. Returns the User to the page they were sent away from, when there is one.                                                                      |
 | 3   | Sign Out                           | **Implemented and correct.** Ends the Session on the server and clears the client's query cache.                                                                                                     |
 | 4   | Session retrieval / route guarding | **Implemented and correct.** The `_guest` and `_protected` layouts both guard on the Session.                                                                                                        |
 | 5   | Multi-device Sessions              | **Implemented and correct.** It needed no extra work, because the schema already supports it.                                                                                                        |
@@ -136,6 +146,12 @@ Better-Auth's built-in rate limiter is **on only in production** by default. It 
   - **Dialogs close when a Session starts or ends.** `_protected.tsx` mounts the dialogs, so leaving unmounts them, but their stores kept `isOpen`. A dialog that was open when the Session ended opened again after the next sign-in. Every store made by `createDialogStore` now registers itself, and the Session module calls `closeAllDialogs()` (`src/stores/dialog-store.ts`) when a Session starts and when it ends.
 - **2026-10-21. Responses with User data are never cached.** Features 1 to 4 are unchanged. `privateResponseMiddleware` (`src/modules/authentication/middlewares.ts`) sets `Cache-Control: private, no-store` and `Vary: Cookie` on the response, so no browser, proxy or CDN stores a User's data or replays it to someone else. `authMiddleware` runs it first, so every authenticated server function gets the headers, including the ownership middlewares built on it and responses that fail with `SessionExpiredError`. `getSession`, `signInUser` and `signUpUser` serve signed-out Users and can't use `authMiddleware`, so they list `privateResponseMiddleware` themselves. No server function sets the headers by hand.
 
+- **2026-10-21. Sign-in and sign-up are throttled ([#14](https://github.com/clakr/buckit-v3/issues/14)).** Features 1 and 2 now have a real rate limit, which they didn't before (see Design decisions).
+  - **Throttle.** `authAttemptLimitMiddleware("sign-in" | "sign-up")` runs on `signInUser` and `signUpUser` in place of `privateResponseMiddleware`, which it runs first. It calls `consumeAuthAttempt` in `session.server.ts` against the `AUTH_ATTEMPT_LIMITER` binding. `RateLimitedError` is a new `AppError`, so the login and register toasts show its message. `disabledPaths` in `integrations/better-auth/index.ts` closes `/sign-in/email` and `/sign-up/email` on `/api/auth/$`, which now returns 404 for them.
+  - **Session rotation and request headers.** `signInWithEmail` revokes the previous Session after a successful sign-in. It and `signUpWithEmail` pass the request headers to Better-Auth. `advanced.ipAddress.ipAddressHeaders` is `["cf-connecting-ip"]`, which is the client IP on Workers. Before this, Sessions stored no IP address or user agent.
+  - **Back to where the User was.** `requireSignedIn` takes the route's `location` and redirects to `/?redirect=<href>`. When a Session expires on an open page, `leaveExpiredSession` does the same with the current page. Signing out on purpose doesn't. The login page's `signInSearchSchema` accepts only same-origin paths, starting with `/` but not `//` or `/\`, and drops anything else. `signIn(router, data, redirectTo)` goes there instead of `/dashboard`. Sign-up still goes to `/dashboard`.
+  - **Decided, not built.** Sign-up keeps saying when an email is registered (see Design decisions).
+
 ## Doc corrections made this session
 
 This session confirmed that supporting many Users is a deliberate product goal. Along the way it found that `bank-accounts/SPEC.md`, `buckets/SPEC.md`, `transactions/SPEC.md` and `allocations/SPEC.md` all explained the missing `updatedAt` column with **"single-user app, no sync/API client"**. That reads as "this app supports one User in total", which contradicts the design. All four now say that a User's Sessions have no concurrent-edit conflict to detect. `CONTEXT.md` also gained a `User` entry, which had been missing even though the User owns every other entity. It says the app is built for many independent, isolated Users.
@@ -157,10 +173,6 @@ The disabled button on `/` and `/register` is a deliberate placeholder, not dead
 ### Forgot / reset password (specified, not built)
 
 A User who forgets their password has no way to recover access on their own today. [`docs/specs/forgot-password.md`](../../../docs/specs/forgot-password.md) has the full spec, which covers the reset request email, a time-limited reset link, and revoking Sessions after a successful reset. It's worth building, because the app is meant as a real alternative to paid budgeting tools for people other than its original author.
-
-### Rate limiting and brute-force protection (unaudited)
-
-See Design decisions above. The app runs on Better-Auth's implicit default, which is weaker than it looks because each Cloudflare Workers isolate has its own memory. It needs a deliberate decision, such as a `secondaryStorage` backed by KV or D1, instead of the unchecked default, especially once the app has real outside users.
 
 ### Account settings page (gap, undesigned)
 
