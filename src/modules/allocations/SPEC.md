@@ -26,11 +26,19 @@ It has no `updatedAt` column, for the same reason as every other entity in this 
 
 Every mutation that could reduce a Bank Account's Unallocated balance enforces the rule. Those are `logAllocation` and `editAllocation`, where the edit recomputes Unallocated with the new amount in place of the old one. **The write runs the check.** Both call one private check, `checkAllocationAmount`, on the server right before writing, and throw `InsufficientFundsError` when it fails. The error message, from `describeInsufficientUnallocated` in `src/lib/money.ts`, names the Bank Account and its Available amount. For an edit, Available counts the edited Allocation as returned, so it is the most that Allocation can be.
 
-The dialogs show the same Available figure under the amount field and compare against it as the user types, with the same message. The Log dialog takes the figure from the chosen Bank Account and checks again when the account changes. The Edit dialog takes it from `getAllocation`'s `available`. This check sends no request. If the figure is out of date because something changed the account in the meantime, the write rejects and the failure toast shows the reason. Delete needs no Unallocated check, because removing an Allocation can only increase Unallocated. Once Withdrawals are built, edit and delete will also have to pass a second check: what the Bucket holds from that Bank Account, its Allocations minus its Withdrawals, can't go negative. See [`docs/specs/withdrawal.md`](../../../docs/specs/withdrawal.md), story 25. Transaction's mutations enforce the same rule with the same check, `checkUnallocated` in `src/modules/bank-accounts/figures.server.ts`. See `transactions/SPEC.md`.
+The dialogs show the same Available figure under the amount field and compare against it as the user types, with the same message. The Log dialog takes the figure from the chosen Bank Account and checks again when the account changes. The Edit dialog takes it from `getAllocation`'s `available`. This check sends no request. If the figure is out of date because something changed the account in the meantime, the write rejects and the failure toast shows the reason. Delete needs no Unallocated check, because removing an Allocation can only increase Unallocated. Transaction's mutations enforce the same rule with the same check, `checkUnallocated` in `src/modules/bank-accounts/figures.server.ts`. See `transactions/SPEC.md`.
+
+### What the Bucket holds can't go negative
+
+Withdrawals add a second rule. What a Bucket holds from one Bank Account, its Allocations from that account minus its Withdrawals from it, can't go below zero. So lowering an Allocation in `editAllocation`, or deleting one in `deleteAllocation`, runs `assertAllocationReductionHeld` before the write. It calls `checkHeld` in `src/modules/buckets/figures.server.ts` with the amount taken back out, and throws `InsufficientFundsError` when that is more than the Bucket holds. The message, from `describeAllocationAlreadyWithdrawn` in `src/lib/money.ts`, names the Bucket, the Bank Account and how much of the Allocation is already withdrawn. Raising an amount never trips this check, and a Bucket with no Withdrawals always passes it. See [`docs/specs/withdrawal.md`](../../../docs/specs/withdrawal.md), story 25.
+
+Withdrawals aren't tied to any one Allocation, only to the Bucket and Bank Account. So "already withdrawn" for one Allocation means its shortfall: its amount minus what the Bucket still holds from that account, never below zero. For example, take Allocations of ₱9,000 and ₱3,000 from the same account and ₱5,000 withdrawn, so ₱7,000 is held. Then ₱2,000 of the ₱9,000 Allocation counts as withdrawn and none of the ₱3,000 one. That figure is also the lowest the Allocation can go. `getAllocation` returns it as `alreadyWithdrawn`, and the Edit dialog shows it as "Lowest allowed" when it's above zero and checks against it as the user types.
+
+The delete confirmation says only what the Bucket still holds of the Allocation goes back to Unallocated, and that an Allocation with money already withdrawn can't be deleted. A rejected delete shows the reason in the failure toast.
 
 ### No currency of its own
 
-An Allocation's amount is stored in minor units of the owning Bank Account's currency (see the Money module, `src/lib/money.ts`), as with Transaction. `getAllocation` returns its Bank Account's `name` and `currency` so the UI can format the amount. Both come from the account's figures, which also give its `available`. It throws `NotFoundError` for a missing Allocation or someone else's, so the Edit dialog shows "Allocation not found" with Close instead of a Retry that can't help.
+An Allocation's amount is stored in minor units of the owning Bank Account's currency (see the Money module, `src/lib/money.ts`), as with Transaction. `getAllocation` returns its Bank Account's `name` and `currency` so the UI can format the amount. Both come from the account's figures, which also give its `available`. It also returns its Bucket's `name` and `alreadyWithdrawn`, for the held rule above. It throws `NotFoundError` for a missing Allocation or someone else's, so the Edit dialog shows "Allocation not found" with Close instead of a Retry that can't help.
 
 ### Shown inside both parents, with no list of its own
 
@@ -50,12 +58,12 @@ The reason is the same as for Transaction. ADR 0001 and ADR 0002 use typed confi
 
 ## Features
 
-| #   | Feature           | Status                                                                                                                                                                                                                                |
-| --- | ----------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 1   | Log Allocation    | **Implemented and correct.** Enforces `Unallocated ≥ 0`.                                                                                                                                                                              |
-| 2   | View Allocation   | **Implemented and correct**, shown inside both the Bucket detail page and the Bank Account detail page. No list of its own (see Future considerations).                                                                               |
-| 3   | Edit Allocation   | **Implemented and correct.** Only amount, date and note. It recomputes `Unallocated` with the edit applied before allowing it. Moving an Allocation to another Bucket or Bank Account will never be a feature (see Design decisions). |
-| 4   | Delete Allocation | **Implemented and correct.** Hard delete, no cascade, plain confirmation. Withdrawals will add a held-amount check (see Future considerations).                                                                                       |
+| #   | Feature           | Status                                                                                                                                                                                                                                                                             |
+| --- | ----------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1   | Log Allocation    | **Implemented and correct.** Enforces `Unallocated ≥ 0`.                                                                                                                                                                                                                           |
+| 2   | View Allocation   | **Implemented and correct**, shown inside both the Bucket detail page and the Bank Account detail page. No list of its own (see Future considerations).                                                                                                                            |
+| 3   | Edit Allocation   | **Implemented and correct.** Only amount, date and note. It recomputes `Unallocated` with the edit applied before allowing it, and can't go below what's already withdrawn. Moving an Allocation to another Bucket or Bank Account will never be a feature (see Design decisions). |
+| 4   | Delete Allocation | **Implemented and correct.** Hard delete, no cascade, plain confirmation. Blocked once any of it is withdrawn (see Design decisions).                                                                                                                                              |
 
 ## Fixed during this session
 
@@ -71,10 +79,6 @@ Writing this spec turned up four bugs, all fixed:
 ### Allocation list across accounts and buckets
 
 **Specified, not built.** Today there is no list or search of Allocations of its own, only the two views inside the Bucket detail page and the Bank Account detail tab. [`docs/specs/allocation-cross-account-and-bucket-list.md`](../../../docs/specs/allocation-cross-account-and-bucket-list.md) specifies one. It follows the Transaction list across accounts in [`docs/specs/transaction-list-and-transfer.md`](../../../docs/specs/transaction-list-and-transfer.md).
-
-### Withdrawals (specified, not built)
-
-A Withdrawal spends money out of a Bucket as an `expense` Transaction on one Bank Account ([ADR 0004](../../../docs/adr/0004-withdrawals-spend-from-buckets.md)). It never changes an Allocation, but it changes three things here. Unallocated becomes `Balance − Σ allocations + Σ withdrawals`. Editing or deleting an Allocation is blocked if it would leave the Bucket holding less than nothing from that Bank Account. And the delete confirmation can no longer promise that all of the money returns to the unallocated pool, only what hasn't been withdrawn. See [`docs/specs/withdrawal.md`](../../../docs/specs/withdrawal.md).
 
 ### `Distribution` (planned, undesigned)
 
