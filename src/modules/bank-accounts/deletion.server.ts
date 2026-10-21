@@ -2,7 +2,7 @@ import { count, eq, inArray } from "drizzle-orm";
 
 import type { DB } from "#/db";
 
-import { debts, repayments, transactions, type BankAccount } from "#/db/schema";
+import { debts, repayments, transactions, withdrawals, type BankAccount } from "#/db/schema";
 import { NotFoundError } from "#/lib/errors";
 import { getBucketsWithFigures } from "#/modules/buckets/figures.server";
 import {
@@ -23,6 +23,10 @@ function isRemovedRepayment(db: DB, bankAccountId: BankAccount["id"]) {
   return isRepaymentBackedBy(selectBankAccountTransactionIds(db, bankAccountId));
 }
 
+function isRemovedWithdrawal(db: DB, bankAccountId: BankAccount["id"]) {
+  return inArray(withdrawals.transactionId, selectBankAccountTransactionIds(db, bankAccountId));
+}
+
 function isOrphanedDebt(db: DB, bankAccountId: BankAccount["id"]) {
   return inArray(
     debts.originatingTransactionId,
@@ -35,6 +39,7 @@ export type BankAccountDeletionImpact = {
   transactionCount: number;
   allocationCount: number;
   removedRepaymentCount: number;
+  removedWithdrawalCount: number;
   buckets: { id: string; name: string; before: number; after: number }[];
   debts: {
     id: string;
@@ -53,24 +58,34 @@ export async function loadBankAccountDeletionImpact(
   userId: string,
   bankAccountId: BankAccount["id"],
 ): Promise<BankAccountDeletionImpact> {
-  const [bankAccount, [{ transactionCount }], removedRepayments, orphanedDebts, affectedBuckets] =
-    await Promise.all([
-      db.query.bankAccounts.findFirst({
-        where: { id: bankAccountId, userId },
-        columns: { id: true, name: true, currency: true },
-        with: { allocations: { columns: { id: true } } },
-      }),
-      db
-        .select({ transactionCount: count() })
-        .from(transactions)
-        .where(eq(transactions.bankAccountId, bankAccountId)),
-      db
-        .select({ id: repayments.id, debtId: repayments.debtId })
-        .from(repayments)
-        .where(isRemovedRepayment(db, bankAccountId)),
-      db.select({ id: debts.id }).from(debts).where(isOrphanedDebt(db, bankAccountId)),
-      getBucketsWithFigures(db, { userId, allocatedFrom: bankAccountId }),
-    ]);
+  const [
+    bankAccount,
+    [{ transactionCount }],
+    removedRepayments,
+    [{ removedWithdrawalCount }],
+    orphanedDebts,
+    affectedBuckets,
+  ] = await Promise.all([
+    db.query.bankAccounts.findFirst({
+      where: { id: bankAccountId, userId },
+      columns: { id: true, name: true, currency: true },
+      with: { allocations: { columns: { id: true } } },
+    }),
+    db
+      .select({ transactionCount: count() })
+      .from(transactions)
+      .where(eq(transactions.bankAccountId, bankAccountId)),
+    db
+      .select({ id: repayments.id, debtId: repayments.debtId })
+      .from(repayments)
+      .where(isRemovedRepayment(db, bankAccountId)),
+    db
+      .select({ removedWithdrawalCount: count() })
+      .from(withdrawals)
+      .where(isRemovedWithdrawal(db, bankAccountId)),
+    db.select({ id: debts.id }).from(debts).where(isOrphanedDebt(db, bankAccountId)),
+    getBucketsWithFigures(db, { userId, allocatedFrom: bankAccountId }),
+  ]);
 
   if (!bankAccount) throw new NotFoundError("This account doesn't exist or may have been deleted.");
 
@@ -89,6 +104,7 @@ export async function loadBankAccountDeletionImpact(
     transactionCount,
     allocationCount: bankAccount.allocations.length,
     removedRepaymentCount: removedRepaymentIds.size,
+    removedWithdrawalCount,
     buckets: affectedBuckets.map((bucket) => {
       const before =
         bucket.subtotals.find((subtotal) => subtotal.currency === bankAccount.currency)?.amount ??

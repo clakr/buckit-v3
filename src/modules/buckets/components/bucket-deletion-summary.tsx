@@ -8,10 +8,25 @@ type Props = {
   impact: Awaited<ReturnType<typeof getBucketDeletionImpact>>;
 };
 
-export function getBucketDeletionDescription({ impact }: Props) {
-  const { bucket, allocationCount } = impact;
+const deletedRecordsList = new Intl.ListFormat("en", { type: "conjunction" });
 
-  return `Permanently delete "${bucket.name}"${allocationCount ? ` with its ${allocationCount} ${allocationCount === 1 ? "allocation" : "allocations"}` : ""}. This cannot be undone.`;
+export function getBucketDeletionDescription({ impact }: Props) {
+  const { bucket, allocationCount, withdrawalCount } = impact;
+
+  const deletedRecords = [
+    allocationCount
+      ? `${allocationCount} ${allocationCount === 1 ? "allocation" : "allocations"}`
+      : null,
+    withdrawalCount
+      ? `${withdrawalCount} ${withdrawalCount === 1 ? "withdrawal" : "withdrawals"}`
+      : null,
+  ].filter((part) => part !== null);
+
+  const keptExpenses = withdrawalCount
+    ? ` ${withdrawalCount === 1 ? "The withdrawal's expense stays" : "The withdrawals' expenses stay"} on your accounts.`
+    : "";
+
+  return `Permanently delete "${bucket.name}"${deletedRecords.length ? ` with its ${deletedRecordsList.format(deletedRecords)}` : ""}.${keptExpenses} This cannot be undone.`;
 }
 
 export function BucketDeletionSummary({ impact }: Props) {

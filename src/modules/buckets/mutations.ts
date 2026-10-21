@@ -40,7 +40,7 @@ export function useDeleteBucketMutation() {
     meta: {
       success: {
         title: "Bucket Deleted",
-        description: "The bucket and all its allocations have been removed.",
+        description: "The bucket and all its allocations and withdrawals have been removed.",
       },
       error: {
         title: "Failed to Delete Bucket",

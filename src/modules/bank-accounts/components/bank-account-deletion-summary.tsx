@@ -12,7 +12,13 @@ type Props = {
 const deletedRecordsList = new Intl.ListFormat("en", { type: "conjunction" });
 
 export function getBankAccountDeletionDescription({ impact }: Props) {
-  const { bankAccount, transactionCount, allocationCount, removedRepaymentCount } = impact;
+  const {
+    bankAccount,
+    transactionCount,
+    allocationCount,
+    removedRepaymentCount,
+    removedWithdrawalCount,
+  } = impact;
 
   const deletedRecords = [
     transactionCount
@@ -23,6 +29,9 @@ export function getBankAccountDeletionDescription({ impact }: Props) {
       : null,
     removedRepaymentCount
       ? `${removedRepaymentCount} debt ${removedRepaymentCount === 1 ? "repayment" : "repayments"}`
+      : null,
+    removedWithdrawalCount
+      ? `${removedWithdrawalCount} bucket ${removedWithdrawalCount === 1 ? "withdrawal" : "withdrawals"}`
       : null,
   ].filter((part) => part !== null);
 

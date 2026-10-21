@@ -89,7 +89,7 @@ export function DeleteBucketDialog() {
           <DialogDescription>
             {status === "success"
               ? getBucketDeletionDescription({ impact })
-              : "Permanently delete this bucket and its allocations. This cannot be undone."}
+              : "Permanently delete this bucket with its allocations and withdrawals. This cannot be undone."}
           </DialogDescription>
         </DialogHeader>
         <div>
@@ -97,7 +97,7 @@ export function DeleteBucketDialog() {
             <StateTemplate
               state="loading"
               title="Loading bucket"
-              description="Fetching allocations and accounts to review before deletion..."
+              description="Fetching allocations, withdrawals and accounts to review before deletion..."
             />
           ) : null}
           {status === "error" && notFoundError ? (
