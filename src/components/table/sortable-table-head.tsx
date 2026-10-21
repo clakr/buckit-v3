@@ -1,14 +1,23 @@
-import type { Column } from "@tanstack/react-table";
+import type { Column, RowData } from "@tanstack/react-table";
 import type { ComponentProps } from "react";
 
 import { IconArrowsSort } from "@tabler/icons-react";
 
+import type { DATA_TABLE_FEATURES } from "#/components/ui/data-table";
+
 import { Button } from "#/components/ui/button";
 import { cn } from "#/lib/utils";
 
-type Props = { column: Column<any, unknown> } & ComponentProps<"button">;
+type Props<TData extends RowData> = {
+  column: Column<typeof DATA_TABLE_FEATURES, TData>;
+} & ComponentProps<"button">;
 
-export function SortableTableHead({ column, children, className, ...props }: Props) {
+export function SortableTableHead<TData extends RowData>({
+  column,
+  children,
+  className,
+  ...props
+}: Props<TData>) {
   return (
     <Button
       variant="ghost"

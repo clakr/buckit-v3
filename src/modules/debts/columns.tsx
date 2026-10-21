@@ -1,6 +1,6 @@
-import type { ColumnDef } from "@tanstack/react-table";
-
 import { IconCircleDashed, IconCircleDottedLetterH } from "@tabler/icons-react";
+
+import type { DataTableColumnDef } from "#/components/ui/data-table";
 
 import { SortableTableHead } from "#/components/table/sortable-table-head";
 import { Badge } from "#/components/ui/badge";
@@ -16,7 +16,7 @@ import { DebtOutstandingMeter } from "./components/debt-outstanding-meter";
 import { DebtStatusBadge } from "./components/debt-status-badge";
 import { ForgivenOutstanding } from "./components/forgiven-outstanding";
 
-export const INDEX_COLUMNS: ColumnDef<Awaited<ReturnType<typeof getDebts>>[number]>[] = [
+export const INDEX_COLUMNS: DataTableColumnDef<Awaited<ReturnType<typeof getDebts>>[number]>[] = [
   {
     accessorKey: "name",
     header: ({ column }) => <SortableTableHead column={column}>Name</SortableTableHead>,

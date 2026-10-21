@@ -1,7 +1,6 @@
-import type { ColumnDef } from "@tanstack/react-table";
-
 import { IconCircleDottedLetterH } from "@tabler/icons-react";
 
+import type { DataTableColumnDef } from "#/components/ui/data-table";
 import type { getAllocations } from "#/modules/allocations/functions";
 
 import { SortableTableHead } from "#/components/table/sortable-table-head";
@@ -13,7 +12,7 @@ import { AllocationActionsDropdownMenu } from "#/modules/allocations/components/
 
 type AllocationRow = Awaited<ReturnType<typeof getAllocations>>[number];
 
-const ALLOCATION_COLUMNS: ColumnDef<AllocationRow>[] = [
+const ALLOCATION_COLUMNS: DataTableColumnDef<AllocationRow>[] = [
   {
     accessorKey: "date",
     header: ({ column }) => <SortableTableHead column={column}>Date</SortableTableHead>,

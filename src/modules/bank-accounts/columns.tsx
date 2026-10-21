@@ -1,8 +1,7 @@
-import type { ColumnDef } from "@tanstack/react-table";
-
 import { IconBucket, IconCircleDashed, IconCircleDottedLetterH } from "@tabler/icons-react";
 import { Link } from "@tanstack/react-router";
 
+import type { DataTableColumnDef } from "#/components/ui/data-table";
 import type { Transaction } from "#/db/schema";
 import type { getBankAccount, getBankAccounts } from "#/modules/bank-accounts/functions";
 
@@ -14,7 +13,9 @@ import { formatDateTime, formatToRelative } from "#/lib/utils";
 import { BankAccountActionsDropdownMenu } from "#/modules/bank-accounts/components/bank-account-actions-dropdown-menu";
 import { TransactionActionsDropdownMenu } from "#/modules/transactions/components/transaction-actions-dropdown-menu";
 
-export const INDEX_COLUMNS: ColumnDef<Awaited<ReturnType<typeof getBankAccounts>>[number]>[] = [
+export const INDEX_COLUMNS: DataTableColumnDef<
+  Awaited<ReturnType<typeof getBankAccounts>>[number]
+>[] = [
   {
     accessorKey: "name",
     header: ({ column }) => <SortableTableHead column={column}>Name</SortableTableHead>,
@@ -43,7 +44,7 @@ export const INDEX_COLUMNS: ColumnDef<Awaited<ReturnType<typeof getBankAccounts>
     header: ({ column }) => (
       <SortableTableHead column={column}>Last Transaction Date</SortableTableHead>
     ),
-    sortingFn: (rowA, rowB) => {
+    sortFn: (rowA, rowB) => {
       const dateA = rowA.original.lastTransactionDate;
       const dateB = rowB.original.lastTransactionDate;
 
@@ -80,7 +81,7 @@ export const INDEX_COLUMNS: ColumnDef<Awaited<ReturnType<typeof getBankAccounts>
   },
 ];
 
-export const TRANSACTIONS_COLUMNS: ColumnDef<
+export const TRANSACTIONS_COLUMNS: DataTableColumnDef<
   Awaited<ReturnType<typeof getBankAccount>>["transactions"][number]
 >[] = [
   {

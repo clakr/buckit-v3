@@ -1,7 +1,6 @@
-import type { ColumnDef } from "@tanstack/react-table";
-
 import { IconCircleDottedLetterH } from "@tabler/icons-react";
 
+import type { DataTableColumnDef } from "#/components/ui/data-table";
 import type { getBuckets } from "#/modules/buckets/functions";
 
 import { SortableTableHead } from "#/components/table/sortable-table-head";
@@ -11,7 +10,7 @@ import { formatMoney } from "#/lib/money";
 import { formatDateTime, formatToRelative } from "#/lib/utils";
 import { BucketActionsDropdownMenu } from "#/modules/buckets/components/buckets-actions-dropdown-menu";
 
-export const INDEX_COLUMNS: ColumnDef<Awaited<ReturnType<typeof getBuckets>>[number]>[] = [
+export const INDEX_COLUMNS: DataTableColumnDef<Awaited<ReturnType<typeof getBuckets>>[number]>[] = [
   {
     accessorKey: "name",
     header: ({ column }) => <SortableTableHead column={column}>Name</SortableTableHead>,

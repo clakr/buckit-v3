@@ -1,7 +1,6 @@
-import type { ColumnDef } from "@tanstack/react-table";
-
 import { IconCircleDottedLetterH } from "@tabler/icons-react";
 
+import type { DataTableColumnDef } from "#/components/ui/data-table";
 import type { getWithdrawals } from "#/modules/withdrawals/functions";
 
 import { SortableTableHead } from "#/components/table/sortable-table-head";
@@ -13,7 +12,7 @@ import { WithdrawalActionsDropdownMenu } from "#/modules/withdrawals/components/
 
 type WithdrawalRow = Awaited<ReturnType<typeof getWithdrawals>>[number];
 
-export const WITHDRAWAL_COLUMNS: ColumnDef<WithdrawalRow>[] = [
+export const WITHDRAWAL_COLUMNS: DataTableColumnDef<WithdrawalRow>[] = [
   {
     accessorKey: "date",
     header: ({ column }) => <SortableTableHead column={column}>Date</SortableTableHead>,
