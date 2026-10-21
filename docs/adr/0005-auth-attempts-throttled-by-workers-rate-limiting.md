@@ -2,7 +2,7 @@
 status: accepted
 ---
 
-# Auth attempts are throttled by a Workers Rate Limiting binding
+# A Workers Rate Limiting binding throttles auth attempts
 
 `signInUser` and `signUpUser` run `authAttemptLimitMiddleware` (`src/modules/authentication/middlewares.ts`). It calls `consumeAuthAttempt` in `session.server.ts`, which counts the attempt against the `AUTH_ATTEMPT_LIMITER` binding in `wrangler.jsonc`. Each client IP (`cf-connecting-ip`) gets 5 sign-in attempts and, separately, 5 sign-up attempts per 60 seconds. Past that, the call throws `RateLimitedError` before validation or the password check runs. Better-Auth's own HTTP endpoints for email sign-in and sign-up are closed with `disabledPaths`, so `/api/auth/$` isn't a way around the throttle.
 

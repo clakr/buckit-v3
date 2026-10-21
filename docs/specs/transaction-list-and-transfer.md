@@ -27,7 +27,7 @@ Two additions to the Transactions module:
 _These aren't new work. They're recapped here so this file describes all of the Transactions module's behavior, not only what's changing. `src/modules/transactions/SPEC.md` has the full detail._
 
 1. As a user, I want to log a new Transaction, income or expense, against one of my Bank Accounts with an amount, date, and optional note, so that I can record money moving in or out.
-2. As a user, I want the app to stop me from logging an expense that would push the account's Unallocated balance below zero, so I can trust that number is really available.
+2. As a user, I want the app to stop me from logging an expense that would push the account's Unallocated balance below zero, so I can trust that number is available.
 3. As a user, I want to see each Transaction's type, amount, date, and note on its Bank Account's detail page, so I can review the account's activity.
 4. As a user, I want to edit an existing Transaction's type, amount, date, or note, so I can correct a mistake.
 5. As a user, I want editing a Transaction to follow the same Unallocated ≥ 0 rule as logging one, so I can't make the account's numbers invalid after the fact.

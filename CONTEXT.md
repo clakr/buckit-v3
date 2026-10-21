@@ -37,7 +37,7 @@ A Transaction a Debt or a Withdrawal depends on. For a Debt, it is either a `rec
 Money earmarked from a Bank Account toward a Bucket. It stays in the Bank Account's Balance but reduces its Unallocated amount.
 
 **Withdrawal**:
-Money the User spends out of a Bucket, such as giving the tithe set aside over several months. It is one action that draws any amount, up to what the Bucket holds from one Bank Account, and moves that money out of the account as an `expense` Transaction. That Transaction is its Linked Transaction and holds the amount, date and note. A Withdrawal always has one. Deleting the Transaction deletes the Withdrawal, and so does deleting the Withdrawal's Bank Account. Deleting the Withdrawal deletes its Transaction, except when its Bucket is deleted. The Transaction then stays as a plain `expense`, because that money really left. A Withdrawal can't move to a different Bucket or Bank Account. Moving money from one Bucket to another is not a Withdrawal, and no such feature exists.
+Money the User spends out of a Bucket, such as giving the tithe set aside over several months. It is one action that draws any amount, up to what the Bucket holds from one Bank Account, and moves that money out of the account as an `expense` Transaction. That Transaction is its Linked Transaction and holds the amount, date and note. A Withdrawal always has one. Deleting the Transaction deletes the Withdrawal, and so does deleting the Withdrawal's Bank Account. Deleting the Withdrawal deletes its Transaction, except when its Bucket is deleted. The Transaction then stays as a plain `expense`, because that money left the account. A Withdrawal can't move to a different Bucket or Bank Account. Moving money from one Bucket to another is not a Withdrawal, and no such feature exists.
 _Avoid_: Spend, Payout. Don't confuse it with taking cash out of a bank, which would be a transfer between Bank Accounts.
 
 **Debt**:
@@ -55,7 +55,7 @@ A payment against a Debt, with an amount, a date and an optional note. When it's
 What's left of a Debt, which is its amount minus every Repayment. The app computes it on read and never stores it. It goes negative when the Debt is overpaid, and that isn't an error. Forgiving a Debt doesn't change it. The Debt's status records the write-off instead.
 
 **Goal** (planned, not yet implemented):
-A future entity for tracking progress toward a savings target, such as "$5,000 toward a trip." One question is still open: it could be a column on `buckets`, such as a nullable `targetAmount`, or a separate table that references one or more Buckets. Don't assume either shape until someone designs it.
+A future entity for tracking progress toward a savings target, such as "$5,000 toward a trip." It could be a column on `buckets`, such as a nullable `targetAmount`, or a separate table that references one or more Buckets. That question is still open. Don't assume either shape until someone designs it.
 
 **Distribution** (planned, not yet implemented):
 A future saved preset that the User triggers by hand. It pairs a fixed Bank Account with a fixed amount, such as "Payday, ₱15,000." Triggering it logs one `income` Transaction on that account, then splits the amount through Allocations across one or more Buckets, and later across Goals and Debts too. The trigger is always manual, because salary can land early or late, so it has no schedule or automatic recurrence. The rest is undesigned, including the structure of the split plan and how it works with Goal and Debt once those exist.

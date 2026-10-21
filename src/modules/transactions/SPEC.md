@@ -70,7 +70,7 @@ Since the Debt and Withdrawal modules, three things can point at a Transaction, 
 
 - A repayment backed by the Transaction is the same money recorded twice. The foreign key cascade deletes it with the Transaction, and the Debt's outstanding goes back up.
 - A Debt the Transaction funded stays, with no source account, through the foreign key's `SET NULL`. This matches story 25 in `docs/specs/debt-module.md`.
-- A Withdrawal backed by the Transaction is deleted by the foreign key cascade, and the money goes back into the Bucket. This matches story 24 in `docs/specs/withdrawal.md`.
+- The foreign key cascade deletes a Withdrawal backed by the Transaction, and the money goes back into the Bucket. This matches story 24 in `docs/specs/withdrawal.md`.
 
 Before the confirm dialog opens, `validateDeleteTransaction` builds a specific message. It names the type and formatted amount being removed and whichever consequence above applies. If the delete would leave Unallocated negative, it returns a rejection instead.
 

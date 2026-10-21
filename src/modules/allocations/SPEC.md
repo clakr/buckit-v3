@@ -50,7 +50,7 @@ The Log dialog opens from a Bank Account's menu or a Bucket's menu. Callers pass
 
 ### No moving an Allocation, by design
 
-`editAllocationSchema` only accepts `amount`, `date` and `note`. After creation, an Allocation can't move to a different Bucket or take its money from a different Bank Account. The only way is to delete it and log a new one. This boundary is permanent. It follows Bucket's rule that edit only renames. Moving an Allocation really means undoing one earmark and making another, and delete followed by log already does that without a dedicated flow.
+`editAllocationSchema` only accepts `amount`, `date` and `note`. After creation, an Allocation can't move to a different Bucket or take its money from a different Bank Account. The only way is to delete it and log a new one. This boundary is permanent. It follows Bucket's rule that edit only renames. Moving an Allocation means undoing one earmark and making another, and delete followed by log already does that without a dedicated flow.
 
 ### Delete uses a plain confirmation, not a typed one
 

@@ -2,7 +2,7 @@
 status: accepted
 ---
 
-# Ownership is checked by each module's middleware
+# Each module's middleware checks ownership
 
 Every server function that reads or writes a record by id runs that module's `verifyUser<Entity>Middleware` (`verifyUserBankAccountMiddleware`, `verifyUserBucketMiddleware`, `verifyUserDebtMiddleware`, `verifyUserTransactionMiddleware`, `verifyUserAllocationMiddleware`). The middleware answers "is this yours?" and throws `NotFoundError` for a record that's missing or someone else's, so an id can't be probed for existence. Handlers behind it may read and write by id alone.
 

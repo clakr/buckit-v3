@@ -23,7 +23,7 @@ Make Edit and Delete work on a Bucket, following the pattern already specified f
 4. As a user, I want the app to stop me from creating two Buckets with the same name, ignoring case, so that I don't confuse similarly named Buckets.
 5. As a user, I want to log an Allocation from one of my Bank Accounts into a Bucket, so that I can set money aside toward it.
 6. As a user, I want to edit or delete an Allocation, so that I can correct a mistake without deleting the whole Bucket.
-7. As a user, I want the app to block any Allocation change that would push a Bank Account's unallocated balance below zero, so that I can trust that number is really available.
+7. As a user, I want the app to block any Allocation change that would push a Bank Account's unallocated balance below zero, so that I can trust that number is available.
 8. As a user, I want to rename an existing Bucket, so that I can fix a typo or change how I label it, such as "Trip" to "Japan Trip".
 9. As a user, I want renaming to follow the same uniqueness rule as creation, ignoring case and excluding the Bucket's own current name, so that I can't create a duplicate and can still save without changing anything.
 10. As a user, I want a confirmation toast when I successfully rename a Bucket, so that I know the change was saved.

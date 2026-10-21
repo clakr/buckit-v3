@@ -39,8 +39,8 @@ Make Edit and Delete work on a Bank Account. Edit only renames. Delete permanent
 20. As a user, I want to be redirected back to the accounts list after deleting the account I was viewing, so that I'm not left on a broken detail page for an account that no longer exists.
 21. As a user, I want a confirmation toast when an account is deleted, so that I know the action completed.
 22. As a user, I want my bank account's balance computed from its starting balance and its transactions, so that I never have to keep it in sync by hand.
-23. As a user, I want the app to block any change that would push my unallocated balance below zero, such as logging, editing or deleting a transaction, or editing an allocation, so that I can trust the "unallocated" number is really available.
-24. As a user, I want a bank account's balance to never go negative, so that this module represents cash-like money I actually have, not credit or debt.
+23. As a user, I want the app to block any change that would push my unallocated balance below zero, such as logging, editing or deleting a transaction, or editing an allocation, so that I can trust the "unallocated" number is available.
+24. As a user, I want a bank account's balance to never go negative, so that this module represents cash-like money I have, not credit or debt.
 25. As a user, I want to eventually transfer money directly between two of my own bank accounts of the same currency, so that I don't have to fake a transfer with two unrelated transactions. This is recorded for a future pass and is not part of this spec's build.
 
 ## Implementation decisions

@@ -69,7 +69,7 @@ _These aren't new work. They're recapped here so this file describes all the beh
 ### How Withdrawals change existing rules
 
 25. As a user, I want the app to stop an Allocation edit or delete that would leave a Bucket holding less than nothing from a Bank Account. For example: I allocate ₱10,000 from Savings, withdraw ₱10,000, then try to delete the Allocation. The message names the Bucket and Bank Account and says how much of that Allocation is already withdrawn. _(This changes story 3: deleting an Allocation used to always succeed.)_
-26. As a user, I want deleting a Bucket to delete its Withdrawals but keep their `expense` Transactions as plain expenses on my Bank Accounts, because that money really left. The typed confirmation says how many Withdrawals will be removed and that their expenses stay. _(This changes story 7.)_
+26. As a user, I want deleting a Bucket to delete its Withdrawals but keep their `expense` Transactions as plain expenses on my Bank Accounts, because that money left the account. The typed confirmation says how many Withdrawals will be removed and that their expenses stay. _(This changes story 7.)_
 27. As a user, I want the Bucket delete preview to show each Bank Account getting back only what the Bucket still holds from it (allocated minus withdrawn), not everything ever allocated. _(This changes story 7.)_
 28. As a user, I want deleting a Bank Account to also delete the Withdrawals drawn from it, along with its Transactions and Allocations, and its typed confirmation to count them.
 

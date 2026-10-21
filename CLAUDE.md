@@ -18,9 +18,9 @@ UI prototypes reuse the committed `PrototypeSwitcher`, so don't recreate it. See
 
 <!-- intent-skills:start -->
 
-## Skill Loading
+## Skill loading
 
-Use the repository’s installed Intent. If it is unavailable, report the missing dependency instead of downloading a replacement.
+Use the repository's installed Intent. If it is unavailable, report the missing dependency instead of downloading a replacement.
 Before editing files for a substantial task:
 
 - Run `pnpm exec intent list` from the workspace root to see available local skills.
