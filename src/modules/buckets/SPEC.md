@@ -2,7 +2,7 @@
 
 ## Overview
 
-A Bucket is a user-defined savings category. Allocations earmark money into it from one or more Bank Accounts. It has no currency and no balance of its own. Its only content is the sum of its Allocations, shown as one subtotal per source currency. A Bucket only accumulates. Money enters it through an Allocation and leaves only when an Allocation is edited or deleted. Nobody spends from a Bucket directly, because Transactions always attach to a Bank Account and never to a Bucket. See [`CONTEXT.md`](../../../CONTEXT.md) for the glossary entry and the planned `Goal` entity.
+A Bucket is a user-defined savings category. Allocations earmark money into it from one or more Bank Accounts. It has no currency and no balance of its own. Its content is its Allocations minus its Withdrawals, shown as one subtotal per source currency. Money enters it through an Allocation. It leaves through a Withdrawal, which spends it as an `expense` Transaction on one Bank Account, or when an Allocation is edited or deleted. Transactions still always attach to a Bank Account and never to a Bucket. A Withdrawal points to its Transaction instead (see [ADR 0004](../../../docs/adr/0004-withdrawals-spend-from-buckets.md)). See [`CONTEXT.md`](../../../CONTEXT.md) for the glossary entry and the planned `Goal` entity.
 
 ## Entity
 
@@ -19,9 +19,9 @@ It has no currency, balance or target column. It has no `updatedAt`, for the sam
 
 ## Design decisions
 
-### A savings goal, not a spending envelope
+### Saved up, then spent through a Withdrawal
 
-A Bucket only accumulates earmarked money or gives it back. The schema has no way to record "$20 spent from Groceries" as an expense against a Bucket. `transactions.bucketId` doesn't exist and never will under this model. Spending always happens on a Bank Account through Transactions, with no Bucket involved. This boundary is permanent, not a gap to fill later. Tracking a target and progress on top of a Bucket, such as "$5,000 toward a trip", belongs to a separate, unbuilt `Goal` entity. See Future considerations below.
+**Revised 2026-10-21.** This section used to say a Bucket only accumulates and is never spent from. That boundary was relaxed on purpose by [ADR 0004](../../../docs/adr/0004-withdrawals-spend-from-buckets.md). A Withdrawal spends any amount up to what the Bucket holds from one Bank Account, as an `expense` Transaction on that account. Part of the old boundary is still permanent: `transactions.bucketId` doesn't exist and never will. The Withdrawal holds the link, and the Transaction knows nothing about Buckets. What a Bucket holds from any one Bank Account must never go negative. See [`docs/specs/withdrawal.md`](../../../docs/specs/withdrawal.md) (not built yet). Tracking a target and progress on top of a Bucket, such as "$5,000 toward a trip", belongs to a separate, unbuilt `Goal` entity. See Future considerations below.
 
 ### No currency of its own
 
@@ -37,7 +37,7 @@ The database enforces the same rule with a unique index on `(user_id, lower(name
 
 ### Deletion destroys data instead of being blocked
 
-**Implemented.** Deleting a Bucket hard-deletes it, and the existing `onDelete: "cascade"` foreign key on `allocations.bucketId` deletes all of its Allocations. A typed confirmation guards it, where the user re-types the bucket name, instead of a check that blocks it. This copies the Bank Account decision. See [`docs/adr/0002-hard-delete-buckets.md`](../../../docs/adr/0002-hard-delete-buckets.md).
+**Implemented.** Deleting a Bucket hard-deletes it, and the existing `onDelete: "cascade"` foreign key on `allocations.bucketId` deletes all of its Allocations. Once Withdrawals are built, it will also delete its Withdrawals but keep their `expense` Transactions, and the preview will count what the Bucket holds rather than everything allocated (see `docs/specs/withdrawal.md`, stories 26 and 27). A typed confirmation guards it, where the user re-types the bucket name, instead of a check that blocks it. This copies the Bank Account decision. See [`docs/adr/0002-hard-delete-buckets.md`](../../../docs/adr/0002-hard-delete-buckets.md).
 
 The app computes `Unallocated` on read, so once the cascade removes the Allocations, that money is back in each source Bank Account's unallocated pool. The confirmation dialog shows this before the user confirms, broken down by account and currency. The server computes the preview in `loadBucketDeletionImpact` (`deletion.server.ts`), through the `getBucketDeletionImpact` server function. It returns the Bucket's name, its Allocation count, and, for each Bank Account the Bucket holds money from, that account's Unallocated before and after. It reads both figures modules, so its Subtotal and Unallocated match every other screen.
 
@@ -55,7 +55,7 @@ The app computes `Unallocated` on read, so once the cascade removes the Allocati
 | 4   | Edit Bucket                | **Implemented and correct.** Name only.                                                                                                                                                                                   |
 | 5   | Delete Bucket              | **Implemented and correct.** Hard delete that cascades to Allocations, behind a typed confirmation of the bucket name. The dialog shows how much returns to each account's Unallocated.                                   |
 | 6   | Log/Edit/Delete Allocation | **Implemented and correct**, in the sibling `allocations` module. Log and edit enforce `Unallocated ≥ 0` on the source Bank Account. Delete needs no check, because removing an Allocation can only increase Unallocated. |
-| n/a | Spend From a Bucket        | **Rejected permanently for this entity.** Spending is always a Bank Account Transaction.                                                                                                                                  |
+| 7   | Withdraw From a Bucket     | **Specified, not built.** See [`docs/specs/withdrawal.md`](../../../docs/specs/withdrawal.md). It replaces the old "rejected permanently" entry (ADR 0004).                                                               |
 | n/a | Goal / Target Tracking     | **Out of scope.** Deferred to a planned, undesigned `Goal` module. See Future considerations.                                                                                                                             |
 
 ## Gaps found this session, deliberate and not bugs

@@ -22,19 +22,23 @@ _Avoid_: Account on its own, because code and docs can't tell it apart from Bank
 A Bank Account's current holdings: `startingBalance + Σ income transactions − Σ expense transactions`. The app computes it on read and never stores it. It must never go negative.
 
 **Unallocated**:
-The part of a Bank Account's Balance not yet earmarked to any Bucket: `Balance − Σ allocation amounts`. It must never go negative. Every Transaction and Allocation log, edit and delete checks it.
+The part of a Bank Account's Balance not yet earmarked to any Bucket: `Balance − Σ allocation amounts + Σ withdrawal amounts`. It must never go negative. Every Transaction and Allocation log, edit and delete checks it. A Withdrawal leaves it unchanged, because the money leaves the Balance and the earmark at once.
 
 **Bucket**:
-A user-defined savings category that receives money through Allocations from one or more Bank Accounts. It has no currency of its own and shows one Subtotal per source currency. Money enters a Bucket only through an Allocation and leaves only when an Allocation is edited or deleted. Nobody spends from a Bucket directly. Transactions always attach to a Bank Account and never to a Bucket, and this boundary is permanent. See the planned Goal entity below for target and progress tracking.
+A user-defined savings category that receives money through Allocations from one or more Bank Accounts. It has no currency of its own and shows one Subtotal per source currency. Money enters a Bucket only through an Allocation. It leaves when the User spends it through a Withdrawal, or when an Allocation is edited or deleted. Transactions always attach to a Bank Account and never to a Bucket, and this boundary is permanent: a Withdrawal points to its Transaction, never the other way round. The money a Bucket holds from any one Bank Account (its Allocations from that account minus its Withdrawals from it) must never go negative. See the planned Goal entity below for target and progress tracking.
 
 **Subtotal**:
-The sum of a Bucket's Allocations whose source Bank Accounts share one currency. A Bucket has one Subtotal per currency it holds and never a single total, because the app doesn't convert between currencies.
+What a Bucket holds in one currency: its Allocations minus its Withdrawals, across the Bank Accounts that share that currency. A Bucket has one Subtotal per currency it holds and never a single total, because the app doesn't convert between currencies.
 
 **Linked Transaction**:
-A Transaction a Debt depends on. It is either a `receivable`'s origination or a repayment logged through a Bank Account. The Debt fixes its type, and an origination's amount too. A repayment can't be dated before its Debt, whether someone edits it from the Bank Account or from the Debt. Deleting a repayment's Transaction deletes the repayment. Deleting an origination leaves the Debt in place with no source account.
+A Transaction a Debt or a Withdrawal depends on. For a Debt, it is either a `receivable`'s origination or a repayment logged through a Bank Account. A Withdrawal's Linked Transaction is always an `expense`, and deleting it deletes the Withdrawal. The Debt fixes its type, and an origination's amount too. A repayment can't be dated before its Debt, whether someone edits it from the Bank Account or from the Debt. Deleting a repayment's Transaction deletes the repayment. Deleting an origination leaves the Debt in place with no source account.
 
 **Allocation**:
 Money earmarked from a Bank Account toward a Bucket. It stays in the Bank Account's Balance but reduces its Unallocated amount.
+
+**Withdrawal**:
+Money the User spends out of a Bucket, such as giving the tithe set aside over several months. It is one action that draws any amount, up to what the Bucket holds from one Bank Account, and moves that money out of the account as an `expense` Transaction. That Transaction is its Linked Transaction and holds the amount, date and note. A Withdrawal always has one. Deleting either one deletes the other. A Withdrawal can't move to a different Bucket or Bank Account. Moving money from one Bucket to another is not a Withdrawal, and no such feature exists.
+_Avoid_: Spend, Payout. Don't confuse it with taking cash out of a bank, which would be a transfer between Bank Accounts.
 
 **Debt**:
 A record of money owed to or by another person. The counterparty is only a free-text name, and no Counterparty or Contact entity exists. A Debt has a permanent `direction`, either `receivable` (owed _to_ the User) or `payable` (owed _by_ the User). It is separate from Bank Account on purpose. A Bank Account's Balance can never go negative, so credit, liability and IOU tracking live here instead.
