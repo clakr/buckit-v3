@@ -62,7 +62,7 @@ The app computes it on every read and never stores it.
 
 A name must be unique per user, ignoring case, after trimming. The check compares SQLite's `lower()` of both names, which is the same folding the index uses. It only folds ASCII letters, so "Ñ" and "ñ" count as different names. Create and edit both run the check. The edit check excludes the account's own current name, so changing only its case is allowed.
 
-One rule, `bankAccountName` in `functions.ts`, serves both the dialogs and the writes. It's built with `createUniqueNameRule` from `src/lib/unique-name.server.ts`, which Bank Account and Bucket share. The dialogs reach it through the `validateBankAccountName` server function. The writes call it directly on the server.
+One rule, `bankAccountNameRule` in `name.server.ts`, serves both the dialogs and the writes. It's built with `createUniqueNameRule` from `src/lib/unique-name.server.ts`, which Bank Account and Bucket share. The dialogs reach it through the `validateBankAccountName` server function. The writes call it directly on the server.
 
 The database enforces the same rule with a unique index on `(user_id, lower(name))`, from migration `20261015044209_bank_account_name_case_insensitive`. Two requests at the same moment therefore can't create both "Savings" and "savings". When the index rejects a write, the write throws the same `ConflictError` as a failed check. The older case-sensitive `unique(userId, name)` constraint stays. Dropping a table-level constraint needs a table rebuild, and on D1, dropping `bank_accounts` would cascade-delete every Transaction and Allocation.
 

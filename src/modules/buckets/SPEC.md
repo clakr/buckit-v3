@@ -31,7 +31,7 @@ A Bucket can receive Allocations from Bank Accounts in different currencies. The
 
 A name must be unique per user, ignoring case, after trimming, the same rule as Bank Account. The check compares SQLite's `lower()` of both names, which is the same folding the index uses. It only folds ASCII letters, so "Ñ" and "ñ" count as different names. Create and edit both run the check. The edit check excludes the bucket's own current name, so changing only its case is allowed.
 
-One rule, `bucketName` in `functions.ts`, serves both the dialogs and the writes. It's built with `createUniqueNameRule` from `src/lib/unique-name.server.ts`, which Bank Account and Bucket share. The dialogs reach it through the `validateBucketName` server function, which takes an optional `excludeId` for the Bucket being renamed. The writes call it directly on the server.
+One rule, `bucketNameRule` in `name.server.ts`, serves both the dialogs and the writes. It's built with `createUniqueNameRule` from `src/lib/unique-name.server.ts`, which Bank Account and Bucket share. The dialogs reach it through the `validateBucketName` server function, which takes an optional `excludeId` for the Bucket being renamed. The writes call it directly on the server.
 
 The database enforces the same rule with a unique index on `(user_id, lower(name))`, from migration `20261015050303_bucket_name_case_insensitive`. Two requests at the same moment therefore can't create both "Trip" and "trip". When the index rejects a write, the write throws the same `ConflictError` as a failed check. The older case-sensitive `unique(userId, name)` constraint stays. Dropping a table-level constraint needs a table rebuild, and on D1, dropping `buckets` would cascade-delete every Allocation.
 

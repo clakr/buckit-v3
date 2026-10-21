@@ -6,11 +6,11 @@ import { uuidv7 } from "uuidv7";
 import { getDB } from "#/db";
 import { bankAccounts } from "#/db/schema";
 import { ConflictError, NotFoundError } from "#/lib/errors";
-import { createUniqueNameRule } from "#/lib/unique-name.server";
 import { authMiddleware } from "#/modules/authentication/middlewares";
 import { loadBankAccountDeletionImpact } from "#/modules/bank-accounts/deletion.server";
 import { getBankAccountsWithFigures } from "#/modules/bank-accounts/figures.server";
 import { verifyUserBankAccountMiddleware } from "#/modules/bank-accounts/middlewares";
+import { bankAccountNameRule } from "#/modules/bank-accounts/name.server";
 import {
   editBankAccountSchema,
   getBankAccountsSchema,
@@ -77,19 +77,13 @@ export const getBankAccount = createServerFn({
     };
   });
 
-const bankAccountName = createUniqueNameRule({
-  table: bankAccounts,
-  indexName: "bank_accounts_user_id_lower_name_unique",
-  takenMessage: "An account with this name already exists.",
-});
-
 export const validateBankAccountName = createServerFn({
   method: "GET",
 })
   .middleware([authMiddleware])
   .validator(validateBankAccountNameSchema)
   .handler(async ({ context, data }) =>
-    bankAccountName.check(getDB(env.db), context.userId, {
+    bankAccountNameRule.check(getDB(env.db), context.userId, {
       name: data.name,
       excludeId: data.excludeId,
     }),
@@ -103,13 +97,13 @@ export const registerBankAccount = createServerFn({
   .handler(async ({ context, data }) => {
     const db = getDB(env.db);
 
-    const { isValid, message } = await bankAccountName.check(db, context.userId, {
+    const { isValid, message } = await bankAccountNameRule.check(db, context.userId, {
       name: data.name,
     });
 
     if (!isValid) throw new ConflictError(message);
 
-    return bankAccountName.write(
+    return bankAccountNameRule.write(
       db
         .insert(bankAccounts)
         .values({
@@ -131,14 +125,14 @@ export const editBankAccount = createServerFn({
   .handler(async ({ context, data }) => {
     const db = getDB(env.db);
 
-    const { isValid, message } = await bankAccountName.check(db, context.userId, {
+    const { isValid, message } = await bankAccountNameRule.check(db, context.userId, {
       name: data.name,
       excludeId: data.bankAccountId,
     });
 
     if (!isValid) throw new ConflictError(message);
 
-    return bankAccountName.write(
+    return bankAccountNameRule.write(
       db
         .update(bankAccounts)
         .set({

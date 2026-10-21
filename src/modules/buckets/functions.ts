@@ -6,11 +6,11 @@ import { uuidv7 } from "uuidv7";
 import { getDB } from "#/db";
 import { buckets } from "#/db/schema";
 import { ConflictError, NotFoundError } from "#/lib/errors";
-import { createUniqueNameRule } from "#/lib/unique-name.server";
 import { authMiddleware } from "#/modules/authentication/middlewares";
 import { loadBucketDeletionImpact } from "#/modules/buckets/deletion.server";
 import { getBucketsWithFigures } from "#/modules/buckets/figures.server";
 import { verifyUserBucketMiddleware } from "#/modules/buckets/middlewares";
+import { bucketNameRule } from "#/modules/buckets/name.server";
 import {
   editBucketSchema,
   setUpBucketSchema,
@@ -53,19 +53,16 @@ export const getBucket = createServerFn({
     return bucket;
   });
 
-const bucketName = createUniqueNameRule({
-  table: buckets,
-  indexName: "buckets_user_id_lower_name_unique",
-  takenMessage: "A bucket with this name already exists.",
-});
-
 export const validateBucketName = createServerFn({
   method: "GET",
 })
   .middleware([authMiddleware])
   .validator(validateBucketNameSchema)
   .handler(async ({ context, data }) =>
-    bucketName.check(getDB(env.db), context.userId, { name: data.name, excludeId: data.excludeId }),
+    bucketNameRule.check(getDB(env.db), context.userId, {
+      name: data.name,
+      excludeId: data.excludeId,
+    }),
   );
 
 export const setUpBucket = createServerFn({
@@ -76,11 +73,13 @@ export const setUpBucket = createServerFn({
   .handler(async ({ context, data }) => {
     const db = getDB(env.db);
 
-    const { isValid, message } = await bucketName.check(db, context.userId, { name: data.name });
+    const { isValid, message } = await bucketNameRule.check(db, context.userId, {
+      name: data.name,
+    });
 
     if (!isValid) throw new ConflictError(message);
 
-    return bucketName.write(
+    return bucketNameRule.write(
       db
         .insert(buckets)
         .values({
@@ -100,14 +99,14 @@ export const editBucket = createServerFn({
   .handler(async ({ context, data }) => {
     const db = getDB(env.db);
 
-    const { isValid, message } = await bucketName.check(db, context.userId, {
+    const { isValid, message } = await bucketNameRule.check(db, context.userId, {
       name: data.name,
       excludeId: data.bucketId,
     });
 
     if (!isValid) throw new ConflictError(message);
 
-    return bucketName.write(
+    return bucketNameRule.write(
       db
         .update(buckets)
         .set({
