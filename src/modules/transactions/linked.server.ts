@@ -104,6 +104,10 @@ export async function assertTransactionEditAllowed(db: DB, userId: string, edit:
   if (link?.kind === "withdrawal")
     return assertWithdrawalAmountHeld(db, userId, link, current, edit);
 
+  return assertUnallocatedNotNegative(db, userId, edit);
+}
+
+async function assertUnallocatedNotNegative(db: DB, userId: string, edit: TransactionEdit) {
   const unallocated = await checkUnallocated(db, userId, {
     kind: "replace-transaction",
     transactionId: edit.transactionId,
