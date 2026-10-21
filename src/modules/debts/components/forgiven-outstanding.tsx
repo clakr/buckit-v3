@@ -32,7 +32,9 @@ export function ForgivenOutstanding({ amount, outstanding, formatDebtAmount }: P
           <Icon className="size-3.5" />
         </Button>
         <span className="uppercase">Forgiven</span>
-        {isShown ? <span className="tabular-nums line-through">{formatDebtAmount(forgiven)}</span> : null}
+        {isShown ? (
+          <span className="tabular-nums line-through">{formatDebtAmount(forgiven)}</span>
+        ) : null}
       </div>
 
       {isShown ? (
