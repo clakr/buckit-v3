@@ -1,4 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
+import { useRouter } from "@tanstack/react-router";
 import z from "zod";
 
 import type { Debt } from "#/db/schema";
@@ -29,6 +30,7 @@ export const useEditDebtDialogStore = createDialogStore<{ debtId: Debt["id"] | n
 });
 
 export function EditDebtDialog() {
+  const router = useRouter();
   const { isOpen, payload, close } = useEditDebtDialogStore();
   const { debtId } = payload;
 
@@ -76,6 +78,7 @@ export function EditDebtDialog() {
         return;
       }
 
+      router.invalidate();
       form.reset();
       close();
     },

@@ -1,4 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
+import { useRouter } from "@tanstack/react-router";
 import z from "zod";
 
 import type { Bucket } from "#/db/schema";
@@ -29,6 +30,7 @@ export const useEditBucketDialogStore = createDialogStore<{ bucketId: Bucket["id
 });
 
 export function EditBucketDialog() {
+  const router = useRouter();
   const { isOpen, payload, close } = useEditBucketDialogStore();
   const { bucketId } = payload;
 
@@ -63,6 +65,7 @@ export function EditBucketDialog() {
         return;
       }
 
+      router.invalidate();
       form.reset();
       close();
     },

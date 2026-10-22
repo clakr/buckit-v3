@@ -20,7 +20,6 @@ import { useEditBankAccountDialogStore } from "#/modules/bank-accounts/component
 import { bankAccountQueryOption } from "#/modules/bank-accounts/query-options";
 
 export const Route = createFileRoute("/_protected/accounts/$accountId")({
-  head: () => ({ meta: [{ title: formatPageTitle("Account") }] }),
   context: ({ params }) => ({
     bankAccountQueryOptions: bankAccountQueryOption(params.accountId),
     allocationsQueryOptions: allocationsQueryOption({ bankAccountId: params.accountId }),
@@ -28,13 +27,18 @@ export const Route = createFileRoute("/_protected/accounts/$accountId")({
   loader: async ({
     context: { queryClient, bankAccountQueryOptions, allocationsQueryOptions },
   }) => {
-    await loadOrThrowRouteNotFound(
+    const [bankAccount] = await loadOrThrowRouteNotFound(
       Promise.all([
         queryClient.query(bankAccountQueryOptions),
         queryClient.query(allocationsQueryOptions),
       ]),
     );
+
+    return { name: bankAccount.name };
   },
+  head: ({ loaderData }) => ({
+    meta: [{ title: formatPageTitle(loaderData?.name ?? "Account") }],
+  }),
   pendingComponent: () => (
     <Main>
       <Heading className="capitalize">Account</Heading>

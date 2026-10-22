@@ -15,13 +15,17 @@ import { debtQueryOption } from "#/modules/debts/query-options";
 import { useLogRepaymentDialogStore } from "#/modules/repayments/components/log-repayment-dialog";
 
 export const Route = createFileRoute("/_protected/debts/$debtId")({
-  head: () => ({ meta: [{ title: formatPageTitle("Debt") }] }),
   context: ({ params }) => ({
     debtQueryOptions: debtQueryOption(params.debtId),
   }),
   loader: async ({ context: { queryClient, debtQueryOptions } }) => {
-    await loadOrThrowRouteNotFound(queryClient.query(debtQueryOptions));
+    const debt = await loadOrThrowRouteNotFound(queryClient.query(debtQueryOptions));
+
+    return { name: debt.name };
   },
+  head: ({ loaderData }) => ({
+    meta: [{ title: formatPageTitle(loaderData?.name ?? "Debt") }],
+  }),
   pendingComponent: () => (
     <Main>
       <Heading className="capitalize">Debt</Heading>

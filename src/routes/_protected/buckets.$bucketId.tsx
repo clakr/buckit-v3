@@ -20,7 +20,6 @@ import { useWithdrawDialogStore } from "#/modules/withdrawals/components/withdra
 import { withdrawalsQueryOption } from "#/modules/withdrawals/query-options";
 
 export const Route = createFileRoute("/_protected/buckets/$bucketId")({
-  head: () => ({ meta: [{ title: formatPageTitle("Bucket") }] }),
   context: ({ params }) => ({
     bucketQueryOptions: bucketQueryOption(params.bucketId),
     allocationsQueryOptions: allocationsQueryOption({ bucketId: params.bucketId }),
@@ -29,14 +28,19 @@ export const Route = createFileRoute("/_protected/buckets/$bucketId")({
   loader: async ({
     context: { queryClient, bucketQueryOptions, allocationsQueryOptions, withdrawalsQueryOptions },
   }) => {
-    await loadOrThrowRouteNotFound(
+    const [bucket] = await loadOrThrowRouteNotFound(
       Promise.all([
         queryClient.query(bucketQueryOptions),
         queryClient.query(allocationsQueryOptions),
         queryClient.query(withdrawalsQueryOptions),
       ]),
     );
+
+    return { name: bucket.name };
   },
+  head: ({ loaderData }) => ({
+    meta: [{ title: formatPageTitle(loaderData?.name ?? "Bucket") }],
+  }),
   pendingComponent: () => (
     <Main>
       <Heading className="capitalize">Bucket</Heading>

@@ -1,4 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
+import { useRouter } from "@tanstack/react-router";
 import z from "zod";
 
 import type { BankAccount } from "#/db/schema";
@@ -29,6 +30,7 @@ export const useEditBankAccountDialogStore = createDialogStore<{
 }>({ bankAccountId: null });
 
 export function EditBankAccountDialog() {
+  const router = useRouter();
   const { isOpen, payload, close } = useEditBankAccountDialogStore();
   const { bankAccountId } = payload;
 
@@ -63,6 +65,7 @@ export function EditBankAccountDialog() {
         return;
       }
 
+      router.invalidate();
       form.reset();
       close();
     },
