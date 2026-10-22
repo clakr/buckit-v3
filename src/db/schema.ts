@@ -176,7 +176,7 @@ export const debts = sqliteTable("debts", {
   id: text("id").primaryKey(),
   userId: text("user_id")
     .notNull()
-    .references(() => users.id, { onDelete: "set null" }),
+    .references(() => users.id, { onDelete: "cascade" }),
   direction: text("direction", { enum: ["receivable", "payable"] }).notNull(),
   amount: integer("amount").notNull(),
   currency: text("currency", { enum: CURRENCIES_CODES }).notNull(),
