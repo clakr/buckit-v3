@@ -77,7 +77,7 @@ A grilling and domain-modeling session produced this spec. It was then partly bu
 - **Modules touched.** A new `debts` module. The `transactions` schema is **not** changed. It gains no new column and knows nothing about Debts.
 - **New table `debts`.** Its columns:
   - `id`.
-  - `userId`, a foreign key to users.
+  - `userId`, a foreign key to users with `ON DELETE CASCADE`.
   - `direction`, either `"payable"` or `"receivable"`, which can't change after creation.
   - `counterpartyName`, shipped as `name`. It is free-form text, with no dedicated entity.
   - `amount`, an integer in minor units.
@@ -186,3 +186,5 @@ Deferred, for the reason `docs/specs/bank-account-crud.md`, `docs/specs/bucket-c
   - It gives an off-app row with no date its `created_at` date.
 
   `toRepaymentEntry` reads each form on its own terms with no fallbacks, and throws for a row the constraint rules out.
+
+- **2026-10-22. Deleting a User deletes their Debts.** `debts.userId` was `NOT NULL` but `ON DELETE SET NULL`, so deleting a User who owned any Debt failed with `NOT NULL constraint failed: debts.user_id`. It is now `ON DELETE CASCADE`, like every other User-owned table, so a User's Debts go with them, and their repayments go through `repayments.debtId`. Transactions are removed only through the User's Bank Accounts, as before. Migration `20261022060710_debt_user_cascade` rebuilds `debts`. Unlike `repayments`, `debts` is referenced by another table. D1 runs a migration in a transaction, where `PRAGMA foreign_keys=OFF` does nothing, so dropping the old `debts` table cascade-deletes every repayment. The migration copies `repayments` to a backup table before the rebuild and restores it after. Any later rebuild of a referenced table, such as `debts`, `transactions` or `users`, needs the same treatment.
