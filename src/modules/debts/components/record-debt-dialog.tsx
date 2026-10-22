@@ -1,10 +1,12 @@
 import { useSelector } from "@tanstack/react-form";
 import { useQuery } from "@tanstack/react-query";
+import { useState } from "react";
 import z from "zod";
 
 import { CurrencyCombobox } from "#/components/currency-combobox";
 import { Button } from "#/components/ui/button";
 import {
+  createDrawerHandle,
   Drawer,
   DrawerClose,
   DrawerContent,
@@ -12,6 +14,7 @@ import {
   DrawerFooter,
   DrawerHeader,
   DrawerTitle,
+  type DrawerChangeEventDetails,
 } from "#/components/ui/drawer";
 import { Field, FieldError, FieldGroup, FieldLabel } from "#/components/ui/field";
 import { InputGroup, InputGroupAddon, InputGroupInput } from "#/components/ui/input-group";
@@ -22,15 +25,14 @@ import { BankAccountSelectField } from "#/modules/bank-accounts/components/bank-
 import { useRegisterBankAccountDialogStore } from "#/modules/bank-accounts/components/register-bank-account-dialog";
 import { bankAccountsQueryOption } from "#/modules/bank-accounts/query-options";
 import { useRecordDebtMutation } from "#/modules/debts/mutations";
-import { createDialogStore } from "#/stores/dialog-store";
 import { confirm } from "#/stores/use-confirm";
 
 import { debtDirectionEnum, recordDebtSchema } from "../schemas";
 
-export const useRecordDebtDialogStore = createDialogStore();
+export const recordDebtDrawerHandle = createDrawerHandle();
 
 export function RecordDebtDialog() {
-  const { isOpen, close } = useRecordDebtDialogStore();
+  const [isOpen, setIsOpen] = useState(false);
 
   const isMobile = useIsMobile();
 
@@ -60,7 +62,7 @@ export function RecordDebtDialog() {
       }
 
       form.reset();
-      close();
+      recordDebtDrawerHandle.close();
     },
   });
 
@@ -84,8 +86,16 @@ export function RecordDebtDialog() {
     return bankAccountsQuery.data?.find((account) => account.id === bankAccountId);
   }
 
-  async function handleOnOpenChange(open: boolean) {
-    if (!open && form.state.isDirty) {
+  async function handleOnOpenChange(open: boolean, eventDetails: DrawerChangeEventDetails) {
+    if (open) {
+      setIsOpen(true);
+
+      return;
+    }
+
+    if (form.state.isDirty) {
+      eventDetails.cancel();
+
       const confirmed = await confirm("Discard new debt?", {
         description: "The debt details you entered will be lost.",
         confirmLabel: "Keep Editing",
@@ -94,16 +104,20 @@ export function RecordDebtDialog() {
       });
 
       if (confirmed) return;
+
+      form.reset();
+      recordDebtDrawerHandle.close();
+
+      return;
     }
 
     form.reset();
-
-    close();
+    setIsOpen(false);
   }
 
   return (
     <Drawer
-      open={isOpen}
+      handle={recordDebtDrawerHandle}
       onOpenChange={handleOnOpenChange}
       showSwipeHandle={isMobile}
       swipeDirection={isMobile ? "down" : "right"}

@@ -49,6 +49,12 @@ function Drawer({
   );
 }
 
+type DrawerChangeEventDetails = DrawerPrimitive.Root.ChangeEventDetails;
+
+function createDrawerHandle<Payload = unknown>() {
+  return DrawerPrimitive.createHandle<Payload>();
+}
+
 function DrawerTrigger({ ...props }: DrawerPrimitive.Trigger.Props) {
   return <DrawerPrimitive.Trigger data-slot="drawer-trigger" {...props} />;
 }
@@ -192,6 +198,8 @@ function DrawerDescription({ className, ...props }: DrawerPrimitive.Description.
 }
 
 export {
+  type DrawerChangeEventDetails,
+  createDrawerHandle,
   Drawer,
   DrawerPortal,
   DrawerOverlay,

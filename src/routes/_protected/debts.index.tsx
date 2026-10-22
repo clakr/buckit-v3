@@ -8,10 +8,11 @@ import { RouteRetryButton } from "#/components/route-retry-button";
 import { StateTemplate } from "#/components/state-template";
 import { Button } from "#/components/ui/button";
 import { DataTable } from "#/components/ui/data-table";
+import { DrawerTrigger } from "#/components/ui/drawer";
 import { MODULE_ICONS } from "#/lib/constants";
 import { formatPageTitle } from "#/lib/utils";
 import { INDEX_COLUMNS } from "#/modules/debts/columns";
-import { useRecordDebtDialogStore } from "#/modules/debts/components/record-debt-dialog";
+import { recordDebtDrawerHandle } from "#/modules/debts/components/record-debt-dialog";
 import { debtsQueryOptions } from "#/modules/debts/query-options";
 
 export const Route = createFileRoute("/_protected/debts/")({
@@ -52,16 +53,14 @@ function RouteComponent() {
 
   const isEmpty = debts.length === 0;
 
-  const openDialog = useRecordDebtDialogStore((state) => state.open);
-
   return (
     <Main>
       <div className="flex items-center justify-between">
         <Heading>Debts</Heading>
-        <Button onClick={() => openDialog()}>
+        <DrawerTrigger handle={recordDebtDrawerHandle} render={<Button />}>
           <IconPlus />
           Record Debt
-        </Button>
+        </DrawerTrigger>
       </div>
 
       {isEmpty ? (
@@ -71,10 +70,10 @@ function RouteComponent() {
           description="Record your first debt to start tracking what you owe or are owed."
           icon={<MODULE_ICONS.debts />}
           content={
-            <Button onClick={() => openDialog()}>
+            <DrawerTrigger handle={recordDebtDrawerHandle} render={<Button />}>
               <IconPlus />
               Record Debt
-            </Button>
+            </DrawerTrigger>
           }
         />
       ) : (
