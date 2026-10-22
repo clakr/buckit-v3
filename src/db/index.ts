@@ -1,3 +1,4 @@
+import "@tanstack/react-start/server-only";
 import { drizzle, type AnyD1Database } from "drizzle-orm/d1";
 
 import { relations } from "#/db/schema";
