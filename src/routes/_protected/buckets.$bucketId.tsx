@@ -1,4 +1,4 @@
-import { IconMinus, IconPencil } from "@tabler/icons-react";
+import { IconMinus, IconPencil, IconTarget } from "@tabler/icons-react";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute, Link } from "@tanstack/react-router";
 
@@ -15,6 +15,9 @@ import { getAllocationColumns } from "#/modules/allocations/columns";
 import { allocationsQueryOption } from "#/modules/allocations/query-options";
 import { useEditBucketDialogStore } from "#/modules/buckets/components/edit-bucket-dialog";
 import { bucketQueryOption } from "#/modules/buckets/query-options";
+import { useAddGoalDialogStore } from "#/modules/goals/components/add-goal-dialog";
+import { BucketGoalCard } from "#/modules/goals/components/bucket-goal-card";
+import { bucketGoalQueryOption } from "#/modules/goals/query-options";
 import { WITHDRAWAL_COLUMNS } from "#/modules/withdrawals/columns";
 import { useWithdrawDialogStore } from "#/modules/withdrawals/components/withdraw-dialog";
 import { withdrawalsQueryOption } from "#/modules/withdrawals/query-options";
@@ -24,15 +27,23 @@ export const Route = createFileRoute("/_protected/buckets/$bucketId")({
     bucketQueryOptions: bucketQueryOption(params.bucketId),
     allocationsQueryOptions: allocationsQueryOption({ bucketId: params.bucketId }),
     withdrawalsQueryOptions: withdrawalsQueryOption(params.bucketId),
+    goalQueryOptions: bucketGoalQueryOption(params.bucketId),
   }),
   loader: async ({
-    context: { queryClient, bucketQueryOptions, allocationsQueryOptions, withdrawalsQueryOptions },
+    context: {
+      queryClient,
+      bucketQueryOptions,
+      allocationsQueryOptions,
+      withdrawalsQueryOptions,
+      goalQueryOptions,
+    },
   }) => {
     const [bucket] = await loadOrThrowRouteNotFound(
       Promise.all([
         queryClient.query(bucketQueryOptions),
         queryClient.query(allocationsQueryOptions),
         queryClient.query(withdrawalsQueryOptions),
+        queryClient.query(goalQueryOptions),
       ]),
     );
 
@@ -83,15 +94,20 @@ export const Route = createFileRoute("/_protected/buckets/$bucketId")({
 
 function RouteComponent() {
   const { bucketId } = Route.useParams();
-  const { bucketQueryOptions, allocationsQueryOptions, withdrawalsQueryOptions } =
+  const { bucketQueryOptions, allocationsQueryOptions, withdrawalsQueryOptions, goalQueryOptions } =
     Route.useRouteContext();
 
   const { data: bucket } = useSuspenseQuery(bucketQueryOptions);
   const { data: allocations } = useSuspenseQuery(allocationsQueryOptions);
   const { data: withdrawals } = useSuspenseQuery(withdrawalsQueryOptions);
+  const { data: goal } = useSuspenseQuery(goalQueryOptions);
 
   function handleOpenWithdrawDialog() {
     useWithdrawDialogStore.getState().open({ bucketId });
+  }
+
+  function handleOpenAddGoalDialog() {
+    useAddGoalDialogStore.getState().open({ bucketId });
   }
 
   function handleOpenEditBucketDialog() {
@@ -103,6 +119,12 @@ function RouteComponent() {
       <div className="flex items-baseline justify-between">
         <Heading className="capitalize">{bucket.name}</Heading>
         <div className="flex gap-x-2">
+          {goal ? null : (
+            <Button variant="outline" onClick={handleOpenAddGoalDialog}>
+              <IconTarget />
+              Add Goal
+            </Button>
+          )}
           <Button variant="outline" onClick={handleOpenWithdrawDialog}>
             <IconMinus />
             Withdraw
@@ -113,6 +135,8 @@ function RouteComponent() {
           </Button>
         </div>
       </div>
+
+      {goal ? <BucketGoalCard goal={goal} /> : null}
 
       <Tabs defaultValue="allocations">
         <TabsList>
