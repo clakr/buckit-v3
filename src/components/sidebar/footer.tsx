@@ -47,7 +47,7 @@ export function SidebarFooter() {
             <DropdownMenuContent
               side={isMobile ? "bottom" : "right"}
               align="end"
-              className="w-(--radix-dropdown-menu-trigger-width) min-w-56"
+              className="min-w-56"
             >
               <DropdownMenuGroup>
                 <DropdownMenuLabel className="p-0 font-normal">
