@@ -4,27 +4,32 @@ import { eq } from "drizzle-orm";
 import { uuidv7 } from "uuidv7";
 
 import { getDB } from "#/db";
-import { buckets } from "#/db/schema";
+import { buckets, goals } from "#/db/schema";
 import { ConflictError, NotFoundError } from "#/lib/errors";
 import { authMiddleware } from "#/modules/authentication/middlewares";
 import { loadBucketDeletionImpact } from "#/modules/buckets/deletion.server";
 import { getBucketsWithFigures } from "#/modules/buckets/figures.server";
 import { verifyUserBucketMiddleware } from "#/modules/buckets/middlewares";
 import { bucketNameRule } from "#/modules/buckets/name.server";
-import {
-  editBucketSchema,
-  setUpBucketSchema,
-  validateBucketNameSchema,
-} from "#/modules/buckets/schemas";
+import { editBucketSchema, validateBucketNameSchema } from "#/modules/buckets/schemas";
+import { setUpBucketWithGoalSchema } from "#/modules/goals/schemas";
 
 export const getBuckets = createServerFn({
   method: "GET",
 })
   .middleware([authMiddleware])
   .handler(async ({ context }) => {
-    const bucketsWithFigures = await getBucketsWithFigures(getDB(env.db), {
-      userId: context.userId,
-    });
+    const db = getDB(env.db);
+
+    const [bucketsWithFigures, bucketGoals] = await Promise.all([
+      getBucketsWithFigures(db, { userId: context.userId }),
+      db.query.goals.findMany({
+        columns: { bucketId: true },
+        where: { bucket: { userId: context.userId } },
+      }),
+    ]);
+
+    const bucketIdsWithGoal = new Set(bucketGoals.map((goal) => goal.bucketId));
 
     return bucketsWithFigures.map((bucket) => ({
       id: bucket.id,
@@ -32,6 +37,7 @@ export const getBuckets = createServerFn({
       name: bucket.name,
       createdAt: bucket.createdAt,
       subtotals: bucket.subtotals,
+      hasGoal: bucketIdsWithGoal.has(bucket.id),
     }));
   });
 
@@ -69,26 +75,52 @@ export const setUpBucket = createServerFn({
   method: "POST",
 })
   .middleware([authMiddleware])
-  .validator(setUpBucketSchema)
+  .validator(setUpBucketWithGoalSchema)
   .handler(async ({ context, data }) => {
     const db = getDB(env.db);
+    const { goal } = data;
 
-    const { isValid, message } = await bucketNameRule.check(db, context.userId, {
-      name: data.name,
-    });
+    const [{ isValid, message }, fundingBankAccount] = await Promise.all([
+      bucketNameRule.check(db, context.userId, { name: data.name }),
+      goal
+        ? db.query.bankAccounts.findFirst({
+            columns: { id: true },
+            where: { userId: context.userId, currency: goal.currency },
+          })
+        : null,
+    ]);
 
     if (!isValid) throw new ConflictError(message);
+    if (goal && !fundingBankAccount)
+      throw new ConflictError(`None of your bank accounts use ${goal.currency}.`);
 
-    return bucketNameRule.write(
-      db
-        .insert(buckets)
-        .values({
+    const bucketId = uuidv7();
+    const insertBucket = db
+      .insert(buckets)
+      .values({
+        id: bucketId,
+        userId: context.userId,
+        name: data.name,
+      })
+      .returning();
+
+    if (!goal) return bucketNameRule.write(insertBucket);
+
+    // One batch is one D1 transaction, so a failed Goal insert never leaves the Bucket behind.
+    const [bucketRows] = await bucketNameRule.write(
+      db.batch([
+        insertBucket,
+        db.insert(goals).values({
           id: uuidv7(),
-          userId: context.userId,
-          name: data.name,
-        })
-        .returning(),
+          bucketId,
+          targetAmount: goal.targetAmount,
+          currency: goal.currency,
+          targetDate: goal.targetDate,
+        }),
+      ]),
     );
+
+    return bucketRows;
   });
 
 export const editBucket = createServerFn({

@@ -1,4 +1,4 @@
-import { IconDots, IconEye, IconPlus } from "@tabler/icons-react";
+import { IconDots, IconEye, IconPlus, IconTarget } from "@tabler/icons-react";
 import { Link } from "@tanstack/react-router";
 
 import type { getBuckets } from "#/modules/buckets/functions";
@@ -13,6 +13,7 @@ import {
   DropdownMenuTrigger,
 } from "#/components/ui/dropdown-menu";
 import { useLogAllocationDialogStore } from "#/modules/allocations/components/log-allocation-dialog";
+import { useAddGoalDialogStore } from "#/modules/goals/components/add-goal-dialog";
 import { useWithdrawDialogStore } from "#/modules/withdrawals/components/withdraw-dialog";
 
 import { useDeleteBucketDialogStore } from "./delete-bucket-dialog";
@@ -31,6 +32,10 @@ export function BucketActionsDropdownMenu({ bucket }: Props) {
 
   function handleOpenWithdrawDialog() {
     useWithdrawDialogStore.getState().open({ bucketId });
+  }
+
+  function handleOpenAddGoalDialog() {
+    useAddGoalDialogStore.getState().open({ bucketId });
   }
 
   function handleOpenEditBucketDialog() {
@@ -57,6 +62,12 @@ export function BucketActionsDropdownMenu({ bucket }: Props) {
             <svg />
             Withdraw Money
           </DropdownMenuItem>
+          {bucket.hasGoal ? null : (
+            <DropdownMenuItem onClick={handleOpenAddGoalDialog}>
+              <svg />
+              Add Goal
+            </DropdownMenuItem>
+          )}
         </DropdownMenuGroup>
         <DropdownMenuSeparator />
         <DropdownMenuGroup>

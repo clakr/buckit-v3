@@ -1,14 +1,11 @@
-import { IconBuildingBank, IconCalendar, IconX } from "@tabler/icons-react";
-import { useSelector } from "@tanstack/react-form";
+import { IconBuildingBank } from "@tabler/icons-react";
 import { useQuery } from "@tanstack/react-query";
-import { format, startOfToday } from "date-fns";
 import z from "zod";
 
 import type { Bucket } from "#/db/schema";
 
 import { StateTemplate } from "#/components/state-template";
 import { Button } from "#/components/ui/button";
-import { Calendar } from "#/components/ui/calendar";
 import {
   Dialog,
   DialogContent,
@@ -17,11 +14,11 @@ import {
   DialogHeader,
   DialogTitle,
 } from "#/components/ui/dialog";
-import { Field, FieldDescription, FieldError, FieldGroup, FieldLabel } from "#/components/ui/field";
-import { Popover, PopoverContent, PopoverTrigger } from "#/components/ui/popover";
+import { FieldGroup } from "#/components/ui/field";
 import { useAppForm } from "#/integrations/tanstack-form";
 import { useRegisterBankAccountDialogStore } from "#/modules/bank-accounts/components/register-bank-account-dialog";
 import { bucketQueryOption } from "#/modules/buckets/query-options";
+import { GoalTargetFields } from "#/modules/goals/components/goal-target-fields";
 import { useAddGoalMutation } from "#/modules/goals/mutations";
 import { goalCurrenciesQueryOptions } from "#/modules/goals/query-options";
 import { addGoalSchema } from "#/modules/goals/schemas";
@@ -80,8 +77,6 @@ export function AddGoalDialog() {
       close();
     },
   });
-
-  const currency = useSelector(form.store, (state) => state.values.currency);
 
   async function handleOnOpenChange(open: boolean) {
     if (!open && form.state.isDirty) {
@@ -167,82 +162,15 @@ export function AddGoalDialog() {
               }}
             >
               <FieldGroup>
-                <form.AppField name="currency">
-                  {(field) => (
-                    <field.Select
-                      label="Currency"
-                      placeholder="Select currency"
-                      options={currencies?.map((code) => ({ value: code, label: code })) ?? []}
-                    />
-                  )}
-                </form.AppField>
-                <form.AppField name="targetAmount">
-                  {(field) => (
-                    <field.AmountInput
-                      label="Target Amount"
-                      min={0.01}
-                      step={0.01}
-                      required
-                      placeholder="0.00"
-                      currency={currency}
-                    />
-                  )}
-                </form.AppField>
-                <form.AppField name="targetDate">
-                  {(field) => {
-                    const targetDate = field.state.value;
-                    const isInvalid = field.state.meta.isTouched && !field.state.meta.isValid;
-                    const triggerId = `${form.formId}-target-date`;
-                    const errorId = `${triggerId}-error`;
-
-                    return (
-                      <Field data-invalid={isInvalid}>
-                        <FieldLabel htmlFor={triggerId}>Target Date (optional)</FieldLabel>
-                        <div className="flex gap-x-2">
-                          <Popover>
-                            <PopoverTrigger
-                              render={
-                                <Button
-                                  id={triggerId}
-                                  variant="outline"
-                                  data-empty={!targetDate}
-                                  className="flex-1 justify-start text-left font-normal data-[empty=true]:text-muted-foreground"
-                                  aria-invalid={isInvalid ? true : undefined}
-                                  aria-describedby={isInvalid ? errorId : undefined}
-                                />
-                              }
-                            >
-                              <IconCalendar />
-                              {targetDate ? format(targetDate, "PPP") : <span>No target date</span>}
-                            </PopoverTrigger>
-                            <PopoverContent className="w-auto p-0">
-                              <Calendar
-                                mode="single"
-                                selected={targetDate ?? undefined}
-                                disabled={{ before: startOfToday() }}
-                                onSelect={(value) => field.handleChange(value ?? null)}
-                                onDayBlur={field.handleBlur}
-                              />
-                            </PopoverContent>
-                          </Popover>
-                          {targetDate ? (
-                            <Button
-                              type="button"
-                              variant="outline"
-                              size="icon"
-                              aria-label="Clear target date"
-                              onClick={() => field.handleChange(null)}
-                            >
-                              <IconX />
-                            </Button>
-                          ) : null}
-                        </div>
-                        <FieldDescription>Leave empty to save without a deadline.</FieldDescription>
-                        {isInvalid && <FieldError id={errorId} errors={field.state.meta.errors} />}
-                      </Field>
-                    );
+                <GoalTargetFields
+                  form={form}
+                  fields={{
+                    currency: "currency",
+                    targetAmount: "targetAmount",
+                    targetDate: "targetDate",
                   }}
-                </form.AppField>
+                  currencies={currencies ?? []}
+                />
               </FieldGroup>
             </form>
           ) : null}

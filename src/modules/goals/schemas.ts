@@ -3,10 +3,9 @@ import { z } from "zod";
 
 import { CURRENCIES_CODES } from "#/lib/constants";
 import { amountSchema } from "#/lib/money";
-import { verifyUserBucketMiddlewareSchema } from "#/modules/buckets/schemas";
+import { setUpBucketSchema, verifyUserBucketMiddlewareSchema } from "#/modules/buckets/schemas";
 
-export const addGoalSchema = z.strictObject({
-  ...verifyUserBucketMiddlewareSchema.shape,
+export const goalTargetSchema = z.strictObject({
   targetAmount: amountSchema,
   currency: z.enum(CURRENCIES_CODES, "Please select a currency"),
   targetDate: z
@@ -17,4 +16,13 @@ export const addGoalSchema = z.strictObject({
     .refine((date) => date === null || date >= subHours(startOfToday(), 14), {
       message: "Target date must be today or later",
     }),
+});
+
+export const addGoalSchema = z.strictObject({
+  ...verifyUserBucketMiddlewareSchema.shape,
+  ...goalTargetSchema.shape,
+});
+
+export const setUpBucketWithGoalSchema = setUpBucketSchema.extend({
+  goal: goalTargetSchema.nullable(),
 });
