@@ -9,6 +9,7 @@ import { formatDate } from "#/lib/utils";
 import type { getBucketGoal } from "../functions";
 
 import { getGoalMonthlyAmount, getGoalStatus } from "../utils";
+import { GoalActionsDropdownMenu } from "./goal-actions-dropdown-menu";
 import { GoalStatusBadge } from "./goal-status-badge";
 
 type Props = {
@@ -31,8 +32,9 @@ export function BucketGoalCard({ goal }: Props) {
     <Card>
       <CardHeader>
         <CardTitle>Goal</CardTitle>
-        <CardAction>
+        <CardAction className="flex items-center gap-x-2">
           <GoalStatusBadge status={status} />
+          <GoalActionsDropdownMenu goalId={goal.id} bucketId={goal.bucketId} />
         </CardAction>
       </CardHeader>
       <CardContent className="flex flex-col gap-y-4">

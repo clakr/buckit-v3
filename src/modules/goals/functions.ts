@@ -1,15 +1,22 @@
 import { createServerFn } from "@tanstack/react-start";
 import { env } from "cloudflare:workers";
+import { eq } from "drizzle-orm";
 import { uuidv7 } from "uuidv7";
 
 import { getDB } from "#/db";
 import { goals } from "#/db/schema";
-import { ConflictError } from "#/lib/errors";
+import { ConflictError, NotFoundError } from "#/lib/errors";
 import { authMiddleware } from "#/modules/authentication/middlewares";
 import { getBucketsWithFigures } from "#/modules/buckets/figures.server";
 import { verifyUserBucketMiddleware } from "#/modules/buckets/middlewares";
 import { findFundingBankAccount } from "#/modules/goals/funding.server";
-import { addGoalSchema } from "#/modules/goals/schemas";
+import { verifyUserGoalMiddleware } from "#/modules/goals/middlewares";
+import {
+  addGoalSchema,
+  editGoalSchema,
+  isTargetDateTodayOrLater,
+  TARGET_DATE_IN_PAST_MESSAGE,
+} from "#/modules/goals/schemas";
 import { getGoalProgress } from "#/modules/goals/utils";
 
 export const getBucketGoal = createServerFn({
@@ -82,4 +89,41 @@ export const addGoal = createServerFn({
       .returning();
 
     return goal;
+  });
+
+export const editGoal = createServerFn({
+  method: "POST",
+})
+  .middleware([verifyUserGoalMiddleware])
+  .validator(editGoalSchema)
+  .handler(async ({ data }) => {
+    const db = getDB(env.db);
+
+    const goal = await db.query.goals.findFirst({
+      columns: { targetDate: true },
+      where: { id: data.goalId },
+    });
+
+    if (!goal) throw new NotFoundError("This goal doesn't exist or may have been removed.");
+
+    const isTargetDateChanged = data.targetDate?.getTime() !== goal.targetDate?.getTime();
+
+    if (isTargetDateChanged && data.targetDate && !isTargetDateTodayOrLater(data.targetDate))
+      throw new ConflictError(TARGET_DATE_IN_PAST_MESSAGE);
+
+    const [updatedGoal] = await db
+      .update(goals)
+      .set({ targetAmount: data.targetAmount, targetDate: data.targetDate })
+      .where(eq(goals.id, data.goalId))
+      .returning();
+
+    return updatedGoal;
+  });
+
+export const removeGoal = createServerFn({
+  method: "POST",
+})
+  .middleware([verifyUserGoalMiddleware])
+  .handler(async ({ data }) => {
+    return getDB(env.db).delete(goals).where(eq(goals.id, data.goalId)).returning();
   });
