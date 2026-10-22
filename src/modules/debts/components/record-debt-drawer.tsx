@@ -31,7 +31,7 @@ import { debtDirectionEnum, recordDebtSchema } from "../schemas";
 
 export const recordDebtDrawerHandle = createDrawerHandle();
 
-export function RecordDebtDialog() {
+export function RecordDebtDrawer() {
   const [isOpen, setIsOpen] = useState(false);
 
   const isMobile = useIsMobile();

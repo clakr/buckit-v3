@@ -12,7 +12,7 @@ import { DrawerTrigger } from "#/components/ui/drawer";
 import { MODULE_ICONS } from "#/lib/constants";
 import { formatPageTitle } from "#/lib/utils";
 import { INDEX_COLUMNS } from "#/modules/debts/columns";
-import { recordDebtDrawerHandle } from "#/modules/debts/components/record-debt-dialog";
+import { recordDebtDrawerHandle } from "#/modules/debts/components/record-debt-drawer";
 import { debtsQueryOptions } from "#/modules/debts/query-options";
 
 export const Route = createFileRoute("/_protected/debts/")({
