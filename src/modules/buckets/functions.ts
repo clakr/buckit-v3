@@ -12,6 +12,7 @@ import { getBucketsWithFigures } from "#/modules/buckets/figures.server";
 import { verifyUserBucketMiddleware } from "#/modules/buckets/middlewares";
 import { bucketNameRule } from "#/modules/buckets/name.server";
 import { editBucketSchema, validateBucketNameSchema } from "#/modules/buckets/schemas";
+import { findFundingBankAccount } from "#/modules/goals/funding.server";
 import { setUpBucketWithGoalSchema } from "#/modules/goals/schemas";
 
 export const getBuckets = createServerFn({
@@ -82,12 +83,7 @@ export const setUpBucket = createServerFn({
 
     const [{ isValid, message }, fundingBankAccount] = await Promise.all([
       bucketNameRule.check(db, context.userId, { name: data.name }),
-      goal
-        ? db.query.bankAccounts.findFirst({
-            columns: { id: true },
-            where: { userId: context.userId, currency: goal.currency },
-          })
-        : null,
+      goal ? findFundingBankAccount(db, { userId: context.userId, currency: goal.currency }) : null,
     ]);
 
     if (!isValid) throw new ConflictError(message);

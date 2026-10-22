@@ -8,6 +8,7 @@ import { ConflictError } from "#/lib/errors";
 import { authMiddleware } from "#/modules/authentication/middlewares";
 import { getBucketsWithFigures } from "#/modules/buckets/figures.server";
 import { verifyUserBucketMiddleware } from "#/modules/buckets/middlewares";
+import { findFundingBankAccount } from "#/modules/goals/funding.server";
 import { addGoalSchema } from "#/modules/goals/schemas";
 import { getGoalProgress } from "#/modules/goals/utils";
 
@@ -27,7 +28,16 @@ export const getBucketGoal = createServerFn({
 
     if (!goal || !bucket) return null;
 
-    return { ...goal, progress: getGoalProgress(bucket.subtotals, goal.currency) };
+    const fundingBankAccount = await findFundingBankAccount(db, {
+      userId: context.userId,
+      currency: goal.currency,
+    });
+
+    return {
+      ...goal,
+      progress: getGoalProgress(bucket.subtotals, goal.currency),
+      hasFundingBankAccount: Boolean(fundingBankAccount),
+    };
   });
 
 export const getGoalCurrencies = createServerFn({
@@ -53,10 +63,7 @@ export const addGoal = createServerFn({
 
     const [existingGoal, fundingBankAccount] = await Promise.all([
       db.query.goals.findFirst({ columns: { id: true }, where: { bucketId: data.bucketId } }),
-      db.query.bankAccounts.findFirst({
-        columns: { id: true },
-        where: { userId: context.userId, currency: data.currency },
-      }),
+      findFundingBankAccount(db, { userId: context.userId, currency: data.currency }),
     ]);
 
     if (existingGoal) throw new ConflictError("This bucket already has a goal.");

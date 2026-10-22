@@ -1,10 +1,14 @@
+import { IconAlertTriangle } from "@tabler/icons-react";
+import { format } from "date-fns";
+
+import { Alert, AlertDescription } from "#/components/ui/alert";
 import { Card, CardAction, CardContent, CardHeader, CardTitle } from "#/components/ui/card";
 import { formatMoney } from "#/lib/money";
 import { formatDate } from "#/lib/utils";
 
 import type { getBucketGoal } from "../functions";
 
-import { getGoalStatus } from "../utils";
+import { getGoalMonthlyAmount, getGoalStatus } from "../utils";
 import { GoalStatusBadge } from "./goal-status-badge";
 
 type Props = {
@@ -21,6 +25,7 @@ export function BucketGoalCard({ goal }: Props) {
   const remaining = Math.max(targetAmount - progress, 0);
   const percent = Math.max(Math.floor((progress / targetAmount) * 100), 0);
   const barPercent = Math.min(percent, 100);
+  const monthlyAmount = getGoalMonthlyAmount(goal);
 
   return (
     <Card>
@@ -69,6 +74,23 @@ export function BucketGoalCard({ goal }: Props) {
             </dd>
           </div>
         </dl>
+        {monthlyAmount !== null && goal.targetDate ? (
+          <p className="text-muted-foreground">
+            <span className="font-semibold text-foreground tabular-nums">
+              {formatGoalAmount(monthlyAmount)}/month
+            </span>{" "}
+            to make it by {format(goal.targetDate, "MMMM yyyy")}
+          </p>
+        ) : null}
+        {goal.hasFundingBankAccount ? null : (
+          <Alert>
+            <IconAlertTriangle />
+            <AlertDescription>
+              No {goal.currency} account can fund this Goal. Add a {goal.currency} bank account to
+              keep saving toward it.
+            </AlertDescription>
+          </Alert>
+        )}
       </CardContent>
     </Card>
   );
