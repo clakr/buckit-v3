@@ -5,15 +5,17 @@ import z from "zod";
 import { CurrencyCombobox } from "#/components/currency-combobox";
 import { Button } from "#/components/ui/button";
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "#/components/ui/dialog";
+  Drawer,
+  DrawerClose,
+  DrawerContent,
+  DrawerDescription,
+  DrawerFooter,
+  DrawerHeader,
+  DrawerTitle,
+} from "#/components/ui/drawer";
 import { Field, FieldError, FieldGroup, FieldLabel } from "#/components/ui/field";
 import { InputGroup, InputGroupAddon, InputGroupInput } from "#/components/ui/input-group";
+import { useIsMobile } from "#/hooks/use-mobile";
 import { useAppForm } from "#/integrations/tanstack-form";
 import { exceedsAvailable, describeInsufficientUnallocated } from "#/lib/money";
 import { BankAccountSelectField } from "#/modules/bank-accounts/components/bank-account-select-field";
@@ -29,6 +31,8 @@ export const useRecordDebtDialogStore = createDialogStore();
 
 export function RecordDebtDialog() {
   const { isOpen, close } = useRecordDebtDialogStore();
+
+  const isMobile = useIsMobile();
 
   const mutation = useRecordDebtMutation();
 
@@ -98,13 +102,18 @@ export function RecordDebtDialog() {
   }
 
   return (
-    <Dialog open={isOpen} onOpenChange={handleOnOpenChange}>
-      <DialogContent>
-        <DialogHeader>
-          <DialogTitle>Record Debt</DialogTitle>
-          <DialogDescription>Track money you owe someone, or that they owe you.</DialogDescription>
-        </DialogHeader>
-        <div>
+    <Drawer
+      open={isOpen}
+      onOpenChange={handleOnOpenChange}
+      showSwipeHandle={isMobile}
+      swipeDirection={isMobile ? "down" : "right"}
+    >
+      <DrawerContent>
+        <DrawerHeader>
+          <DrawerTitle>Record Debt</DrawerTitle>
+          <DrawerDescription>Track money you owe someone, or that they owe you.</DrawerDescription>
+        </DrawerHeader>
+        <div className="min-h-0 flex-1 overflow-y-auto p-4">
           <form
             id={form.formId}
             onSubmit={(e) => {
@@ -244,12 +253,13 @@ export function RecordDebtDialog() {
             </FieldGroup>
           </form>
         </div>
-        <DialogFooter>
+        <DrawerFooter className="border-t pt-4">
           <form.AppForm>
             <form.Button form={form.formId}>Record Debt</form.Button>
           </form.AppForm>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+          <DrawerClose render={<Button variant="outline" />}>Cancel</DrawerClose>
+        </DrawerFooter>
+      </DrawerContent>
+    </Drawer>
   );
 }
