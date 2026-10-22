@@ -62,7 +62,7 @@ export function BucketActionsDropdownMenu({ bucket }: Props) {
             <svg />
             Withdraw Money
           </DropdownMenuItem>
-          {bucket.hasGoal ? null : (
+          {bucket.goal ? null : (
             <DropdownMenuItem onClick={handleOpenAddGoalDialog}>
               <svg />
               Add Goal

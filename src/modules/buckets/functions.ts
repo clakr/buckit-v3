@@ -14,6 +14,7 @@ import { bucketNameRule } from "#/modules/buckets/name.server";
 import { editBucketSchema, validateBucketNameSchema } from "#/modules/buckets/schemas";
 import { findFundingBankAccount } from "#/modules/goals/funding.server";
 import { setUpBucketWithGoalSchema } from "#/modules/goals/schemas";
+import { getGoalProgress } from "#/modules/goals/utils";
 
 export const getBuckets = createServerFn({
   method: "GET",
@@ -25,21 +26,25 @@ export const getBuckets = createServerFn({
     const [bucketsWithFigures, bucketGoals] = await Promise.all([
       getBucketsWithFigures(db, { userId: context.userId }),
       db.query.goals.findMany({
-        columns: { bucketId: true },
+        columns: { bucketId: true, targetAmount: true, currency: true, targetDate: true },
         where: { bucket: { userId: context.userId } },
       }),
     ]);
 
-    const bucketIdsWithGoal = new Set(bucketGoals.map((goal) => goal.bucketId));
+    const goalByBucketId = new Map(bucketGoals.map((goal) => [goal.bucketId, goal]));
 
-    return bucketsWithFigures.map((bucket) => ({
-      id: bucket.id,
-      userId: bucket.userId,
-      name: bucket.name,
-      createdAt: bucket.createdAt,
-      subtotals: bucket.subtotals,
-      hasGoal: bucketIdsWithGoal.has(bucket.id),
-    }));
+    return bucketsWithFigures.map((bucket) => {
+      const goal = goalByBucketId.get(bucket.id);
+
+      return {
+        id: bucket.id,
+        userId: bucket.userId,
+        name: bucket.name,
+        createdAt: bucket.createdAt,
+        subtotals: bucket.subtotals,
+        goal: goal ? { ...goal, progress: getGoalProgress(bucket.subtotals, goal.currency) } : null,
+      };
+    });
   });
 
 export const getBucket = createServerFn({

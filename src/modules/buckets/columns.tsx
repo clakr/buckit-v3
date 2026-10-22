@@ -9,6 +9,8 @@ import { Tooltip, TooltipContent, TooltipTrigger } from "#/components/ui/tooltip
 import { formatMoney } from "#/lib/money";
 import { formatDateTime, formatToRelative } from "#/lib/utils";
 import { BucketActionsDropdownMenu } from "#/modules/buckets/components/buckets-actions-dropdown-menu";
+import { GoalStatusBadge } from "#/modules/goals/components/goal-status-badge";
+import { getGoalStatus } from "#/modules/goals/utils";
 
 export const INDEX_COLUMNS: DataTableColumnDef<Awaited<ReturnType<typeof getBuckets>>[number]>[] = [
   {
@@ -27,6 +29,39 @@ export const INDEX_COLUMNS: DataTableColumnDef<Awaited<ReturnType<typeof getBuck
       if (!subtotals) return "-";
 
       return <span className="block text-end font-semibold tabular-nums">{subtotals}</span>;
+    },
+  },
+  {
+    accessorKey: "goal",
+    header: "Goal",
+    cell: ({ row }) => {
+      const { goal } = row.original;
+
+      if (!goal) return null;
+
+      const percent = Math.max(Math.floor((goal.progress / goal.targetAmount) * 100), 0);
+      const barPercent = Math.min(percent, 100);
+
+      return (
+        <div className="flex min-w-48 flex-col gap-y-1.5">
+          <div className="flex items-center justify-between gap-x-4">
+            <GoalStatusBadge status={getGoalStatus(goal)} />
+            <span className="text-muted-foreground tabular-nums">
+              {percent}% of {formatMoney(goal.targetAmount, goal.currency)}
+            </span>
+          </div>
+          <div
+            role="progressbar"
+            aria-label={`${row.original.name} Goal progress`}
+            aria-valuemin={0}
+            aria-valuemax={100}
+            aria-valuenow={barPercent}
+            className="h-1.5 overflow-hidden rounded-full bg-muted"
+          >
+            <div className="h-full bg-foreground/60" style={{ width: `${barPercent}%` }} />
+          </div>
+        </div>
+      );
     },
   },
   {
