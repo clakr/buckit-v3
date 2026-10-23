@@ -16,7 +16,7 @@ import { confirm } from "#/stores/use-confirm";
 import type { getDebts } from "../functions";
 
 import { useForgiveDebtMutation, useUnforgiveDebtMutation } from "../mutations";
-import { useDeleteDebtDialogStore } from "./delete-debt-dialog";
+import { deleteDebtDialogHandle } from "./delete-debt-dialog";
 import { useEditDebtDialogStore } from "./edit-debt-dialog";
 
 type Props = {
@@ -38,7 +38,7 @@ export function DebtActionsDropdownMenu({ debt }: Props) {
   }
 
   function handleOpenDeleteDebtDialog() {
-    useDeleteDebtDialogStore.getState().open({ debtId: debt.id });
+    deleteDebtDialogHandle.openWithPayload({ debtId: debt.id });
   }
 
   async function handleForgiveDebt() {
