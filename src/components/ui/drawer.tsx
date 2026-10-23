@@ -21,13 +21,13 @@ function useDrawer() {
   return context;
 }
 
-function Drawer({
+function Drawer<Payload>({
   modal = true,
   showSwipeHandle = false,
   snapPoints,
   swipeDirection = "down",
   ...props
-}: DrawerPrimitive.Root.Props & {
+}: DrawerPrimitive.Root.Props<Payload> & {
   showSwipeHandle?: boolean;
 }) {
   const hasSnapPoints = snapPoints != null && snapPoints.length > 0;

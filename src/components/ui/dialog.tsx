@@ -5,8 +5,12 @@ import * as React from "react";
 import { Button } from "#/components/ui/button.tsx";
 import { cn } from "#/lib/utils.ts";
 
-function Dialog({ ...props }: DialogPrimitive.Root.Props) {
+function Dialog<Payload>({ ...props }: DialogPrimitive.Root.Props<Payload>) {
   return <DialogPrimitive.Root data-slot="dialog" {...props} />;
+}
+
+function createDialogHandle<Payload = unknown>() {
+  return DialogPrimitive.createHandle<Payload>();
 }
 
 function DialogTrigger({ ...props }: DialogPrimitive.Trigger.Props) {
@@ -121,6 +125,7 @@ function DialogDescription({ className, ...props }: DialogPrimitive.Description.
 }
 
 export {
+  createDialogHandle,
   Dialog,
   DialogClose,
   DialogContent,
