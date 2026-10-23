@@ -1,6 +1,6 @@
 import { useSelector } from "@tanstack/react-form";
 import { useQuery } from "@tanstack/react-query";
-import { useState } from "react";
+import { useImperativeHandle, useRef, type Ref } from "react";
 import z from "zod";
 
 import { CurrencyCombobox } from "#/components/currency-combobox";
@@ -31,11 +31,53 @@ import { debtDirectionEnum, recordDebtSchema } from "../schemas";
 
 export const recordDebtDrawerHandle = createDrawerHandle();
 
-export function RecordDebtDrawer() {
-  const [isOpen, setIsOpen] = useState(false);
+type RecordDebtFormControls = {
+  isDirty: () => boolean;
+  reset: () => void;
+};
 
+export function RecordDebtDrawer() {
   const isMobile = useIsMobile();
 
+  const formControlsRef = useRef<RecordDebtFormControls>(null);
+
+  async function handleOnOpenChange(open: boolean, eventDetails: DrawerChangeEventDetails) {
+    if (open || !formControlsRef.current?.isDirty()) return;
+
+    eventDetails.cancel();
+
+    const confirmed = await confirm("Discard new debt?", {
+      description: "The debt details you entered will be lost.",
+      confirmLabel: "Keep Editing",
+      cancelLabel: "Discard",
+      dismissValue: true,
+    });
+
+    if (confirmed) return;
+
+    formControlsRef.current.reset();
+    recordDebtDrawerHandle.close();
+  }
+
+  return (
+    <Drawer
+      handle={recordDebtDrawerHandle}
+      onOpenChange={handleOnOpenChange}
+      showSwipeHandle={isMobile}
+      swipeDirection={isMobile ? "down" : "right"}
+    >
+      <DrawerContent>
+        <RecordDebtForm ref={formControlsRef} />
+      </DrawerContent>
+    </Drawer>
+  );
+}
+
+type RecordDebtFormProps = {
+  ref: Ref<RecordDebtFormControls>;
+};
+
+function RecordDebtForm({ ref }: RecordDebtFormProps) {
   const mutation = useRecordDebtMutation();
 
   const defaultValues: z.input<typeof recordDebtSchema> = {
@@ -71,7 +113,7 @@ export function RecordDebtDrawer() {
 
   const bankAccountsQuery = useQuery({
     ...bankAccountsQueryOption({ currency }),
-    enabled: isOpen && direction === "receivable",
+    enabled: direction === "receivable",
   });
 
   const eligibleSourceAccounts = bankAccountsQuery.data?.filter(
@@ -86,194 +128,164 @@ export function RecordDebtDrawer() {
     return bankAccountsQuery.data?.find((account) => account.id === bankAccountId);
   }
 
-  async function handleOnOpenChange(open: boolean, eventDetails: DrawerChangeEventDetails) {
-    if (open) {
-      setIsOpen(true);
-
-      return;
-    }
-
-    if (form.state.isDirty) {
-      eventDetails.cancel();
-
-      const confirmed = await confirm("Discard new debt?", {
-        description: "The debt details you entered will be lost.",
-        confirmLabel: "Keep Editing",
-        cancelLabel: "Discard",
-        dismissValue: true,
-      });
-
-      if (confirmed) return;
-
-      form.reset();
-      recordDebtDrawerHandle.close();
-
-      return;
-    }
-
-    form.reset();
-    setIsOpen(false);
-  }
+  useImperativeHandle(
+    ref,
+    () => ({ isDirty: () => form.state.isDirty, reset: () => form.reset() }),
+    [form],
+  );
 
   return (
-    <Drawer
-      handle={recordDebtDrawerHandle}
-      onOpenChange={handleOnOpenChange}
-      showSwipeHandle={isMobile}
-      swipeDirection={isMobile ? "down" : "right"}
-    >
-      <DrawerContent>
-        <DrawerHeader>
-          <DrawerTitle>Record Debt</DrawerTitle>
-          <DrawerDescription>Track money you owe someone, or that they owe you.</DrawerDescription>
-        </DrawerHeader>
-        <div className="min-h-0 flex-1 overflow-y-auto p-4">
-          <form
-            id={form.formId}
-            onSubmit={(e) => {
-              e.preventDefault();
-              e.stopPropagation();
-              form.handleSubmit();
-            }}
-          >
-            <FieldGroup>
-              <form.AppField
-                name="direction"
-                listeners={{
-                  onChange: ({ value }) => {
-                    if (value === "receivable") return;
+    <>
+      <DrawerHeader>
+        <DrawerTitle>Record Debt</DrawerTitle>
+        <DrawerDescription>Track money you owe someone, or that they owe you.</DrawerDescription>
+      </DrawerHeader>
+      <div className="min-h-0 flex-1 overflow-y-auto p-4">
+        <form
+          id={form.formId}
+          onSubmit={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            form.handleSubmit();
+          }}
+        >
+          <FieldGroup>
+            <form.AppField
+              name="direction"
+              listeners={{
+                onChange: ({ value }) => {
+                  if (value === "receivable") return;
 
-                    form.setFieldValue("bankAccountId", undefined);
-                  },
-                }}
+                  form.setFieldValue("bankAccountId", undefined);
+                },
+              }}
+            >
+              {(field) => (
+                <field.RadioGroup
+                  label="Direction"
+                  options={Object.keys(debtDirectionEnum.enum).map((type) => ({
+                    label: type,
+                    value: type,
+                  }))}
+                />
+              )}
+            </form.AppField>
+            <form.AppField name="name">
+              {(field) => <field.Input label="Counterparty Name" placeholder="John" required />}
+            </form.AppField>
+            <Field>
+              <FieldLabel htmlFor={`${form.formId}-amount`}>Amount</FieldLabel>
+
+              <InputGroup>
+                <InputGroupAddon>
+                  <form.AppField name="currency">
+                    {(field) => (
+                      <CurrencyCombobox
+                        value={field.state.value}
+                        onValueChange={(value) => {
+                          field.handleChange(value?.toString() ?? "");
+                          form.setFieldValue("bankAccountId", undefined);
+                        }}
+                      />
+                    )}
+                  </form.AppField>
+                </InputGroupAddon>
+                <form.AppField
+                  name="amount"
+                  validators={{
+                    onChangeListenTo: ["bankAccountId"],
+                    onChange: ({ value }) => {
+                      const bankAccount = findSourceAccount(form.getFieldValue("bankAccountId"));
+                      if (!bankAccount) return undefined;
+
+                      return exceedsAvailable(value, bankAccount.unallocated)
+                        ? {
+                            message: describeInsufficientUnallocated({
+                              purpose: "loan",
+                              bankAccount,
+                              availableCents: bankAccount.unallocated,
+                            }),
+                          }
+                        : undefined;
+                    },
+                  }}
+                >
+                  {(field) => {
+                    const isInvalid = field.state.meta.isTouched && !field.state.meta.isValid;
+
+                    return (
+                      <InputGroupInput
+                        type="number"
+                        id={`${form.formId}-amount`}
+                        placeholder="0.00"
+                        min={0.01}
+                        step={0.01}
+                        required
+                        value={field.state.value as string}
+                        onChange={(e) => field.handleChange(e.target.value)}
+                        onBlur={field.handleBlur}
+                        aria-invalid={isInvalid ? true : undefined}
+                        aria-describedby={isInvalid ? `${form.formId}-amount-error` : undefined}
+                      />
+                    );
+                  }}
+                </form.AppField>
+              </InputGroup>
+              <form.Subscribe
+                selector={(state) =>
+                  state.fieldMeta.amount?.isTouched ? state.fieldMeta.amount.errors : undefined
+                }
               >
-                {(field) => (
-                  <field.RadioGroup
-                    label="Direction"
-                    options={Object.keys(debtDirectionEnum.enum).map((type) => ({
-                      label: type,
-                      value: type,
-                    }))}
+                {(amountErrors) => (
+                  <FieldError id={`${form.formId}-amount-error`} errors={amountErrors} />
+                )}
+              </form.Subscribe>
+            </Field>
+            {direction === "receivable" ? (
+              <form.AppField name="bankAccountId">
+                {() => (
+                  <BankAccountSelectField
+                    label="Funding Source"
+                    description="Optional. Leave it empty if the money isn't coming out of a tracked account."
+                    placeholder="No source account"
+                    currency={currency}
+                    bankAccountsQuery={bankAccountsQuery}
+                    bankAccounts={eligibleSourceAccounts}
+                    emptyContent={
+                      <>
+                        <FieldError>No {currency} accounts with available balance.</FieldError>
+                        <Button
+                          type="button"
+                          variant="outline"
+                          onClick={openRegisterBankAccountDialog}
+                        >
+                          Register a/an {currency} account
+                        </Button>
+                      </>
+                    }
                   />
                 )}
               </form.AppField>
-              <form.AppField name="name">
-                {(field) => <field.Input label="Counterparty Name" placeholder="John" required />}
-              </form.AppField>
-              <Field>
-                <FieldLabel htmlFor={`${form.formId}-amount`}>Amount</FieldLabel>
-
-                <InputGroup>
-                  <InputGroupAddon>
-                    <form.AppField name="currency">
-                      {(field) => (
-                        <CurrencyCombobox
-                          value={field.state.value}
-                          onValueChange={(value) => {
-                            field.handleChange(value?.toString() ?? "");
-                            form.setFieldValue("bankAccountId", undefined);
-                          }}
-                        />
-                      )}
-                    </form.AppField>
-                  </InputGroupAddon>
-                  <form.AppField
-                    name="amount"
-                    validators={{
-                      onChangeListenTo: ["bankAccountId"],
-                      onChange: ({ value }) => {
-                        const bankAccount = findSourceAccount(form.getFieldValue("bankAccountId"));
-                        if (!bankAccount) return undefined;
-
-                        return exceedsAvailable(value, bankAccount.unallocated)
-                          ? {
-                              message: describeInsufficientUnallocated({
-                                purpose: "loan",
-                                bankAccount,
-                                availableCents: bankAccount.unallocated,
-                              }),
-                            }
-                          : undefined;
-                      },
-                    }}
-                  >
-                    {(field) => {
-                      const isInvalid = field.state.meta.isTouched && !field.state.meta.isValid;
-
-                      return (
-                        <InputGroupInput
-                          type="number"
-                          id={`${form.formId}-amount`}
-                          placeholder="0.00"
-                          min={0.01}
-                          step={0.01}
-                          required
-                          value={field.state.value as string}
-                          onChange={(e) => field.handleChange(e.target.value)}
-                          onBlur={field.handleBlur}
-                          aria-invalid={isInvalid ? true : undefined}
-                          aria-describedby={isInvalid ? `${form.formId}-amount-error` : undefined}
-                        />
-                      );
-                    }}
-                  </form.AppField>
-                </InputGroup>
-                <form.Subscribe
-                  selector={(state) =>
-                    state.fieldMeta.amount?.isTouched ? state.fieldMeta.amount.errors : undefined
-                  }
-                >
-                  {(amountErrors) => (
-                    <FieldError id={`${form.formId}-amount-error`} errors={amountErrors} />
-                  )}
-                </form.Subscribe>
-              </Field>
-              {direction === "receivable" ? (
-                <form.AppField name="bankAccountId">
-                  {() => (
-                    <BankAccountSelectField
-                      label="Funding Source"
-                      description="Optional. Leave it empty if the money isn't coming out of a tracked account."
-                      placeholder="No source account"
-                      currency={currency}
-                      bankAccountsQuery={bankAccountsQuery}
-                      bankAccounts={eligibleSourceAccounts}
-                      emptyContent={
-                        <>
-                          <FieldError>No {currency} accounts with available balance.</FieldError>
-                          <Button
-                            type="button"
-                            variant="outline"
-                            onClick={openRegisterBankAccountDialog}
-                          >
-                            Register a/an {currency} account
-                          </Button>
-                        </>
-                      }
-                    />
-                  )}
-                </form.AppField>
-              ) : (
-                <p className="text-muted-foreground">
-                  No account needed yet. This debt is an IOU until you log a repayment.
-                </p>
-              )}
-              <form.AppField name="date">
-                {(field) => <field.Datepicker label="Date" />}
-              </form.AppField>
-              <form.AppField name="note">
-                {(field) => <field.Textarea label="Note (optional)" placeholder="Add a note..." />}
-              </form.AppField>
-            </FieldGroup>
-          </form>
-        </div>
-        <DrawerFooter className="border-t pt-4">
-          <form.AppForm>
-            <form.Button form={form.formId}>Record Debt</form.Button>
-          </form.AppForm>
-          <DrawerClose render={<Button variant="outline" />}>Cancel</DrawerClose>
-        </DrawerFooter>
-      </DrawerContent>
-    </Drawer>
+            ) : (
+              <p className="text-muted-foreground">
+                No account needed yet. This debt is an IOU until you log a repayment.
+              </p>
+            )}
+            <form.AppField name="date">
+              {(field) => <field.Datepicker label="Date" />}
+            </form.AppField>
+            <form.AppField name="note">
+              {(field) => <field.Textarea label="Note (optional)" placeholder="Add a note..." />}
+            </form.AppField>
+          </FieldGroup>
+        </form>
+      </div>
+      <DrawerFooter className="border-t pt-4">
+        <form.AppForm>
+          <form.Button form={form.formId}>Record Debt</form.Button>
+        </form.AppForm>
+        <DrawerClose render={<Button variant="outline" />}>Cancel</DrawerClose>
+      </DrawerFooter>
+    </>
   );
 }
