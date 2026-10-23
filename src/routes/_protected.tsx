@@ -13,7 +13,7 @@ import { DeleteBucketDialog } from "#/modules/buckets/components/delete-bucket-d
 import { EditBucketDialog } from "#/modules/buckets/components/edit-bucket-dialog";
 import { SetUpBucketDialog } from "#/modules/buckets/components/set-up-bucket-dialog";
 import { DeleteDebtDialog } from "#/modules/debts/components/delete-debt-dialog";
-import { EditDebtDialog } from "#/modules/debts/components/edit-debt-dialog";
+import { EditDebtDrawer } from "#/modules/debts/components/edit-debt-drawer";
 import { RecordDebtDrawer } from "#/modules/debts/components/record-debt-drawer";
 import { AddGoalDialog } from "#/modules/goals/components/add-goal-dialog";
 import { EditGoalDialog } from "#/modules/goals/components/edit-goal-dialog";
@@ -61,7 +61,7 @@ function RouteComponent() {
       <DeleteBankAccountDialog />
       <DeleteBucketDialog />
       <RecordDebtDrawer />
-      <EditDebtDialog />
+      <EditDebtDrawer />
       <DeleteDebtDialog />
       <LogRepaymentDialog />
       <EditRepaymentDialog />

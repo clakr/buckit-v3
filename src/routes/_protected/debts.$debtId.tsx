@@ -7,10 +7,11 @@ import { Main } from "#/components/main";
 import { RouteRetryButton } from "#/components/route-retry-button";
 import { StateTemplate } from "#/components/state-template";
 import { Button } from "#/components/ui/button";
+import { DrawerTrigger } from "#/components/ui/drawer";
 import { loadOrThrowRouteNotFound } from "#/lib/errors";
 import { formatPageTitle } from "#/lib/utils";
 import { DebtLedgerTable } from "#/modules/debts/components/debt-ledger-table";
-import { useEditDebtDialogStore } from "#/modules/debts/components/edit-debt-dialog";
+import { editDebtDrawerHandle } from "#/modules/debts/components/edit-debt-drawer";
 import { debtQueryOption } from "#/modules/debts/query-options";
 import { useLogRepaymentDialogStore } from "#/modules/repayments/components/log-repayment-dialog";
 
@@ -75,19 +76,19 @@ function RouteComponent() {
     useLogRepaymentDialogStore.getState().open({ debtId: debt.id });
   }
 
-  function handleOpenEditDebtDialog() {
-    useEditDebtDialogStore.getState().open({ debtId: debt.id });
-  }
-
   return (
     <Main>
       <div className="flex items-baseline justify-between">
         <Heading className="capitalize">{debt.name}</Heading>
         <div className="flex gap-x-2">
-          <Button variant="outline" onClick={handleOpenEditDebtDialog}>
+          <DrawerTrigger
+            handle={editDebtDrawerHandle}
+            payload={{ debtId: debt.id }}
+            render={<Button variant="outline" />}
+          >
             <IconPencil />
             Edit
-          </Button>
+          </DrawerTrigger>
           <Button onClick={handleOpenLogRepaymentDialog}>
             <IconPlus />
             Log Repayment

@@ -17,7 +17,7 @@ import type { getDebts } from "../functions";
 
 import { useForgiveDebtMutation, useUnforgiveDebtMutation } from "../mutations";
 import { deleteDebtDialogHandle } from "./delete-debt-dialog";
-import { useEditDebtDialogStore } from "./edit-debt-dialog";
+import { editDebtDrawerHandle } from "./edit-debt-drawer";
 
 type Props = {
   debt: Awaited<ReturnType<typeof getDebts>>[number];
@@ -33,8 +33,8 @@ export function DebtActionsDropdownMenu({ debt }: Props) {
     useLogRepaymentDialogStore.getState().open({ debtId: debt.id });
   }
 
-  function handleOpenEditDebtDialog() {
-    useEditDebtDialogStore.getState().open({ debtId: debt.id });
+  function handleOpenEditDebtDrawer() {
+    editDebtDrawerHandle.openWithPayload({ debtId: debt.id });
   }
 
   function handleOpenDeleteDebtDialog() {
@@ -85,7 +85,7 @@ export function DebtActionsDropdownMenu({ debt }: Props) {
             <IconEye />
             View
           </DropdownMenuItem>
-          <DropdownMenuItem onClick={handleOpenEditDebtDialog}>
+          <DropdownMenuItem onClick={handleOpenEditDebtDrawer}>
             <svg />
             Edit
           </DropdownMenuItem>
