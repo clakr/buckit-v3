@@ -17,7 +17,7 @@ import { useAddGoalDialogStore } from "#/modules/goals/components/add-goal-dialo
 import { useWithdrawDialogStore } from "#/modules/withdrawals/components/withdraw-dialog";
 
 import { deleteBucketDialogHandle } from "./delete-bucket-dialog";
-import { useEditBucketDialogStore } from "./edit-bucket-dialog";
+import { editBucketDrawerHandle } from "./edit-bucket-drawer";
 
 type Props = {
   bucket: Awaited<ReturnType<typeof getBuckets>>[number];
@@ -38,8 +38,8 @@ export function BucketActionsDropdownMenu({ bucket }: Props) {
     useAddGoalDialogStore.getState().open({ bucketId });
   }
 
-  function handleOpenEditBucketDialog() {
-    useEditBucketDialogStore.getState().open({ bucketId });
+  function handleOpenEditBucketDrawer() {
+    editBucketDrawerHandle.openWithPayload({ bucketId });
   }
 
   function handleOpenDeleteBucketDialog() {
@@ -75,7 +75,7 @@ export function BucketActionsDropdownMenu({ bucket }: Props) {
             <IconEye />
             View
           </DropdownMenuItem>
-          <DropdownMenuItem onClick={handleOpenEditBucketDialog}>
+          <DropdownMenuItem onClick={handleOpenEditBucketDrawer}>
             <svg />
             Edit
           </DropdownMenuItem>

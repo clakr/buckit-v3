@@ -10,8 +10,8 @@ import { DeleteBankAccountDialog } from "#/modules/bank-accounts/components/dele
 import { EditBankAccountDrawer } from "#/modules/bank-accounts/components/edit-bank-account-drawer";
 import { RegisterBankAccountDrawer } from "#/modules/bank-accounts/components/register-bank-account-drawer";
 import { DeleteBucketDialog } from "#/modules/buckets/components/delete-bucket-dialog";
-import { EditBucketDialog } from "#/modules/buckets/components/edit-bucket-dialog";
-import { SetUpBucketDialog } from "#/modules/buckets/components/set-up-bucket-dialog";
+import { EditBucketDrawer } from "#/modules/buckets/components/edit-bucket-drawer";
+import { SetUpBucketDrawer } from "#/modules/buckets/components/set-up-bucket-drawer";
 import { DeleteDebtDialog } from "#/modules/debts/components/delete-debt-dialog";
 import { EditDebtDrawer } from "#/modules/debts/components/edit-debt-drawer";
 import { RecordDebtDrawer } from "#/modules/debts/components/record-debt-drawer";
@@ -47,7 +47,7 @@ function RouteComponent() {
       </SidebarProvider>
 
       <RegisterBankAccountDrawer />
-      <SetUpBucketDialog />
+      <SetUpBucketDrawer />
       <LogTransactionDrawer />
       <LogAllocationDialog />
       <WithdrawDialog />
@@ -57,7 +57,7 @@ function RouteComponent() {
       <EditTransactionDrawer />
       <EditAllocationDialog />
       <EditBankAccountDrawer />
-      <EditBucketDialog />
+      <EditBucketDrawer />
       <DeleteBankAccountDialog />
       <DeleteBucketDialog />
       <RecordDebtDrawer />

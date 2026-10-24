@@ -8,10 +8,11 @@ import { RouteRetryButton } from "#/components/route-retry-button";
 import { StateTemplate } from "#/components/state-template";
 import { Button } from "#/components/ui/button";
 import { DataTable } from "#/components/ui/data-table";
+import { DrawerTrigger } from "#/components/ui/drawer";
 import { MODULE_ICONS } from "#/lib/constants";
 import { formatPageTitle } from "#/lib/utils";
 import { INDEX_COLUMNS } from "#/modules/buckets/columns";
-import { useSetUpBucketDialogStore } from "#/modules/buckets/components/set-up-bucket-dialog";
+import { setUpBucketDrawerHandle } from "#/modules/buckets/components/set-up-bucket-drawer";
 import { bucketsQueryOptions } from "#/modules/buckets/query-options";
 
 export const Route = createFileRoute("/_protected/buckets/")({
@@ -52,16 +53,14 @@ function RouteComponent() {
 
   const isEmpty = buckets.length === 0;
 
-  const openDialog = useSetUpBucketDialogStore((state) => state.open);
-
   return (
     <Main>
       <div className="flex items-center justify-between">
         <Heading>Buckets</Heading>
-        <Button onClick={() => openDialog()}>
+        <DrawerTrigger handle={setUpBucketDrawerHandle} render={<Button />}>
           <IconPlus />
           Set Up Bucket
-        </Button>
+        </DrawerTrigger>
       </div>
 
       {isEmpty ? (
@@ -71,10 +70,10 @@ function RouteComponent() {
           description="Create a bucket to start organizing your money."
           icon={<MODULE_ICONS.buckets />}
           content={
-            <Button onClick={() => openDialog()}>
+            <DrawerTrigger handle={setUpBucketDrawerHandle} render={<Button />}>
               <IconPlus />
               Set Up Bucket
-            </Button>
+            </DrawerTrigger>
           }
         />
       ) : (

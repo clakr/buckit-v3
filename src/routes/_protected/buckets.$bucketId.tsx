@@ -8,12 +8,13 @@ import { RouteRetryButton } from "#/components/route-retry-button";
 import { StateTemplate } from "#/components/state-template";
 import { Button } from "#/components/ui/button";
 import { DataTable } from "#/components/ui/data-table";
+import { DrawerTrigger } from "#/components/ui/drawer";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "#/components/ui/tabs";
 import { loadOrThrowRouteNotFound } from "#/lib/errors";
 import { formatPageTitle } from "#/lib/utils";
 import { getAllocationColumns } from "#/modules/allocations/columns";
 import { allocationsQueryOption } from "#/modules/allocations/query-options";
-import { useEditBucketDialogStore } from "#/modules/buckets/components/edit-bucket-dialog";
+import { editBucketDrawerHandle } from "#/modules/buckets/components/edit-bucket-drawer";
 import { bucketQueryOption } from "#/modules/buckets/query-options";
 import { useAddGoalDialogStore } from "#/modules/goals/components/add-goal-dialog";
 import { BucketGoalCard } from "#/modules/goals/components/bucket-goal-card";
@@ -110,10 +111,6 @@ function RouteComponent() {
     useAddGoalDialogStore.getState().open({ bucketId });
   }
 
-  function handleOpenEditBucketDialog() {
-    useEditBucketDialogStore.getState().open({ bucketId });
-  }
-
   return (
     <Main>
       <div className="flex items-baseline justify-between">
@@ -129,10 +126,14 @@ function RouteComponent() {
             <IconMinus />
             Withdraw
           </Button>
-          <Button variant="outline" onClick={handleOpenEditBucketDialog}>
+          <DrawerTrigger
+            handle={editBucketDrawerHandle}
+            payload={{ bucketId }}
+            render={<Button variant="outline" />}
+          >
             <IconPencil />
             Edit
-          </Button>
+          </DrawerTrigger>
         </div>
       </div>
 
