@@ -16,7 +16,7 @@ import { useLogAllocationDialogStore } from "#/modules/allocations/components/lo
 import { useAddGoalDialogStore } from "#/modules/goals/components/add-goal-dialog";
 import { useWithdrawDialogStore } from "#/modules/withdrawals/components/withdraw-dialog";
 
-import { useDeleteBucketDialogStore } from "./delete-bucket-dialog";
+import { deleteBucketDialogHandle } from "./delete-bucket-dialog";
 import { useEditBucketDialogStore } from "./edit-bucket-dialog";
 
 type Props = {
@@ -43,7 +43,7 @@ export function BucketActionsDropdownMenu({ bucket }: Props) {
   }
 
   function handleOpenDeleteBucketDialog() {
-    useDeleteBucketDialogStore.getState().open({ bucketId });
+    deleteBucketDialogHandle.openWithPayload({ bucketId });
   }
 
   return (
