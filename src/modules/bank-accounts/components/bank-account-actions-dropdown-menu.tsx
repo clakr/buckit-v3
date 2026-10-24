@@ -15,7 +15,7 @@ import {
 import { useLogAllocationDialogStore } from "#/modules/allocations/components/log-allocation-dialog";
 import { useLogTransactionDialogStore } from "#/modules/transactions/components/log-transaction-dialog";
 
-import { useDeleteBankAccountDialogStore } from "./delete-bank-account-dialog";
+import { deleteBankAccountDialogHandle } from "./delete-bank-account-dialog";
 import { useEditBankAccountDialogStore } from "./edit-bank-account-dialog";
 
 type Props = {
@@ -38,7 +38,7 @@ export function BankAccountActionsDropdownMenu({ account }: Props) {
   }
 
   function handleOpenDeleteBankAccountDialog() {
-    useDeleteBankAccountDialogStore.getState().open({ bankAccountId: account.id });
+    deleteBankAccountDialogHandle.openWithPayload({ bankAccountId: account.id });
   }
 
   return (
