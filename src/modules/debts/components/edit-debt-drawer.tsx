@@ -10,17 +10,16 @@ import { Badge } from "#/components/ui/badge";
 import { Button } from "#/components/ui/button";
 import {
   createDrawerHandle,
-  Drawer,
   DrawerClose,
   DrawerContent,
   DrawerDescription,
   DrawerFooter,
   DrawerHeader,
   DrawerTitle,
+  ResponsiveDrawer,
   type DrawerChangeEventDetails,
 } from "#/components/ui/drawer";
 import { FieldGroup } from "#/components/ui/field";
-import { useIsMobile } from "#/hooks/use-mobile";
 import { useAppForm } from "#/integrations/tanstack-form";
 import { NotFoundError } from "#/lib/errors";
 import { centsToAmountInput } from "#/lib/money";
@@ -37,8 +36,6 @@ type EditDebtFormControls = {
 };
 
 export function EditDebtDrawer() {
-  const isMobile = useIsMobile();
-
   const formControlsRef = useRef<EditDebtFormControls>(null);
 
   async function handleOnOpenChange(open: boolean, eventDetails: DrawerChangeEventDetails) {
@@ -60,18 +57,13 @@ export function EditDebtDrawer() {
   }
 
   return (
-    <Drawer
-      handle={editDebtDrawerHandle}
-      onOpenChange={handleOnOpenChange}
-      showSwipeHandle={isMobile}
-      swipeDirection={isMobile ? "down" : "right"}
-    >
+    <ResponsiveDrawer handle={editDebtDrawerHandle} onOpenChange={handleOnOpenChange}>
       {({ payload }) => (
         <DrawerContent>
           {payload ? <EditDebtForm debtId={payload.debtId} ref={formControlsRef} /> : null}
         </DrawerContent>
       )}
-    </Drawer>
+    </ResponsiveDrawer>
   );
 }
 

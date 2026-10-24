@@ -7,18 +7,17 @@ import { CurrencyCombobox } from "#/components/currency-combobox";
 import { Button } from "#/components/ui/button";
 import {
   createDrawerHandle,
-  Drawer,
   DrawerClose,
   DrawerContent,
   DrawerDescription,
   DrawerFooter,
   DrawerHeader,
   DrawerTitle,
+  ResponsiveDrawer,
   type DrawerChangeEventDetails,
 } from "#/components/ui/drawer";
 import { Field, FieldError, FieldGroup, FieldLabel } from "#/components/ui/field";
 import { InputGroup, InputGroupAddon, InputGroupInput } from "#/components/ui/input-group";
-import { useIsMobile } from "#/hooks/use-mobile";
 import { useAppForm } from "#/integrations/tanstack-form";
 import { exceedsAvailable, describeInsufficientUnallocated } from "#/lib/money";
 import { BankAccountSelectField } from "#/modules/bank-accounts/components/bank-account-select-field";
@@ -37,8 +36,6 @@ type RecordDebtFormControls = {
 };
 
 export function RecordDebtDrawer() {
-  const isMobile = useIsMobile();
-
   const formControlsRef = useRef<RecordDebtFormControls>(null);
 
   async function handleOnOpenChange(open: boolean, eventDetails: DrawerChangeEventDetails) {
@@ -60,16 +57,11 @@ export function RecordDebtDrawer() {
   }
 
   return (
-    <Drawer
-      handle={recordDebtDrawerHandle}
-      onOpenChange={handleOnOpenChange}
-      showSwipeHandle={isMobile}
-      swipeDirection={isMobile ? "down" : "right"}
-    >
+    <ResponsiveDrawer handle={recordDebtDrawerHandle} onOpenChange={handleOnOpenChange}>
       <DrawerContent>
         <RecordDebtForm ref={formControlsRef} />
       </DrawerContent>
-    </Drawer>
+    </ResponsiveDrawer>
   );
 }
 

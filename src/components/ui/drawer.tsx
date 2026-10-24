@@ -2,6 +2,8 @@ import { Drawer as DrawerPrimitive } from "@base-ui/react/drawer";
 import { cn } from "cn";
 import * as React from "react";
 
+import { useIsMobile } from "#/hooks/use-mobile";
+
 type DrawerContextProps = {
   hasSnapPoints: boolean;
   modal: DrawerPrimitive.Root.Props["modal"];
@@ -46,6 +48,16 @@ function Drawer<Payload>({
         {...props}
       />
     </DrawerContext.Provider>
+  );
+}
+
+function ResponsiveDrawer<Payload>(
+  props: Omit<DrawerPrimitive.Root.Props<Payload>, "swipeDirection">,
+) {
+  const isMobile = useIsMobile();
+
+  return (
+    <Drawer showSwipeHandle={isMobile} swipeDirection={isMobile ? "down" : "right"} {...props} />
   );
 }
 
@@ -201,6 +213,7 @@ export {
   type DrawerChangeEventDetails,
   createDrawerHandle,
   Drawer,
+  ResponsiveDrawer,
   DrawerPortal,
   DrawerOverlay,
   DrawerSwipeHandle,
