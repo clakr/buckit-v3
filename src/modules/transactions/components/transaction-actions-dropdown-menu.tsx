@@ -11,7 +11,7 @@ import {
   DropdownMenuTrigger,
 } from "#/components/ui/dropdown-menu";
 import { AppError, SessionExpiredError } from "#/lib/errors";
-import { useEditTransactionDialogStore } from "#/modules/transactions/components/edit-transaction-dialog";
+import { editTransactionDrawerHandle } from "#/modules/transactions/components/edit-transaction-drawer";
 import { validateDeleteTransaction } from "#/modules/transactions/functions";
 import { useDeleteTransactionMutation } from "#/modules/transactions/mutations";
 import { confirm } from "#/stores/use-confirm";
@@ -21,8 +21,8 @@ type Props = {
 };
 
 export function TransactionActionsDropdownMenu({ transactionId }: Props) {
-  function handleOpenEditTransactionDialog() {
-    useEditTransactionDialogStore.getState().open({ transactionId });
+  function handleOpenEditTransactionDrawer() {
+    editTransactionDrawerHandle.openWithPayload({ transactionId });
   }
 
   const mutation = useDeleteTransactionMutation();
@@ -83,7 +83,7 @@ export function TransactionActionsDropdownMenu({ transactionId }: Props) {
       </DropdownMenuTrigger>
       <DropdownMenuContent className="w-fit">
         <DropdownMenuGroup>
-          <DropdownMenuItem onClick={handleOpenEditTransactionDialog}>
+          <DropdownMenuItem onClick={handleOpenEditTransactionDrawer}>
             <IconEdit />
             Edit
           </DropdownMenuItem>

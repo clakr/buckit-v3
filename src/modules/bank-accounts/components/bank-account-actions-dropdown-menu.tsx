@@ -13,7 +13,7 @@ import {
   DropdownMenuTrigger,
 } from "#/components/ui/dropdown-menu";
 import { useLogAllocationDialogStore } from "#/modules/allocations/components/log-allocation-dialog";
-import { useLogTransactionDialogStore } from "#/modules/transactions/components/log-transaction-dialog";
+import { logTransactionDrawerHandle } from "#/modules/transactions/components/log-transaction-drawer";
 
 import { deleteBankAccountDialogHandle } from "./delete-bank-account-dialog";
 import { editBankAccountDrawerHandle } from "./edit-bank-account-drawer";
@@ -23,8 +23,8 @@ type Props = {
 };
 
 export function BankAccountActionsDropdownMenu({ account }: Props) {
-  function handleOpenLogTransactionDialog() {
-    useLogTransactionDialogStore.getState().open({ bankAccountId: account.id });
+  function handleOpenLogTransactionDrawer() {
+    logTransactionDrawerHandle.openWithPayload({ bankAccountId: account.id });
   }
 
   function handleOpenLogAllocationDialog() {
@@ -49,7 +49,7 @@ export function BankAccountActionsDropdownMenu({ account }: Props) {
       </DropdownMenuTrigger>
       <DropdownMenuContent className="w-fit">
         <DropdownMenuGroup>
-          <DropdownMenuItem onClick={handleOpenLogTransactionDialog}>
+          <DropdownMenuItem onClick={handleOpenLogTransactionDrawer}>
             <IconPlus />
             Log Transaction
           </DropdownMenuItem>
