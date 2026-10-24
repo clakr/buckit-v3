@@ -10,7 +10,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "#/components/ui/dropdown-menu";
-import { useEditWithdrawalDialogStore } from "#/modules/withdrawals/components/edit-withdrawal-dialog";
+import { editWithdrawalDrawerHandle } from "#/modules/withdrawals/components/edit-withdrawal-drawer";
 import { useDeleteWithdrawalMutation } from "#/modules/withdrawals/mutations";
 import { confirm } from "#/stores/use-confirm";
 
@@ -19,8 +19,8 @@ type Props = {
 };
 
 export function WithdrawalActionsDropdownMenu({ withdrawalId }: Props) {
-  function handleOpenEditWithdrawalDialog() {
-    useEditWithdrawalDialogStore.getState().open({ withdrawalId });
+  function handleOpenEditWithdrawalDrawer() {
+    editWithdrawalDrawerHandle.openWithPayload({ withdrawalId });
   }
 
   const mutation = useDeleteWithdrawalMutation();
@@ -52,7 +52,7 @@ export function WithdrawalActionsDropdownMenu({ withdrawalId }: Props) {
       </DropdownMenuTrigger>
       <DropdownMenuContent className="w-fit">
         <DropdownMenuGroup>
-          <DropdownMenuItem onClick={handleOpenEditWithdrawalDialog}>
+          <DropdownMenuItem onClick={handleOpenEditWithdrawalDrawer}>
             <IconEdit />
             Edit
           </DropdownMenuItem>

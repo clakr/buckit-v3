@@ -21,8 +21,8 @@ import { EditRepaymentDialog } from "#/modules/repayments/components/edit-repaym
 import { LogRepaymentDialog } from "#/modules/repayments/components/log-repayment-dialog";
 import { EditTransactionDrawer } from "#/modules/transactions/components/edit-transaction-drawer";
 import { LogTransactionDrawer } from "#/modules/transactions/components/log-transaction-drawer";
-import { EditWithdrawalDialog } from "#/modules/withdrawals/components/edit-withdrawal-dialog";
-import { WithdrawDialog } from "#/modules/withdrawals/components/withdraw-dialog";
+import { EditWithdrawalDrawer } from "#/modules/withdrawals/components/edit-withdrawal-drawer";
+import { WithdrawDrawer } from "#/modules/withdrawals/components/withdraw-drawer";
 
 export const Route = createFileRoute("/_protected")({
   ssr: "data-only",
@@ -50,10 +50,10 @@ function RouteComponent() {
       <SetUpBucketDrawer />
       <LogTransactionDrawer />
       <LogAllocationDialog />
-      <WithdrawDialog />
+      <WithdrawDrawer />
       <AddGoalDialog />
       <EditGoalDialog />
-      <EditWithdrawalDialog />
+      <EditWithdrawalDrawer />
       <EditTransactionDrawer />
       <EditAllocationDialog />
       <EditBankAccountDrawer />

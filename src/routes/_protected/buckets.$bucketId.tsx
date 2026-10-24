@@ -20,7 +20,7 @@ import { useAddGoalDialogStore } from "#/modules/goals/components/add-goal-dialo
 import { BucketGoalCard } from "#/modules/goals/components/bucket-goal-card";
 import { bucketGoalQueryOption } from "#/modules/goals/query-options";
 import { WITHDRAWAL_COLUMNS } from "#/modules/withdrawals/columns";
-import { useWithdrawDialogStore } from "#/modules/withdrawals/components/withdraw-dialog";
+import { withdrawDrawerHandle } from "#/modules/withdrawals/components/withdraw-drawer";
 import { withdrawalsQueryOption } from "#/modules/withdrawals/query-options";
 
 export const Route = createFileRoute("/_protected/buckets/$bucketId")({
@@ -103,10 +103,6 @@ function RouteComponent() {
   const { data: withdrawals } = useSuspenseQuery(withdrawalsQueryOptions);
   const { data: goal } = useSuspenseQuery(goalQueryOptions);
 
-  function handleOpenWithdrawDialog() {
-    useWithdrawDialogStore.getState().open({ bucketId });
-  }
-
   function handleOpenAddGoalDialog() {
     useAddGoalDialogStore.getState().open({ bucketId });
   }
@@ -122,10 +118,14 @@ function RouteComponent() {
               Add Goal
             </Button>
           )}
-          <Button variant="outline" onClick={handleOpenWithdrawDialog}>
+          <DrawerTrigger
+            handle={withdrawDrawerHandle}
+            payload={{ bucketId }}
+            render={<Button variant="outline" />}
+          >
             <IconMinus />
             Withdraw
-          </Button>
+          </DrawerTrigger>
           <DrawerTrigger
             handle={editBucketDrawerHandle}
             payload={{ bucketId }}

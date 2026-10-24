@@ -14,7 +14,7 @@ import {
 } from "#/components/ui/dropdown-menu";
 import { useLogAllocationDialogStore } from "#/modules/allocations/components/log-allocation-dialog";
 import { useAddGoalDialogStore } from "#/modules/goals/components/add-goal-dialog";
-import { useWithdrawDialogStore } from "#/modules/withdrawals/components/withdraw-dialog";
+import { withdrawDrawerHandle } from "#/modules/withdrawals/components/withdraw-drawer";
 
 import { deleteBucketDialogHandle } from "./delete-bucket-dialog";
 import { editBucketDrawerHandle } from "./edit-bucket-drawer";
@@ -30,8 +30,8 @@ export function BucketActionsDropdownMenu({ bucket }: Props) {
     useLogAllocationDialogStore.getState().open({ start: { from: "bucket", bucketId } });
   }
 
-  function handleOpenWithdrawDialog() {
-    useWithdrawDialogStore.getState().open({ bucketId });
+  function handleOpenWithdrawDrawer() {
+    withdrawDrawerHandle.openWithPayload({ bucketId });
   }
 
   function handleOpenAddGoalDialog() {
@@ -58,7 +58,7 @@ export function BucketActionsDropdownMenu({ bucket }: Props) {
             <IconPlus />
             Allocate Money
           </DropdownMenuItem>
-          <DropdownMenuItem onClick={handleOpenWithdrawDialog}>
+          <DropdownMenuItem onClick={handleOpenWithdrawDrawer}>
             <svg />
             Withdraw Money
           </DropdownMenuItem>
