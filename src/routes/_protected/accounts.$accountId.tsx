@@ -9,6 +9,7 @@ import { StateTemplate } from "#/components/state-template";
 import { Button } from "#/components/ui/button";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "#/components/ui/card";
 import { DataTable } from "#/components/ui/data-table";
+import { DrawerTrigger } from "#/components/ui/drawer";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "#/components/ui/tabs";
 import { loadOrThrowRouteNotFound } from "#/lib/errors";
 import { formatMoney } from "#/lib/money";
@@ -16,7 +17,7 @@ import { formatPageTitle } from "#/lib/utils";
 import { getAllocationColumns } from "#/modules/allocations/columns";
 import { allocationsQueryOption } from "#/modules/allocations/query-options";
 import { TRANSACTIONS_COLUMNS } from "#/modules/bank-accounts/columns";
-import { useEditBankAccountDialogStore } from "#/modules/bank-accounts/components/edit-bank-account-dialog";
+import { editBankAccountDrawerHandle } from "#/modules/bank-accounts/components/edit-bank-account-drawer";
 import { bankAccountQueryOption } from "#/modules/bank-accounts/query-options";
 
 export const Route = createFileRoute("/_protected/accounts/$accountId")({
@@ -88,18 +89,18 @@ function RouteComponent() {
 
   const { balance, unallocated, totalEarmarked } = bankAccount;
 
-  function handleOpenEditBankAccountDialog() {
-    useEditBankAccountDialogStore.getState().open({ bankAccountId: accountId });
-  }
-
   return (
     <Main>
       <div className="flex items-baseline justify-between">
         <Heading className="capitalize">{bankAccount.name}</Heading>
-        <Button variant="outline" onClick={handleOpenEditBankAccountDialog}>
+        <DrawerTrigger
+          handle={editBankAccountDrawerHandle}
+          payload={{ bankAccountId: accountId }}
+          render={<Button variant="outline" />}
+        >
           <IconPencil />
           Edit
-        </Button>
+        </DrawerTrigger>
       </div>
 
       <Tabs defaultValue="transactions">

@@ -16,7 +16,7 @@ import { useLogAllocationDialogStore } from "#/modules/allocations/components/lo
 import { useLogTransactionDialogStore } from "#/modules/transactions/components/log-transaction-dialog";
 
 import { deleteBankAccountDialogHandle } from "./delete-bank-account-dialog";
-import { useEditBankAccountDialogStore } from "./edit-bank-account-dialog";
+import { editBankAccountDrawerHandle } from "./edit-bank-account-drawer";
 
 type Props = {
   account: Awaited<ReturnType<typeof getBankAccounts>>[number];
@@ -33,8 +33,8 @@ export function BankAccountActionsDropdownMenu({ account }: Props) {
       .open({ start: { from: "bank-account", bankAccountId: account.id } });
   }
 
-  function handleOpenEditBankAccountDialog() {
-    useEditBankAccountDialogStore.getState().open({ bankAccountId: account.id });
+  function handleOpenEditBankAccountDrawer() {
+    editBankAccountDrawerHandle.openWithPayload({ bankAccountId: account.id });
   }
 
   function handleOpenDeleteBankAccountDialog() {
@@ -66,7 +66,7 @@ export function BankAccountActionsDropdownMenu({ account }: Props) {
             <IconEye />
             View
           </DropdownMenuItem>
-          <DropdownMenuItem onClick={handleOpenEditBankAccountDialog}>
+          <DropdownMenuItem onClick={handleOpenEditBankAccountDrawer}>
             <svg />
             Edit
           </DropdownMenuItem>

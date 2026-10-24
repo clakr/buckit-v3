@@ -7,8 +7,8 @@ import { EditAllocationDialog } from "#/modules/allocations/components/edit-allo
 import { LogAllocationDialog } from "#/modules/allocations/components/log-allocation-dialog";
 import { requireSignedIn } from "#/modules/authentication/guards";
 import { DeleteBankAccountDialog } from "#/modules/bank-accounts/components/delete-bank-account-dialog";
-import { EditBankAccountDialog } from "#/modules/bank-accounts/components/edit-bank-account-dialog";
-import { RegisterBankAccountDialog } from "#/modules/bank-accounts/components/register-bank-account-dialog";
+import { EditBankAccountDrawer } from "#/modules/bank-accounts/components/edit-bank-account-drawer";
+import { RegisterBankAccountDrawer } from "#/modules/bank-accounts/components/register-bank-account-drawer";
 import { DeleteBucketDialog } from "#/modules/buckets/components/delete-bucket-dialog";
 import { EditBucketDialog } from "#/modules/buckets/components/edit-bucket-dialog";
 import { SetUpBucketDialog } from "#/modules/buckets/components/set-up-bucket-dialog";
@@ -46,7 +46,7 @@ function RouteComponent() {
         </SidebarInset>
       </SidebarProvider>
 
-      <RegisterBankAccountDialog />
+      <RegisterBankAccountDrawer />
       <SetUpBucketDialog />
       <LogTransactionDialog />
       <LogAllocationDialog />
@@ -56,7 +56,7 @@ function RouteComponent() {
       <EditWithdrawalDialog />
       <EditTransactionDialog />
       <EditAllocationDialog />
-      <EditBankAccountDialog />
+      <EditBankAccountDrawer />
       <EditBucketDialog />
       <DeleteBankAccountDialog />
       <DeleteBucketDialog />

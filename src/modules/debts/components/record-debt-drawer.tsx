@@ -21,7 +21,7 @@ import { InputGroup, InputGroupAddon, InputGroupInput } from "#/components/ui/in
 import { useAppForm } from "#/integrations/tanstack-form";
 import { exceedsAvailable, describeInsufficientUnallocated } from "#/lib/money";
 import { BankAccountSelectField } from "#/modules/bank-accounts/components/bank-account-select-field";
-import { useRegisterBankAccountDialogStore } from "#/modules/bank-accounts/components/register-bank-account-dialog";
+import { registerBankAccountDrawerHandle } from "#/modules/bank-accounts/components/register-bank-account-drawer";
 import { bankAccountsQueryOption } from "#/modules/bank-accounts/query-options";
 import { useRecordDebtMutation } from "#/modules/debts/mutations";
 import { confirm } from "#/stores/use-confirm";
@@ -112,8 +112,8 @@ function RecordDebtForm({ ref }: RecordDebtFormProps) {
     (account) => account.unallocated > 0,
   );
 
-  function openRegisterBankAccountDialog() {
-    useRegisterBankAccountDialogStore.getState().open({ currency });
+  function openRegisterBankAccountDrawer() {
+    registerBankAccountDrawerHandle.openWithPayload({ currency });
   }
 
   function findSourceAccount(bankAccountId: string | undefined) {
@@ -249,7 +249,7 @@ function RecordDebtForm({ ref }: RecordDebtFormProps) {
                         <Button
                           type="button"
                           variant="outline"
-                          onClick={openRegisterBankAccountDialog}
+                          onClick={openRegisterBankAccountDrawer}
                         >
                           Register a/an {currency} account
                         </Button>

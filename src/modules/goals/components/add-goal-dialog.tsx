@@ -16,7 +16,7 @@ import {
 } from "#/components/ui/dialog";
 import { FieldGroup } from "#/components/ui/field";
 import { useAppForm } from "#/integrations/tanstack-form";
-import { useRegisterBankAccountDialogStore } from "#/modules/bank-accounts/components/register-bank-account-dialog";
+import { registerBankAccountDrawerHandle } from "#/modules/bank-accounts/components/register-bank-account-drawer";
 import { bucketQueryOption } from "#/modules/buckets/query-options";
 import { GoalTargetFields } from "#/modules/goals/components/goal-target-fields";
 import { useAddGoalMutation } from "#/modules/goals/mutations";
@@ -95,9 +95,9 @@ export function AddGoalDialog() {
     close();
   }
 
-  function openRegisterBankAccountDialog() {
+  function openRegisterBankAccountDrawer() {
     close();
-    useRegisterBankAccountDialogStore.getState().open();
+    registerBankAccountDrawerHandle.openWithPayload({ currency: "PHP" });
   }
 
   if (!bucketId) return null;
@@ -148,7 +148,7 @@ export function AddGoalDialog() {
               title="No bank accounts yet"
               description="A goal's currency must be one your bank accounts use. Register a bank account first."
               content={
-                <Button onClick={openRegisterBankAccountDialog}>Register Bank Account</Button>
+                <Button onClick={openRegisterBankAccountDrawer}>Register Bank Account</Button>
               }
             />
           ) : null}

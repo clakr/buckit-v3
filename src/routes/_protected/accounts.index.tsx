@@ -8,10 +8,11 @@ import { RouteRetryButton } from "#/components/route-retry-button";
 import { StateTemplate } from "#/components/state-template";
 import { Button } from "#/components/ui/button";
 import { DataTable } from "#/components/ui/data-table";
+import { DrawerTrigger } from "#/components/ui/drawer";
 import { MODULE_ICONS } from "#/lib/constants";
 import { formatPageTitle } from "#/lib/utils";
 import { INDEX_COLUMNS } from "#/modules/bank-accounts/columns";
-import { useRegisterBankAccountDialogStore } from "#/modules/bank-accounts/components/register-bank-account-dialog";
+import { registerBankAccountDrawerHandle } from "#/modules/bank-accounts/components/register-bank-account-drawer";
 import { bankAccountsQueryOption } from "#/modules/bank-accounts/query-options";
 
 export const Route = createFileRoute("/_protected/accounts/")({
@@ -52,16 +53,18 @@ function RouteComponent() {
 
   const isEmpty = bankAccounts.length === 0;
 
-  const openDialog = useRegisterBankAccountDialogStore((state) => state.open);
-
   return (
     <Main>
       <div className="flex items-center justify-between">
         <Heading>Accounts</Heading>
-        <Button onClick={() => openDialog()}>
+        <DrawerTrigger
+          handle={registerBankAccountDrawerHandle}
+          payload={{ currency: "PHP" }}
+          render={<Button />}
+        >
           <IconPlus />
           Register Account
-        </Button>
+        </DrawerTrigger>
       </div>
 
       {isEmpty ? (
@@ -71,10 +74,14 @@ function RouteComponent() {
           description="Add your first bank account to start tracking."
           icon={<MODULE_ICONS.accounts />}
           content={
-            <Button onClick={() => openDialog()}>
+            <DrawerTrigger
+              handle={registerBankAccountDrawerHandle}
+              payload={{ currency: "PHP" }}
+              render={<Button />}
+            >
               <IconPlus />
               Register Account
-            </Button>
+            </DrawerTrigger>
           }
         />
       ) : (
