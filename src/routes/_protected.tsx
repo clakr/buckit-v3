@@ -3,8 +3,8 @@ import { createFileRoute, Outlet } from "@tanstack/react-router";
 import { SidebarContent } from "#/components/sidebar/content";
 import { SidebarFooter } from "#/components/sidebar/footer";
 import { Sidebar, SidebarInset, SidebarProvider, SidebarTrigger } from "#/components/ui/sidebar";
-import { EditAllocationDialog } from "#/modules/allocations/components/edit-allocation-dialog";
-import { LogAllocationDialog } from "#/modules/allocations/components/log-allocation-dialog";
+import { EditAllocationDrawer } from "#/modules/allocations/components/edit-allocation-drawer";
+import { LogAllocationDrawer } from "#/modules/allocations/components/log-allocation-drawer";
 import { requireSignedIn } from "#/modules/authentication/guards";
 import { DeleteBankAccountDialog } from "#/modules/bank-accounts/components/delete-bank-account-dialog";
 import { EditBankAccountDrawer } from "#/modules/bank-accounts/components/edit-bank-account-drawer";
@@ -49,13 +49,13 @@ function RouteComponent() {
       <RegisterBankAccountDrawer />
       <SetUpBucketDrawer />
       <LogTransactionDrawer />
-      <LogAllocationDialog />
+      <LogAllocationDrawer />
       <WithdrawDrawer />
       <AddGoalDialog />
       <EditGoalDialog />
       <EditWithdrawalDrawer />
       <EditTransactionDrawer />
-      <EditAllocationDialog />
+      <EditAllocationDrawer />
       <EditBankAccountDrawer />
       <EditBucketDrawer />
       <DeleteBankAccountDialog />

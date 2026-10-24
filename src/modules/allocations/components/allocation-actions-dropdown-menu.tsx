@@ -10,7 +10,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "#/components/ui/dropdown-menu";
-import { useEditAllocationDialogStore } from "#/modules/allocations/components/edit-allocation-dialog";
+import { editAllocationDrawerHandle } from "#/modules/allocations/components/edit-allocation-drawer";
 import { useDeleteAllocationMutation } from "#/modules/allocations/mutations";
 import { confirm } from "#/stores/use-confirm";
 
@@ -19,8 +19,8 @@ type Props = {
 };
 
 export function AllocationActionsDropdownMenu({ allocationId }: Props) {
-  function handleOpenEditAllocationDialog() {
-    useEditAllocationDialogStore.getState().open({ allocationId });
+  function handleOpenEditAllocationDrawer() {
+    editAllocationDrawerHandle.openWithPayload({ allocationId });
   }
 
   const mutation = useDeleteAllocationMutation();
@@ -52,7 +52,7 @@ export function AllocationActionsDropdownMenu({ allocationId }: Props) {
       </DropdownMenuTrigger>
       <DropdownMenuContent className="w-fit">
         <DropdownMenuGroup>
-          <DropdownMenuItem onClick={handleOpenEditAllocationDialog}>
+          <DropdownMenuItem onClick={handleOpenEditAllocationDrawer}>
             <IconEdit />
             Edit
           </DropdownMenuItem>

@@ -12,7 +12,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "#/components/ui/dropdown-menu";
-import { useLogAllocationDialogStore } from "#/modules/allocations/components/log-allocation-dialog";
+import { logAllocationDrawerHandle } from "#/modules/allocations/components/log-allocation-drawer";
 import { logTransactionDrawerHandle } from "#/modules/transactions/components/log-transaction-drawer";
 
 import { deleteBankAccountDialogHandle } from "./delete-bank-account-dialog";
@@ -27,10 +27,10 @@ export function BankAccountActionsDropdownMenu({ account }: Props) {
     logTransactionDrawerHandle.openWithPayload({ bankAccountId: account.id });
   }
 
-  function handleOpenLogAllocationDialog() {
-    useLogAllocationDialogStore
-      .getState()
-      .open({ start: { from: "bank-account", bankAccountId: account.id } });
+  function handleOpenLogAllocationDrawer() {
+    logAllocationDrawerHandle.openWithPayload({
+      start: { from: "bank-account", bankAccountId: account.id },
+    });
   }
 
   function handleOpenEditBankAccountDrawer() {
@@ -53,7 +53,7 @@ export function BankAccountActionsDropdownMenu({ account }: Props) {
             <IconPlus />
             Log Transaction
           </DropdownMenuItem>
-          <DropdownMenuItem onClick={handleOpenLogAllocationDialog}>
+          <DropdownMenuItem onClick={handleOpenLogAllocationDrawer}>
             <svg />
             Allocate Money
           </DropdownMenuItem>
