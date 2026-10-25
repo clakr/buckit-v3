@@ -9,7 +9,6 @@ import { Button } from "#/components/ui/button";
 import { describeErrorForUser, SessionExpiredError } from "#/lib/errors";
 import { signInUser, signOutUser, signUpUser } from "#/modules/authentication/functions";
 import { sessionQueryOption } from "#/modules/authentication/query-options";
-import { closeAllDialogs } from "#/stores/dialog-store";
 
 let isLeaving = false;
 
@@ -92,7 +91,6 @@ export async function leaveExpiredSession(router: RegisteredRouter, error: Sessi
 }
 
 async function enterSession(router: RegisteredRouter, redirectTo?: string) {
-  closeAllDialogs();
   router.options.context.queryClient.clear();
 
   await (redirectTo
@@ -101,8 +99,6 @@ async function enterSession(router: RegisteredRouter, redirectTo?: string) {
 }
 
 async function leaveSession(router: RegisteredRouter, redirectTo?: string) {
-  closeAllDialogs();
-
   router.options.context.queryClient.setQueryData(sessionQueryOption().queryKey, null);
 
   try {
