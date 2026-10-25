@@ -10,7 +10,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "#/components/ui/dropdown-menu";
-import { useEditGoalDialogStore } from "#/modules/goals/components/edit-goal-dialog";
+import { editGoalDrawerHandle } from "#/modules/goals/components/edit-goal-drawer";
 import { useRemoveGoalMutation } from "#/modules/goals/mutations";
 import { confirm } from "#/stores/use-confirm";
 
@@ -20,8 +20,8 @@ type Props = {
 };
 
 export function GoalActionsDropdownMenu({ goalId, bucketId }: Props) {
-  function handleOpenEditGoalDialog() {
-    useEditGoalDialogStore.getState().open({ bucketId });
+  function handleOpenEditGoalDrawer() {
+    editGoalDrawerHandle.openWithPayload({ bucketId });
   }
 
   const mutation = useRemoveGoalMutation();
@@ -53,7 +53,7 @@ export function GoalActionsDropdownMenu({ goalId, bucketId }: Props) {
       </DropdownMenuTrigger>
       <DropdownMenuContent className="w-fit">
         <DropdownMenuGroup>
-          <DropdownMenuItem onClick={handleOpenEditGoalDialog}>
+          <DropdownMenuItem onClick={handleOpenEditGoalDrawer}>
             <IconEdit />
             Edit
           </DropdownMenuItem>

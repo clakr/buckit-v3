@@ -16,7 +16,7 @@ import { getAllocationColumns } from "#/modules/allocations/columns";
 import { allocationsQueryOption } from "#/modules/allocations/query-options";
 import { editBucketDrawerHandle } from "#/modules/buckets/components/edit-bucket-drawer";
 import { bucketQueryOption } from "#/modules/buckets/query-options";
-import { useAddGoalDialogStore } from "#/modules/goals/components/add-goal-dialog";
+import { addGoalDrawerHandle } from "#/modules/goals/components/add-goal-drawer";
 import { BucketGoalCard } from "#/modules/goals/components/bucket-goal-card";
 import { bucketGoalQueryOption } from "#/modules/goals/query-options";
 import { WITHDRAWAL_COLUMNS } from "#/modules/withdrawals/columns";
@@ -103,20 +103,20 @@ function RouteComponent() {
   const { data: withdrawals } = useSuspenseQuery(withdrawalsQueryOptions);
   const { data: goal } = useSuspenseQuery(goalQueryOptions);
 
-  function handleOpenAddGoalDialog() {
-    useAddGoalDialogStore.getState().open({ bucketId });
-  }
-
   return (
     <Main>
       <div className="flex items-baseline justify-between">
         <Heading className="capitalize">{bucket.name}</Heading>
         <div className="flex gap-x-2">
           {goal ? null : (
-            <Button variant="outline" onClick={handleOpenAddGoalDialog}>
+            <DrawerTrigger
+              handle={addGoalDrawerHandle}
+              payload={{ bucketId }}
+              render={<Button variant="outline" />}
+            >
               <IconTarget />
               Add Goal
-            </Button>
+            </DrawerTrigger>
           )}
           <DrawerTrigger
             handle={withdrawDrawerHandle}

@@ -15,8 +15,8 @@ import { SetUpBucketDrawer } from "#/modules/buckets/components/set-up-bucket-dr
 import { DeleteDebtDialog } from "#/modules/debts/components/delete-debt-dialog";
 import { EditDebtDrawer } from "#/modules/debts/components/edit-debt-drawer";
 import { RecordDebtDrawer } from "#/modules/debts/components/record-debt-drawer";
-import { AddGoalDialog } from "#/modules/goals/components/add-goal-dialog";
-import { EditGoalDialog } from "#/modules/goals/components/edit-goal-dialog";
+import { AddGoalDrawer } from "#/modules/goals/components/add-goal-drawer";
+import { EditGoalDrawer } from "#/modules/goals/components/edit-goal-drawer";
 import { EditRepaymentDialog } from "#/modules/repayments/components/edit-repayment-dialog";
 import { LogRepaymentDialog } from "#/modules/repayments/components/log-repayment-dialog";
 import { EditTransactionDrawer } from "#/modules/transactions/components/edit-transaction-drawer";
@@ -51,8 +51,8 @@ function RouteComponent() {
       <LogTransactionDrawer />
       <LogAllocationDrawer />
       <WithdrawDrawer />
-      <AddGoalDialog />
-      <EditGoalDialog />
+      <AddGoalDrawer />
+      <EditGoalDrawer />
       <EditWithdrawalDrawer />
       <EditTransactionDrawer />
       <EditAllocationDrawer />
