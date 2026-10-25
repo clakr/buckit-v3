@@ -13,7 +13,7 @@ import { formatPageTitle } from "#/lib/utils";
 import { DebtLedgerTable } from "#/modules/debts/components/debt-ledger-table";
 import { editDebtDrawerHandle } from "#/modules/debts/components/edit-debt-drawer";
 import { debtQueryOption } from "#/modules/debts/query-options";
-import { useLogRepaymentDialogStore } from "#/modules/repayments/components/log-repayment-dialog";
+import { logRepaymentDrawerHandle } from "#/modules/repayments/components/log-repayment-drawer";
 
 export const Route = createFileRoute("/_protected/debts/$debtId")({
   context: ({ params }) => ({
@@ -72,10 +72,6 @@ function RouteComponent() {
 
   const { data: debt } = useSuspenseQuery(debtQueryOptions);
 
-  function handleOpenLogRepaymentDialog() {
-    useLogRepaymentDialogStore.getState().open({ debtId: debt.id });
-  }
-
   return (
     <Main>
       <div className="flex items-baseline justify-between">
@@ -89,14 +85,18 @@ function RouteComponent() {
             <IconPencil />
             Edit
           </DrawerTrigger>
-          <Button onClick={handleOpenLogRepaymentDialog}>
+          <DrawerTrigger
+            handle={logRepaymentDrawerHandle}
+            payload={{ debtId: debt.id }}
+            render={<Button />}
+          >
             <IconPlus />
             Log Repayment
-          </Button>
+          </DrawerTrigger>
         </div>
       </div>
 
-      <DebtLedgerTable debt={debt} onLogRepayment={handleOpenLogRepaymentDialog} />
+      <DebtLedgerTable debt={debt} />
     </Main>
   );
 }

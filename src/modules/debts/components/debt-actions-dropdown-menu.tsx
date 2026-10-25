@@ -10,7 +10,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "#/components/ui/dropdown-menu";
-import { useLogRepaymentDialogStore } from "#/modules/repayments/components/log-repayment-dialog";
+import { logRepaymentDrawerHandle } from "#/modules/repayments/components/log-repayment-drawer";
 import { confirm } from "#/stores/use-confirm";
 
 import type { getDebts } from "../functions";
@@ -29,8 +29,8 @@ export function DebtActionsDropdownMenu({ debt }: Props) {
 
   const { status } = debt;
 
-  function handleOpenLogRepaymentDialog() {
-    useLogRepaymentDialogStore.getState().open({ debtId: debt.id });
+  function handleOpenLogRepaymentDrawer() {
+    logRepaymentDrawerHandle.openWithPayload({ debtId: debt.id });
   }
 
   function handleOpenEditDebtDrawer() {
@@ -74,7 +74,7 @@ export function DebtActionsDropdownMenu({ debt }: Props) {
       </DropdownMenuTrigger>
       <DropdownMenuContent className="w-fit">
         <DropdownMenuGroup>
-          <DropdownMenuItem onClick={handleOpenLogRepaymentDialog}>
+          <DropdownMenuItem onClick={handleOpenLogRepaymentDrawer}>
             <IconPlus />
             Log Repayment
           </DropdownMenuItem>

@@ -11,7 +11,7 @@ import {
   DropdownMenuTrigger,
 } from "#/components/ui/dropdown-menu";
 
-import { useEditRepaymentDialogStore } from "./edit-repayment-dialog";
+import { editRepaymentDrawerHandle } from "./edit-repayment-drawer";
 
 type Props = {
   debtId: Debt["id"];
@@ -19,8 +19,8 @@ type Props = {
 };
 
 export function RepaymentActionsDropdownMenu({ debtId, repaymentId }: Props) {
-  function handleOpenEditRepaymentDialog() {
-    useEditRepaymentDialogStore.getState().open({ debtId: debtId, repaymentId: repaymentId });
+  function handleOpenEditRepaymentDrawer() {
+    editRepaymentDrawerHandle.openWithPayload({ debtId, repaymentId });
   }
 
   return (
@@ -31,7 +31,7 @@ export function RepaymentActionsDropdownMenu({ debtId, repaymentId }: Props) {
       </DropdownMenuTrigger>
       <DropdownMenuContent className="w-fit">
         <DropdownMenuGroup>
-          <DropdownMenuItem onClick={handleOpenEditRepaymentDialog}>
+          <DropdownMenuItem onClick={handleOpenEditRepaymentDrawer}>
             <IconEdit />
             Edit
           </DropdownMenuItem>

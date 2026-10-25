@@ -4,6 +4,7 @@ import { Link } from "@tanstack/react-router";
 import type { BankAccount } from "#/db/schema";
 
 import { Button } from "#/components/ui/button";
+import { DrawerTrigger } from "#/components/ui/drawer";
 import {
   Empty,
   EmptyContent,
@@ -23,6 +24,7 @@ import {
 } from "#/components/ui/table";
 import { formatMoney } from "#/lib/money";
 import { cn, formatDate } from "#/lib/utils";
+import { logRepaymentDrawerHandle } from "#/modules/repayments/components/log-repayment-drawer";
 import { RepaymentActionsDropdownMenu } from "#/modules/repayments/components/repayment-actions-dropdown-menu";
 
 import type { getDebt } from "../functions";
@@ -31,10 +33,9 @@ import { DebtStatusBadge } from "./debt-status-badge";
 
 type Props = {
   debt: NonNullable<Awaited<ReturnType<typeof getDebt>>>;
-  onLogRepayment: () => void;
 };
 
-export function DebtLedgerTable({ debt, onLogRepayment }: Props) {
+export function DebtLedgerTable({ debt }: Props) {
   function formatDebtAmount(value: number) {
     return formatMoney(value, debt.currency);
   }
@@ -129,10 +130,14 @@ export function DebtLedgerTable({ debt, onLogRepayment }: Props) {
                     </EmptyDescription>
                   </EmptyHeader>
                   <EmptyContent>
-                    <Button onClick={onLogRepayment}>
+                    <DrawerTrigger
+                      handle={logRepaymentDrawerHandle}
+                      payload={{ debtId: debt.id }}
+                      render={<Button />}
+                    >
                       <IconPlus />
                       Log Repayment
-                    </Button>
+                    </DrawerTrigger>
                   </EmptyContent>
                 </Empty>
               </TableCell>

@@ -17,8 +17,8 @@ import { EditDebtDrawer } from "#/modules/debts/components/edit-debt-drawer";
 import { RecordDebtDrawer } from "#/modules/debts/components/record-debt-drawer";
 import { AddGoalDrawer } from "#/modules/goals/components/add-goal-drawer";
 import { EditGoalDrawer } from "#/modules/goals/components/edit-goal-drawer";
-import { EditRepaymentDialog } from "#/modules/repayments/components/edit-repayment-dialog";
-import { LogRepaymentDialog } from "#/modules/repayments/components/log-repayment-dialog";
+import { EditRepaymentDrawer } from "#/modules/repayments/components/edit-repayment-drawer";
+import { LogRepaymentDrawer } from "#/modules/repayments/components/log-repayment-drawer";
 import { EditTransactionDrawer } from "#/modules/transactions/components/edit-transaction-drawer";
 import { LogTransactionDrawer } from "#/modules/transactions/components/log-transaction-drawer";
 import { EditWithdrawalDrawer } from "#/modules/withdrawals/components/edit-withdrawal-drawer";
@@ -63,8 +63,8 @@ function RouteComponent() {
       <RecordDebtDrawer />
       <EditDebtDrawer />
       <DeleteDebtDialog />
-      <LogRepaymentDialog />
-      <EditRepaymentDialog />
+      <LogRepaymentDrawer />
+      <EditRepaymentDrawer />
     </>
   );
 }
