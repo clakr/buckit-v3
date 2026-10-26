@@ -13,11 +13,6 @@ type NamedTable = SQLiteTable & {
   name: AnySQLiteColumn;
 };
 
-/**
- * "A name is unique per User, ignoring case" for one table, backed by its `(user_id, lower(name))`
- * unique index. Names are compared with SQLite's `lower()` on both sides, the same folding the
- * index uses, so the check and the index always agree (it folds ASCII letters only).
- */
 export function createUniqueNameRule({
   table,
   indexName,

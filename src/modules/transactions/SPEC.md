@@ -42,7 +42,7 @@ Every mutation that could reduce a Bank Account's Unallocated balance enforces t
 - `editTransaction`, which recomputes with the new amount and type in place of the old ones, through `assertTransactionEditAllowed`.
 - `deleteTransaction`, which recomputes without the transaction.
 
-All three call `checkUnallocated` (`src/modules/bank-accounts/figures.server.ts`). Allocation, Debt and Repayment use the same check, so the rule lives in one place. **The write runs the check.** Each mutation runs it on the server right before writing and throws `InsufficientFundsError` when it fails. The Log and Edit dialogs have no separate check before submitting. When the write rejects, the failure toast shows the reason and the dialog stays open with the user's input. Delete keeps `validateDeleteTransaction`, because the confirm dialog needs its preview before the user confirms: what will be removed, or why it can't be.
+All three call `checkUnallocated` (`src/modules/bank-accounts/figures.server.ts`). Allocation, Debt and Repayment use the same check, so the rule lives in one place. **The write runs the check.** Each mutation runs it on the server right before writing and throws `InsufficientFundsError` when it fails. The Log Transaction Drawer also flags an expense above Unallocated as the user types (see the 2026-10-21 entry below). The Edit Transaction Drawer has no separate check before submitting. When the write rejects, the failure toast shows the reason and the Drawer stays open with the user's input. Delete keeps `validateDeleteTransaction`, because the confirm dialog needs its preview before the user confirms: what will be removed, or why it can't be.
 
 ### Linked Transactions follow their Debt's or Bucket's rules
 
@@ -56,7 +56,7 @@ A Linked Transaction (see `CONTEXT.md`) follows the rules of the Debt or Withdra
   For a Debt link it then runs the usual `Unallocated` check. A Withdrawal's Transaction skips that check, because it moves Balance and the earmark by the same amount, so Unallocated can't change. Instead, raising its amount runs the held check (`checkHeld` in `src/modules/buckets/figures.server.ts`) and throws `InsufficientFundsError` past what the Bucket holds from that Bank Account. The message names the most the amount can be.
 
 - `editTransaction`, the Repayment storage module's `changeRepayment` and `editWithdrawal` all call it on the server.
-- `getTransaction` returns the link and the fields it locks. The Edit dialog disables those fields and says why.
+- `getTransaction` returns the link and the fields it locks. The Edit Transaction Drawer disables those fields and says why.
 - The Bank Account's Transactions table marks a Withdrawal's Transaction with a link to its Bucket.
 - The database deletes a repayment along with its Transaction. `repayments.transactionId` is `ON DELETE CASCADE`, so deleting a Transaction deletes its repayment. So does deleting a Bank Account, which cascades to its Transactions. `isRepaymentBackedBy` only finds those repayments for the Bank Account deletion preview.
 
@@ -64,7 +64,7 @@ A Linked Transaction (see `CONTEXT.md`) follows the rules of the Debt or Withdra
 
 ### Delete uses a plain confirmation, not a typed one
 
-Bank Account and Bucket deletion use typed confirmation, where the user re-types the entity's name. ADR 0001 and ADR 0002 justify that because those deletes cascade and destroy other records. Transaction deletion uses the app's plain `confirm()` Yes/No dialog instead. **This is intentional, not an inconsistency.** Deleting a Transaction destroys no other history, and destroying other history is the condition the ADRs use to justify the stronger guard.
+Bank Account and Bucket deletion use typed confirmation, where the user re-types the entity's name. ADR 0001 and ADR 0002 justify that because those deletes cascade and destroy other records. Transaction deletion uses the app's plain `confirm()` Yes/No dialog instead, on purpose. The ADRs justify the stronger guard only for a delete that destroys other history, and deleting a Transaction destroys none.
 
 Since the Debt and Withdrawal modules, three things can point at a Transaction, and none changes that:
 
@@ -95,9 +95,9 @@ Writing this spec turned up three small correctness bugs, all fixed:
 - **`schemas.ts` had an amount bound that contradicted its own error message.** `amount: z.coerce.number().min(1, "Amount must be greater than 0.")` required at least 1 whole currency unit. It rejected valid amounts under one unit, such as ₱0.50, that the message said were fine. The bound became `.min(0.01, ...)`.
 - **`forms.tsx` had a copy-pasted `aria-labelledby`.** The amount input pointed `aria-labelledby` at `"startingBalance-error"`, left over from the bank-accounts starting-balance field, instead of its own error id. It now references the field's own `errorId`.
 
-No ADR covers the difference in delete confirmation described above. It follows directly from a Transaction delete destroying no other history.
+No ADR covers the difference in delete confirmation described above. It follows from a Transaction delete destroying no other history.
 
-- **2026-10-21. Log Transaction opens with an id and checks expenses as the user types.** It used to render a Bank Account row captured when the row menu opened. Only the write caught an expense larger than Unallocated, unlike Log Allocation, Log Repayment and Record Debt. Its store now holds `{ bankAccountId }`. The dialog reads the account from `bankAccountsQueryOption()`, the list the Accounts page has already loaded, and that page is the dialog's only opener. So it opens instantly with live figures. It shows a loading state, "Account not found" with Close, and "Could not load accounts" with Retry. For an expense, it shows "Available: …" under the amount and flags an amount above Unallocated as the user types, checking again when the type changes. Income can't overdraw, so it isn't checked. `logTransaction` rejects with the same `describeInsufficientUnallocated` message (`src/lib/money.ts`) instead of the generic "This would leave a negative unallocated balance" one.
+- **2026-10-21. Log Transaction opens with an id and checks expenses as the user types.** It used to render a Bank Account row captured when the row menu opened. Only the write caught an expense larger than Unallocated, unlike Log Allocation, Log Repayment and Record Debt. Its store now holds `{ bankAccountId }`. The dialog reads the account from `bankAccountsQueryOption()`, the list the Accounts page has already loaded, and that page is the dialog's only opener. So it opens instantly with live figures. It shows a loading state, "Account not found" with Close, and "Could not load accounts" with Retry. For an expense, it shows "Available: …" under the amount and flags an amount above Unallocated as the user types, checking again when the type changes. Income can't overdraw, so it isn't checked. `logTransaction` rejects with the same `describeInsufficientUnallocated` message (`src/lib/money.ts`) instead of the generic "This would leave a negative unallocated balance" one. Since 2026-10-24 the store is gone. Log Transaction is a Drawer whose `logTransactionDrawerHandle` takes `{ bankAccountId }` as its payload (see `docs/specs/transaction-list-and-transfer.md`).
 
 ## Future considerations
 
@@ -111,7 +111,7 @@ Not implemented. Today a Transaction's only classification is its `income` or `e
 
 ### `Distribution` (planned, undesigned)
 
-A saved preset the User triggers by hand. It logs one `income` Transaction on a fixed Bank Account, then splits the amount through Allocations across Buckets, and across Goals and Debts once those exist. See the `Distribution` entry in [`CONTEXT.md`](../../../CONTEXT.md) for the full definition. It matters here because triggering a Distribution partly means calling this module's `logTransaction` from code.
+A saved preset the User triggers by hand. It logs one `income` Transaction on a fixed Bank Account, then splits the amount through Allocations across Buckets, and later across Debts too. Funding a Goal means funding its Bucket. See the `Distribution` entry in [`CONTEXT.md`](../../../CONTEXT.md) for the full definition. It matters here because triggering a Distribution partly means calling this module's `logTransaction` from code.
 
 ### Transfer between own accounts
 

@@ -37,8 +37,6 @@ export const setUpBucketWithGoalSchema = setUpBucketSchema.extend({
   goal: goalTargetSchema.nullable(),
 });
 
-// No date rule here: an Overdue Goal keeps its past date when only the amount changes, so the
-// server checks the date only when it differs from the stored one.
 export const editGoalSchema = z.strictObject({
   ...verifyUserGoalMiddlewareSchema.shape,
   targetAmount: amountSchema,

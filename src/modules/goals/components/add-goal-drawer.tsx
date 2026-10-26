@@ -87,8 +87,6 @@ function AddGoalForm({ bucketId, ref }: AddGoalFormProps) {
     data: currencies,
   } = useQuery(goalCurrenciesQueryOptions);
 
-  // The fallback is never submitted: with no currencies the form isn't shown. The form picks up
-  // the first real currency once the query settles, since it updates untouched default values.
   const defaultValues: z.input<typeof addGoalSchema> = {
     bucketId,
     targetAmount: 0,

@@ -2,7 +2,7 @@
 
 ## Overview
 
-Authentication is the identity layer every other module builds on. A User signs up or signs in with email and password and gets a Session. Every protected route and server function reads `userId` from that Session and scopes its data to it. The module uses [Better-Auth](https://www.better-auth.com/) (`^1.7.1`) with the Drizzle SQLite adapter, plus Better-Auth's `tanstackStartCookies` plugin so cookie writes work during server rendering on TanStack Start. The app supports many independent, isolated Users and is not a tool for a single operator. See the `User` entry in [`CONTEXT.md`](../../../CONTEXT.md).
+Authentication tells every other module who the User is. A User signs up or signs in with email and password and gets a Session. Every protected route and server function reads `userId` from that Session and scopes its data to it. The module uses [Better-Auth](https://www.better-auth.com/) (`^1.7.1`) with the Drizzle SQLite adapter, plus Better-Auth's `tanstackStartCookies` plugin so cookie writes work during server rendering on TanStack Start. The app supports many independent, isolated Users and is not a tool for a single operator. See the `User` entry in [`CONTEXT.md`](../../../CONTEXT.md).
 
 ## Entity
 
@@ -47,7 +47,7 @@ Better-Auth owns these four tables. The Drizzle adapter config in `integrations/
 | `accessToken`, `refreshToken`, `idToken`, `scope` and token-expiry columns | string or datetime | nullable and unused today, kept for OAuth providers                            |
 | `createdAt` / `updatedAt`                                                  | datetime           |                                                                                |
 
-See the `Auth Account` entry in CONTEXT.md for the general definition. One thing here isn't obvious. That entry describes OAuth details such as the issuer, tokens and provider id, but this table is also where Better-Auth stores the **password hash** for plain email and password sign-up. There is no separate Credential table. A User who only signs in with email and password still has exactly one Auth Account row, with `password` set and every OAuth-only column `null`.
+See the `Auth Account` entry in CONTEXT.md for the general definition. That entry describes OAuth details such as the issuer, tokens and provider id, but this table is also where Better-Auth stores the **password hash** for plain email and password sign-up. There is no separate Credential table. A User who only signs in with email and password still has exactly one Auth Account row, with `password` set and every OAuth-only column `null`.
 
 ### Verification (`verifications` table)
 
@@ -65,7 +65,7 @@ The table exists, but nothing in this app writes or reads a Verification row tod
 
 ### The identity middleware is separate from the ownership middleware
 
-`authMiddleware` (`src/modules/authentication/middlewares.ts`) does one thing. It asks the Session module for the signed-in User's id through `requireUserId`, which throws `SessionExpiredError` from `src/lib/errors.ts` when there is no Session, and passes the id on as `context.userId`. It checks no resource ownership. Every other module adds its own `verifyUser<Entity>Middleware` after it, such as `verifyUserBucketMiddleware` or `verifyUserAllocationMiddleware`, to confirm the _specific record_ being touched belongs to `context.userId`. The whole codebase follows this split. Authentication answers "who is this?" and never "do they own this?". Handlers behind an ownership middleware may read and write by id. Read [ADR 0003](../../../docs/adr/0003-ownership-checked-by-middleware.md) before removing one.
+`authMiddleware` (`src/modules/authentication/middlewares.ts`) only identifies the User. It asks the Session module for the signed-in User's id through `requireUserId`, which throws `SessionExpiredError` from `src/lib/errors.ts` when there is no Session, and passes the id on as `context.userId`. It checks no resource ownership. Every other module adds its own `verifyUser<Entity>Middleware` after it, such as `verifyUserBucketMiddleware` or `verifyUserAllocationMiddleware`, to confirm the _specific record_ being touched belongs to `context.userId`. The whole codebase follows this split. Authentication answers "who is this?" and never "do they own this?". Handlers behind an ownership middleware may read and write by id. Read [ADR 0003](../../../docs/adr/0003-ownership-checked-by-middleware.md) before removing one.
 
 ### Route guards
 
@@ -92,7 +92,7 @@ Once signing in succeeds, it revokes the Session the browser held before, if any
 
 ### Sign-up says when an email is already registered
 
-"An account with this email already exists. Try signing in." tells anyone that the email has an account. This is kept on purpose. A generic response only hides that if sign-up never tells the User what happened, which needs email verification first, and the clear message is better for a real User who forgot they signed up. The throttle limits how fast anyone can check emails this way.
+"An account with this email already exists. Try signing in." tells anyone that the email has an account. We keep it on purpose. A generic response only hides that if sign-up never tells the User what happened, which needs email verification first, and the clear message is better for a real User who forgot they signed up. The throttle limits how fast anyone can check emails this way.
 
 ## Features
 

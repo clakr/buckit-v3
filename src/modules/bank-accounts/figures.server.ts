@@ -46,8 +46,8 @@ export type UnallocatedCheck =
       available: number;
     };
 
-// Correlate only through `eq()` inside `.where()`: a column placed directly in a selected `sql`
-// template loses its table name in a single-table select, and would bind to the inner table.
+// Correlate only through `eq()` inside `.where()`. In a single-table select, a column placed
+// directly in a selected `sql` template loses its table name and binds to the inner table.
 function sumTransactionAmounts(db: DB, type: Transaction["type"], excludedIds: string[]) {
   return db
     .select({ total: sql`coalesce(sum(${transactions.amount}), 0)` })

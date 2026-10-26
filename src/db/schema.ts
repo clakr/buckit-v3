@@ -112,9 +112,9 @@ export const bankAccounts = sqliteTable(
   },
   (t) => [
     unique().on(t.userId, t.name),
-    // The name rule is case-insensitive. Added beside the constraint above rather than replacing
-    // it: dropping a table-level constraint needs a table rebuild, and D1's foreign keys would
-    // cascade-delete every Transaction and Allocation when the old table is dropped.
+    // The name rule is case-insensitive. This index sits beside the constraint above instead of
+    // replacing it. Dropping a table-level constraint needs a table rebuild, and D1's foreign keys
+    // would cascade-delete every Transaction and Allocation when the old table is dropped.
     uniqueIndex("bank_accounts_user_id_lower_name_unique").on(t.userId, lower(t.name)),
   ],
 );
