@@ -23,7 +23,14 @@ import { useRegisterBankAccountMutation } from "#/modules/bank-accounts/mutation
 import { registerBankAccountSchema } from "#/modules/bank-accounts/schemas";
 import { confirm } from "#/stores/use-confirm";
 
-export const registerBankAccountDrawerHandle = createDrawerHandle<{ currency: string }>();
+export type RegisterBankAccountDrawerPayload = { currency: string };
+
+type RegisterBankAccountDrawerHandle = ReturnType<
+  typeof createDrawerHandle<RegisterBankAccountDrawerPayload>
+>;
+
+export const registerBankAccountDrawerHandle =
+  createDrawerHandle<RegisterBankAccountDrawerPayload>();
 
 type RegisterBankAccountFormControls = {
   isDirty: () => boolean;
@@ -31,6 +38,22 @@ type RegisterBankAccountFormControls = {
 };
 
 export function RegisterBankAccountDrawer() {
+  return <RegisterBankAccountDrawerRoot handle={registerBankAccountDrawerHandle} />;
+}
+
+type RegisterBankAccountDrawerRootProps = {
+  handle: RegisterBankAccountDrawerHandle;
+};
+
+/**
+ * Render inside a parent's `DrawerContent` so Base UI nests it, then open it from a
+ * `DrawerTrigger` bound to the same `handle` with a `{ currency }` payload.
+ */
+export function NestedRegisterBankAccountDrawer({ handle }: RegisterBankAccountDrawerRootProps) {
+  return <RegisterBankAccountDrawerRoot handle={handle} />;
+}
+
+function RegisterBankAccountDrawerRoot({ handle }: RegisterBankAccountDrawerRootProps) {
   const formControlsRef = useRef<RegisterBankAccountFormControls>(null);
 
   async function handleOnOpenChange(open: boolean, eventDetails: DrawerChangeEventDetails) {
@@ -48,15 +71,19 @@ export function RegisterBankAccountDrawer() {
     if (confirmed) return;
 
     formControlsRef.current.reset();
-    registerBankAccountDrawerHandle.close();
+    handle.close();
   }
 
   return (
-    <ResponsiveDrawer handle={registerBankAccountDrawerHandle} onOpenChange={handleOnOpenChange}>
+    <ResponsiveDrawer handle={handle} onOpenChange={handleOnOpenChange}>
       {({ payload }) => (
         <DrawerContent>
           {payload ? (
-            <RegisterBankAccountForm currency={payload.currency} ref={formControlsRef} />
+            <RegisterBankAccountForm
+              currency={payload.currency}
+              onRegistered={() => handle.close()}
+              ref={formControlsRef}
+            />
           ) : null}
         </DrawerContent>
       )}
@@ -66,10 +93,11 @@ export function RegisterBankAccountDrawer() {
 
 type RegisterBankAccountFormProps = {
   currency: string;
+  onRegistered: () => void;
   ref: Ref<RegisterBankAccountFormControls>;
 };
 
-function RegisterBankAccountForm({ currency, ref }: RegisterBankAccountFormProps) {
+function RegisterBankAccountForm({ currency, onRegistered, ref }: RegisterBankAccountFormProps) {
   const mutation = useRegisterBankAccountMutation();
 
   const defaultValues: z.input<typeof registerBankAccountSchema> = {
@@ -93,7 +121,7 @@ function RegisterBankAccountForm({ currency, ref }: RegisterBankAccountFormProps
       }
 
       form.reset();
-      registerBankAccountDrawerHandle.close();
+      onRegistered();
     },
   });
 
