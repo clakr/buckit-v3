@@ -30,7 +30,7 @@ A Transaction's `type` sets its sign in the Balance formula: `Balance = starting
 
 The amount is stored in minor units of the owning Bank Account's currency (see the Money module, `src/lib/money.ts`). A Transaction has no currency field, so `getTransaction` joins the Bank Account's `currency` column to format amounts.
 
-### Permanent boundary: never attaches to a Bucket
+### A Transaction never attaches to a Bucket
 
 `transactions.bucketId` doesn't exist and never will under this model. Spending and income always happen on a Bank Account, and a Bucket only changes through Allocations. `buckets/SPEC.md` documents the same boundary.
 
@@ -42,7 +42,7 @@ Every mutation that could reduce a Bank Account's Unallocated balance enforces t
 - `editTransaction`, which recomputes with the new amount and type in place of the old ones, through `assertTransactionEditAllowed`.
 - `deleteTransaction`, which recomputes without the transaction.
 
-All three call `checkUnallocated` (`src/modules/bank-accounts/figures.server.ts`). Allocation, Debt and Repayment use the same check, so the rule lives in one place. **The write runs the check.** Each mutation runs it on the server right before writing and throws `InsufficientFundsError` when it fails. The Log Transaction Drawer also flags an expense above Unallocated as the user types (see the 2026-10-21 entry below). The Edit Transaction Drawer has no separate check before submitting. When the write rejects, the failure toast shows the reason and the Drawer stays open with the user's input. Delete keeps `validateDeleteTransaction`, because the confirm dialog needs its preview before the user confirms: what will be removed, or why it can't be.
+All three call `checkUnallocated` (`src/modules/bank-accounts/figures.server.ts`). Allocation, Debt and Repayment use the same check, so the rule lives in one place. **The write runs the check.** Each mutation runs it on the server right before writing and throws `InsufficientFundsError` when it fails. The Log Transaction Drawer also flags an expense above Unallocated as the user types (see the 2026-10-21 entry below). The Edit Transaction Drawer has no separate check before submitting. When the write rejects, the failure toast shows the reason and the Drawer stays open with the user's input. Delete keeps `validateDeleteTransaction`, because the confirm dialog needs its preview before the user confirms. The preview says what will be removed, or why it can't be.
 
 ### Linked Transactions follow their Debt's or Bucket's rules
 
@@ -97,7 +97,7 @@ Writing this spec turned up three small correctness bugs, all fixed:
 
 No ADR covers the difference in delete confirmation described above. It follows from a Transaction delete destroying no other history.
 
-- **2026-10-21. Log Transaction opens with an id and checks expenses as the user types.** It used to render a Bank Account row captured when the row menu opened. Only the write caught an expense larger than Unallocated, unlike Log Allocation, Log Repayment and Record Debt. Its store now holds `{ bankAccountId }`. The dialog reads the account from `bankAccountsQueryOption()`, the list the Accounts page has already loaded, and that page is the dialog's only opener. So it opens instantly with live figures. It shows a loading state, "Account not found" with Close, and "Could not load accounts" with Retry. For an expense, it shows "Available: …" under the amount and flags an amount above Unallocated as the user types, checking again when the type changes. Income can't overdraw, so it isn't checked. `logTransaction` rejects with the same `describeInsufficientUnallocated` message (`src/lib/money.ts`) instead of the generic "This would leave a negative unallocated balance" one. Since 2026-10-24 the store is gone. Log Transaction is a Drawer whose `logTransactionDrawerHandle` takes `{ bankAccountId }` as its payload (see `docs/specs/transaction-list-and-transfer.md`).
+- **2026-10-21. Log Transaction opens with an id and checks expenses as the user types.** It used to render a Bank Account row captured when the row menu opened. Only the write caught an expense larger than Unallocated, unlike Log Allocation, Log Repayment and Record Debt. Its store now holds `{ bankAccountId }`. The dialog reads the account from `bankAccountsQueryOption()`, the list the Accounts page has already loaded, and that page is the dialog's only opener. So it opens without waiting on a request and shows live figures. It shows a loading state, "Account not found" with Close, and "Could not load accounts" with Retry. For an expense, it shows "Available: …" under the amount and flags an amount above Unallocated as the user types, checking again when the type changes. Income can't overdraw, so it isn't checked. `logTransaction` rejects with the same `describeInsufficientUnallocated` message (`src/lib/money.ts`) instead of the generic "This would leave a negative unallocated balance" one. Since 2026-10-24 the store is gone. Log Transaction is a Drawer whose `logTransactionDrawerHandle` takes `{ bankAccountId }` as its payload (see `docs/specs/transaction-list-and-transfer.md`).
 
 ## Future considerations
 

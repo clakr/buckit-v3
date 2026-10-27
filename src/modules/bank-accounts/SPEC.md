@@ -42,7 +42,7 @@ A missing record and someone else's record both throw `NotFoundError`. Nobody ca
 
 ### Currency can't change
 
-After creation, `currency` can't change. Existing Transactions and Allocations are recorded in that currency, and changing it would silently reinterpret past amounts.
+After creation, `currency` can't change. Existing Transactions and Allocations are recorded in that currency, and changing it would change what every past amount means.
 
 ### Starting balance can't change
 
@@ -74,7 +74,7 @@ The database enforces the same rule with a unique index on `(user_id, lower(name
 
 The other tables in the schema, `users`, `sessions`, `accounts` and `verifications`, have an `updatedAt` column, and `bankAccounts` doesn't. This was considered and deferred. The only editable field is `name`, and no sync or API client exists. A User may hold several Sessions across devices at once (see `authentication/SPEC.md`), but a single Bank Account's data has no concurrent-edit conflict to detect. Add the column when something needs it, such as a sync cursor, conflict detection or a "last edited" label, and not before.
 
-### Transfers between accounts: specified, not built
+### Transfers between accounts (specified, not built)
 
 **A transfer must only be allowed between two Bank Accounts of the same currency**, because this ledger doesn't convert between currencies. [`docs/specs/transaction-list-and-transfer.md`](../../../docs/specs/transaction-list-and-transfer.md) specifies it as two ordinary Transactions, an expense on the source account and an income on the destination, connected only by generated notes, with no new schema.
 
