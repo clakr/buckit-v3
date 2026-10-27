@@ -2,9 +2,12 @@ import { IconAlertTriangle } from "@tabler/icons-react";
 import { format } from "date-fns";
 
 import { Alert, AlertDescription } from "#/components/ui/alert";
+import { Button } from "#/components/ui/button";
 import { Card, CardAction, CardContent, CardHeader, CardTitle } from "#/components/ui/card";
+import { DrawerTrigger } from "#/components/ui/drawer";
 import { formatMoney } from "#/lib/money";
 import { formatDate } from "#/lib/utils";
+import { registerBankAccountDrawerHandle } from "#/modules/bank-accounts/components/register-bank-account-drawer";
 
 import type { getBucketGoal } from "../functions";
 
@@ -91,6 +94,13 @@ export function BucketGoalCard({ goal }: Props) {
               No {goal.currency} account can fund this Goal. Add a {goal.currency} bank account to
               keep saving toward it.
             </AlertDescription>
+            <DrawerTrigger
+              handle={registerBankAccountDrawerHandle}
+              payload={{ currency: goal.currency }}
+              render={<Button variant="outline" size="sm" className="col-start-2 mt-1 w-fit" />}
+            >
+              Register a/an {goal.currency} account
+            </DrawerTrigger>
           </Alert>
         )}
       </CardContent>
