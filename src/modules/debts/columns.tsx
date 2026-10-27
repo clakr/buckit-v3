@@ -1,17 +1,13 @@
-import { IconCircleDashed, IconCircleDottedLetterH } from "@tabler/icons-react";
-
 import type { DataTableColumnDef } from "#/components/ui/data-table";
 
 import { SortableTableHead } from "#/components/table/sortable-table-head";
-import { Badge } from "#/components/ui/badge";
 import { Tooltip, TooltipContent, TooltipTrigger } from "#/components/ui/tooltip";
 import { formatMoney } from "#/lib/money";
-import { formatDateTime, formatToRelative } from "#/lib/utils";
 
 import type { getDebts } from "./functions";
 
 import { DebtActionsDropdownMenu } from "./components/debt-actions-dropdown-menu";
-import { DebtBalanceSparkline } from "./components/debt-balance-sparkline";
+import { DebtActivityCell } from "./components/debt-activity-cell";
 import { DebtDirectionBadge } from "./components/debt-direction-badge";
 import { DebtProgressRing } from "./components/debt-progress-ring";
 import { ForgivenOutstanding } from "./components/forgiven-outstanding";
@@ -25,7 +21,9 @@ export const INDEX_COLUMNS: DataTableColumnDef<Awaited<ReturnType<typeof getDebt
 
       return (
         <div className="flex max-w-64 flex-col">
-          <span className="font-semibold">{name}</span>
+          <span className="block max-w-[20ch] font-semibold wrap-break-word whitespace-normal">
+            {name}
+          </span>
           {note ? (
             <Tooltip>
               <TooltipTrigger
@@ -71,46 +69,16 @@ export const INDEX_COLUMNS: DataTableColumnDef<Awaited<ReturnType<typeof getDebt
     },
   },
   {
-    id: "ledgerMovement",
-    header: "Ledger Movement",
+    id: "activity",
+    accessorFn: (debt) => debt.lastRepaymentDate ?? debt.date,
+    header: ({ column }) => <SortableTableHead column={column}>Activity</SortableTableHead>,
     cell: ({ row }) => (
-      <DebtBalanceSparkline
-        direction={row.original.direction}
-        amount={row.original.amount}
-        repayments={row.original.repayments}
-        formatDebtAmount={(value) => formatMoney(value, row.original.currency)}
+      <DebtActivityCell
+        date={row.original.date}
+        lastRepaymentDate={row.original.lastRepaymentDate}
+        repaymentCount={row.original.repayments.length}
       />
     ),
-  },
-  {
-    id: "lastRepaymentDate",
-    accessorFn: (debt) => debt.lastRepaymentDate ?? undefined,
-    sortUndefined: "last",
-    header: ({ column }) => (
-      <SortableTableHead column={column}>Last Repayment Date</SortableTableHead>
-    ),
-    cell: ({ row }) => {
-      const { lastRepaymentDate } = row.original;
-
-      if (!lastRepaymentDate) {
-        return (
-          <Badge variant="secondary" className="uppercase">
-            <IconCircleDashed />
-            No Repayments
-          </Badge>
-        );
-      }
-
-      return (
-        <Tooltip>
-          <TooltipTrigger render={<Badge variant="secondary" className="capitalize" />}>
-            <IconCircleDottedLetterH />
-            {formatToRelative(lastRepaymentDate)}
-          </TooltipTrigger>
-          <TooltipContent>{formatDateTime(lastRepaymentDate)}</TooltipContent>
-        </Tooltip>
-      );
-    },
   },
   {
     accessorKey: "actions",
