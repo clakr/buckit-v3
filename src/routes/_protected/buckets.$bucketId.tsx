@@ -1,4 +1,4 @@
-import { IconMinus, IconPencil, IconTarget } from "@tabler/icons-react";
+import { IconMinus, IconPencil, IconPlus, IconTarget } from "@tabler/icons-react";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute, Link } from "@tanstack/react-router";
 
@@ -10,9 +10,11 @@ import { Button } from "#/components/ui/button";
 import { DataTable } from "#/components/ui/data-table";
 import { DrawerTrigger } from "#/components/ui/drawer";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "#/components/ui/tabs";
+import { MODULE_ICONS } from "#/lib/constants";
 import { loadOrThrowRouteNotFound } from "#/lib/errors";
 import { formatPageTitle } from "#/lib/utils";
 import { getAllocationColumns } from "#/modules/allocations/columns";
+import { logAllocationDrawerHandle } from "#/modules/allocations/components/log-allocation-drawer";
 import { allocationsQueryOption } from "#/modules/allocations/query-options";
 import { editBucketDrawerHandle } from "#/modules/buckets/components/edit-bucket-drawer";
 import { bucketQueryOption } from "#/modules/buckets/query-options";
@@ -149,6 +151,24 @@ function RouteComponent() {
             columns={getAllocationColumns({ omit: "bucket" })}
             data={allocations}
             initialSorting={[{ id: "date", desc: true }]}
+            emptyState={
+              <StateTemplate
+                state="empty"
+                title="No allocations yet."
+                description="Move money into this bucket from a bank account."
+                icon={<MODULE_ICONS.buckets />}
+                content={
+                  <DrawerTrigger
+                    handle={logAllocationDrawerHandle}
+                    payload={{ start: { from: "bucket", bucketId } }}
+                    render={<Button />}
+                  >
+                    <IconPlus />
+                    Allocate Money
+                  </DrawerTrigger>
+                }
+              />
+            }
           />
         </TabsContent>
         <TabsContent value="withdrawals">
