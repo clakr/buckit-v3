@@ -13,11 +13,11 @@ import { MODULE_ICONS } from "#/lib/constants";
 import { formatPageTitle } from "#/lib/utils";
 import { INDEX_COLUMNS } from "#/modules/bank-accounts/columns";
 import { registerBankAccountDrawerHandle } from "#/modules/bank-accounts/components/register-bank-account-drawer";
-import { bankAccountsQueryOption } from "#/modules/bank-accounts/query-options";
+import { bankAccountsWithTrendQueryOption } from "#/modules/bank-accounts/query-options";
 
 export const Route = createFileRoute("/_protected/accounts/")({
   head: () => ({ meta: [{ title: formatPageTitle("Accounts") }] }),
-  context: () => ({ bankAccountsQueryOptions: bankAccountsQueryOption() }),
+  context: () => ({ bankAccountsQueryOptions: bankAccountsWithTrendQueryOption() }),
   loader: async ({ context: { queryClient, bankAccountsQueryOptions } }) => {
     await queryClient.query(bankAccountsQueryOptions);
   },

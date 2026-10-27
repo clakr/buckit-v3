@@ -3,23 +3,31 @@ import { Link } from "@tanstack/react-router";
 
 import type { DataTableColumnDef } from "#/components/ui/data-table";
 import type { Transaction } from "#/db/schema";
-import type { getBankAccount, getBankAccounts } from "#/modules/bank-accounts/functions";
+import type { getBankAccount, getBankAccountsWithTrend } from "#/modules/bank-accounts/functions";
 
 import { SortableTableHead } from "#/components/table/sortable-table-head";
 import { Badge } from "#/components/ui/badge";
 import { Tooltip, TooltipContent, TooltipTrigger } from "#/components/ui/tooltip";
 import { formatMoney } from "#/lib/money";
 import { formatDateTime, formatToRelative } from "#/lib/utils";
+import { BalanceTrendSparkline } from "#/modules/bank-accounts/components/balance-trend-sparkline";
 import { BankAccountActionsDropdownMenu } from "#/modules/bank-accounts/components/bank-account-actions-dropdown-menu";
+import { NetChangeCell } from "#/modules/bank-accounts/components/net-change-cell";
+import { UnallocatedEarmarkCell } from "#/modules/bank-accounts/components/unallocated-earmark-cell";
+import { BALANCE_TREND_DAYS } from "#/modules/bank-accounts/utils";
 import { TransactionActionsDropdownMenu } from "#/modules/transactions/components/transaction-actions-dropdown-menu";
 
 export const INDEX_COLUMNS: DataTableColumnDef<
-  Awaited<ReturnType<typeof getBankAccounts>>[number]
+  Awaited<ReturnType<typeof getBankAccountsWithTrend>>[number]
 >[] = [
   {
     accessorKey: "name",
     header: ({ column }) => <SortableTableHead column={column}>Name</SortableTableHead>,
-    cell: ({ row }) => <span className="font-semibold">{row.original.name}</span>,
+    cell: ({ row }) => (
+      <span className="block max-w-[20ch] font-semibold wrap-break-word whitespace-normal">
+        {row.original.name}
+      </span>
+    ),
   },
   {
     accessorKey: "balance",
@@ -31,13 +39,30 @@ export const INDEX_COLUMNS: DataTableColumnDef<
     },
   },
   {
+    accessorKey: "netChange",
+    header: () => <div data-currency>Net Change</div>,
+    cell: ({ row }) => (
+      <NetChangeCell trend={row.original.trend} currency={row.original.currency} />
+    ),
+  },
+  {
+    accessorKey: "trend",
+    header: `Trend (${BALANCE_TREND_DAYS}d)`,
+    cell: ({ row }) => (
+      <BalanceTrendSparkline trend={row.original.trend} currency={row.original.currency} />
+    ),
+  },
+  {
     accessorKey: "unallocated",
     header: () => <div data-currency>Unallocated</div>,
-    cell: ({ row }) => {
-      const value = formatMoney(row.original.unallocated, row.original.currency);
-
-      return <span className="block text-end font-medium tabular-nums">{value}</span>;
-    },
+    cell: ({ row }) => (
+      <UnallocatedEarmarkCell
+        balance={row.original.balance}
+        unallocated={row.original.unallocated}
+        totalEarmarked={row.original.totalEarmarked}
+        currency={row.original.currency}
+      />
+    ),
   },
   {
     accessorKey: "lastTransactionDate",
