@@ -10,6 +10,7 @@ import { Button } from "#/components/ui/button";
 import { DataTable } from "#/components/ui/data-table";
 import { DrawerTrigger } from "#/components/ui/drawer";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "#/components/ui/tabs";
+import { Tooltip, TooltipContent, TooltipTrigger } from "#/components/ui/tooltip";
 import { MODULE_ICONS } from "#/lib/constants";
 import { loadOrThrowRouteNotFound } from "#/lib/errors";
 import { formatPageTitle } from "#/lib/utils";
@@ -23,13 +24,17 @@ import { BucketGoalCard } from "#/modules/goals/components/bucket-goal-card";
 import { bucketGoalQueryOption } from "#/modules/goals/query-options";
 import { WITHDRAWAL_COLUMNS } from "#/modules/withdrawals/columns";
 import { withdrawDrawerHandle } from "#/modules/withdrawals/components/withdraw-drawer";
-import { withdrawalsQueryOption } from "#/modules/withdrawals/query-options";
+import {
+  withdrawalSourcesQueryOption,
+  withdrawalsQueryOption,
+} from "#/modules/withdrawals/query-options";
 
 export const Route = createFileRoute("/_protected/buckets/$bucketId")({
   context: ({ params }) => ({
     bucketQueryOptions: bucketQueryOption(params.bucketId),
     allocationsQueryOptions: allocationsQueryOption({ bucketId: params.bucketId }),
     withdrawalsQueryOptions: withdrawalsQueryOption(params.bucketId),
+    withdrawalSourcesQueryOptions: withdrawalSourcesQueryOption(params.bucketId),
     goalQueryOptions: bucketGoalQueryOption(params.bucketId),
   }),
   loader: async ({
@@ -38,6 +43,7 @@ export const Route = createFileRoute("/_protected/buckets/$bucketId")({
       bucketQueryOptions,
       allocationsQueryOptions,
       withdrawalsQueryOptions,
+      withdrawalSourcesQueryOptions,
       goalQueryOptions,
     },
   }) => {
@@ -46,6 +52,7 @@ export const Route = createFileRoute("/_protected/buckets/$bucketId")({
         queryClient.query(bucketQueryOptions),
         queryClient.query(allocationsQueryOptions),
         queryClient.query(withdrawalsQueryOptions),
+        queryClient.query(withdrawalSourcesQueryOptions),
         queryClient.query(goalQueryOptions),
       ]),
     );
@@ -97,13 +104,21 @@ export const Route = createFileRoute("/_protected/buckets/$bucketId")({
 
 function RouteComponent() {
   const { bucketId } = Route.useParams();
-  const { bucketQueryOptions, allocationsQueryOptions, withdrawalsQueryOptions, goalQueryOptions } =
-    Route.useRouteContext();
+  const {
+    bucketQueryOptions,
+    allocationsQueryOptions,
+    withdrawalsQueryOptions,
+    withdrawalSourcesQueryOptions,
+    goalQueryOptions,
+  } = Route.useRouteContext();
 
   const { data: bucket } = useSuspenseQuery(bucketQueryOptions);
   const { data: allocations } = useSuspenseQuery(allocationsQueryOptions);
   const { data: withdrawals } = useSuspenseQuery(withdrawalsQueryOptions);
+  const { data: withdrawalSources } = useSuspenseQuery(withdrawalSourcesQueryOptions);
   const { data: goal } = useSuspenseQuery(goalQueryOptions);
+
+  const holdsMoney = withdrawalSources.length > 0;
 
   return (
     <Main>
@@ -120,14 +135,28 @@ function RouteComponent() {
               Add Goal
             </DrawerTrigger>
           )}
-          <DrawerTrigger
-            handle={withdrawDrawerHandle}
-            payload={{ bucketId }}
-            render={<Button variant="outline" />}
-          >
-            <IconMinus />
-            Withdraw
-          </DrawerTrigger>
+          <Tooltip disabled={holdsMoney}>
+            <TooltipTrigger
+              render={
+                <DrawerTrigger
+                  handle={withdrawDrawerHandle}
+                  payload={{ bucketId }}
+                  disabled={!holdsMoney}
+                  render={
+                    <Button
+                      variant="outline"
+                      focusableWhenDisabled
+                      className="aria-disabled:opacity-50"
+                    />
+                  }
+                />
+              }
+            >
+              <IconMinus />
+              Withdraw
+            </TooltipTrigger>
+            <TooltipContent>Allocate money into this bucket first</TooltipContent>
+          </Tooltip>
           <DrawerTrigger
             handle={editBucketDrawerHandle}
             payload={{ bucketId }}

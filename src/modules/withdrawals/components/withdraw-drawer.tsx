@@ -89,11 +89,17 @@ function WithdrawForm({ bucketId, ref }: WithdrawFormProps) {
   const {
     status: sourcesStatus,
     refetch: refetchSources,
-    data: sources,
+    data: liveSources,
   } = useQuery({
     ...withdrawalSourcesQueryOption(bucketId),
     enabled: !mutation.isPending && !mutation.isSuccess,
   });
+
+  // The bucket page watches the same query, so a disabled observer here still sees its refetch
+  // land. Hold the sources from before the save so the Drawer doesn't flash "Nothing to withdraw".
+  const sourcesBeforeSaveRef = useRef(liveSources);
+  if (!mutation.isPending && !mutation.isSuccess) sourcesBeforeSaveRef.current = liveSources;
+  const sources = sourcesBeforeSaveRef.current;
 
   const defaultValues: z.input<typeof logWithdrawalSchema> = {
     bucketId,
