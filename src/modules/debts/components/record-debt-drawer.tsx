@@ -13,6 +13,7 @@ import {
   DrawerFooter,
   DrawerHeader,
   DrawerTitle,
+  DrawerTrigger,
   ResponsiveDrawer,
   type DrawerChangeEventDetails,
 } from "#/components/ui/drawer";
@@ -21,7 +22,10 @@ import { InputGroup, InputGroupAddon, InputGroupInput } from "#/components/ui/in
 import { useAppForm } from "#/integrations/tanstack-form";
 import { exceedsAvailable, describeInsufficientUnallocated } from "#/lib/money";
 import { BankAccountSelectField } from "#/modules/bank-accounts/components/bank-account-select-field";
-import { registerBankAccountDrawerHandle } from "#/modules/bank-accounts/components/register-bank-account-drawer";
+import {
+  NestedRegisterBankAccountDrawer,
+  type RegisterBankAccountDrawerPayload,
+} from "#/modules/bank-accounts/components/register-bank-account-drawer";
 import { bankAccountsQueryOption } from "#/modules/bank-accounts/query-options";
 import { useRecordDebtMutation } from "#/modules/debts/mutations";
 import { confirm } from "#/stores/use-confirm";
@@ -29,6 +33,9 @@ import { confirm } from "#/stores/use-confirm";
 import { debtDirectionEnum, recordDebtSchema } from "../schemas";
 
 export const recordDebtDrawerHandle = createDrawerHandle();
+
+const nestedRegisterBankAccountDrawerHandle =
+  createDrawerHandle<RegisterBankAccountDrawerPayload>();
 
 type RecordDebtFormControls = {
   isDirty: () => boolean;
@@ -111,10 +118,6 @@ function RecordDebtForm({ ref }: RecordDebtFormProps) {
   const eligibleSourceAccounts = bankAccountsQuery.data?.filter(
     (account) => account.unallocated > 0,
   );
-
-  function openRegisterBankAccountDrawer() {
-    registerBankAccountDrawerHandle.openWithPayload({ currency });
-  }
 
   function findSourceAccount(bankAccountId: string | undefined) {
     return bankAccountsQuery.data?.find((account) => account.id === bankAccountId);
@@ -246,13 +249,13 @@ function RecordDebtForm({ ref }: RecordDebtFormProps) {
                     emptyContent={
                       <>
                         <FieldError>No {currency} accounts with available balance.</FieldError>
-                        <Button
-                          type="button"
-                          variant="outline"
-                          onClick={openRegisterBankAccountDrawer}
+                        <DrawerTrigger
+                          handle={nestedRegisterBankAccountDrawerHandle}
+                          payload={{ currency }}
+                          render={<Button type="button" variant="outline" />}
                         >
                           Register a/an {currency} account
-                        </Button>
+                        </DrawerTrigger>
                       </>
                     }
                   />
@@ -278,6 +281,7 @@ function RecordDebtForm({ ref }: RecordDebtFormProps) {
         </form.AppForm>
         <DrawerClose render={<Button variant="outline" />}>Cancel</DrawerClose>
       </DrawerFooter>
+      <NestedRegisterBankAccountDrawer handle={nestedRegisterBankAccountDrawerHandle} />
     </>
   );
 }
