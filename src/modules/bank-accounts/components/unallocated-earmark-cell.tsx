@@ -1,5 +1,6 @@
 import type { BankAccount } from "#/db/schema";
 
+import { ProgressRing } from "#/components/progress-ring";
 import { formatMoney } from "#/lib/money";
 import { cn } from "#/lib/utils";
 
@@ -9,11 +10,6 @@ type Props = {
   totalEarmarked: number;
   currency: BankAccount["currency"];
 };
-
-const RING_SIZE = 40;
-const RING_STROKE = 4;
-const RING_RADIUS = (RING_SIZE - RING_STROKE) / 2;
-const RING_CIRCUMFERENCE = 2 * Math.PI * RING_RADIUS;
 
 function getEarmarkedPercent({ balance, unallocated, totalEarmarked }: Omit<Props, "currency">) {
   if (balance <= 0) return null;
@@ -54,45 +50,13 @@ export function UnallocatedEarmarkCell({ balance, unallocated, totalEarmarked, c
           —
         </span>
       ) : (
-        <div
-          className={cn(
-            "relative size-10 shrink-0",
-            isFullyEarmarked ? "text-emerald-600 dark:text-emerald-400" : "text-foreground/60",
-          )}
-        >
-          <svg
-            viewBox={`0 0 ${RING_SIZE} ${RING_SIZE}`}
-            className="size-full -rotate-90"
-            role="img"
-            aria-label={`${percent}% earmarked`}
-          >
-            <circle
-              cx={RING_SIZE / 2}
-              cy={RING_SIZE / 2}
-              r={RING_RADIUS}
-              fill="none"
-              strokeWidth={RING_STROKE}
-              className="stroke-muted"
-            />
-            <circle
-              cx={RING_SIZE / 2}
-              cy={RING_SIZE / 2}
-              r={RING_RADIUS}
-              fill="none"
-              strokeWidth={RING_STROKE}
-              strokeLinecap="round"
-              stroke="currentColor"
-              strokeDasharray={RING_CIRCUMFERENCE}
-              strokeDashoffset={RING_CIRCUMFERENCE * (1 - percent / 100)}
-            />
-          </svg>
-          <span
-            aria-hidden
-            className="absolute inset-0 flex items-center justify-center text-[10px] font-semibold text-foreground tabular-nums"
-          >
-            {percent}%
-          </span>
-        </div>
+        <ProgressRing
+          percent={percent}
+          label={`${percent}% earmarked`}
+          className={
+            isFullyEarmarked ? "text-emerald-600 dark:text-emerald-400" : "text-foreground/60"
+          }
+        />
       )}
     </div>
   );

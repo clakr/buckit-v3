@@ -1,5 +1,6 @@
 import type { Debt } from "#/db/schema";
 
+import { ProgressRing } from "#/components/progress-ring";
 import { cn } from "#/lib/utils";
 
 type Props = {
@@ -9,11 +10,6 @@ type Props = {
   repaid: number;
   formatDebtAmount: (value: number) => string;
 };
-
-const RING_SIZE = 40;
-const RING_STROKE = 4;
-const RING_RADIUS = (RING_SIZE - RING_STROKE) / 2;
-const RING_CIRCUMFERENCE = 2 * Math.PI * RING_RADIUS;
 
 export function DebtProgressRing({
   direction,
@@ -61,40 +57,11 @@ export function DebtProgressRing({
         )}
       </div>
 
-      <div className={cn("relative size-10 shrink-0", ringTone)}>
-        <svg
-          viewBox={`0 0 ${RING_SIZE} ${RING_SIZE}`}
-          className="size-full -rotate-90"
-          role="img"
-          aria-label={`${percentRepaid}% repaid`}
-        >
-          <circle
-            cx={RING_SIZE / 2}
-            cy={RING_SIZE / 2}
-            r={RING_RADIUS}
-            fill="none"
-            strokeWidth={RING_STROKE}
-            className="stroke-muted"
-          />
-          <circle
-            cx={RING_SIZE / 2}
-            cy={RING_SIZE / 2}
-            r={RING_RADIUS}
-            fill="none"
-            strokeWidth={RING_STROKE}
-            strokeLinecap="round"
-            stroke="currentColor"
-            strokeDasharray={RING_CIRCUMFERENCE}
-            strokeDashoffset={RING_CIRCUMFERENCE * (1 - percentRepaid / 100)}
-          />
-        </svg>
-        <span
-          aria-hidden
-          className="absolute inset-0 flex items-center justify-center text-[10px] font-semibold text-foreground tabular-nums"
-        >
-          {percentRepaid}%
-        </span>
-      </div>
+      <ProgressRing
+        percent={percentRepaid}
+        label={`${percentRepaid}% repaid`}
+        className={ringTone}
+      />
     </div>
   );
 }
