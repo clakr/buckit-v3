@@ -1,6 +1,13 @@
 import { useSelector } from "@tanstack/react-form";
 import { useQuery } from "@tanstack/react-query";
-import { useImperativeHandle, useRef, type ComponentProps, type Ref } from "react";
+import {
+  useImperativeHandle,
+  useRef,
+  useState,
+  type ComponentProps,
+  type Ref,
+  type RefObject,
+} from "react";
 import z from "zod";
 
 import { Button } from "#/components/ui/button";
@@ -12,6 +19,7 @@ import {
   DrawerFooter,
   DrawerHeader,
   DrawerTitle,
+  DrawerTrigger,
   ResponsiveDrawer,
   type DrawerChangeEventDetails,
 } from "#/components/ui/drawer";
@@ -25,6 +33,10 @@ import {
 import { Switch } from "#/components/ui/switch";
 import { useAppForm } from "#/integrations/tanstack-form";
 import { refineNameAvailability } from "#/lib/name-availability";
+import {
+  NestedRegisterBankAccountDrawer,
+  type RegisterBankAccountDrawerPayload,
+} from "#/modules/bank-accounts/components/register-bank-account-drawer";
 import { validateBucketName } from "#/modules/buckets/functions";
 import { useSetUpBucketMutation } from "#/modules/buckets/mutations";
 import { setUpBucketSchema } from "#/modules/buckets/schemas";
@@ -34,6 +46,10 @@ import { setUpBucketWithGoalSchema } from "#/modules/goals/schemas";
 import { confirm } from "#/stores/use-confirm";
 
 type SetUpBucketDrawerHandle = ReturnType<typeof createDrawerHandle>;
+
+type NestedRegisterBankAccountDrawerHandle = ReturnType<
+  typeof createDrawerHandle<RegisterBankAccountDrawerPayload>
+>;
 
 export const setUpBucketDrawerHandle = createDrawerHandle();
 
@@ -62,6 +78,13 @@ export function NestedSetUpBucketDrawer({ handle, finalFocus }: SetUpBucketDrawe
 
 function SetUpBucketDrawerRoot({ handle, finalFocus }: SetUpBucketDrawerRootProps) {
   const formControlsRef = useRef<SetUpBucketFormControls>(null);
+  const popupRef = useRef<HTMLDivElement>(null);
+  const registerButtonRef = useRef<HTMLButtonElement>(null);
+
+  // Per Root: the global and the Log Allocation-nested Set Up Bucket each nest their own Register.
+  const [nestedRegisterBankAccountDrawerHandle] = useState(() =>
+    createDrawerHandle<RegisterBankAccountDrawerPayload>(),
+  );
 
   async function handleOnOpenChange(open: boolean, eventDetails: DrawerChangeEventDetails) {
     if (open || !formControlsRef.current?.isDirty()) return;
@@ -83,19 +106,35 @@ function SetUpBucketDrawerRoot({ handle, finalFocus }: SetUpBucketDrawerRootProp
 
   return (
     <ResponsiveDrawer handle={handle} onOpenChange={handleOnOpenChange}>
-      <DrawerContent finalFocus={finalFocus}>
-        <SetUpBucketForm onSetUp={() => handle.close()} ref={formControlsRef} />
+      <DrawerContent ref={popupRef} finalFocus={finalFocus}>
+        <SetUpBucketForm
+          onSetUp={() => handle.close()}
+          nestedRegisterBankAccountDrawerHandle={nestedRegisterBankAccountDrawerHandle}
+          registerButtonRef={registerButtonRef}
+          ref={formControlsRef}
+        />
       </DrawerContent>
+      <NestedRegisterBankAccountDrawer
+        handle={nestedRegisterBankAccountDrawerHandle}
+        finalFocus={() => registerButtonRef.current ?? popupRef.current}
+      />
     </ResponsiveDrawer>
   );
 }
 
 type SetUpBucketFormProps = {
   onSetUp: () => void;
+  nestedRegisterBankAccountDrawerHandle: NestedRegisterBankAccountDrawerHandle;
+  registerButtonRef: RefObject<HTMLButtonElement | null>;
   ref: Ref<SetUpBucketFormControls>;
 };
 
-function SetUpBucketForm({ onSetUp, ref }: SetUpBucketFormProps) {
+function SetUpBucketForm({
+  onSetUp,
+  nestedRegisterBankAccountDrawerHandle,
+  registerButtonRef,
+  ref,
+}: SetUpBucketFormProps) {
   const mutation = useSetUpBucketMutation();
 
   const {
@@ -197,6 +236,16 @@ function SetUpBucketForm({ onSetUp, ref }: SetUpBucketFormProps) {
                   >
                     Retry
                   </Button>
+                ) : null}
+                {currenciesStatus === "success" && currencies.length === 0 ? (
+                  <DrawerTrigger
+                    ref={registerButtonRef}
+                    handle={nestedRegisterBankAccountDrawerHandle}
+                    payload={{ currency: "PHP" }}
+                    render={<Button type="button" variant="outline" size="sm" className="w-fit" />}
+                  >
+                    Register Bank Account
+                  </DrawerTrigger>
                 ) : null}
               </FieldContent>
               <Switch
