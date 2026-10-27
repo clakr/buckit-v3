@@ -1,4 +1,4 @@
-import { IconPencil } from "@tabler/icons-react";
+import { IconArrowsExchange, IconPencil, IconPlus } from "@tabler/icons-react";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute, Link } from "@tanstack/react-router";
 
@@ -11,14 +11,17 @@ import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "#/componen
 import { DataTable } from "#/components/ui/data-table";
 import { DrawerTrigger } from "#/components/ui/drawer";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "#/components/ui/tabs";
+import { MODULE_ICONS } from "#/lib/constants";
 import { loadOrThrowRouteNotFound } from "#/lib/errors";
 import { formatMoney } from "#/lib/money";
 import { formatPageTitle } from "#/lib/utils";
 import { getAllocationColumns } from "#/modules/allocations/columns";
+import { logAllocationDrawerHandle } from "#/modules/allocations/components/log-allocation-drawer";
 import { allocationsQueryOption } from "#/modules/allocations/query-options";
 import { TRANSACTIONS_COLUMNS } from "#/modules/bank-accounts/columns";
 import { editBankAccountDrawerHandle } from "#/modules/bank-accounts/components/edit-bank-account-drawer";
 import { bankAccountQueryOption } from "#/modules/bank-accounts/query-options";
+import { logTransactionDrawerHandle } from "#/modules/transactions/components/log-transaction-drawer";
 
 export const Route = createFileRoute("/_protected/accounts/$accountId")({
   context: ({ params }) => ({
@@ -114,6 +117,24 @@ function RouteComponent() {
               columns={TRANSACTIONS_COLUMNS}
               data={bankAccount.transactions}
               initialSorting={[{ id: "date", desc: true }]}
+              emptyState={
+                <StateTemplate
+                  state="empty"
+                  title="No transactions yet."
+                  description="Log income or an expense to track this account's balance."
+                  icon={<IconArrowsExchange />}
+                  content={
+                    <DrawerTrigger
+                      handle={logTransactionDrawerHandle}
+                      payload={{ bankAccountId: accountId }}
+                      render={<Button />}
+                    >
+                      <IconPlus />
+                      Log Transaction
+                    </DrawerTrigger>
+                  }
+                />
+              }
             />
           </TabsContent>
           <TabsContent value="allocations">
@@ -121,6 +142,24 @@ function RouteComponent() {
               columns={getAllocationColumns({ omit: "bankAccount" })}
               data={allocations}
               initialSorting={[{ id: "date", desc: true }]}
+              emptyState={
+                <StateTemplate
+                  state="empty"
+                  title="No allocations yet."
+                  description="Move money from this account into a bucket."
+                  icon={<MODULE_ICONS.buckets />}
+                  content={
+                    <DrawerTrigger
+                      handle={logAllocationDrawerHandle}
+                      payload={{ start: { from: "bank-account", bankAccountId: accountId } }}
+                      render={<Button />}
+                    >
+                      <IconPlus />
+                      Allocate Money
+                    </DrawerTrigger>
+                  }
+                />
+              }
             />
           </TabsContent>
           <Card>
