@@ -1,6 +1,6 @@
 import { useSelector } from "@tanstack/react-form";
 import { useQuery } from "@tanstack/react-query";
-import { useImperativeHandle, useRef, type Ref } from "react";
+import { useImperativeHandle, useRef, type Ref, type RefObject } from "react";
 import z from "zod";
 
 import type { BankAccount, Bucket } from "#/db/schema";
@@ -15,10 +15,11 @@ import {
   DrawerFooter,
   DrawerHeader,
   DrawerTitle,
+  DrawerTrigger,
   ResponsiveDrawer,
   type DrawerChangeEventDetails,
 } from "#/components/ui/drawer";
-import { FieldGroup } from "#/components/ui/field";
+import { Field, FieldError, FieldGroup, FieldLabel } from "#/components/ui/field";
 import { useAppForm } from "#/integrations/tanstack-form";
 import { formatMoney, exceedsAvailable, describeInsufficientUnallocated } from "#/lib/money";
 import { getCurrency, isCurrencyCode } from "#/lib/utils";
@@ -26,6 +27,7 @@ import { useLogAllocationMutation } from "#/modules/allocations/mutations";
 import { logAllocationSchema } from "#/modules/allocations/schemas";
 import { BankAccountSelectField } from "#/modules/bank-accounts/components/bank-account-select-field";
 import { bankAccountsQueryOption } from "#/modules/bank-accounts/query-options";
+import { NestedSetUpBucketDrawer } from "#/modules/buckets/components/set-up-bucket-drawer";
 import { bucketsQueryOptions } from "#/modules/buckets/query-options";
 import { confirm } from "#/stores/use-confirm";
 
@@ -35,6 +37,8 @@ export type LogAllocationStart =
 
 export const logAllocationDrawerHandle = createDrawerHandle<{ start: LogAllocationStart }>();
 
+const nestedSetUpBucketDrawerHandle = createDrawerHandle();
+
 type LogAllocationFormControls = {
   isDirty: () => boolean;
   reset: () => void;
@@ -42,6 +46,8 @@ type LogAllocationFormControls = {
 
 export function LogAllocationDrawer() {
   const formControlsRef = useRef<LogAllocationFormControls>(null);
+  const popupRef = useRef<HTMLDivElement>(null);
+  const setUpBucketButtonRef = useRef<HTMLButtonElement>(null);
 
   async function handleOnOpenChange(open: boolean, eventDetails: DrawerChangeEventDetails) {
     if (open || !formControlsRef.current?.isDirty()) return;
@@ -64,9 +70,21 @@ export function LogAllocationDrawer() {
   return (
     <ResponsiveDrawer handle={logAllocationDrawerHandle} onOpenChange={handleOnOpenChange}>
       {({ payload }) => (
-        <DrawerContent>
-          {payload ? <LogAllocationForm start={payload.start} ref={formControlsRef} /> : null}
-        </DrawerContent>
+        <>
+          <DrawerContent ref={popupRef}>
+            {payload ? (
+              <LogAllocationForm
+                start={payload.start}
+                setUpBucketButtonRef={setUpBucketButtonRef}
+                ref={formControlsRef}
+              />
+            ) : null}
+          </DrawerContent>
+          <NestedSetUpBucketDrawer
+            handle={nestedSetUpBucketDrawerHandle}
+            finalFocus={() => setUpBucketButtonRef.current ?? popupRef.current}
+          />
+        </>
       )}
     </ResponsiveDrawer>
   );
@@ -74,10 +92,11 @@ export function LogAllocationDrawer() {
 
 type LogAllocationFormProps = {
   start: LogAllocationStart;
+  setUpBucketButtonRef: RefObject<HTMLButtonElement | null>;
   ref: Ref<LogAllocationFormControls>;
 };
 
-function LogAllocationForm({ start, ref }: LogAllocationFormProps) {
+function LogAllocationForm({ start, setUpBucketButtonRef, ref }: LogAllocationFormProps) {
   const mutation = useLogAllocationMutation();
 
   const defaultValues: z.input<typeof logAllocationSchema> = {
@@ -279,11 +298,31 @@ function LogAllocationForm({ start, ref }: LogAllocationFormProps) {
                   {(field) => {
                     const options = buckets?.map((b) => ({ value: b.id, label: b.name })) ?? [];
 
+                    if (!options.length) {
+                      const isInvalid = field.state.meta.isTouched && !field.state.meta.isValid;
+
+                      return (
+                        <Field data-invalid={isInvalid}>
+                          <FieldLabel>Bucket</FieldLabel>
+                          <p className="text-muted-foreground">
+                            You have no buckets to allocate into yet.
+                          </p>
+                          <DrawerTrigger
+                            ref={setUpBucketButtonRef}
+                            handle={nestedSetUpBucketDrawerHandle}
+                            render={<Button type="button" variant="outline" />}
+                          >
+                            Set Up Bucket
+                          </DrawerTrigger>
+                          {isInvalid && <FieldError errors={field.state.meta.errors} />}
+                        </Field>
+                      );
+                    }
+
                     return (
                       <field.Select
                         label="Bucket"
                         items={options}
-                        disabled={!options.length}
                         placeholder="Select bucket"
                         options={options}
                       />
