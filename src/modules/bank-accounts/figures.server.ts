@@ -1,4 +1,4 @@
-import { and, eq, getColumns, inArray, notInArray, sql, type SQL } from "drizzle-orm";
+import { and, eq, getColumns, gte, inArray, notInArray, sql, type SQL } from "drizzle-orm";
 
 import type { DB } from "#/db";
 
@@ -13,7 +13,10 @@ import {
 } from "#/db/schema";
 import { NotFoundError } from "#/lib/errors";
 import {
+  getBalanceTrend,
+  getBalanceTrendWindowStart,
   getBankAccountFigures,
+  type BalanceTrend,
   type BankAccountFigures,
   type PendingAddition,
 } from "#/modules/bank-accounts/utils";
@@ -149,6 +152,50 @@ export async function getBankAccountsWithFigures(
       incomeTotal,
       expenseTotal,
       earmarkedTotal,
+    }),
+  }));
+}
+
+export type BankAccountWithTrend = BankAccountWithFigures & { trend: BalanceTrend };
+
+export async function getBankAccountsWithFiguresAndTrend(
+  db: DB,
+  { userId }: { userId: string },
+): Promise<BankAccountWithTrend[]> {
+  const now = new Date();
+
+  const [bankAccountsWithFigures, windowTransactions] = await Promise.all([
+    getBankAccountsWithFigures(db, { userId }),
+    db
+      .select({
+        bankAccountId: transactions.bankAccountId,
+        type: transactions.type,
+        amount: transactions.amount,
+        date: transactions.date,
+      })
+      .from(transactions)
+      .innerJoin(bankAccounts, eq(bankAccounts.id, transactions.bankAccountId))
+      .where(
+        and(
+          eq(bankAccounts.userId, userId),
+          gte(transactions.date, getBalanceTrendWindowStart(now)),
+        ),
+      ),
+  ]);
+
+  const transactionsByBankAccountId = new Map<BankAccount["id"], typeof windowTransactions>();
+  for (const transaction of windowTransactions) {
+    const grouped = transactionsByBankAccountId.get(transaction.bankAccountId) ?? [];
+    grouped.push(transaction);
+    transactionsByBankAccountId.set(transaction.bankAccountId, grouped);
+  }
+
+  return bankAccountsWithFigures.map((bankAccount) => ({
+    ...bankAccount,
+    trend: getBalanceTrend({
+      balance: bankAccount.balance,
+      transactions: transactionsByBankAccountId.get(bankAccount.id) ?? [],
+      now,
     }),
   }));
 }

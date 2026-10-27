@@ -8,7 +8,10 @@ import { bankAccounts } from "#/db/schema";
 import { ConflictError, NotFoundError } from "#/lib/errors";
 import { authMiddleware } from "#/modules/authentication/middlewares";
 import { loadBankAccountDeletionImpact } from "#/modules/bank-accounts/deletion.server";
-import { getBankAccountsWithFigures } from "#/modules/bank-accounts/figures.server";
+import {
+  getBankAccountsWithFigures,
+  getBankAccountsWithFiguresAndTrend,
+} from "#/modules/bank-accounts/figures.server";
 import { verifyUserBankAccountMiddleware } from "#/modules/bank-accounts/middlewares";
 import { bankAccountNameRule } from "#/modules/bank-accounts/name.server";
 import {
@@ -28,6 +31,14 @@ export const getBankAccounts = createServerFn({
       userId: context.userId,
       currency: data?.currency,
     }),
+  );
+
+export const getBankAccountsWithTrend = createServerFn({
+  method: "GET",
+})
+  .middleware([authMiddleware])
+  .handler(async ({ context }) =>
+    getBankAccountsWithFiguresAndTrend(getDB(env.db), { userId: context.userId }),
   );
 
 export const getBankAccount = createServerFn({
