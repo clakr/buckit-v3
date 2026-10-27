@@ -52,9 +52,11 @@ export function DebtProgressRing({
         ) : (
           <span className="font-semibold tabular-nums">{formatDebtAmount(outstanding)}</span>
         )}
-        <span className="text-xs text-muted-foreground tabular-nums">
-          {repaid === 0 ? "Nothing repaid" : `of ${formatDebtAmount(amount)}`}
-        </span>
+        {repaid === 0 ? null : (
+          <span className="text-xs text-muted-foreground tabular-nums">
+            of {formatDebtAmount(amount)}
+          </span>
+        )}
       </div>
 
       <div className={cn("relative size-10 shrink-0", ringTone)}>
