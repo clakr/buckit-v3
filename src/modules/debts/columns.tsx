@@ -14,7 +14,6 @@ import { DebtActionsDropdownMenu } from "./components/debt-actions-dropdown-menu
 import { DebtBalanceSparkline } from "./components/debt-balance-sparkline";
 import { DebtDirectionBadge } from "./components/debt-direction-badge";
 import { DebtProgressRing } from "./components/debt-progress-ring";
-import { DebtStatusBadge } from "./components/debt-status-badge";
 import { ForgivenOutstanding } from "./components/forgiven-outstanding";
 
 export const INDEX_COLUMNS: DataTableColumnDef<Awaited<ReturnType<typeof getDebts>>[number]>[] = [
@@ -46,11 +45,6 @@ export const INDEX_COLUMNS: DataTableColumnDef<Awaited<ReturnType<typeof getDebt
     cell: ({ row }) => <DebtDirectionBadge direction={row.original.direction} />,
   },
   {
-    id: "status",
-    header: "Status",
-    cell: ({ row }) => <DebtStatusBadge status={row.original.status} />,
-  },
-  {
     accessorKey: "outstanding",
     header: () => <div data-currency>Outstanding</div>,
     cell: ({ row }) => {
@@ -62,11 +56,7 @@ export const INDEX_COLUMNS: DataTableColumnDef<Awaited<ReturnType<typeof getDebt
 
       if (row.original.forgivenAt)
         return (
-          <ForgivenOutstanding
-            amount={row.original.amount}
-            outstanding={outstanding}
-            formatDebtAmount={formatDebtAmount}
-          />
+          <ForgivenOutstanding outstanding={outstanding} formatDebtAmount={formatDebtAmount} />
         );
 
       return (

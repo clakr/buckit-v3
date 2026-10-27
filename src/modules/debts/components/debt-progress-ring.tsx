@@ -49,12 +49,14 @@ export function DebtProgressRing({
           <span className={cn("font-semibold uppercase", toneText)}>
             Overpaid +{formatDebtAmount(-outstanding)}
           </span>
+        ) : isSettled ? (
+          <span className={cn("font-semibold uppercase", ringTone)}>Paid in full</span>
         ) : (
           <span className="font-semibold tabular-nums">{formatDebtAmount(outstanding)}</span>
         )}
         {repaid === 0 ? null : (
           <span className="text-xs text-muted-foreground tabular-nums">
-            of {formatDebtAmount(amount)}
+            {isSettled && !isOverpaid ? formatDebtAmount(amount) : `of ${formatDebtAmount(amount)}`}
           </span>
         )}
       </div>
