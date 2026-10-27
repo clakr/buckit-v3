@@ -1,4 +1,4 @@
-import { useImperativeHandle, useRef, type Ref } from "react";
+import { useImperativeHandle, useRef, type ComponentProps, type Ref } from "react";
 import z from "zod";
 
 import { CurrencyCombobox } from "#/components/currency-combobox";
@@ -43,17 +43,21 @@ export function RegisterBankAccountDrawer() {
 
 type RegisterBankAccountDrawerRootProps = {
   handle: RegisterBankAccountDrawerHandle;
+  finalFocus?: ComponentProps<typeof DrawerContent>["finalFocus"];
 };
 
 /**
  * Render inside a parent's `DrawerContent` so Base UI nests it, then open it from a
  * `DrawerTrigger` bound to the same `handle` with a `{ currency }` payload.
  */
-export function NestedRegisterBankAccountDrawer({ handle }: RegisterBankAccountDrawerRootProps) {
-  return <RegisterBankAccountDrawerRoot handle={handle} />;
+export function NestedRegisterBankAccountDrawer({
+  handle,
+  finalFocus,
+}: RegisterBankAccountDrawerRootProps) {
+  return <RegisterBankAccountDrawerRoot handle={handle} finalFocus={finalFocus} />;
 }
 
-function RegisterBankAccountDrawerRoot({ handle }: RegisterBankAccountDrawerRootProps) {
+function RegisterBankAccountDrawerRoot({ handle, finalFocus }: RegisterBankAccountDrawerRootProps) {
   const formControlsRef = useRef<RegisterBankAccountFormControls>(null);
 
   async function handleOnOpenChange(open: boolean, eventDetails: DrawerChangeEventDetails) {
@@ -77,7 +81,7 @@ function RegisterBankAccountDrawerRoot({ handle }: RegisterBankAccountDrawerRoot
   return (
     <ResponsiveDrawer handle={handle} onOpenChange={handleOnOpenChange}>
       {({ payload }) => (
-        <DrawerContent>
+        <DrawerContent finalFocus={finalFocus}>
           {payload ? (
             <RegisterBankAccountForm
               currency={payload.currency}

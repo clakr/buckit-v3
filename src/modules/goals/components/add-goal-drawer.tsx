@@ -1,6 +1,6 @@
 import { IconBuildingBank } from "@tabler/icons-react";
 import { useQuery } from "@tanstack/react-query";
-import { useImperativeHandle, useRef, type Ref } from "react";
+import { Suspense, useImperativeHandle, useRef, type Ref, type RefObject } from "react";
 import z from "zod";
 
 import type { Bucket } from "#/db/schema";
@@ -15,12 +15,16 @@ import {
   DrawerFooter,
   DrawerHeader,
   DrawerTitle,
+  DrawerTrigger,
   ResponsiveDrawer,
   type DrawerChangeEventDetails,
 } from "#/components/ui/drawer";
 import { FieldGroup } from "#/components/ui/field";
 import { useAppForm } from "#/integrations/tanstack-form";
-import { registerBankAccountDrawerHandle } from "#/modules/bank-accounts/components/register-bank-account-drawer";
+import {
+  NestedRegisterBankAccountDrawer,
+  type RegisterBankAccountDrawerPayload,
+} from "#/modules/bank-accounts/components/register-bank-account-drawer";
 import { bucketQueryOption } from "#/modules/buckets/query-options";
 import { GoalTargetFields } from "#/modules/goals/components/goal-target-fields";
 import { useAddGoalMutation } from "#/modules/goals/mutations";
@@ -30,6 +34,9 @@ import { confirm } from "#/stores/use-confirm";
 
 export const addGoalDrawerHandle = createDrawerHandle<{ bucketId: Bucket["id"] }>();
 
+const nestedRegisterBankAccountDrawerHandle =
+  createDrawerHandle<RegisterBankAccountDrawerPayload>();
+
 type AddGoalFormControls = {
   isDirty: () => boolean;
   reset: () => void;
@@ -37,6 +44,7 @@ type AddGoalFormControls = {
 
 export function AddGoalDrawer() {
   const formControlsRef = useRef<AddGoalFormControls>(null);
+  const popupRef = useRef<HTMLDivElement>(null);
 
   async function handleOnOpenChange(open: boolean, eventDetails: DrawerChangeEventDetails) {
     if (open || !formControlsRef.current?.isDirty()) return;
@@ -59,8 +67,10 @@ export function AddGoalDrawer() {
   return (
     <ResponsiveDrawer handle={addGoalDrawerHandle} onOpenChange={handleOnOpenChange}>
       {({ payload }) => (
-        <DrawerContent>
-          {payload ? <AddGoalForm bucketId={payload.bucketId} ref={formControlsRef} /> : null}
+        <DrawerContent ref={popupRef}>
+          {payload ? (
+            <AddGoalForm bucketId={payload.bucketId} popupRef={popupRef} ref={formControlsRef} />
+          ) : null}
         </DrawerContent>
       )}
     </ResponsiveDrawer>
@@ -69,11 +79,13 @@ export function AddGoalDrawer() {
 
 type AddGoalFormProps = {
   bucketId: Bucket["id"];
+  popupRef: RefObject<HTMLDivElement | null>;
   ref: Ref<AddGoalFormControls>;
 };
 
-function AddGoalForm({ bucketId, ref }: AddGoalFormProps) {
+function AddGoalForm({ bucketId, popupRef, ref }: AddGoalFormProps) {
   const mutation = useAddGoalMutation();
+  const registerButtonRef = useRef<HTMLButtonElement>(null);
 
   const {
     status: bucketStatus,
@@ -119,10 +131,6 @@ function AddGoalForm({ bucketId, ref }: AddGoalFormProps) {
     [form],
   );
 
-  function openRegisterBankAccountDrawer() {
-    registerBankAccountDrawerHandle.openWithPayload({ currency: "PHP" });
-  }
-
   const loadError =
     bucketStatus === "error"
       ? { noun: "bucket", retry: refetchBucket }
@@ -167,40 +175,59 @@ function AddGoalForm({ bucketId, ref }: AddGoalFormProps) {
             icon={<IconBuildingBank />}
             title="No bank accounts yet"
             description="A goal's currency must be one your bank accounts use. Register a bank account first."
-            content={<Button onClick={openRegisterBankAccountDrawer}>Register Bank Account</Button>}
+            content={
+              <DrawerTrigger
+                ref={registerButtonRef}
+                handle={nestedRegisterBankAccountDrawerHandle}
+                payload={{ currency: "PHP" }}
+                render={<Button />}
+              >
+                Register Bank Account
+              </DrawerTrigger>
+            }
           />
         ) : null}
+        {/* The lazy form fields first render once Register succeeds. Suspend here, not in
+            DrawerContent, or the nested Root unmounts and drops Register's close(). */}
         {isReady && hasCurrencies ? (
-          <form
-            id={form.formId}
-            onSubmit={(e) => {
-              e.preventDefault();
-              e.stopPropagation();
-              form.handleSubmit();
-            }}
-          >
-            <FieldGroup>
-              <GoalTargetFields
-                form={form}
-                fields={{
-                  currency: "currency",
-                  targetAmount: "targetAmount",
-                  targetDate: "targetDate",
-                }}
-                currencies={currencies ?? []}
-              />
-            </FieldGroup>
-          </form>
+          <Suspense fallback={null}>
+            <form
+              id={form.formId}
+              onSubmit={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                form.handleSubmit();
+              }}
+            >
+              <FieldGroup>
+                <GoalTargetFields
+                  form={form}
+                  fields={{
+                    currency: "currency",
+                    targetAmount: "targetAmount",
+                    targetDate: "targetDate",
+                  }}
+                  currencies={currencies ?? []}
+                />
+              </FieldGroup>
+            </form>
+          </Suspense>
         ) : null}
       </div>
       {isReady && hasCurrencies ? (
-        <DrawerFooter className="border-t pt-4">
-          <form.AppForm>
-            <form.Button form={form.formId}>Add Goal</form.Button>
-          </form.AppForm>
-          <DrawerClose render={<Button variant="outline" />}>Cancel</DrawerClose>
-        </DrawerFooter>
+        <Suspense fallback={null}>
+          <DrawerFooter className="border-t pt-4">
+            <form.AppForm>
+              <form.Button form={form.formId}>Add Goal</form.Button>
+            </form.AppForm>
+            <DrawerClose render={<Button variant="outline" />}>Cancel</DrawerClose>
+          </DrawerFooter>
+        </Suspense>
       ) : null}
+      <NestedRegisterBankAccountDrawer
+        handle={nestedRegisterBankAccountDrawerHandle}
+        finalFocus={() => registerButtonRef.current ?? popupRef.current}
+      />
     </>
   );
 }
