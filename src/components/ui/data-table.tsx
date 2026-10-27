@@ -12,7 +12,7 @@ import {
   tableFeatures,
   useTable,
 } from "@tanstack/react-table";
-import { useState } from "react";
+import { useState, type ReactNode } from "react";
 
 import {
   Table,
@@ -43,12 +43,15 @@ interface DataTableProps<TData extends RowData> {
   columns: DataTableColumnDef<TData>[];
   data: TData[];
   initialSorting?: SortingState;
+  /** Replaces "No results." when there are no rows. */
+  emptyState?: ReactNode;
 }
 
 export function DataTable<TData extends RowData>({
   columns,
   data,
   initialSorting = [],
+  emptyState,
 }: DataTableProps<TData>) {
   const [sorting, setSorting] = useState<SortingState>(initialSorting);
 
@@ -93,6 +96,12 @@ export function DataTable<TData extends RowData>({
                 ))}
               </TableRow>
             ))
+          ) : emptyState ? (
+            <TableRow className="hover:bg-transparent">
+              <TableCell colSpan={columns.length} className="whitespace-normal">
+                {emptyState}
+              </TableCell>
+            </TableRow>
           ) : (
             <TableRow>
               <TableCell colSpan={columns.length} className="h-24 text-center">
