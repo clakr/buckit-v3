@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { useImperativeHandle, useRef, type Ref } from "react";
+import { useImperativeHandle, useRef, type Ref, type RefObject } from "react";
 import z from "zod";
 
 import type { Debt } from "#/db/schema";
@@ -14,6 +14,7 @@ import {
   DrawerFooter,
   DrawerHeader,
   DrawerTitle,
+  DrawerTrigger,
   ResponsiveDrawer,
   type DrawerChangeEventDetails,
 } from "#/components/ui/drawer";
@@ -22,6 +23,10 @@ import { useAppForm } from "#/integrations/tanstack-form";
 import { NotFoundError } from "#/lib/errors";
 import { exceedsAvailable, describeInsufficientUnallocated } from "#/lib/money";
 import { BankAccountSelectField } from "#/modules/bank-accounts/components/bank-account-select-field";
+import {
+  NestedRegisterBankAccountDrawer,
+  type RegisterBankAccountDrawerPayload,
+} from "#/modules/bank-accounts/components/register-bank-account-drawer";
 import { bankAccountsQueryOption } from "#/modules/bank-accounts/query-options";
 import { debtQueryOption } from "#/modules/debts/query-options";
 import { getLinkedTransactionType } from "#/modules/debts/utils";
@@ -33,6 +38,9 @@ import { getRepaymentDateRule } from "../utils";
 
 export const logRepaymentDrawerHandle = createDrawerHandle<{ debtId: Debt["id"] }>();
 
+const nestedRegisterBankAccountDrawerHandle =
+  createDrawerHandle<RegisterBankAccountDrawerPayload>();
+
 type LogRepaymentFormControls = {
   isDirty: () => boolean;
   reset: () => void;
@@ -40,6 +48,8 @@ type LogRepaymentFormControls = {
 
 export function LogRepaymentDrawer() {
   const formControlsRef = useRef<LogRepaymentFormControls>(null);
+  const popupRef = useRef<HTMLDivElement>(null);
+  const registerButtonRef = useRef<HTMLButtonElement>(null);
 
   async function handleOnOpenChange(open: boolean, eventDetails: DrawerChangeEventDetails) {
     if (open || !formControlsRef.current?.isDirty()) return;
@@ -62,9 +72,21 @@ export function LogRepaymentDrawer() {
   return (
     <ResponsiveDrawer handle={logRepaymentDrawerHandle} onOpenChange={handleOnOpenChange}>
       {({ payload }) => (
-        <DrawerContent>
-          {payload ? <LogRepaymentForm debtId={payload.debtId} ref={formControlsRef} /> : null}
-        </DrawerContent>
+        <>
+          <DrawerContent ref={popupRef}>
+            {payload ? (
+              <LogRepaymentForm
+                debtId={payload.debtId}
+                registerButtonRef={registerButtonRef}
+                ref={formControlsRef}
+              />
+            ) : null}
+          </DrawerContent>
+          <NestedRegisterBankAccountDrawer
+            handle={nestedRegisterBankAccountDrawerHandle}
+            finalFocus={() => registerButtonRef.current ?? popupRef.current}
+          />
+        </>
       )}
     </ResponsiveDrawer>
   );
@@ -72,10 +94,11 @@ export function LogRepaymentDrawer() {
 
 type LogRepaymentFormProps = {
   debtId: Debt["id"];
+  registerButtonRef: RefObject<HTMLButtonElement | null>;
   ref: Ref<LogRepaymentFormControls>;
 };
 
-function LogRepaymentForm({ debtId, ref }: LogRepaymentFormProps) {
+function LogRepaymentForm({ debtId, registerButtonRef, ref }: LogRepaymentFormProps) {
   const {
     status: debtStatus,
     error: debtError,
@@ -228,9 +251,19 @@ function LogRepaymentForm({ debtId, ref }: LogRepaymentFormProps) {
                     bankAccountsQuery={{ status: bankAccountsStatus, refetch: refetchBankAccounts }}
                     bankAccounts={bankAccounts}
                     emptyContent={
-                      <p className="text-muted-foreground">
-                        No {debt.currency} accounts, so this repayment is logged without one.
-                      </p>
+                      <>
+                        <p className="text-muted-foreground">
+                          No {debt.currency} accounts, so this repayment is logged without one.
+                        </p>
+                        <DrawerTrigger
+                          ref={registerButtonRef}
+                          handle={nestedRegisterBankAccountDrawerHandle}
+                          payload={{ currency: debt.currency }}
+                          render={<Button type="button" variant="outline" />}
+                        >
+                          Register a/an {debt.currency} account
+                        </DrawerTrigger>
+                      </>
                     }
                   />
                 )}
