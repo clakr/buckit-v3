@@ -1,6 +1,6 @@
 import { IconBuildingBank } from "@tabler/icons-react";
 import { useQuery } from "@tanstack/react-query";
-import { Suspense, useImperativeHandle, useRef, type Ref, type RefObject } from "react";
+import { useImperativeHandle, useRef, type Ref, type RefObject } from "react";
 import z from "zod";
 
 import type { Bucket } from "#/db/schema";
@@ -45,6 +45,7 @@ type AddGoalFormControls = {
 export function AddGoalDrawer() {
   const formControlsRef = useRef<AddGoalFormControls>(null);
   const popupRef = useRef<HTMLDivElement>(null);
+  const registerButtonRef = useRef<HTMLButtonElement>(null);
 
   async function handleOnOpenChange(open: boolean, eventDetails: DrawerChangeEventDetails) {
     if (open || !formControlsRef.current?.isDirty()) return;
@@ -67,11 +68,21 @@ export function AddGoalDrawer() {
   return (
     <ResponsiveDrawer handle={addGoalDrawerHandle} onOpenChange={handleOnOpenChange}>
       {({ payload }) => (
-        <DrawerContent ref={popupRef}>
-          {payload ? (
-            <AddGoalForm bucketId={payload.bucketId} popupRef={popupRef} ref={formControlsRef} />
-          ) : null}
-        </DrawerContent>
+        <>
+          <DrawerContent ref={popupRef}>
+            {payload ? (
+              <AddGoalForm
+                bucketId={payload.bucketId}
+                registerButtonRef={registerButtonRef}
+                ref={formControlsRef}
+              />
+            ) : null}
+          </DrawerContent>
+          <NestedRegisterBankAccountDrawer
+            handle={nestedRegisterBankAccountDrawerHandle}
+            finalFocus={() => registerButtonRef.current ?? popupRef.current}
+          />
+        </>
       )}
     </ResponsiveDrawer>
   );
@@ -79,13 +90,12 @@ export function AddGoalDrawer() {
 
 type AddGoalFormProps = {
   bucketId: Bucket["id"];
-  popupRef: RefObject<HTMLDivElement | null>;
+  registerButtonRef: RefObject<HTMLButtonElement | null>;
   ref: Ref<AddGoalFormControls>;
 };
 
-function AddGoalForm({ bucketId, popupRef, ref }: AddGoalFormProps) {
+function AddGoalForm({ bucketId, registerButtonRef, ref }: AddGoalFormProps) {
   const mutation = useAddGoalMutation();
-  const registerButtonRef = useRef<HTMLButtonElement>(null);
 
   const {
     status: bucketStatus,
@@ -187,47 +197,37 @@ function AddGoalForm({ bucketId, popupRef, ref }: AddGoalFormProps) {
             }
           />
         ) : null}
-        {/* The lazy form fields first render once Register succeeds. Suspend here, not in
-            DrawerContent, or the nested Root unmounts and drops Register's close(). */}
         {isReady && hasCurrencies ? (
-          <Suspense fallback={null}>
-            <form
-              id={form.formId}
-              onSubmit={(e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                form.handleSubmit();
-              }}
-            >
-              <FieldGroup>
-                <GoalTargetFields
-                  form={form}
-                  fields={{
-                    currency: "currency",
-                    targetAmount: "targetAmount",
-                    targetDate: "targetDate",
-                  }}
-                  currencies={currencies ?? []}
-                />
-              </FieldGroup>
-            </form>
-          </Suspense>
+          <form
+            id={form.formId}
+            onSubmit={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              form.handleSubmit();
+            }}
+          >
+            <FieldGroup>
+              <GoalTargetFields
+                form={form}
+                fields={{
+                  currency: "currency",
+                  targetAmount: "targetAmount",
+                  targetDate: "targetDate",
+                }}
+                currencies={currencies ?? []}
+              />
+            </FieldGroup>
+          </form>
         ) : null}
       </div>
       {isReady && hasCurrencies ? (
-        <Suspense fallback={null}>
-          <DrawerFooter className="border-t pt-4">
-            <form.AppForm>
-              <form.Button form={form.formId}>Add Goal</form.Button>
-            </form.AppForm>
-            <DrawerClose render={<Button variant="outline" />}>Cancel</DrawerClose>
-          </DrawerFooter>
-        </Suspense>
+        <DrawerFooter className="border-t pt-4">
+          <form.AppForm>
+            <form.Button form={form.formId}>Add Goal</form.Button>
+          </form.AppForm>
+          <DrawerClose render={<Button variant="outline" />}>Cancel</DrawerClose>
+        </DrawerFooter>
       ) : null}
-      <NestedRegisterBankAccountDrawer
-        handle={nestedRegisterBankAccountDrawerHandle}
-        finalFocus={() => registerButtonRef.current ?? popupRef.current}
-      />
     </>
   );
 }
