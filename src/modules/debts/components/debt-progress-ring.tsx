@@ -53,7 +53,7 @@ export function DebtProgressRing({
           <span className="font-semibold tabular-nums">{formatDebtAmount(outstanding)}</span>
         )}
         <span className="text-xs text-muted-foreground tabular-nums">
-          of {formatDebtAmount(amount)}
+          {repaid === 0 ? "Nothing repaid" : `of ${formatDebtAmount(amount)}`}
         </span>
       </div>
 

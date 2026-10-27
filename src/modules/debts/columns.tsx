@@ -6,7 +6,7 @@ import { SortableTableHead } from "#/components/table/sortable-table-head";
 import { Badge } from "#/components/ui/badge";
 import { Tooltip, TooltipContent, TooltipTrigger } from "#/components/ui/tooltip";
 import { formatMoney } from "#/lib/money";
-import { formatDate, formatDateTime, formatToRelative } from "#/lib/utils";
+import { formatDateTime, formatToRelative } from "#/lib/utils";
 
 import type { getDebts } from "./functions";
 
@@ -22,20 +22,21 @@ export const INDEX_COLUMNS: DataTableColumnDef<Awaited<ReturnType<typeof getDebt
     accessorKey: "name",
     header: ({ column }) => <SortableTableHead column={column}>Name</SortableTableHead>,
     cell: ({ row }) => {
-      const { name, date, note } = row.original;
+      const { name, note } = row.original;
 
       return (
         <div className="flex max-w-64 flex-col">
           <span className="font-semibold">{name}</span>
-          <Tooltip>
-            <TooltipTrigger
-              render={<span className="truncate text-start text-xs text-muted-foreground" />}
-            >
-              {formatDate(date)}
-              {note ? ` · ${note}` : null}
-            </TooltipTrigger>
-            {note ? <TooltipContent>{note}</TooltipContent> : null}
-          </Tooltip>
+          {note ? (
+            <Tooltip>
+              <TooltipTrigger
+                render={<span className="truncate text-start text-xs text-muted-foreground" />}
+              >
+                {note}
+              </TooltipTrigger>
+              <TooltipContent>{note}</TooltipContent>
+            </Tooltip>
+          ) : null}
         </div>
       );
     },
