@@ -26,6 +26,10 @@ import { getCurrency, isCurrencyCode } from "#/lib/utils";
 import { useLogAllocationMutation } from "#/modules/allocations/mutations";
 import { logAllocationSchema } from "#/modules/allocations/schemas";
 import { BankAccountSelectField } from "#/modules/bank-accounts/components/bank-account-select-field";
+import {
+  NestedRegisterBankAccountDrawer,
+  type RegisterBankAccountDrawerPayload,
+} from "#/modules/bank-accounts/components/register-bank-account-drawer";
 import { bankAccountsQueryOption } from "#/modules/bank-accounts/query-options";
 import { NestedSetUpBucketDrawer } from "#/modules/buckets/components/set-up-bucket-drawer";
 import { bucketsQueryOptions } from "#/modules/buckets/query-options";
@@ -39,6 +43,9 @@ export const logAllocationDrawerHandle = createDrawerHandle<{ start: LogAllocati
 
 const nestedSetUpBucketDrawerHandle = createDrawerHandle();
 
+const nestedRegisterBankAccountDrawerHandle =
+  createDrawerHandle<RegisterBankAccountDrawerPayload>();
+
 type LogAllocationFormControls = {
   isDirty: () => boolean;
   reset: () => void;
@@ -48,6 +55,7 @@ export function LogAllocationDrawer() {
   const formControlsRef = useRef<LogAllocationFormControls>(null);
   const popupRef = useRef<HTMLDivElement>(null);
   const setUpBucketButtonRef = useRef<HTMLButtonElement>(null);
+  const registerButtonRef = useRef<HTMLButtonElement>(null);
 
   async function handleOnOpenChange(open: boolean, eventDetails: DrawerChangeEventDetails) {
     if (open || !formControlsRef.current?.isDirty()) return;
@@ -76,6 +84,7 @@ export function LogAllocationDrawer() {
               <LogAllocationForm
                 start={payload.start}
                 setUpBucketButtonRef={setUpBucketButtonRef}
+                registerButtonRef={registerButtonRef}
                 ref={formControlsRef}
               />
             ) : null}
@@ -83,6 +92,10 @@ export function LogAllocationDrawer() {
           <NestedSetUpBucketDrawer
             handle={nestedSetUpBucketDrawerHandle}
             finalFocus={() => setUpBucketButtonRef.current ?? popupRef.current}
+          />
+          <NestedRegisterBankAccountDrawer
+            handle={nestedRegisterBankAccountDrawerHandle}
+            finalFocus={() => registerButtonRef.current ?? popupRef.current}
           />
         </>
       )}
@@ -93,10 +106,16 @@ export function LogAllocationDrawer() {
 type LogAllocationFormProps = {
   start: LogAllocationStart;
   setUpBucketButtonRef: RefObject<HTMLButtonElement | null>;
+  registerButtonRef: RefObject<HTMLButtonElement | null>;
   ref: Ref<LogAllocationFormControls>;
 };
 
-function LogAllocationForm({ start, setUpBucketButtonRef, ref }: LogAllocationFormProps) {
+function LogAllocationForm({
+  start,
+  setUpBucketButtonRef,
+  registerButtonRef,
+  ref,
+}: LogAllocationFormProps) {
   const mutation = useLogAllocationMutation();
 
   const defaultValues: z.input<typeof logAllocationSchema> = {
@@ -244,9 +263,19 @@ function LogAllocationForm({ start, setUpBucketButtonRef, ref }: LogAllocationFo
                       }}
                       bankAccounts={bankAccounts}
                       emptyContent={
-                        <p className="text-muted-foreground">
-                          You have no bank accounts to allocate from yet.
-                        </p>
+                        <>
+                          <p className="text-muted-foreground">
+                            You have no bank accounts to allocate from yet.
+                          </p>
+                          <DrawerTrigger
+                            ref={registerButtonRef}
+                            handle={nestedRegisterBankAccountDrawerHandle}
+                            payload={{ currency: "PHP" }}
+                            render={<Button type="button" variant="outline" />}
+                          >
+                            Register Bank Account
+                          </DrawerTrigger>
+                        </>
                       }
                     />
                   )}
