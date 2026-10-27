@@ -27,6 +27,12 @@ export type BucketFigures = {
 
 export type BucketWithFigures = Bucket & BucketFigures;
 
+export type BucketActivity = {
+  lastMovedDate: Date | null;
+  allocationCount: number;
+  withdrawalCount: number;
+};
+
 function sumAllocationsByBankAccount(db: DB, scope: SQL | undefined) {
   return db
     .select({
@@ -164,4 +170,52 @@ export async function checkHeld(
   }
 
   return { ok: true };
+}
+
+export async function getBucketActivities(db: DB, { userId }: { userId: string }) {
+  const [allocated, withdrawn] = await Promise.all([
+    db
+      .select({
+        bucketId: allocations.bucketId,
+        count: sql<number>`count(*)`.mapWith(Number),
+        lastDate: sql<Date>`max(${allocations.date})`.mapWith(allocations.date),
+      })
+      .from(allocations)
+      .innerJoin(buckets, eq(buckets.id, allocations.bucketId))
+      .where(eq(buckets.userId, userId))
+      .groupBy(allocations.bucketId),
+    db
+      .select({
+        bucketId: withdrawals.bucketId,
+        count: sql<number>`count(*)`.mapWith(Number),
+        lastDate: sql<Date>`max(${transactions.date})`.mapWith(transactions.date),
+      })
+      .from(withdrawals)
+      .innerJoin(buckets, eq(buckets.id, withdrawals.bucketId))
+      .innerJoin(transactions, eq(transactions.id, withdrawals.transactionId))
+      .where(eq(buckets.userId, userId))
+      .groupBy(withdrawals.bucketId),
+  ]);
+
+  const activityByBucketId = new Map<Bucket["id"], BucketActivity>();
+  for (const { bucketId, count, lastDate } of allocated) {
+    activityByBucketId.set(bucketId, {
+      lastMovedDate: lastDate,
+      allocationCount: count,
+      withdrawalCount: 0,
+    });
+  }
+  for (const { bucketId, count, lastDate } of withdrawn) {
+    const activity = activityByBucketId.get(bucketId);
+    activityByBucketId.set(bucketId, {
+      lastMovedDate:
+        activity?.lastMovedDate && activity.lastMovedDate > lastDate
+          ? activity.lastMovedDate
+          : lastDate,
+      allocationCount: activity?.allocationCount ?? 0,
+      withdrawalCount: count,
+    });
+  }
+
+  return activityByBucketId;
 }

@@ -80,7 +80,7 @@ function RouteComponent() {
         <DataTable
           columns={INDEX_COLUMNS}
           data={buckets}
-          initialSorting={[{ id: "createdAt", desc: true }]}
+          initialSorting={[{ id: "activity", desc: true }]}
         />
       )}
     </Main>

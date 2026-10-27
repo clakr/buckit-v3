@@ -8,7 +8,7 @@ import { buckets, goals } from "#/db/schema";
 import { ConflictError, NotFoundError } from "#/lib/errors";
 import { authMiddleware } from "#/modules/authentication/middlewares";
 import { loadBucketDeletionImpact } from "#/modules/buckets/deletion.server";
-import { getBucketsWithFigures } from "#/modules/buckets/figures.server";
+import { getBucketActivities, getBucketsWithFigures } from "#/modules/buckets/figures.server";
 import { verifyUserBucketMiddleware } from "#/modules/buckets/middlewares";
 import { bucketNameRule } from "#/modules/buckets/name.server";
 import { editBucketSchema, validateBucketNameSchema } from "#/modules/buckets/schemas";
@@ -23,8 +23,9 @@ export const getBuckets = createServerFn({
   .handler(async ({ context }) => {
     const db = getDB(env.db);
 
-    const [bucketsWithFigures, bucketGoals] = await Promise.all([
+    const [bucketsWithFigures, activityByBucketId, bucketGoals] = await Promise.all([
       getBucketsWithFigures(db, { userId: context.userId }),
+      getBucketActivities(db, { userId: context.userId }),
       db.query.goals.findMany({
         columns: { bucketId: true, targetAmount: true, currency: true, targetDate: true },
         where: { bucket: { userId: context.userId } },
@@ -35,6 +36,7 @@ export const getBuckets = createServerFn({
 
     return bucketsWithFigures.map((bucket) => {
       const goal = goalByBucketId.get(bucket.id);
+      const activity = activityByBucketId.get(bucket.id);
 
       return {
         id: bucket.id,
@@ -42,6 +44,10 @@ export const getBuckets = createServerFn({
         name: bucket.name,
         createdAt: bucket.createdAt,
         subtotals: bucket.subtotals,
+        accountCount: bucket.heldByBankAccount.length,
+        lastMovedDate: activity?.lastMovedDate ?? null,
+        allocationCount: activity?.allocationCount ?? 0,
+        withdrawalCount: activity?.withdrawalCount ?? 0,
         goal: goal ? { ...goal, progress: getGoalProgress(bucket.subtotals, goal.currency) } : null,
       };
     });

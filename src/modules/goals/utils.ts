@@ -20,6 +20,13 @@ export function getGoalStatus({
   return "in progress";
 }
 
+export function getGoalPercent({
+  targetAmount,
+  progress,
+}: Pick<Goal, "targetAmount"> & { progress: number }) {
+  return Math.max(Math.floor((progress / targetAmount) * 100), 0);
+}
+
 export function getGoalMonthsLeft(targetDate: Date) {
   const today = startOfToday();
   const fullMonths = differenceInMonths(targetDate, today);

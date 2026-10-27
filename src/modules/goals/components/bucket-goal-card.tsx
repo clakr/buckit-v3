@@ -11,7 +11,7 @@ import { registerBankAccountDrawerHandle } from "#/modules/bank-accounts/compone
 
 import type { getBucketGoal } from "../functions";
 
-import { getGoalMonthlyAmount, getGoalStatus } from "../utils";
+import { getGoalMonthlyAmount, getGoalPercent, getGoalStatus } from "../utils";
 import { GoalActionsDropdownMenu } from "./goal-actions-dropdown-menu";
 import { GoalStatusBadge } from "./goal-status-badge";
 
@@ -27,7 +27,7 @@ export function BucketGoalCard({ goal }: Props) {
   const { targetAmount, progress } = goal;
   const status = getGoalStatus(goal);
   const remaining = Math.max(targetAmount - progress, 0);
-  const percent = Math.max(Math.floor((progress / targetAmount) * 100), 0);
+  const percent = getGoalPercent(goal);
   const barPercent = Math.min(percent, 100);
   const monthlyAmount = getGoalMonthlyAmount(goal);
 
