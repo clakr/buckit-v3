@@ -1,6 +1,6 @@
 import { useSelector } from "@tanstack/react-form";
 import { useQuery } from "@tanstack/react-query";
-import { useImperativeHandle, useRef, type Ref } from "react";
+import { useImperativeHandle, useRef, type Ref, type RefObject } from "react";
 import z from "zod";
 
 import { CurrencyCombobox } from "#/components/currency-combobox";
@@ -44,6 +44,8 @@ type RecordDebtFormControls = {
 
 export function RecordDebtDrawer() {
   const formControlsRef = useRef<RecordDebtFormControls>(null);
+  const popupRef = useRef<HTMLDivElement>(null);
+  const registerButtonRef = useRef<HTMLButtonElement>(null);
 
   async function handleOnOpenChange(open: boolean, eventDetails: DrawerChangeEventDetails) {
     if (open || !formControlsRef.current?.isDirty()) return;
@@ -65,18 +67,23 @@ export function RecordDebtDrawer() {
 
   return (
     <ResponsiveDrawer handle={recordDebtDrawerHandle} onOpenChange={handleOnOpenChange}>
-      <DrawerContent>
-        <RecordDebtForm ref={formControlsRef} />
+      <DrawerContent ref={popupRef}>
+        <RecordDebtForm registerButtonRef={registerButtonRef} ref={formControlsRef} />
       </DrawerContent>
+      <NestedRegisterBankAccountDrawer
+        handle={nestedRegisterBankAccountDrawerHandle}
+        finalFocus={() => registerButtonRef.current ?? popupRef.current}
+      />
     </ResponsiveDrawer>
   );
 }
 
 type RecordDebtFormProps = {
+  registerButtonRef: RefObject<HTMLButtonElement | null>;
   ref: Ref<RecordDebtFormControls>;
 };
 
-function RecordDebtForm({ ref }: RecordDebtFormProps) {
+function RecordDebtForm({ registerButtonRef, ref }: RecordDebtFormProps) {
   const mutation = useRecordDebtMutation();
 
   const defaultValues: z.input<typeof recordDebtSchema> = {
@@ -250,6 +257,7 @@ function RecordDebtForm({ ref }: RecordDebtFormProps) {
                       <>
                         <FieldError>No {currency} accounts with available balance.</FieldError>
                         <DrawerTrigger
+                          ref={registerButtonRef}
                           handle={nestedRegisterBankAccountDrawerHandle}
                           payload={{ currency }}
                           render={<Button type="button" variant="outline" />}
@@ -281,7 +289,6 @@ function RecordDebtForm({ ref }: RecordDebtFormProps) {
         </form.AppForm>
         <DrawerClose render={<Button variant="outline" />}>Cancel</DrawerClose>
       </DrawerFooter>
-      <NestedRegisterBankAccountDrawer handle={nestedRegisterBankAccountDrawerHandle} />
     </>
   );
 }

@@ -47,8 +47,9 @@ type RegisterBankAccountDrawerRootProps = {
 };
 
 /**
- * Render inside a parent's `DrawerContent` so Base UI nests it, then open it from a
- * `DrawerTrigger` bound to the same `handle` with a `{ currency }` payload.
+ * Render beside a parent's `DrawerContent`, inside its Root, so Base UI nests it and the
+ * parent's `Suspense` can't unmount it. Open it from a `DrawerTrigger` bound to the same
+ * `handle` with a `{ currency }` payload.
  */
 export function NestedRegisterBankAccountDrawer({
   handle,
