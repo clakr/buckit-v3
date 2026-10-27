@@ -6,13 +6,14 @@ import { SortableTableHead } from "#/components/table/sortable-table-head";
 import { Badge } from "#/components/ui/badge";
 import { Tooltip, TooltipContent, TooltipTrigger } from "#/components/ui/tooltip";
 import { formatMoney } from "#/lib/money";
-import { formatDateTime, formatToRelative } from "#/lib/utils";
+import { formatDate, formatDateTime, formatToRelative } from "#/lib/utils";
 
 import type { getDebts } from "./functions";
 
 import { DebtActionsDropdownMenu } from "./components/debt-actions-dropdown-menu";
+import { DebtBalanceSparkline } from "./components/debt-balance-sparkline";
 import { DebtDirectionBadge } from "./components/debt-direction-badge";
-import { DebtOutstandingMeter } from "./components/debt-outstanding-meter";
+import { DebtProgressRing } from "./components/debt-progress-ring";
 import { DebtStatusBadge } from "./components/debt-status-badge";
 import { ForgivenOutstanding } from "./components/forgiven-outstanding";
 
@@ -20,7 +21,24 @@ export const INDEX_COLUMNS: DataTableColumnDef<Awaited<ReturnType<typeof getDebt
   {
     accessorKey: "name",
     header: ({ column }) => <SortableTableHead column={column}>Name</SortableTableHead>,
-    cell: ({ row }) => <span className="font-semibold">{row.original.name}</span>,
+    cell: ({ row }) => {
+      const { name, date, note } = row.original;
+
+      return (
+        <div className="flex max-w-64 flex-col">
+          <span className="font-semibold">{name}</span>
+          <Tooltip>
+            <TooltipTrigger
+              render={<span className="truncate text-start text-xs text-muted-foreground" />}
+            >
+              {formatDate(date)}
+              {note ? ` · ${note}` : null}
+            </TooltipTrigger>
+            {note ? <TooltipContent>{note}</TooltipContent> : null}
+          </Tooltip>
+        </div>
+      );
+    },
   },
   {
     accessorKey: "direction",
@@ -51,16 +69,27 @@ export const INDEX_COLUMNS: DataTableColumnDef<Awaited<ReturnType<typeof getDebt
         );
 
       return (
-        <DebtOutstandingMeter
+        <DebtProgressRing
           direction={row.original.direction}
           amount={row.original.amount}
           outstanding={outstanding}
           repaid={row.original.repaid}
-          repaymentsCount={row.original.repayments.length}
           formatDebtAmount={formatDebtAmount}
         />
       );
     },
+  },
+  {
+    id: "ledgerMovement",
+    header: "Ledger Movement",
+    cell: ({ row }) => (
+      <DebtBalanceSparkline
+        direction={row.original.direction}
+        amount={row.original.amount}
+        repayments={row.original.repayments}
+        formatDebtAmount={(value) => formatMoney(value, row.original.currency)}
+      />
+    ),
   },
   {
     id: "lastRepaymentDate",
