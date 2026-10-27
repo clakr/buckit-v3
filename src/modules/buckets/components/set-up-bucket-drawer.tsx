@@ -1,6 +1,6 @@
 import { useSelector } from "@tanstack/react-form";
 import { useQuery } from "@tanstack/react-query";
-import { useImperativeHandle, useRef, type Ref } from "react";
+import { useImperativeHandle, useRef, type ComponentProps, type Ref } from "react";
 import z from "zod";
 
 import { Button } from "#/components/ui/button";
@@ -33,6 +33,8 @@ import { goalCurrenciesQueryOptions } from "#/modules/goals/query-options";
 import { setUpBucketWithGoalSchema } from "#/modules/goals/schemas";
 import { confirm } from "#/stores/use-confirm";
 
+type SetUpBucketDrawerHandle = ReturnType<typeof createDrawerHandle>;
+
 export const setUpBucketDrawerHandle = createDrawerHandle();
 
 type SetUpBucketFormControls = {
@@ -41,6 +43,24 @@ type SetUpBucketFormControls = {
 };
 
 export function SetUpBucketDrawer() {
+  return <SetUpBucketDrawerRoot handle={setUpBucketDrawerHandle} />;
+}
+
+type SetUpBucketDrawerRootProps = {
+  handle: SetUpBucketDrawerHandle;
+  finalFocus?: ComponentProps<typeof DrawerContent>["finalFocus"];
+};
+
+/**
+ * Render beside a parent's `DrawerContent`, inside its Root, so Base UI nests it and the
+ * parent's `Suspense` can't unmount it. Open it from a `DrawerTrigger` bound to the same
+ * `handle`.
+ */
+export function NestedSetUpBucketDrawer({ handle, finalFocus }: SetUpBucketDrawerRootProps) {
+  return <SetUpBucketDrawerRoot handle={handle} finalFocus={finalFocus} />;
+}
+
+function SetUpBucketDrawerRoot({ handle, finalFocus }: SetUpBucketDrawerRootProps) {
   const formControlsRef = useRef<SetUpBucketFormControls>(null);
 
   async function handleOnOpenChange(open: boolean, eventDetails: DrawerChangeEventDetails) {
@@ -58,23 +78,24 @@ export function SetUpBucketDrawer() {
     if (confirmed) return;
 
     formControlsRef.current.reset();
-    setUpBucketDrawerHandle.close();
+    handle.close();
   }
 
   return (
-    <ResponsiveDrawer handle={setUpBucketDrawerHandle} onOpenChange={handleOnOpenChange}>
-      <DrawerContent>
-        <SetUpBucketForm ref={formControlsRef} />
+    <ResponsiveDrawer handle={handle} onOpenChange={handleOnOpenChange}>
+      <DrawerContent finalFocus={finalFocus}>
+        <SetUpBucketForm onSetUp={() => handle.close()} ref={formControlsRef} />
       </DrawerContent>
     </ResponsiveDrawer>
   );
 }
 
 type SetUpBucketFormProps = {
+  onSetUp: () => void;
   ref: Ref<SetUpBucketFormControls>;
 };
 
-function SetUpBucketForm({ ref }: SetUpBucketFormProps) {
+function SetUpBucketForm({ onSetUp, ref }: SetUpBucketFormProps) {
   const mutation = useSetUpBucketMutation();
 
   const {
@@ -103,7 +124,7 @@ function SetUpBucketForm({ ref }: SetUpBucketFormProps) {
       }
 
       form.reset();
-      setUpBucketDrawerHandle.close();
+      onSetUp();
     },
   });
 
