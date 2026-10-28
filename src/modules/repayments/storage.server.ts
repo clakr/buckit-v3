@@ -1,3 +1,5 @@
+import type { BatchItem } from "drizzle-orm/batch";
+
 import { eq } from "drizzle-orm";
 import { uuidv7 } from "uuidv7";
 
@@ -88,6 +90,68 @@ async function checkRepaymentFunds(
   }
 }
 
+type RepaymentStatements = {
+  statements: [BatchItem<"sqlite">, ...BatchItem<"sqlite">[]];
+  repaymentIndex: number;
+};
+
+// Builds the writes for one Repayment without running them, so a caller can batch them with other
+// writes. It checks nothing: the caller has already loaded the Debt, verified ownership and
+// currency, and checked the Unallocated impact.
+export function buildRepaymentStatements(
+  db: DB,
+  input: RepaymentValues & {
+    debtId: Debt["id"];
+    direction: Debt["direction"];
+    bankAccountId: BankAccount["id"] | null;
+  },
+): RepaymentStatements {
+  const reopenDebtQuery = db
+    .update(debts)
+    .set({ forgivenAt: null })
+    .where(eq(debts.id, input.debtId));
+
+  if (!input.bankAccountId) {
+    return {
+      statements: [
+        db
+          .insert(repayments)
+          .values({
+            id: uuidv7(),
+            debtId: input.debtId,
+            amount: input.amount,
+            date: input.date,
+            note: input.note,
+          })
+          .returning(),
+        reopenDebtQuery,
+      ],
+      repaymentIndex: 0,
+    };
+  }
+
+  const transactionId = uuidv7();
+
+  return {
+    statements: [
+      db.insert(transactions).values({
+        id: transactionId,
+        bankAccountId: input.bankAccountId,
+        type: getLinkedTransactionType(input.direction, "repayment"),
+        amount: input.amount,
+        date: input.date,
+        note: input.note,
+      }),
+      db
+        .insert(repayments)
+        .values({ id: uuidv7(), debtId: input.debtId, transactionId })
+        .returning(),
+      reopenDebtQuery,
+    ],
+    repaymentIndex: 1,
+  };
+}
+
 export async function addRepayment(
   db: DB,
   userId: string,
@@ -103,60 +167,30 @@ export async function addRepayment(
     throw new ConflictError(REPAYMENT_BEFORE_DEBT_MESSAGE);
   }
 
-  const reopenDebtQuery = db
-    .update(debts)
-    .set({ forgivenAt: null })
-    .where(eq(debts.id, input.debtId));
+  if (input.bankAccountId) {
+    const bankAccount = await findOwnedBankAccount(db, userId, input.bankAccountId, {
+      currency: debt.currency,
+    });
 
-  if (!input.bankAccountId) {
-    const [repaymentRows] = await db.batch([
-      db
-        .insert(repayments)
-        .values({
-          id: uuidv7(),
-          debtId: input.debtId,
-          amount: input.amount,
-          date: input.date,
-          note: input.note,
-        })
-        .returning(),
-      reopenDebtQuery,
-    ]);
+    if (!bankAccount)
+      throw new NotFoundError("The selected account is invalid for this repayment.");
 
-    return repaymentRows[0];
-  }
-
-  const type = getLinkedTransactionType(debt.direction, "repayment");
-
-  const bankAccount = await findOwnedBankAccount(db, userId, input.bankAccountId, {
-    currency: debt.currency,
-  });
-
-  if (!bankAccount) throw new NotFoundError("The selected account is invalid for this repayment.");
-
-  await checkRepaymentFunds(db, userId, {
-    bankAccountId: input.bankAccountId,
-    type,
-    amount: input.amount,
-    date: input.date,
-  });
-
-  const transactionId = uuidv7();
-
-  const [, repaymentRows] = await db.batch([
-    db.insert(transactions).values({
-      id: transactionId,
+    await checkRepaymentFunds(db, userId, {
       bankAccountId: input.bankAccountId,
-      type,
+      type: getLinkedTransactionType(debt.direction, "repayment"),
       amount: input.amount,
       date: input.date,
-      note: input.note,
-    }),
-    db.insert(repayments).values({ id: uuidv7(), debtId: input.debtId, transactionId }).returning(),
-    reopenDebtQuery,
-  ]);
+    });
+  }
 
-  return repaymentRows[0];
+  const { statements, repaymentIndex } = buildRepaymentStatements(db, {
+    ...input,
+    direction: debt.direction,
+  });
+
+  const results = await db.batch(statements);
+
+  return (results[repaymentIndex] as Repayment[])[0];
 }
 
 export async function changeRepayment(

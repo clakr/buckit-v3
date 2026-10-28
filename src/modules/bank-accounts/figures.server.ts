@@ -1,4 +1,4 @@
-import { and, eq, getColumns, gte, inArray, notInArray, sql, type SQL } from "drizzle-orm";
+import { and, eq, getColumns, gte, inArray, notInArray, or, sql, type SQL } from "drizzle-orm";
 
 import type { DB } from "#/db";
 
@@ -282,7 +282,7 @@ function describeChange(db: DB, change: BankAccountChange): ChangeScope {
     case "add-transaction":
       return {
         scope: eq(bankAccounts.id, change.bankAccountId),
-        pending: { transaction: { type: change.type, amount: change.amount } },
+        pending: { transactions: [{ type: change.type, amount: change.amount }] },
         movement: { kind: change.type, amount: change.amount, date: change.date },
       };
     case "replace-transaction":
@@ -295,7 +295,7 @@ function describeChange(db: DB, change: BankAccountChange): ChangeScope {
             .where(eq(transactions.id, change.transactionId)),
         ),
         excludeTransactionIds: [change.transactionId],
-        pending: { transaction: { type: change.type, amount: change.amount } },
+        pending: { transactions: [{ type: change.type, amount: change.amount }] },
         movement: {
           kind: change.type,
           amount: change.amount,
@@ -318,7 +318,7 @@ function describeChange(db: DB, change: BankAccountChange): ChangeScope {
     case "add-allocation":
       return {
         scope: eq(bankAccounts.id, change.bankAccountId),
-        pending: { allocationAmount: change.amount },
+        pending: { allocationAmounts: [change.amount] },
         movement: { kind: "allocation", amount: change.amount, date: change.date },
       };
     case "replace-allocation":
@@ -331,7 +331,7 @@ function describeChange(db: DB, change: BankAccountChange): ChangeScope {
             .where(eq(allocations.id, change.allocationId)),
         ),
         excludeAllocationIds: [change.allocationId],
-        pending: { allocationAmount: change.amount },
+        pending: { allocationAmounts: [change.amount] },
         movement: {
           kind: "allocation",
           amount: change.amount,
@@ -378,14 +378,37 @@ function findNewBreach(
   return findFirstBreach(replayLedger(startingBalance, after));
 }
 
-async function loadChangedFigures(db: DB, userId: string, change: BankAccountChange) {
-  const changeScope = describeChange(db, change);
-  const { scope, excludeTransactionIds, excludeAllocationIds, pending } = changeScope;
+function appliesToBankAccount(
+  change: BankAccountChange,
+  bankAccountId: BankAccount["id"],
+  movements: LedgerMovement[],
+) {
+  switch (change.kind) {
+    case "add-transaction":
+    case "add-allocation":
+      return change.bankAccountId === bankAccountId;
+    case "replace-transaction":
+      return movements.some(({ id }) => id === change.transactionId);
+    case "replace-allocation":
+      return movements.some(({ id }) => id === change.allocationId);
+    case "remove-transactions":
+      return change.transactionIds.some((transactionId) =>
+        movements.some(({ id }) => id === transactionId),
+      );
+  }
+}
+
+async function loadChangedFigures(db: DB, userId: string, changes: BankAccountChange[]) {
+  const changeScopes = changes.map((change) => describeChange(db, change));
 
   const rows = await loadBankAccountTotals(db, {
-    scope: and(eq(bankAccounts.userId, userId), scope),
-    excludeTransactionIds,
-    excludeAllocationIds,
+    scope: and(eq(bankAccounts.userId, userId), or(...changeScopes.map(({ scope }) => scope))),
+    excludeTransactionIds: changeScopes.flatMap(
+      ({ excludeTransactionIds = [] }) => excludeTransactionIds,
+    ),
+    excludeAllocationIds: changeScopes.flatMap(
+      ({ excludeAllocationIds = [] }) => excludeAllocationIds,
+    ),
   });
 
   if (!rows.length) throw new NotFoundError("This account doesn't exist or may have been deleted.");
@@ -395,31 +418,56 @@ async function loadChangedFigures(db: DB, userId: string, change: BankAccountCha
     rows.map(({ id }) => id),
   );
 
-  return rows.map((row) => {
+  const appliedChangeIndexes = new Set<number>();
+
+  const figures = rows.map((row) => {
     const movements = movementsByBankAccountId.get(row.id) ?? [];
+    const applicable = changes.flatMap((change, index) => {
+      if (!appliesToBankAccount(change, row.id, movements)) return [];
+
+      appliedChangeIndexes.add(index);
+      return [changeScopes[index]];
+    });
 
     return {
       bankAccount: { id: row.id, name: row.name, currency: row.currency },
       available: getBankAccountFigures(toTotals(row)).unallocated,
-      after: getBankAccountFigures(toTotals(row), pending),
+      after: getBankAccountFigures(toTotals(row), {
+        transactions: applicable.flatMap(({ pending }) => pending.transactions ?? []),
+        allocationAmounts: applicable.flatMap(({ pending }) => pending.allocationAmounts ?? []),
+      }),
       historyBreach: findNewBreach(
         row.startingBalance,
         movements,
-        applyChange(movements, changeScope),
+        applicable.reduce((current, changeScope) => applyChange(current, changeScope), movements),
       ),
     };
   });
+
+  if (appliedChangeIndexes.size < changes.length)
+    throw new NotFoundError("This account doesn't exist or may have been deleted.");
+
+  return figures;
 }
 
 export async function checkUnallocated(
   db: DB,
   userId: string,
-  change: BankAccountChange,
+  change: BankAccountChange | BankAccountChange[],
 ): Promise<UnallocatedCheck> {
-  if (change.kind === "add-transaction" && change.type === "income") return { ok: true };
-  if (change.kind === "remove-transactions" && !change.transactionIds.length) return { ok: true };
+  const changes = [change]
+    .flat()
+    .filter(
+      (candidate) => candidate.kind !== "remove-transactions" || candidate.transactionIds.length,
+    );
+  if (
+    changes.every(
+      (candidate) => candidate.kind === "add-transaction" && candidate.type === "income",
+    )
+  )
+    return { ok: true };
 
-  const changed = await loadChangedFigures(db, userId, change);
+  const changed = await loadChangedFigures(db, userId, changes);
   const shortfall = changed.find(
     ({ after, historyBreach }) => after.unallocated < 0 || historyBreach,
   );
@@ -449,7 +497,7 @@ export async function previewBankAccountChange(
   change: BankAccountChange,
 ): Promise<BankAccountChangePreview> {
   const [changed, current] = await Promise.all([
-    loadChangedFigures(db, userId, change),
+    loadChangedFigures(db, userId, [change]),
     loadBankAccountTotals(db, {
       scope: and(eq(bankAccounts.userId, userId), describeChange(db, change).scope),
     }),

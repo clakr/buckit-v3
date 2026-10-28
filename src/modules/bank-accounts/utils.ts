@@ -14,22 +14,22 @@ export type BankAccountFigures = {
 };
 
 export type PendingAddition = {
-  transaction?: Pick<Transaction, "type" | "amount">;
-  allocationAmount?: Allocation["amount"];
+  transactions?: Pick<Transaction, "type" | "amount">[];
+  allocationAmounts?: Allocation["amount"][];
 };
 
 export function getBankAccountFigures(
   { startingBalance, incomeTotal, expenseTotal, earmarkedTotal }: BankAccountTotals,
   pending: PendingAddition = {},
 ): BankAccountFigures {
-  const pendingTransactionAmount = !pending.transaction
-    ? 0
-    : pending.transaction.type === "income"
-      ? pending.transaction.amount
-      : -pending.transaction.amount;
+  const pendingTransactionAmount = (pending.transactions ?? []).reduce(
+    (sum, { type, amount }) => sum + (type === "income" ? amount : -amount),
+    0,
+  );
 
   const balance = startingBalance + incomeTotal - expenseTotal + pendingTransactionAmount;
-  const totalEarmarked = earmarkedTotal + (pending.allocationAmount ?? 0);
+  const totalEarmarked =
+    earmarkedTotal + (pending.allocationAmounts ?? []).reduce((sum, amount) => sum + amount, 0);
 
   return {
     balance,
