@@ -54,6 +54,16 @@ export function SidebarContent() {
               }
             />
           </SidebarMenuItem>
+          <SidebarMenuItem>
+            <SidebarMenuButton
+              render={
+                <Link to="/distributions" activeProps={{ "data-active": true }}>
+                  <MODULE_ICONS.distributions />
+                  Distributions
+                </Link>
+              }
+            />
+          </SidebarMenuItem>
         </SidebarMenu>
       </SidebarGroup>
     </UISidebarContent>

@@ -6,7 +6,7 @@ import type { HeldBreach } from "#/modules/buckets/ledger";
 
 const DECIMAL_PLACES_MESSAGE = "Use at most 2 decimal places.";
 
-function hasAtMostTwoDecimals(amount: number) {
+export function hasAtMostTwoDecimals(amount: number) {
   return Math.abs(amount * 100 - Math.round(amount * 100)) < 1e-6;
 }
 

@@ -20,6 +20,7 @@ import { Route as ProtectedBucketsIndexRouteImport } from './routes/_protected/b
 import { Route as ProtectedBucketsBucketIdRouteImport } from './routes/_protected/buckets.$bucketId'
 import { Route as ProtectedDebtsIndexRouteImport } from './routes/_protected/debts.index'
 import { Route as ProtectedDebtsDebtIdRouteImport } from './routes/_protected/debts.$debtId'
+import { Route as ProtectedDistributionsIndexRouteImport } from './routes/_protected/distributions.index'
 import { Route as ApiAuthSplatRouteImport } from './routes/api/auth/$'
 
 const GuestRoute = GuestRouteImport.update({
@@ -77,6 +78,12 @@ const ProtectedDebtsDebtIdRoute = ProtectedDebtsDebtIdRouteImport.update({
   path: '/debts/$debtId',
   getParentRoute: () => ProtectedRoute,
 } as any)
+const ProtectedDistributionsIndexRoute =
+  ProtectedDistributionsIndexRouteImport.update({
+    id: '/distributions/',
+    path: '/distributions/',
+    getParentRoute: () => ProtectedRoute,
+  } as any)
 const ApiAuthSplatRoute = ApiAuthSplatRouteImport.update({
   id: '/api/auth/$',
   path: '/api/auth/$',
@@ -94,6 +101,7 @@ export interface FileRoutesByFullPath {
   '/accounts/': typeof ProtectedAccountsIndexRoute
   '/buckets/': typeof ProtectedBucketsIndexRoute
   '/debts/': typeof ProtectedDebtsIndexRoute
+  '/distributions/': typeof ProtectedDistributionsIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof GuestIndexRoute
@@ -106,6 +114,7 @@ export interface FileRoutesByTo {
   '/accounts': typeof ProtectedAccountsIndexRoute
   '/buckets': typeof ProtectedBucketsIndexRoute
   '/debts': typeof ProtectedDebtsIndexRoute
+  '/distributions': typeof ProtectedDistributionsIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -121,6 +130,7 @@ export interface FileRoutesById {
   '/_protected/accounts/': typeof ProtectedAccountsIndexRoute
   '/_protected/buckets/': typeof ProtectedBucketsIndexRoute
   '/_protected/debts/': typeof ProtectedDebtsIndexRoute
+  '/_protected/distributions/': typeof ProtectedDistributionsIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -135,6 +145,7 @@ export interface FileRouteTypes {
     | '/accounts/'
     | '/buckets/'
     | '/debts/'
+    | '/distributions/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -147,6 +158,7 @@ export interface FileRouteTypes {
     | '/accounts'
     | '/buckets'
     | '/debts'
+    | '/distributions'
   id:
     | '__root__'
     | '/_guest'
@@ -161,6 +173,7 @@ export interface FileRouteTypes {
     | '/_protected/accounts/'
     | '/_protected/buckets/'
     | '/_protected/debts/'
+    | '/_protected/distributions/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -248,6 +261,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ProtectedDebtsDebtIdRouteImport
       parentRoute: typeof ProtectedRoute
     }
+    '/_protected/distributions/': {
+      id: '/_protected/distributions/'
+      path: '/distributions'
+      fullPath: '/distributions/'
+      preLoaderRoute: typeof ProtectedDistributionsIndexRouteImport
+      parentRoute: typeof ProtectedRoute
+    }
     '/api/auth/$': {
       id: '/api/auth/$'
       path: '/api/auth/$'
@@ -278,6 +298,7 @@ interface ProtectedRouteChildren {
   ProtectedAccountsIndexRoute: typeof ProtectedAccountsIndexRoute
   ProtectedBucketsIndexRoute: typeof ProtectedBucketsIndexRoute
   ProtectedDebtsIndexRoute: typeof ProtectedDebtsIndexRoute
+  ProtectedDistributionsIndexRoute: typeof ProtectedDistributionsIndexRoute
 }
 
 const ProtectedRouteChildren: ProtectedRouteChildren = {
@@ -288,6 +309,7 @@ const ProtectedRouteChildren: ProtectedRouteChildren = {
   ProtectedAccountsIndexRoute: ProtectedAccountsIndexRoute,
   ProtectedBucketsIndexRoute: ProtectedBucketsIndexRoute,
   ProtectedDebtsIndexRoute: ProtectedDebtsIndexRoute,
+  ProtectedDistributionsIndexRoute: ProtectedDistributionsIndexRoute,
 }
 
 const ProtectedRouteWithChildren = ProtectedRoute._addFileChildren(

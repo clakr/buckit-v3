@@ -1,4 +1,5 @@
 import {
+  IconArrowsSplit,
   IconBucket,
   IconBuildingBank,
   IconCredits,
@@ -12,6 +13,7 @@ export const MODULE_ICONS = {
   accounts: IconBuildingBank,
   buckets: IconBucket,
   debts: IconCredits,
+  distributions: IconArrowsSplit,
 } as const;
 
 export const CURRENCIES = [
