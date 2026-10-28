@@ -274,7 +274,8 @@ export async function checkHeld(db: DB, userId: string, change: BucketChange): P
   const after = replayHeld(applyHeldChange(movements, change));
 
   const available = before.at(-1)?.held ?? 0;
-  const isShort = (after.at(-1)?.held ?? 0) < 0;
+  const finalHeld = after.at(-1)?.held ?? 0;
+  const isShort = finalHeld < 0 && finalHeld < available;
   const historyBreach = findFirstHeldBreach(before) ? null : findFirstHeldBreach(after);
 
   if (isShort || historyBreach) {
