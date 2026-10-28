@@ -2,6 +2,7 @@ import z from "zod";
 
 import type { BankAccount, Bucket } from "#/db/schema";
 import type { HistoryBreach } from "#/modules/bank-accounts/ledger";
+import type { HeldBreach } from "#/modules/buckets/ledger";
 
 const DECIMAL_PLACES_MESSAGE = "Use at most 2 decimal places.";
 
@@ -81,15 +82,31 @@ export function describeInsufficientUnallocated({
   return `Insufficient unallocated balance in ${bankAccount.name}${forPurpose}. Available: ${formatMoney(availableCents, bankAccount.currency)}`;
 }
 
+export function describeHeldHistoryShortfall({
+  bucket,
+  bankAccount,
+  historyBreach,
+}: {
+  bucket: Pick<Bucket, "name">;
+  bankAccount: Pick<BankAccount, "name">;
+  historyBreach: HeldBreach;
+}) {
+  return `This would leave ${bucket.name} holding a negative amount from ${bankAccount.name} on ${BREACH_DATE_FORMAT.format(historyBreach.date)}. Adjust the date or amount, or allocate the money first.`;
+}
+
 export function describeInsufficientHeld({
   bucket,
   bankAccount,
   availableCents,
+  historyBreach,
 }: {
   bucket: Pick<Bucket, "name">;
   bankAccount: Pick<BankAccount, "name" | "currency">;
   availableCents: number;
+  historyBreach?: HeldBreach | null;
 }) {
+  if (historyBreach) return describeHeldHistoryShortfall({ bucket, bankAccount, historyBreach });
+
   return `${bucket.name} doesn't hold that much from ${bankAccount.name}. Available: ${formatMoney(availableCents, bankAccount.currency)}`;
 }
 
@@ -98,12 +115,16 @@ export function describeAllocationAlreadyWithdrawn({
   bankAccount,
   withdrawnCents,
   change,
+  historyBreach,
 }: {
   bucket: Pick<Bucket, "name">;
   bankAccount: Pick<BankAccount, "name" | "currency">;
   withdrawnCents: number;
   change: "edit" | "delete";
+  historyBreach?: HeldBreach | null;
 }) {
+  if (historyBreach) return describeHeldHistoryShortfall({ bucket, bankAccount, historyBreach });
+
   const withdrawn = formatMoney(withdrawnCents, bankAccount.currency);
   const consequence =
     change === "delete" ? "so it can't be deleted" : `so its amount can't go below ${withdrawn}`;

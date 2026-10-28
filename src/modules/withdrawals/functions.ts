@@ -144,9 +144,11 @@ export const logWithdrawal = createServerFn({
     const db = getDB(env.db);
 
     const check = await checkHeld(db, context.userId, {
+      kind: "add-withdrawal",
       bucketId: data.bucketId,
       bankAccountId: data.bankAccountId,
-      reduction: data.amount,
+      amount: data.amount,
+      date: data.date,
     });
 
     if (!check.ok)
@@ -155,6 +157,7 @@ export const logWithdrawal = createServerFn({
           bucket: check.bucket,
           bankAccount: check.bankAccount,
           availableCents: check.available,
+          historyBreach: check.historyBreach,
         }),
       );
 

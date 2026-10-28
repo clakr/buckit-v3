@@ -90,7 +90,7 @@ function checkLinkRules(
 export async function assertTransactionEditAllowed(db: DB, userId: string, edit: TransactionEdit) {
   const [current, link] = await Promise.all([
     db.query.transactions.findFirst({
-      columns: { type: true, amount: true, bankAccountId: true },
+      columns: { type: true, amount: true },
       where: { id: edit.transactionId },
     }),
     loadTransactionLink(db, edit.transactionId),
@@ -101,8 +101,7 @@ export async function assertTransactionEditAllowed(db: DB, userId: string, edit:
   const message = checkLinkRules(link, current, edit);
   if (message) throw new ConflictError(message);
 
-  if (link?.kind === "withdrawal")
-    return assertWithdrawalAmountHeld(db, userId, link, current, edit);
+  if (link?.kind === "withdrawal") return assertWithdrawalHeld(db, userId, current, edit);
 
   return assertUnallocatedNotNegative(db, userId, edit);
 }
@@ -128,20 +127,17 @@ async function assertUnallocatedNotNegative(db: DB, userId: string, edit: Transa
   }
 }
 
-async function assertWithdrawalAmountHeld(
+async function assertWithdrawalHeld(
   db: DB,
   userId: string,
-  link: Extract<TransactionLink, { kind: "withdrawal" }>,
-  current: Pick<Transaction, "amount" | "bankAccountId">,
+  current: Pick<Transaction, "amount">,
   edit: TransactionEdit,
 ) {
-  const increase = edit.amount - current.amount;
-  if (increase <= 0) return;
-
   const held = await checkHeld(db, userId, {
-    bucketId: link.bucket.id,
-    bankAccountId: current.bankAccountId,
-    reduction: increase,
+    kind: "replace-withdrawal",
+    transactionId: edit.transactionId,
+    amount: edit.amount,
+    date: edit.date,
   });
 
   if (held.ok) return;
@@ -151,6 +147,7 @@ async function assertWithdrawalAmountHeld(
       bucket: held.bucket,
       bankAccount: held.bankAccount,
       availableCents: current.amount + held.available,
+      historyBreach: held.historyBreach,
     }),
   );
 }

@@ -8,11 +8,19 @@ import {
   buckets,
   transactions,
   withdrawals,
+  type Allocation,
   type BankAccount,
   type Bucket,
+  type Transaction,
 } from "#/db/schema";
 import { NotFoundError } from "#/lib/errors";
 import { findOwnedBankAccount } from "#/modules/bank-accounts/ownership.server";
+import {
+  findFirstHeldBreach,
+  replayHeld,
+  type HeldBreach,
+  type HeldMovement,
+} from "#/modules/buckets/ledger";
 
 export type BucketSubtotal = { currency: BankAccount["currency"]; amount: number };
 
@@ -137,6 +145,18 @@ export function getHeldFromBankAccount(
   return bucket.heldByBankAccount.find((held) => held.bankAccountId === bankAccountId)?.amount ?? 0;
 }
 
+export type BucketChange =
+  | {
+      kind: "add-withdrawal";
+      bucketId: Bucket["id"];
+      bankAccountId: BankAccount["id"];
+      amount: number;
+      date: Date;
+    }
+  | { kind: "replace-withdrawal"; transactionId: Transaction["id"]; amount: number; date: Date }
+  | { kind: "replace-allocation"; allocationId: Allocation["id"]; amount: number; date: Date }
+  | { kind: "remove-allocation"; allocationId: Allocation["id"] };
+
 export type HeldCheck =
   | { ok: true }
   | {
@@ -144,29 +164,127 @@ export type HeldCheck =
       bucket: Pick<Bucket, "id" | "name">;
       bankAccount: Pick<BankAccount, "id" | "name" | "currency">;
       available: number;
+      historyBreach: HeldBreach | null;
     };
 
-export async function checkHeld(
-  db: DB,
-  userId: string,
-  {
-    bucketId,
-    bankAccountId,
-    reduction,
-  }: { bucketId: Bucket["id"]; bankAccountId: BankAccount["id"]; reduction: number },
-): Promise<HeldCheck> {
-  const [[bucket], bankAccount] = await Promise.all([
-    getBucketsWithFigures(db, { userId, bucketId }),
-    findOwnedBankAccount(db, userId, bankAccountId),
+type HeldPair = { bucketId: Bucket["id"]; bankAccountId: BankAccount["id"] };
+
+async function resolveHeldPair(db: DB, change: BucketChange): Promise<HeldPair> {
+  if (change.kind === "add-withdrawal") return change;
+
+  const [pair] =
+    change.kind === "replace-withdrawal"
+      ? await db
+          .select({ bucketId: withdrawals.bucketId, bankAccountId: transactions.bankAccountId })
+          .from(withdrawals)
+          .innerJoin(transactions, eq(transactions.id, withdrawals.transactionId))
+          .where(eq(withdrawals.transactionId, change.transactionId))
+      : await db
+          .select({ bucketId: allocations.bucketId, bankAccountId: allocations.bankAccountId })
+          .from(allocations)
+          .where(eq(allocations.id, change.allocationId));
+
+  if (!pair)
+    throw new NotFoundError(
+      change.kind === "replace-withdrawal"
+        ? "This withdrawal doesn't exist or may have been deleted."
+        : "This allocation doesn't exist or may have been deleted.",
+    );
+
+  return pair;
+}
+
+async function loadHeldMovements(db: DB, { bucketId, bankAccountId }: HeldPair) {
+  const [allocationRows, withdrawalRows] = await Promise.all([
+    db
+      .select({
+        id: allocations.id,
+        amount: allocations.amount,
+        date: allocations.date,
+        createdAt: allocations.createdAt,
+      })
+      .from(allocations)
+      .where(and(eq(allocations.bucketId, bucketId), eq(allocations.bankAccountId, bankAccountId))),
+    db
+      .select({
+        id: transactions.id,
+        amount: transactions.amount,
+        date: transactions.date,
+        createdAt: transactions.createdAt,
+      })
+      .from(withdrawals)
+      .innerJoin(transactions, eq(transactions.id, withdrawals.transactionId))
+      .where(
+        and(eq(withdrawals.bucketId, bucketId), eq(transactions.bankAccountId, bankAccountId)),
+      ),
+  ]);
+
+  return [
+    ...allocationRows.map((row): HeldMovement => ({ ...row, kind: "allocation" })),
+    ...withdrawalRows.map((row): HeldMovement => ({ ...row, kind: "withdrawal" })),
+  ];
+}
+
+function applyHeldChange(movements: HeldMovement[], change: BucketChange): HeldMovement[] {
+  switch (change.kind) {
+    case "add-withdrawal":
+      return [
+        ...movements,
+        {
+          id: "pending",
+          kind: "withdrawal",
+          amount: change.amount,
+          date: change.date,
+          createdAt: new Date(),
+        },
+      ];
+    case "replace-withdrawal":
+      return movements.map((movement) =>
+        movement.id === change.transactionId
+          ? { ...movement, amount: change.amount, date: change.date }
+          : movement,
+      );
+    case "replace-allocation":
+      return movements.map((movement) =>
+        movement.id === change.allocationId
+          ? { ...movement, amount: change.amount, date: change.date }
+          : movement,
+      );
+    case "remove-allocation":
+      return movements.filter(({ id }) => id !== change.allocationId);
+  }
+}
+
+export async function checkHeld(db: DB, userId: string, change: BucketChange): Promise<HeldCheck> {
+  const pair = await resolveHeldPair(db, change);
+
+  const [bucket, bankAccount, movements] = await Promise.all([
+    db.query.buckets.findFirst({
+      columns: { id: true, name: true },
+      where: { id: pair.bucketId, userId },
+    }),
+    findOwnedBankAccount(db, userId, pair.bankAccountId),
+    loadHeldMovements(db, pair),
   ]);
 
   if (!bucket) throw new NotFoundError("This bucket doesn't exist or may have been deleted.");
   if (!bankAccount) throw new NotFoundError("This account doesn't exist or may have been deleted.");
 
-  const available = getHeldFromBankAccount(bucket, bankAccountId);
+  const before = replayHeld(movements);
+  const after = replayHeld(applyHeldChange(movements, change));
 
-  if (reduction > available) {
-    return { ok: false, bucket: { id: bucket.id, name: bucket.name }, bankAccount, available };
+  const available = before.at(-1)?.held ?? 0;
+  const isShort = (after.at(-1)?.held ?? 0) < 0;
+  const historyBreach = findFirstHeldBreach(before) ? null : findFirstHeldBreach(after);
+
+  if (isShort || historyBreach) {
+    return {
+      ok: false,
+      bucket,
+      bankAccount,
+      available,
+      historyBreach: isShort ? null : historyBreach,
+    };
   }
 
   return { ok: true };

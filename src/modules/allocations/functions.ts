@@ -6,7 +6,7 @@ import { uuidv7 } from "uuidv7";
 import type { DB } from "#/db";
 
 import { getDB } from "#/db";
-import { allocations, type Allocation } from "#/db/schema";
+import { allocations } from "#/db/schema";
 import { InsufficientFundsError, NotFoundError } from "#/lib/errors";
 import { describeAllocationAlreadyWithdrawn, describeInsufficientUnallocated } from "#/lib/money";
 import { verifyUserAllocationMiddleware } from "#/modules/allocations/middlewares";
@@ -26,6 +26,7 @@ import {
   checkHeld,
   getBucketsWithFigures,
   getHeldFromBankAccount,
+  type BucketChange,
 } from "#/modules/buckets/figures.server";
 import { verifyUserBucketMiddleware } from "#/modules/buckets/middlewares";
 
@@ -85,31 +86,20 @@ async function checkAllocationAmount(db: DB, userId: string, change: AllocationA
     );
 }
 
-async function assertAllocationReductionHeld(
+async function assertAllocationHeld(
   db: DB,
   userId: string,
-  {
-    allocationId,
-    amount,
-    change,
-  }: { allocationId: Allocation["id"]; amount: number; change: "edit" | "delete" },
+  change: Extract<BucketChange, { kind: "replace-allocation" | "remove-allocation" }>,
 ) {
   const allocation = await db.query.allocations.findFirst({
-    columns: { amount: true, bucketId: true, bankAccountId: true },
-    where: { id: allocationId },
+    columns: { amount: true },
+    where: { id: change.allocationId },
   });
 
   if (!allocation)
     throw new NotFoundError("This allocation doesn't exist or may have been deleted.");
 
-  const reduction = allocation.amount - amount;
-  if (reduction <= 0) return;
-
-  const held = await checkHeld(db, userId, {
-    bucketId: allocation.bucketId,
-    bankAccountId: allocation.bankAccountId,
-    reduction,
-  });
+  const held = await checkHeld(db, userId, change);
 
   if (held.ok) return;
 
@@ -118,7 +108,8 @@ async function assertAllocationReductionHeld(
       bucket: held.bucket,
       bankAccount: held.bankAccount,
       withdrawnCents: allocation.amount - held.available,
-      change,
+      change: change.kind === "remove-allocation" ? "delete" : "edit",
+      historyBreach: held.historyBreach,
     }),
   );
 }
@@ -159,10 +150,11 @@ export const editAllocation = createServerFn({
   .handler(async ({ context, data }) => {
     const db = getDB(env.db);
 
-    await assertAllocationReductionHeld(db, context.userId, {
+    await assertAllocationHeld(db, context.userId, {
+      kind: "replace-allocation",
       allocationId: data.allocationId,
       amount: data.amount,
-      change: "edit",
+      date: data.date,
     });
 
     await checkAllocationAmount(db, context.userId, {
@@ -190,10 +182,9 @@ export const deleteAllocation = createServerFn({
   .handler(async ({ context, data }) => {
     const db = getDB(env.db);
 
-    await assertAllocationReductionHeld(db, context.userId, {
+    await assertAllocationHeld(db, context.userId, {
+      kind: "remove-allocation",
       allocationId: data.allocationId,
-      amount: 0,
-      change: "delete",
     });
 
     return db.delete(allocations).where(eq(allocations.id, data.allocationId)).returning();

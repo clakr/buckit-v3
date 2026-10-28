@@ -31,11 +31,16 @@ function getFiguresDelta({ kind, amount }: Pick<LedgerMovement, "kind" | "amount
   }
 }
 
-export function sortLedgerMovements<T extends LedgerMovement>(movements: T[]): T[] {
+type Orderable = Pick<LedgerMovement, "id" | "date" | "createdAt"> & { kind: string };
+
+export function sortLedgerMovements<T extends Orderable>(
+  movements: T[],
+  inflowKind: string = "income",
+): T[] {
   return [...movements].sort(
     (a, b) =>
       getUtcDay(a.date) - getUtcDay(b.date) ||
-      Number(b.kind === "income") - Number(a.kind === "income") ||
+      Number(b.kind === inflowKind) - Number(a.kind === inflowKind) ||
       a.createdAt.getTime() - b.createdAt.getTime() ||
       a.id.localeCompare(b.id),
   );
