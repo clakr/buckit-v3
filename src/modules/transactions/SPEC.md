@@ -53,7 +53,7 @@ A Linked Transaction (see `CONTEXT.md`) follows the rules of the Debt or Withdra
   - changing an origination's amount;
   - dating a repayment before its Debt.
 
-  For a Debt link it then runs the usual `Unallocated` check. A Withdrawal's Transaction skips that check, because it moves Balance and the earmark by the same amount, so Unallocated can't change. Instead, raising its amount runs the held check (`checkHeld` in `src/modules/buckets/figures.server.ts`) and throws `InsufficientFundsError` past what the Bucket holds from that Bank Account. The message names the most the amount can be.
+  For a Debt link it then runs the usual `Unallocated` check. A Withdrawal's Transaction skips that check, because it moves Balance and the earmark by the same amount, so Unallocated can't change. Instead, every edit runs the held check (`checkHeld` in `src/modules/buckets/figures.server.ts`) and throws `InsufficientFundsError` when the Bucket would hold less than zero from that Bank Account, now or on any date since 2026-10-28. Moving the date before the Allocation that funds it fails the check. The message names the most the amount can be, or the first date that breaks.
 
 - `editTransaction`, the Repayment storage module's `changeRepayment` and `editWithdrawal` all call it on the server.
 - `getTransaction` returns the link and the fields it locks. The Edit Transaction Drawer disables those fields and says why.
