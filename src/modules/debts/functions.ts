@@ -29,13 +29,14 @@ export const getDebts = createServerFn({
 async function checkLoanFunds(
   db: DB,
   userId: string,
-  data: { bankAccountId: string; amount: Debt["amount"] },
+  data: { bankAccountId: string; amount: Debt["amount"]; date: Debt["date"] },
 ) {
   const check = await checkUnallocated(db, userId, {
     kind: "add-transaction",
     bankAccountId: data.bankAccountId,
     type: getLinkedTransactionType("receivable", "origination"),
     amount: data.amount,
+    date: data.date,
   });
 
   if (!check.ok) {
@@ -44,6 +45,7 @@ async function checkLoanFunds(
         purpose: "loan",
         bankAccount: check.bankAccount,
         availableCents: check.available,
+        historyBreach: check.historyBreach,
       }),
     );
   }
@@ -84,7 +86,11 @@ export const recordDebt = createServerFn({
 
     if (!sourceBankAccount) throw new NotFoundError("The source account is invalid for this debt.");
 
-    await checkLoanFunds(db, context.userId, { bankAccountId: data.bankAccountId, amount });
+    await checkLoanFunds(db, context.userId, {
+      bankAccountId: data.bankAccountId,
+      amount,
+      date: data.date,
+    });
 
     const transactionId = uuidv7();
 

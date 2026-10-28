@@ -13,6 +13,12 @@ import {
 } from "#/db/schema";
 import { NotFoundError } from "#/lib/errors";
 import {
+  findFirstBreach,
+  replayLedger,
+  type HistoryBreach,
+  type LedgerMovement,
+} from "#/modules/bank-accounts/ledger";
+import {
   getBalanceTrend,
   getBalanceTrendWindowStart,
   getBankAccountFigures,
@@ -30,16 +36,28 @@ export type BankAccountChange =
       bankAccountId: BankAccount["id"];
       type: Transaction["type"];
       amount: Transaction["amount"];
+      date: Transaction["date"];
     }
   | {
       kind: "replace-transaction";
       transactionId: Transaction["id"];
       type: Transaction["type"];
       amount: Transaction["amount"];
+      date: Transaction["date"];
     }
   | { kind: "remove-transactions"; transactionIds: Transaction["id"][] }
-  | { kind: "add-allocation"; bankAccountId: BankAccount["id"]; amount: Allocation["amount"] }
-  | { kind: "replace-allocation"; allocationId: Allocation["id"]; amount: Allocation["amount"] };
+  | {
+      kind: "add-allocation";
+      bankAccountId: BankAccount["id"];
+      amount: Allocation["amount"];
+      date: Allocation["date"];
+    }
+  | {
+      kind: "replace-allocation";
+      allocationId: Allocation["id"];
+      amount: Allocation["amount"];
+      date: Allocation["date"];
+    };
 
 export type UnallocatedCheck =
   | { ok: true }
@@ -47,6 +65,7 @@ export type UnallocatedCheck =
       ok: false;
       bankAccount: Pick<BankAccount, "id" | "name" | "currency">;
       available: number;
+      historyBreach: HistoryBreach | null;
     };
 
 // Correlate only through `eq()` inside `.where()`. In a single-table select, a column placed
@@ -96,6 +115,52 @@ function getLatestTransactionDate(db: DB) {
     .select({ date: sql`max(${transactions.date})` })
     .from(transactions)
     .where(eq(transactions.bankAccountId, bankAccounts.id));
+}
+
+async function loadLedgerMovements(db: DB, bankAccountIds: BankAccount["id"][]) {
+  const [transactionRows, allocationRows] = await Promise.all([
+    db
+      .select({
+        id: transactions.id,
+        bankAccountId: transactions.bankAccountId,
+        type: transactions.type,
+        amount: transactions.amount,
+        date: transactions.date,
+        createdAt: transactions.createdAt,
+        withdrawalId: withdrawals.id,
+      })
+      .from(transactions)
+      .leftJoin(withdrawals, eq(withdrawals.transactionId, transactions.id))
+      .where(inArray(transactions.bankAccountId, bankAccountIds)),
+    db
+      .select({
+        id: allocations.id,
+        bankAccountId: allocations.bankAccountId,
+        amount: allocations.amount,
+        date: allocations.date,
+        createdAt: allocations.createdAt,
+      })
+      .from(allocations)
+      .where(inArray(allocations.bankAccountId, bankAccountIds)),
+  ]);
+
+  const movementsByBankAccountId = new Map<BankAccount["id"], LedgerMovement[]>();
+
+  function push(bankAccountId: BankAccount["id"], movement: LedgerMovement) {
+    const grouped = movementsByBankAccountId.get(bankAccountId) ?? [];
+    grouped.push(movement);
+    movementsByBankAccountId.set(bankAccountId, grouped);
+  }
+
+  for (const { bankAccountId, type, withdrawalId, ...row } of transactionRows) {
+    push(bankAccountId, { ...row, kind: withdrawalId ? "withdrawal" : type });
+  }
+
+  for (const { bankAccountId, ...row } of allocationRows) {
+    push(bankAccountId, { ...row, kind: "allocation" });
+  }
+
+  return movementsByBankAccountId;
 }
 
 function loadBankAccountTotals(
@@ -200,11 +265,16 @@ export async function getBankAccountsWithFiguresAndTrend(
   }));
 }
 
+type PendingMovement = Pick<LedgerMovement, "kind" | "amount" | "date"> & {
+  replacesId?: LedgerMovement["id"];
+};
+
 type ChangeScope = {
   scope: SQL;
   excludeTransactionIds?: string[];
   excludeAllocationIds?: string[];
   pending: PendingAddition;
+  movement?: PendingMovement;
 };
 
 function describeChange(db: DB, change: BankAccountChange): ChangeScope {
@@ -213,6 +283,7 @@ function describeChange(db: DB, change: BankAccountChange): ChangeScope {
       return {
         scope: eq(bankAccounts.id, change.bankAccountId),
         pending: { transaction: { type: change.type, amount: change.amount } },
+        movement: { kind: change.type, amount: change.amount, date: change.date },
       };
     case "replace-transaction":
       return {
@@ -225,6 +296,12 @@ function describeChange(db: DB, change: BankAccountChange): ChangeScope {
         ),
         excludeTransactionIds: [change.transactionId],
         pending: { transaction: { type: change.type, amount: change.amount } },
+        movement: {
+          kind: change.type,
+          amount: change.amount,
+          date: change.date,
+          replacesId: change.transactionId,
+        },
       };
     case "remove-transactions":
       return {
@@ -242,6 +319,7 @@ function describeChange(db: DB, change: BankAccountChange): ChangeScope {
       return {
         scope: eq(bankAccounts.id, change.bankAccountId),
         pending: { allocationAmount: change.amount },
+        movement: { kind: "allocation", amount: change.amount, date: change.date },
       };
     case "replace-allocation":
       return {
@@ -254,6 +332,12 @@ function describeChange(db: DB, change: BankAccountChange): ChangeScope {
         ),
         excludeAllocationIds: [change.allocationId],
         pending: { allocationAmount: change.amount },
+        movement: {
+          kind: "allocation",
+          amount: change.amount,
+          date: change.date,
+          replacesId: change.allocationId,
+        },
       };
   }
 }
@@ -267,11 +351,36 @@ function toTotals(row: Awaited<ReturnType<typeof loadBankAccountTotals>>[number]
   };
 }
 
+function applyChange(
+  movements: LedgerMovement[],
+  { excludeTransactionIds = [], excludeAllocationIds = [], movement }: ChangeScope,
+) {
+  const excludedIds = new Set([...excludeTransactionIds, ...excludeAllocationIds]);
+  const kept = movements.filter(({ id }) => !excludedIds.has(id));
+  if (!movement) return kept;
+
+  const { replacesId, ...pending } = movement;
+  const replaced = replacesId ? movements.find(({ id }) => id === replacesId) : undefined;
+
+  return [
+    ...kept,
+    { ...pending, id: replacesId ?? "pending", createdAt: replaced?.createdAt ?? new Date() },
+  ];
+}
+
+function findNewBreach(
+  startingBalance: BankAccount["startingBalance"],
+  before: LedgerMovement[],
+  after: LedgerMovement[],
+) {
+  if (findFirstBreach(replayLedger(startingBalance, before))) return null;
+
+  return findFirstBreach(replayLedger(startingBalance, after));
+}
+
 async function loadChangedFigures(db: DB, userId: string, change: BankAccountChange) {
-  const { scope, excludeTransactionIds, excludeAllocationIds, pending } = describeChange(
-    db,
-    change,
-  );
+  const changeScope = describeChange(db, change);
+  const { scope, excludeTransactionIds, excludeAllocationIds, pending } = changeScope;
 
   const rows = await loadBankAccountTotals(db, {
     scope: and(eq(bankAccounts.userId, userId), scope),
@@ -281,11 +390,25 @@ async function loadChangedFigures(db: DB, userId: string, change: BankAccountCha
 
   if (!rows.length) throw new NotFoundError("This account doesn't exist or may have been deleted.");
 
-  return rows.map((row) => ({
-    bankAccount: { id: row.id, name: row.name, currency: row.currency },
-    available: getBankAccountFigures(toTotals(row)).unallocated,
-    after: getBankAccountFigures(toTotals(row), pending),
-  }));
+  const movementsByBankAccountId = await loadLedgerMovements(
+    db,
+    rows.map(({ id }) => id),
+  );
+
+  return rows.map((row) => {
+    const movements = movementsByBankAccountId.get(row.id) ?? [];
+
+    return {
+      bankAccount: { id: row.id, name: row.name, currency: row.currency },
+      available: getBankAccountFigures(toTotals(row)).unallocated,
+      after: getBankAccountFigures(toTotals(row), pending),
+      historyBreach: findNewBreach(
+        row.startingBalance,
+        movements,
+        applyChange(movements, changeScope),
+      ),
+    };
+  });
 }
 
 export async function checkUnallocated(
@@ -297,10 +420,17 @@ export async function checkUnallocated(
   if (change.kind === "remove-transactions" && !change.transactionIds.length) return { ok: true };
 
   const changed = await loadChangedFigures(db, userId, change);
-  const shortfall = changed.find(({ after }) => after.unallocated < 0);
+  const shortfall = changed.find(
+    ({ after, historyBreach }) => after.unallocated < 0 || historyBreach,
+  );
 
   if (shortfall) {
-    return { ok: false, bankAccount: shortfall.bankAccount, available: shortfall.available };
+    return {
+      ok: false,
+      bankAccount: shortfall.bankAccount,
+      available: shortfall.available,
+      historyBreach: shortfall.after.unallocated < 0 ? null : shortfall.historyBreach,
+    };
   }
 
   return { ok: true };
@@ -310,6 +440,7 @@ export type BankAccountChangePreview = {
   bankAccount: Pick<BankAccount, "id" | "name" | "currency">;
   before: BankAccountFigures;
   after: BankAccountFigures;
+  historyBreach: HistoryBreach | null;
 }[];
 
 export async function previewBankAccountChange(
@@ -324,13 +455,14 @@ export async function previewBankAccountChange(
     }),
   ]);
 
-  return changed.map(({ bankAccount, after }) => {
+  return changed.map(({ bankAccount, after, historyBreach }) => {
     const row = current.find((account) => account.id === bankAccount.id);
 
     return {
       bankAccount,
       before: row ? getBankAccountFigures(toTotals(row)) : after,
       after,
+      historyBreach,
     };
   });
 }

@@ -55,7 +55,7 @@ export async function loadDebtDeletionImpact(
     })),
     shortfall:
       preview
-        .filter(({ after }) => after.unallocated < 0)
+        .filter(({ after, historyBreach }) => after.unallocated < 0 || historyBreach)
         .map(({ bankAccount }) => ({ id: bankAccount.id, name: bankAccount.name }))[0] ?? null,
   };
 }

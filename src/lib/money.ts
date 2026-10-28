@@ -1,6 +1,7 @@
 import z from "zod";
 
 import type { BankAccount, Bucket } from "#/db/schema";
+import type { HistoryBreach } from "#/modules/bank-accounts/ledger";
 
 const DECIMAL_PLACES_MESSAGE = "Use at most 2 decimal places.";
 
@@ -45,15 +46,36 @@ export function exceedsAvailable(amountInput: unknown, availableCents: number) {
   return result.success && result.data > availableCents;
 }
 
+const BREACH_DATE_FORMAT = new Intl.DateTimeFormat("en", {
+  dateStyle: "medium",
+  timeZone: "UTC",
+});
+
+export function describeHistoryShortfall({
+  bankAccount,
+  historyBreach,
+}: {
+  bankAccount: Pick<BankAccount, "name">;
+  historyBreach: HistoryBreach;
+}) {
+  const figure = historyBreach.figure === "balance" ? "balance" : "unallocated balance";
+
+  return `This would leave ${bankAccount.name} with a negative ${figure} on ${BREACH_DATE_FORMAT.format(historyBreach.date)}. Adjust the date or amount, or log the income that covers it first.`;
+}
+
 export function describeInsufficientUnallocated({
   bankAccount,
   availableCents,
   purpose,
+  historyBreach,
 }: {
   bankAccount: Pick<BankAccount, "name" | "currency">;
   availableCents: number;
   purpose?: "loan" | "repayment";
+  historyBreach?: HistoryBreach | null;
 }) {
+  if (historyBreach) return describeHistoryShortfall({ bankAccount, historyBreach });
+
   const forPurpose = purpose ? ` for this ${purpose}` : "";
 
   return `Insufficient unallocated balance in ${bankAccount.name}${forPurpose}. Available: ${formatMoney(availableCents, bankAccount.currency)}`;

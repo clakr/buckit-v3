@@ -4,7 +4,7 @@ import type { DB } from "#/db";
 
 import { repayments, transactions, type Bucket, type Debt, type Transaction } from "#/db/schema";
 import { ConflictError, InsufficientFundsError, NotFoundError } from "#/lib/errors";
-import { describeInsufficientHeld } from "#/lib/money";
+import { describeHistoryShortfall, describeInsufficientHeld } from "#/lib/money";
 import { checkUnallocated } from "#/modules/bank-accounts/figures.server";
 import { checkHeld } from "#/modules/buckets/figures.server";
 import {
@@ -113,9 +113,19 @@ async function assertUnallocatedNotNegative(db: DB, userId: string, edit: Transa
     transactionId: edit.transactionId,
     type: edit.type,
     amount: edit.amount,
+    date: edit.date,
   });
 
-  if (!unallocated.ok) throw new InsufficientFundsError(NEGATIVE_UNALLOCATED_MESSAGE);
+  if (!unallocated.ok) {
+    throw new InsufficientFundsError(
+      unallocated.historyBreach
+        ? describeHistoryShortfall({
+            bankAccount: unallocated.bankAccount,
+            historyBreach: unallocated.historyBreach,
+          })
+        : NEGATIVE_UNALLOCATED_MESSAGE,
+    );
+  }
 }
 
 async function assertWithdrawalAmountHeld(

@@ -66,13 +66,14 @@ export function toRepaymentEntry({ transaction, ...repayment }: StoredRepayment)
 async function checkRepaymentFunds(
   db: DB,
   userId: string,
-  data: Pick<Transaction, "bankAccountId" | "type" | "amount">,
+  data: Pick<Transaction, "bankAccountId" | "type" | "amount" | "date">,
 ) {
   const check = await checkUnallocated(db, userId, {
     kind: "add-transaction",
     bankAccountId: data.bankAccountId,
     type: data.type,
     amount: data.amount,
+    date: data.date,
   });
 
   if (!check.ok) {
@@ -81,6 +82,7 @@ async function checkRepaymentFunds(
         purpose: "repayment",
         bankAccount: check.bankAccount,
         availableCents: check.available,
+        historyBreach: check.historyBreach,
       }),
     );
   }
@@ -136,6 +138,7 @@ export async function addRepayment(
     bankAccountId: input.bankAccountId,
     type,
     amount: input.amount,
+    date: input.date,
   });
 
   const transactionId = uuidv7();

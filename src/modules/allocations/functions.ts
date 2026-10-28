@@ -80,6 +80,7 @@ async function checkAllocationAmount(db: DB, userId: string, change: AllocationA
       describeInsufficientUnallocated({
         bankAccount: check.bankAccount,
         availableCents: check.available,
+        historyBreach: check.historyBreach,
       }),
     );
 }
@@ -134,6 +135,7 @@ export const logAllocation = createServerFn({
       kind: "add-allocation",
       bankAccountId: data.bankAccountId,
       amount: data.amount,
+      date: data.date,
     });
 
     return db
@@ -167,6 +169,7 @@ export const editAllocation = createServerFn({
       kind: "replace-allocation",
       allocationId: data.allocationId,
       amount: data.amount,
+      date: data.date,
     });
 
     return db

@@ -10,7 +10,11 @@ import type { DB } from "#/db";
 import { getDB } from "#/db";
 import { transactions, type Transaction } from "#/db/schema";
 import { InsufficientFundsError, NotFoundError } from "#/lib/errors";
-import { describeInsufficientUnallocated, formatMoney } from "#/lib/money";
+import {
+  describeHistoryShortfall,
+  describeInsufficientUnallocated,
+  formatMoney,
+} from "#/lib/money";
 import { checkUnallocated } from "#/modules/bank-accounts/figures.server";
 import { verifyUserBankAccountMiddleware } from "#/modules/bank-accounts/middlewares";
 import {
@@ -70,6 +74,7 @@ export const logTransaction = createServerFn({
       bankAccountId: data.bankAccountId,
       type: data.type,
       amount,
+      date: data.date,
     });
 
     if (!check.ok)
@@ -77,6 +82,7 @@ export const logTransaction = createServerFn({
         describeInsufficientUnallocated({
           bankAccount: check.bankAccount,
           availableCents: check.available,
+          historyBreach: check.historyBreach,
         }),
       );
 
@@ -144,7 +150,17 @@ export const validateDeleteTransaction = createServerFn({
       loadTransactionLink(db, data.transactionId),
     ]);
 
-    if (!check.ok) return { isValid: false, message: DELETE_NEGATIVE_UNALLOCATED_MESSAGE };
+    if (!check.ok) {
+      return {
+        isValid: false,
+        message: check.historyBreach
+          ? describeHistoryShortfall({
+              bankAccount: check.bankAccount,
+              historyBreach: check.historyBreach,
+            })
+          : DELETE_NEGATIVE_UNALLOCATED_MESSAGE,
+      };
+    }
 
     if (!transaction?.bankAccount)
       throw new NotFoundError("This transaction doesn't exist or may have been deleted.");
