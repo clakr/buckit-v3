@@ -10,12 +10,7 @@ import { allocations } from "#/db/schema";
 import { InsufficientFundsError, NotFoundError } from "#/lib/errors";
 import { describeAllocationAlreadyWithdrawn, describeInsufficientUnallocated } from "#/lib/money";
 import { verifyUserAllocationMiddleware } from "#/modules/allocations/middlewares";
-import {
-  editAllocationSchema,
-  getAllocationsSchema,
-  logAllocationSchema,
-} from "#/modules/allocations/schemas";
-import { authMiddleware } from "#/modules/authentication/middlewares";
+import { editAllocationSchema, logAllocationSchema } from "#/modules/allocations/schemas";
 import {
   checkUnallocated,
   getBankAccountsWithFigures,
@@ -188,38 +183,4 @@ export const deleteAllocation = createServerFn({
     });
 
     return db.delete(allocations).where(eq(allocations.id, data.allocationId)).returning();
-  });
-
-export const getAllocations = createServerFn({
-  method: "GET",
-})
-  .middleware([authMiddleware])
-  .validator(getAllocationsSchema)
-  .handler(async ({ context, data }) => {
-    const db = getDB(env.db);
-
-    return db.query.allocations.findMany({
-      where: {
-        bankAccount: {
-          userId: context.userId,
-        },
-        ...(data.bucketId ? { bucketId: data.bucketId } : {}),
-        ...(data.bankAccountId ? { bankAccountId: data.bankAccountId } : {}),
-      },
-      with: {
-        bankAccount: {
-          columns: {
-            id: true,
-            name: true,
-            currency: true,
-          },
-        },
-        bucket: {
-          columns: {
-            id: true,
-            name: true,
-          },
-        },
-      },
-    });
   });

@@ -21,8 +21,3 @@ export const editAllocationSchema = z.strictObject({
   note: z.string(),
   amount: amountSchema,
 });
-
-export const getAllocationsSchema = z.object({
-  bucketId: z.string().optional(),
-  bankAccountId: z.string().optional(),
-});
