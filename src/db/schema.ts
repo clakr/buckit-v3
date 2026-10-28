@@ -248,6 +248,57 @@ export const goals = sqliteTable("goals", {
     .notNull(),
 });
 
+export const distributions = sqliteTable(
+  "distributions",
+  {
+    id: text("id").primaryKey(),
+    userId: text("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    bankAccountId: text("bank_account_id")
+      .notNull()
+      .references(() => bankAccounts.id, { onDelete: "cascade" }),
+    name: text("name").notNull(),
+    amount: integer("amount").notNull(),
+    createdAt: integer("created_at", { mode: "timestamp_ms" })
+      .default(sql`(cast(unixepoch('subsecond') * 1000 as integer))`)
+      .notNull(),
+  },
+  (t) => [uniqueIndex("distributions_user_id_lower_name_unique").on(t.userId, lower(t.name))],
+);
+
+export const distributionLines = sqliteTable(
+  "distribution_lines",
+  {
+    id: text("id").primaryKey(),
+    distributionId: text("distribution_id")
+      .notNull()
+      .references(() => distributions.id, { onDelete: "cascade" }),
+    bucketId: text("bucket_id").references(() => buckets.id, { onDelete: "cascade" }),
+    debtId: text("debt_id").references(() => debts.id, { onDelete: "cascade" }),
+    amount: integer("amount"),
+    basisPoints: integer("basis_points"),
+    createdAt: integer("created_at", { mode: "timestamp_ms" })
+      .default(sql`(cast(unixepoch('subsecond') * 1000 as integer))`)
+      .notNull(),
+  },
+  (t) => [
+    check(
+      "distribution_lines_one_target",
+      sql`(${t.bucketId} IS NOT NULL AND ${t.debtId} IS NULL) OR (${t.bucketId} IS NULL AND ${t.debtId} IS NOT NULL)`,
+    ),
+    check(
+      "distribution_lines_one_value",
+      sql`(${t.amount} IS NOT NULL AND ${t.amount} > 0 AND ${t.basisPoints} IS NULL) OR (${t.amount} IS NULL AND ${t.basisPoints} BETWEEN 1 AND 10000)`,
+    ),
+    uniqueIndex("distribution_lines_distribution_id_bucket_id_unique").on(
+      t.distributionId,
+      t.bucketId,
+    ),
+    uniqueIndex("distribution_lines_distribution_id_debt_id_unique").on(t.distributionId, t.debtId),
+  ],
+);
+
 export const relations = defineRelations(
   {
     users,
@@ -262,6 +313,8 @@ export const relations = defineRelations(
     repayments,
     withdrawals,
     goals,
+    distributions,
+    distributionLines,
   },
   (r) => ({
     users: {
@@ -287,6 +340,7 @@ export const relations = defineRelations(
       }),
       transactions: r.many.transactions(),
       allocations: r.many.allocations(),
+      distributions: r.many.distributions(),
     },
     buckets: {
       user: r.one.users({
@@ -295,6 +349,7 @@ export const relations = defineRelations(
       }),
       allocations: r.many.allocations(),
       withdrawals: r.many.withdrawals(),
+      distributionLines: r.many.distributionLines(),
       goal: r.one.goals({
         from: r.buckets.id,
         to: r.goals.bucketId,
@@ -330,6 +385,7 @@ export const relations = defineRelations(
         to: r.transactions.id,
       }),
       repayments: r.many.repayments(),
+      distributionLines: r.many.distributionLines(),
     },
     withdrawals: {
       bucket: r.one.buckets({
@@ -348,6 +404,34 @@ export const relations = defineRelations(
         from: r.goals.bucketId,
         to: r.buckets.id,
         optional: false,
+      }),
+    },
+    distributions: {
+      user: r.one.users({
+        from: r.distributions.userId,
+        to: r.users.id,
+        optional: false,
+      }),
+      bankAccount: r.one.bankAccounts({
+        from: r.distributions.bankAccountId,
+        to: r.bankAccounts.id,
+        optional: false,
+      }),
+      lines: r.many.distributionLines(),
+    },
+    distributionLines: {
+      distribution: r.one.distributions({
+        from: r.distributionLines.distributionId,
+        to: r.distributions.id,
+        optional: false,
+      }),
+      bucket: r.one.buckets({
+        from: r.distributionLines.bucketId,
+        to: r.buckets.id,
+      }),
+      debt: r.one.debts({
+        from: r.distributionLines.debtId,
+        to: r.debts.id,
       }),
     },
     repayments: {
@@ -372,6 +456,8 @@ export type Debt = typeof debts.$inferSelect;
 export type Repayment = typeof repayments.$inferSelect;
 export type Withdrawal = typeof withdrawals.$inferSelect;
 export type Goal = typeof goals.$inferSelect;
+export type Distribution = typeof distributions.$inferSelect;
+export type DistributionLine = typeof distributionLines.$inferSelect;
 
 export function lower(email: AnySQLiteColumn): SQL {
   return sql`lower(${email})`;
