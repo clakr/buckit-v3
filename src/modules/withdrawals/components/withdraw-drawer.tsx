@@ -1,7 +1,7 @@
 import { IconPigMoney } from "@tabler/icons-react";
 import { useSelector } from "@tanstack/react-form";
 import { useQuery } from "@tanstack/react-query";
-import { useImperativeHandle, useRef, type Ref } from "react";
+import { useImperativeHandle, useRef, useState, type Ref } from "react";
 import z from "zod";
 
 import type { Bucket } from "#/db/schema";
@@ -81,25 +81,18 @@ function WithdrawForm({ bucketId, ref }: WithdrawFormProps) {
     refetch: refetchBucket,
     data: bucket,
     error: bucketError,
-  } = useQuery({
-    ...bucketQueryOption(bucketId),
-    enabled: !mutation.isPending && !mutation.isSuccess,
-  });
+  } = useQuery(bucketQueryOption(bucketId));
 
   const {
     status: sourcesStatus,
     refetch: refetchSources,
     data: liveSources,
-  } = useQuery({
-    ...withdrawalSourcesQueryOption(bucketId),
-    enabled: !mutation.isPending && !mutation.isSuccess,
-  });
+  } = useQuery(withdrawalSourcesQueryOption(bucketId));
 
-  // The bucket page watches the same query, so a disabled observer here still sees its refetch
-  // land. Hold the sources from before the save so the Drawer doesn't flash "Nothing to withdraw".
-  const sourcesBeforeSaveRef = useRef(liveSources);
-  if (!mutation.isPending && !mutation.isSuccess) sourcesBeforeSaveRef.current = liveSources;
-  const sources = sourcesBeforeSaveRef.current;
+  // The save's refetch lands before the Drawer closes and drains the sources, so hold the ones the
+  // user submitted against to keep "Nothing to withdraw" from flashing.
+  const [submittedSources, setSubmittedSources] = useState<typeof liveSources>();
+  const sources = submittedSources ?? liveSources;
 
   const defaultValues: z.input<typeof logWithdrawalSchema> = {
     bucketId,
@@ -115,10 +108,13 @@ function WithdrawForm({ bucketId, ref }: WithdrawFormProps) {
       onChange: logWithdrawalSchema,
     },
     onSubmit: async ({ value: data }) => {
+      setSubmittedSources(liveSources);
+
       try {
         await mutation.mutateAsync({ data });
       } catch (error) {
         console.error(error);
+        setSubmittedSources(undefined);
 
         return;
       }
