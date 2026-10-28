@@ -7,10 +7,12 @@ import { setUpBucketSchema, verifyUserBucketMiddlewareSchema } from "#/modules/b
 
 export const TARGET_DATE_IN_PAST_MESSAGE = "Target date must be today or later";
 
+const MAX_CLIENT_UTC_OFFSET_HOURS = 14;
+
 // The picked date is the client's local midnight, which can fall on the server's (UTC)
 // yesterday by up to 14 hours (UTC+14). The picker itself blocks dates before local today.
 export function isTargetDateTodayOrLater(date: Date) {
-  return date >= subHours(startOfToday(), 14);
+  return date >= subHours(startOfToday(), MAX_CLIENT_UTC_OFFSET_HOURS);
 }
 
 export const goalTargetSchema = z.strictObject({
