@@ -1,9 +1,7 @@
-import { IconBucket, IconCircleDashed, IconCircleDottedLetterH } from "@tabler/icons-react";
-import { Link } from "@tanstack/react-router";
+import { IconCircleDashed, IconCircleDottedLetterH } from "@tabler/icons-react";
 
 import type { DataTableColumnDef } from "#/components/ui/data-table";
-import type { Transaction } from "#/db/schema";
-import type { getBankAccount, getBankAccountsWithTrend } from "#/modules/bank-accounts/functions";
+import type { getBankAccountsWithTrend } from "#/modules/bank-accounts/functions";
 
 import { SortableTableHead } from "#/components/table/sortable-table-head";
 import { Badge } from "#/components/ui/badge";
@@ -15,7 +13,6 @@ import { BankAccountActionsDropdownMenu } from "#/modules/bank-accounts/componen
 import { NetChangeCell } from "#/modules/bank-accounts/components/net-change-cell";
 import { UnallocatedEarmarkCell } from "#/modules/bank-accounts/components/unallocated-earmark-cell";
 import { BALANCE_TREND_DAYS } from "#/modules/bank-accounts/utils";
-import { TransactionActionsDropdownMenu } from "#/modules/transactions/components/transaction-actions-dropdown-menu";
 
 export const INDEX_COLUMNS: DataTableColumnDef<
   Awaited<ReturnType<typeof getBankAccountsWithTrend>>[number]
@@ -103,69 +100,5 @@ export const INDEX_COLUMNS: DataTableColumnDef<
     accessorKey: "actions",
     header: "",
     cell: ({ row }) => <BankAccountActionsDropdownMenu account={row.original} />,
-  },
-];
-
-export const TRANSACTIONS_COLUMNS: DataTableColumnDef<
-  Awaited<ReturnType<typeof getBankAccount>>["transactions"][number]
->[] = [
-  {
-    accessorKey: "date",
-    header: ({ column }) => <SortableTableHead column={column}>Date</SortableTableHead>,
-    cell: ({ getValue }) => {
-      const date = getValue<Transaction["date"]>();
-
-      return (
-        <Tooltip>
-          <TooltipTrigger render={<Badge variant="secondary" className="capitalize" />}>
-            <IconCircleDottedLetterH />
-            {formatToRelative(date)}
-          </TooltipTrigger>
-          <TooltipContent>{formatDateTime(date)}</TooltipContent>
-        </Tooltip>
-      );
-    },
-  },
-  {
-    accessorKey: "type",
-    cell: ({ row }) => {
-      const { type, withdrawal } = row.original;
-
-      return (
-        <span className="flex items-center gap-x-2">
-          <Badge variant={type === "income" ? "default" : "secondary"} className="capitalize">
-            {type}
-          </Badge>
-          {withdrawal ? (
-            <Badge
-              variant="outline"
-              render={<Link to="/buckets/$bucketId" params={{ bucketId: withdrawal.bucket.id }} />}
-            >
-              <IconBucket />
-              From {withdrawal.bucket.name}
-            </Badge>
-          ) : null}
-        </span>
-      );
-    },
-  },
-  {
-    accessorKey: "amount",
-    header: () => <div data-currency>Amount</div>,
-    cell: ({ row }) => (
-      <span className="block text-end font-semibold tabular-nums">
-        {row.original.bankAccount
-          ? formatMoney(row.original.amount, row.original.bankAccount.currency)
-          : "—"}
-      </span>
-    ),
-  },
-  {
-    accessorKey: "note",
-  },
-  {
-    accessorKey: "actions",
-    header: "",
-    cell: ({ row }) => <TransactionActionsDropdownMenu transactionId={row.original.id} />,
   },
 ];

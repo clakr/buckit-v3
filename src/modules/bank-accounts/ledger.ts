@@ -10,7 +10,7 @@ export type LedgerMovement = {
 
 export type LedgerFigures = { balance: number; unallocated: number };
 
-export type LedgerStep<T extends LedgerMovement> = T & LedgerFigures;
+export type LedgerStep<T extends LedgerMovement> = T & LedgerFigures & { change: LedgerFigures };
 
 export type HistoryBreach = { figure: "balance" | "unallocated"; date: Date };
 
@@ -53,7 +53,7 @@ export function replayLedger<T extends LedgerMovement>(
     balance += delta.balance;
     unallocated += delta.unallocated;
 
-    return { ...movement, balance, unallocated };
+    return { ...movement, balance, unallocated, change: delta };
   });
 }
 

@@ -12,6 +12,7 @@ import {
   getBankAccountsWithFigures,
   getBankAccountsWithFiguresAndTrend,
 } from "#/modules/bank-accounts/figures.server";
+import { loadAccountLedger } from "#/modules/bank-accounts/ledger.server";
 import { verifyUserBankAccountMiddleware } from "#/modules/bank-accounts/middlewares";
 import { bankAccountNameRule } from "#/modules/bank-accounts/name.server";
 import {
@@ -52,29 +53,15 @@ export const getBankAccount = createServerFn({
       where: {
         id: data.bankAccountId,
       },
-      with: {
-        transactions: {
-          with: {
-            bankAccount: {
-              columns: {
-                currency: true,
-              },
-            },
-            withdrawal: {
-              columns: { id: true },
-              with: { bucket: { columns: { id: true, name: true } } },
-            },
-          },
-        },
-      },
     });
 
-    const [bankAccount, [figures]] = await Promise.all([
+    const [bankAccount, [figures], ledger] = await Promise.all([
       bankAccountQuery,
       getBankAccountsWithFigures(db, {
         userId: context.userId,
         bankAccountId: data.bankAccountId,
       }),
+      loadAccountLedger(db, data.bankAccountId),
     ]);
 
     if (!bankAccount || !figures)
@@ -85,6 +72,7 @@ export const getBankAccount = createServerFn({
       balance: figures.balance,
       unallocated: figures.unallocated,
       totalEarmarked: figures.totalEarmarked,
+      ledger,
     };
   });
 
