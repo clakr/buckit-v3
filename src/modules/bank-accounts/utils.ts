@@ -43,8 +43,8 @@ export const BALANCE_TREND_DAYS = 90;
 const DAY_MS = 86_400_000;
 
 export type BalanceTrend = {
-  /** Balance at the start of the window, then at the end of each of its days. Always `BALANCE_TREND_DAYS + 1` points. */
-  series: number[];
+  openingBalance: number;
+  closingBalances: number[];
   net: number;
   hasActivity: boolean;
 };
@@ -53,6 +53,10 @@ export function getBalanceTrendWindowStart(now: Date) {
   const startOfToday = Math.floor(now.getTime() / DAY_MS) * DAY_MS;
 
   return new Date(startOfToday - (BALANCE_TREND_DAYS - 1) * DAY_MS);
+}
+
+function getTrendDayIndexClampedToToday(date: Date, windowStart: number) {
+  return Math.min(Math.floor((date.getTime() - windowStart) / DAY_MS), BALANCE_TREND_DAYS - 1);
 }
 
 export function getBalanceTrend({
@@ -65,21 +69,24 @@ export function getBalanceTrend({
   now: Date;
 }): BalanceTrend {
   const windowStart = getBalanceTrendWindowStart(now).getTime();
-  const dayDeltas = Array.from({ length: BALANCE_TREND_DAYS + 1 }, () => 0);
+  const dayDeltas = Array.from({ length: BALANCE_TREND_DAYS }, () => 0);
 
   for (const { type, amount, date } of transactions) {
-    // A Transaction dated in the future lands on today, so the series always ends at the Balance.
-    const day = Math.min(
-      Math.floor((date.getTime() - windowStart) / DAY_MS) + 1,
-      BALANCE_TREND_DAYS,
-    );
+    const day = getTrendDayIndexClampedToToday(date, windowStart);
     dayDeltas[day] += type === "income" ? amount : -amount;
   }
 
-  const series = Array.from({ length: BALANCE_TREND_DAYS + 1 }, () => balance);
-  for (let day = BALANCE_TREND_DAYS; day > 0; day--) {
-    series[day - 1] = series[day] - dayDeltas[day];
+  const closingBalances = Array.from({ length: BALANCE_TREND_DAYS }, () => balance);
+  let runningBalance = balance;
+  for (let day = BALANCE_TREND_DAYS - 1; day >= 0; day--) {
+    closingBalances[day] = runningBalance;
+    runningBalance -= dayDeltas[day];
   }
 
-  return { series, net: balance - series[0], hasActivity: transactions.length > 0 };
+  return {
+    openingBalance: runningBalance,
+    closingBalances,
+    net: balance - runningBalance,
+    hasActivity: transactions.length > 0,
+  };
 }

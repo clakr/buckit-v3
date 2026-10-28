@@ -15,8 +15,24 @@ const WIDTH = 96;
 const HEIGHT = 28;
 const PADDING = 3;
 
+function buildStepPath(
+  { openingBalance, closingBalances }: BalanceTrend,
+  getX: (day: number) => number,
+  getY: (value: number) => number,
+) {
+  let path = `M${getX(0)} ${getY(openingBalance)}`;
+  let previousBalance = openingBalance;
+  for (const [index, balance] of closingBalances.entries()) {
+    if (balance !== previousBalance) path += ` H${getX(index + 1)} V${getY(balance)}`;
+    previousBalance = balance;
+  }
+
+  return `${path} H${getX(BALANCE_TREND_DAYS)}`;
+}
+
 export function BalanceTrendSparkline({ trend, currency }: Props) {
-  const { series, net, hasActivity } = trend;
+  const { openingBalance, closingBalances, net, hasActivity } = trend;
+  const closingBalance = closingBalances[BALANCE_TREND_DAYS - 1];
   const stepWidth = (WIDTH - PADDING * 2) / BALANCE_TREND_DAYS;
   const getX = (day: number) => PADDING + day * stepWidth;
   const middle = HEIGHT / 2;
@@ -43,25 +59,20 @@ export function BalanceTrendSparkline({ trend, currency }: Props) {
     );
   }
 
-  const min = Math.min(...series);
-  const max = Math.max(...series);
+  const min = Math.min(openingBalance, ...closingBalances);
+  const max = Math.max(openingBalance, ...closingBalances);
   const plotHeight = HEIGHT - PADDING * 2;
   const getY = (value: number) =>
     max === min ? middle : PADDING + (1 - (value - min) / (max - min)) * plotHeight;
 
-  // A balance holds until the next Transaction, so draw steps instead of slopes.
-  let path = `M${getX(0)} ${getY(series[0])}`;
-  for (let day = 1; day <= BALANCE_TREND_DAYS; day++) {
-    if (series[day] !== series[day - 1]) path += ` H${getX(day)} V${getY(series[day])}`;
-  }
-  path += ` H${getX(BALANCE_TREND_DAYS)}`;
+  const path = buildStepPath(trend, getX, getY);
 
   return (
     <svg
       viewBox={`0 0 ${WIDTH} ${HEIGHT}`}
       className={cn("h-7 w-24", getNetChangeTone(net))}
       role="img"
-      aria-label={`Balance moved from ${formatMoney(series[0], currency)} to ${formatMoney(series[BALANCE_TREND_DAYS], currency)} over ${BALANCE_TREND_DAYS} days`}
+      aria-label={`Balance moved from ${formatMoney(openingBalance, currency)} to ${formatMoney(closingBalance, currency)} over ${BALANCE_TREND_DAYS} days`}
     >
       <path
         d={path}
@@ -71,12 +82,7 @@ export function BalanceTrendSparkline({ trend, currency }: Props) {
         strokeLinejoin="round"
         strokeLinecap="round"
       />
-      <circle
-        cx={getX(BALANCE_TREND_DAYS)}
-        cy={getY(series[BALANCE_TREND_DAYS])}
-        r={2.5}
-        fill="currentColor"
-      />
+      <circle cx={getX(BALANCE_TREND_DAYS)} cy={getY(closingBalance)} r={2.5} fill="currentColor" />
     </svg>
   );
 }
