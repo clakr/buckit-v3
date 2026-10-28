@@ -2,7 +2,12 @@ import { queryOptions } from "@tanstack/react-query";
 
 import type { Bucket } from "#/db/schema";
 
-import { getBucket, getBucketDeletionImpact, getBuckets } from "#/modules/buckets/functions";
+import {
+  getBucket,
+  getBucketDeletionImpact,
+  getBucketLedger,
+  getBuckets,
+} from "#/modules/buckets/functions";
 
 export const bucketsQueryOptions = queryOptions({
   queryKey: ["buckets"],
@@ -26,6 +31,18 @@ export function bucketDeletionImpactQueryOption(bucketId: Bucket["id"]) {
     queryKey: ["buckets", bucketId, "deletion-impact"],
     queryFn: () =>
       getBucketDeletionImpact({
+        data: {
+          bucketId,
+        },
+      }),
+  });
+}
+
+export function bucketLedgerQueryOption(bucketId: Bucket["id"]) {
+  return queryOptions({
+    queryKey: ["buckets", bucketId, "ledger"],
+    queryFn: () =>
+      getBucketLedger({
         data: {
           bucketId,
         },

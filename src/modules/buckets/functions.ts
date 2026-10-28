@@ -9,6 +9,7 @@ import { ConflictError, NotFoundError } from "#/lib/errors";
 import { authMiddleware } from "#/modules/authentication/middlewares";
 import { loadBucketDeletionImpact } from "#/modules/buckets/deletion.server";
 import { getBucketActivities, getBucketsWithFigures } from "#/modules/buckets/figures.server";
+import { loadBucketLedger } from "#/modules/buckets/ledger.server";
 import { verifyUserBucketMiddleware } from "#/modules/buckets/middlewares";
 import { bucketNameRule } from "#/modules/buckets/name.server";
 import { editBucketSchema, validateBucketNameSchema } from "#/modules/buckets/schemas";
@@ -69,6 +70,34 @@ export const getBucket = createServerFn({
     if (!bucket) throw new NotFoundError("This bucket doesn't exist or may have been deleted.");
 
     return bucket;
+  });
+
+export const getBucketLedger = createServerFn({
+  method: "GET",
+})
+  .middleware([verifyUserBucketMiddleware])
+  .handler(async ({ context, data }) => {
+    const db = getDB(env.db);
+
+    const [[bucket], ledger] = await Promise.all([
+      getBucketsWithFigures(db, { userId: context.userId, bucketId: data.bucketId }),
+      loadBucketLedger(db, data.bucketId),
+    ]);
+
+    if (!bucket) throw new NotFoundError("This bucket doesn't exist or may have been deleted.");
+
+    const bankAccountNameById = new Map(
+      ledger.map(({ bankAccount }) => [bankAccount.id, bankAccount.name]),
+    );
+
+    return {
+      subtotals: bucket.subtotals,
+      holdings: bucket.heldByBankAccount
+        .filter(({ amount }) => amount !== 0)
+        .map((held) => ({ ...held, name: bankAccountNameById.get(held.bankAccountId) ?? "" }))
+        .sort((a, b) => a.name.localeCompare(b.name)),
+      ledger,
+    };
   });
 
 export const validateBucketName = createServerFn({

@@ -7,33 +7,24 @@ import { Main } from "#/components/main";
 import { RouteRetryButton } from "#/components/route-retry-button";
 import { StateTemplate } from "#/components/state-template";
 import { Button } from "#/components/ui/button";
-import { DataTable } from "#/components/ui/data-table";
 import { DrawerTrigger } from "#/components/ui/drawer";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "#/components/ui/tabs";
 import { Tooltip, TooltipContent, TooltipTrigger } from "#/components/ui/tooltip";
-import { MODULE_ICONS } from "#/lib/constants";
 import { loadOrThrowRouteNotFound } from "#/lib/errors";
 import { formatPageTitle } from "#/lib/utils";
-import { getAllocationColumns } from "#/modules/allocations/columns";
 import { logAllocationDrawerHandle } from "#/modules/allocations/components/log-allocation-drawer";
-import { allocationsQueryOption } from "#/modules/allocations/query-options";
+import { BucketLedgerTable } from "#/modules/buckets/components/bucket-ledger-table";
 import { editBucketDrawerHandle } from "#/modules/buckets/components/edit-bucket-drawer";
-import { bucketQueryOption } from "#/modules/buckets/query-options";
+import { bucketLedgerQueryOption, bucketQueryOption } from "#/modules/buckets/query-options";
 import { addGoalDrawerHandle } from "#/modules/goals/components/add-goal-drawer";
 import { BucketGoalCard } from "#/modules/goals/components/bucket-goal-card";
 import { bucketGoalQueryOption } from "#/modules/goals/query-options";
-import { WITHDRAWAL_COLUMNS } from "#/modules/withdrawals/columns";
 import { withdrawDrawerHandle } from "#/modules/withdrawals/components/withdraw-drawer";
-import {
-  withdrawalSourcesQueryOption,
-  withdrawalsQueryOption,
-} from "#/modules/withdrawals/query-options";
+import { withdrawalSourcesQueryOption } from "#/modules/withdrawals/query-options";
 
 export const Route = createFileRoute("/_protected/buckets/$bucketId")({
   context: ({ params }) => ({
     bucketQueryOptions: bucketQueryOption(params.bucketId),
-    allocationsQueryOptions: allocationsQueryOption({ bucketId: params.bucketId }),
-    withdrawalsQueryOptions: withdrawalsQueryOption(params.bucketId),
+    bucketLedgerQueryOptions: bucketLedgerQueryOption(params.bucketId),
     withdrawalSourcesQueryOptions: withdrawalSourcesQueryOption(params.bucketId),
     goalQueryOptions: bucketGoalQueryOption(params.bucketId),
   }),
@@ -41,8 +32,7 @@ export const Route = createFileRoute("/_protected/buckets/$bucketId")({
     context: {
       queryClient,
       bucketQueryOptions,
-      allocationsQueryOptions,
-      withdrawalsQueryOptions,
+      bucketLedgerQueryOptions,
       withdrawalSourcesQueryOptions,
       goalQueryOptions,
     },
@@ -50,8 +40,7 @@ export const Route = createFileRoute("/_protected/buckets/$bucketId")({
     const [bucket] = await loadOrThrowRouteNotFound(
       Promise.all([
         queryClient.query(bucketQueryOptions),
-        queryClient.query(allocationsQueryOptions),
-        queryClient.query(withdrawalsQueryOptions),
+        queryClient.query(bucketLedgerQueryOptions),
         queryClient.query(withdrawalSourcesQueryOptions),
         queryClient.query(goalQueryOptions),
       ]),
@@ -106,15 +95,13 @@ function RouteComponent() {
   const { bucketId } = Route.useParams();
   const {
     bucketQueryOptions,
-    allocationsQueryOptions,
-    withdrawalsQueryOptions,
+    bucketLedgerQueryOptions,
     withdrawalSourcesQueryOptions,
     goalQueryOptions,
   } = Route.useRouteContext();
 
   const { data: bucket } = useSuspenseQuery(bucketQueryOptions);
-  const { data: allocations } = useSuspenseQuery(allocationsQueryOptions);
-  const { data: withdrawals } = useSuspenseQuery(withdrawalsQueryOptions);
+  const { data: bucketLedger } = useSuspenseQuery(bucketLedgerQueryOptions);
   const { data: withdrawalSources } = useSuspenseQuery(withdrawalSourcesQueryOptions);
   const { data: goal } = useSuspenseQuery(goalQueryOptions);
 
@@ -165,49 +152,20 @@ function RouteComponent() {
             <IconPencil />
             Edit
           </DrawerTrigger>
+          <DrawerTrigger
+            handle={logAllocationDrawerHandle}
+            payload={{ start: { from: "bucket", bucketId } }}
+            render={<Button />}
+          >
+            <IconPlus />
+            Allocate Money
+          </DrawerTrigger>
         </div>
       </div>
 
       {goal ? <BucketGoalCard goal={goal} /> : null}
 
-      <Tabs defaultValue="allocations">
-        <TabsList>
-          <TabsTrigger value="allocations">Allocations</TabsTrigger>
-          <TabsTrigger value="withdrawals">Withdrawals</TabsTrigger>
-        </TabsList>
-        <TabsContent value="allocations">
-          <DataTable
-            columns={getAllocationColumns({ omit: "bucket" })}
-            data={allocations}
-            initialSorting={[{ id: "date", desc: true }]}
-            emptyState={
-              <StateTemplate
-                state="empty"
-                title="No allocations yet."
-                description="Move money into this bucket from a bank account."
-                icon={<MODULE_ICONS.buckets />}
-                content={
-                  <DrawerTrigger
-                    handle={logAllocationDrawerHandle}
-                    payload={{ start: { from: "bucket", bucketId } }}
-                    render={<Button />}
-                  >
-                    <IconPlus />
-                    Allocate Money
-                  </DrawerTrigger>
-                }
-              />
-            }
-          />
-        </TabsContent>
-        <TabsContent value="withdrawals">
-          <DataTable
-            columns={WITHDRAWAL_COLUMNS}
-            data={withdrawals}
-            initialSorting={[{ id: "date", desc: true }]}
-          />
-        </TabsContent>
-      </Tabs>
+      <BucketLedgerTable bucketId={bucketId} bucketLedger={bucketLedger} />
     </Main>
   );
 }

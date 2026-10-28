@@ -23,38 +23,6 @@ import {
 import { verifyUserWithdrawalMiddleware } from "#/modules/withdrawals/middlewares";
 import { editWithdrawalSchema, logWithdrawalSchema } from "#/modules/withdrawals/schemas";
 
-export const getWithdrawals = createServerFn({
-  method: "GET",
-})
-  .middleware([verifyUserBucketMiddleware])
-  .handler(async ({ context, data }) => {
-    const db = getDB(env.db);
-
-    const rows = await db.query.withdrawals.findMany({
-      where: {
-        bucketId: data.bucketId,
-        bucket: { userId: context.userId },
-      },
-      with: {
-        transaction: {
-          columns: { amount: true, date: true, note: true },
-          with: {
-            bankAccount: { columns: { id: true, name: true, currency: true } },
-          },
-        },
-      },
-    });
-
-    return rows.map(({ transaction, ...withdrawal }) => ({
-      id: withdrawal.id,
-      bucketId: withdrawal.bucketId,
-      amount: transaction.amount,
-      date: transaction.date,
-      note: transaction.note,
-      bankAccount: transaction.bankAccount,
-    }));
-  });
-
 export const getWithdrawal = createServerFn({
   method: "GET",
 })
