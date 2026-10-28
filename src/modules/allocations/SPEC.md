@@ -42,7 +42,7 @@ An Allocation's amount is stored in minor units of the owning Bank Account's cur
 
 ### Shown inside both parents, with no list of its own
 
-A Transaction appears only on its Bank Account's detail page. An Allocation appears in two places, as a row of the Bucket detail page's ledger, among its Withdrawals, and as a row of the Bank Account detail page's ledger, among the Transactions. Each ledger loads its own rows, with `loadBucketLedger` and `loadAccountLedger`, so neither reads through this module. `getAllocations({ bucketId?, bankAccountId? })` returns the user's Allocations, each with its Bank Account's `id`, `name` and `currency` and its Bucket's `id` and `name`. `getAllocationColumns({ omit })` returns one set of columns without the parent the page already shows. Neither detail page uses it since the ledgers replaced the tables. The query always goes through the user's own Bank Accounts, so someone else's Bucket or Bank Account comes back as an empty list, after the page's own query has already shown "not found". No list of Allocations across all accounts and buckets exists today. See Future considerations.
+A Transaction appears only on its Bank Account's detail page. An Allocation appears in two places, as a row of the Bucket detail page's ledger, among its Withdrawals, and as a row of the Bank Account detail page's ledger, among the Transactions. Each ledger loads its own rows, with `loadBucketLedger` and `loadAccountLedger`, so neither reads through this module. No list of Allocations across all accounts and buckets exists today. `getAllocations` and `getAllocationColumns`, which fed the old detail tables, were removed on 2026-10-28 once the ledgers replaced them. See Future considerations.
 
 ### Logging starts from either parent
 
