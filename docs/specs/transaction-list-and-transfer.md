@@ -82,7 +82,7 @@ Deferred, for the reason `docs/specs/bank-account-crud.md` and `docs/specs/bucke
 ## Out of scope
 
 - **Categories and tags.** A Category is metadata on a Transaction, but it needs its own module with its own lifecycle for creating, renaming and deleting named categories. It doesn't belong in the Transaction module. It is related future work, and this spec doesn't specify it.
-- **`Distribution`**, a saved preset the User triggers by hand that logs an income Transaction and splits it through Allocations. It is a separate module, not designed yet. See the `Distribution` entry in [`CONTEXT.md`](../../CONTEXT.md) and the Future considerations section of [`src/modules/transactions/SPEC.md`](../../src/modules/transactions/SPEC.md). This spec doesn't touch it.
+- **`Distribution`**, a saved preset the User triggers by hand that logs an income Transaction and splits it through Allocations. It is a separate module, designed in [`distribution.md`](distribution.md). See the `Distribution` entry in [`CONTEXT.md`](../../CONTEXT.md) and the Future considerations section of [`src/modules/transactions/SPEC.md`](../../src/modules/transactions/SPEC.md). This spec doesn't touch it.
 - **A real link between a transfer's two Transaction rows**, such as a `transferGroupId` column. It would allow undoing a transfer as one action, or stop one half from being edited or deleted without the other. The shared note is a weak link on purpose (see Implementation decisions). Revisit only if users clearly need it.
 - **Transfers between currencies, with conversion.** Rejected for this pass, matching the rule `bank-accounts/SPEC.md` already documents.
 - **Scheduled or recurring transfers.** A separate idea nobody has considered yet.

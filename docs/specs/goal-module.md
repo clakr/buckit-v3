@@ -106,7 +106,7 @@ Deferred, for the same reason the other specs give: the repo has no test setup y
 - **A Goals overview page or filter.** Goals live on Bucket screens (story 20).
 - **Reminders or notifications** about pace or due dates. The app has no notifications anywhere.
 - ~~**Sorting the Bucket list by Progress.**~~ **Done 2026-10-27.** The Bucket list's Goal column sorts by Progress percent, so the open problem behind the deferred Subtotal sort doesn't apply. See Further notes.
-- **Distribution.** Its glossary entry now says funding a Goal means funding its Bucket. The rest of Distribution is still undesigned.
+- **Distribution.** Its glossary entry now says funding a Goal means funding its Bucket. The rest is designed in [`distribution.md`](distribution.md).
 
 ## Further notes
 

@@ -121,7 +121,7 @@ Deferred, for the reason `docs/specs/bank-account-crud.md`, `docs/specs/bucket-c
 - **Partial forgiveness.** Forgiving is all or nothing by design (story 19). See Implementation decisions. A partial write-off would need its own append-only ledger, which is another table shaped like `debtPayments`. Not built.
 - **Currency conversion.** A Debt's currency must match any Bank Account it moves money through (stories 2 and 5). The app has no conversion anywhere, and this spec adds none.
 - **A Debt list or search across accounts.** This spec only designs a detail page per Debt, the same starting point Allocation had before `docs/specs/allocation-cross-account-and-bucket-list.md`. It could get the same treatment later.
-- **How `Distribution` works with Debt**, such as splitting a logged income across Buckets _and_ Debts. That is still a separate, undesigned module. This spec makes the Debt side possible but doesn't design how they connect. See the `Distribution` entry in [`CONTEXT.md`](../../CONTEXT.md).
+- **How `Distribution` works with Debt**, such as splitting a logged income across Buckets _and_ Debts. It is a separate module, designed in [`distribution.md`](distribution.md). This spec makes the Debt side possible but doesn't design how they connect. See the `Distribution` entry in [`CONTEXT.md`](../../CONTEXT.md).
 - **The change to the `bank-accounts` delete confirmation copy** described above. This spec's stories need it to avoid surprising users, but it changes another module's existing flow and isn't new Debt-module work.
 
 ## Further notes

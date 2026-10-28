@@ -62,7 +62,7 @@ Deferred, for the reason `docs/specs/bank-account-crud.md`, `docs/specs/bucket-c
 
 ## Out of scope
 
-- **`Distribution`**, a saved preset the User triggers by hand that logs an income Transaction and splits it through Allocations. It is a separate module, not designed yet, and it waits on the undesigned shapes of `Goal` and `Debt`. See the `Distribution` entry in [`CONTEXT.md`](../../CONTEXT.md) and the Future considerations section of [`src/modules/allocations/SPEC.md`](../../src/modules/allocations/SPEC.md). This spec doesn't touch it.
+- **`Distribution`**, a saved preset the User triggers by hand that logs an income Transaction and splits it through Allocations. It is a separate module, designed in [`distribution.md`](distribution.md). See the `Distribution` entry in [`CONTEXT.md`](../../CONTEXT.md) and the Future considerations section of [`src/modules/allocations/SPEC.md`](../../src/modules/allocations/SPEC.md). This spec doesn't touch it.
 - **Moving an Allocation** to a different Bucket or Bank Account. `src/modules/allocations/SPEC.md` confirms this will never be a feature. The user deletes the Allocation and logs a new one instead.
 - **A grid of Bank Accounts by Buckets**, such as a table of Account × Bucket subtotals. That is a different and bigger feature than a filterable list, and this spec doesn't consider it.
 - Any change to the Bank Account, Bucket or Transactions modules.

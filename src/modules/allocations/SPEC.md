@@ -80,6 +80,6 @@ Writing this spec turned up four bugs, all fixed:
 
 **Specified, not built.** Today there is no list or search of Allocations of its own, only the two views inside the Bucket detail page and the Bank Account detail tab. [`docs/specs/allocation-cross-account-and-bucket-list.md`](../../../docs/specs/allocation-cross-account-and-bucket-list.md) specifies one. It follows the Transaction list across accounts in [`docs/specs/transaction-list-and-transfer.md`](../../../docs/specs/transaction-list-and-transfer.md).
 
-### `Distribution` (planned, undesigned)
+### `Distribution` (designed, not built)
 
-A saved preset the User triggers by hand. It logs one `income` Transaction on a fixed Bank Account, then splits the amount through Allocations across Buckets, and later across Debts too. Funding a Goal means funding its Bucket. See the `Distribution` entry in [`CONTEXT.md`](../../../CONTEXT.md). It matters here because, once designed, triggering a Distribution would call this module's `logAllocation` from code.
+A saved preset the User triggers by hand. It logs income on a fixed Bank Account, then splits the amount through Allocations across Buckets and through Repayments across Debts. Funding a Goal means funding its Bucket. See the `Distribution` entry in [`CONTEXT.md`](../../../CONTEXT.md) and [`docs/specs/distribution.md`](../../../docs/specs/distribution.md). It matters here because triggering a Distribution writes Allocations from code, in the same batch as the income and the Repayments, and must keep `Unallocated ≥ 0` for all of them together.

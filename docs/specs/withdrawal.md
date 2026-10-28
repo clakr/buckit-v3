@@ -125,7 +125,7 @@ Deferred, for the reason the other specs in `docs/specs/` give: the repo has no 
 - **Logging a Withdrawal from the Bank Account side**, such as an "expense from a Bucket" option in `LogTransactionDialog`. The only entry point is the Bucket's menu (story 9).
 - **A Withdrawal with no Bank Account**, like an unlinked Repayment. A Withdrawal always spends from a real account.
 - **A Withdrawal list across Buckets**, like the one `docs/specs/allocation-cross-account-and-bucket-list.md` specifies for Allocations.
-- **How `Distribution` or `Goal` relate to Withdrawals.** Both are still undesigned. A Goal's progress will need to decide whether withdrawn money counts toward the target.
+- **How `Distribution` or `Goal` relate to Withdrawals.** Both are now designed ([`distribution.md`](distribution.md), [`goal-module.md`](goal-module.md)). A Goal's Progress counts what its Bucket holds now, so Withdrawals reduce it. A Distribution never writes Withdrawals.
 
 ## Further notes
 

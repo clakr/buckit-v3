@@ -109,9 +109,9 @@ Not implemented. Today a Transaction's only classification is its `income` or `e
 
 **Specified, not built.** A view across all of a user's Bank Accounts, filterable by account, type and date, and searchable by note. See [`docs/specs/transaction-list-and-transfer.md`](../../../docs/specs/transaction-list-and-transfer.md).
 
-### `Distribution` (planned, undesigned)
+### `Distribution` (designed, not built)
 
-A saved preset the User triggers by hand. It logs one `income` Transaction on a fixed Bank Account, then splits the amount through Allocations across Buckets, and later across Debts too. Funding a Goal means funding its Bucket. See the `Distribution` entry in [`CONTEXT.md`](../../../CONTEXT.md) for the full definition. It matters here because triggering a Distribution partly means calling this module's `logTransaction` from code.
+A saved preset the User triggers by hand. It logs income on a fixed Bank Account, then splits the amount through Allocations across Buckets and through Repayments across Debts. A `receivable` Debt's Repayment is carved out of the income and written as its own `income` Transaction, so one payday can make several Transactions. See the `Distribution` entry in [`CONTEXT.md`](../../../CONTEXT.md) and [`docs/specs/distribution.md`](../../../docs/specs/distribution.md). It matters here because triggering a Distribution writes Transactions from code, in one batch with the rest, rather than through `logTransaction`.
 
 ### Transfer between own accounts
 
