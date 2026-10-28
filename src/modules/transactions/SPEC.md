@@ -76,7 +76,7 @@ Before the confirm dialog opens, `validateDeleteTransaction` builds a specific m
 
 ### No list or search of its own
 
-Transactions only appear on a Bank Account's detail page, in `TRANSACTIONS_COLUMNS`, sorted by date with the newest first. There is no list, filter or search across accounts today. See Future considerations.
+Transactions only appear on a Bank Account's detail page, in its ledger (`account-ledger-table.tsx`), alongside the account's Allocations and sorted by date with the newest first. There is no list, filter or search across accounts today. See Future considerations.
 
 ## Features
 
