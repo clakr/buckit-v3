@@ -25,7 +25,7 @@ It has no `updatedAt` column. That was considered and deferred on purpose (see D
 
 ### Never negative
 
-A Bank Account's `Balance` must never go negative. Every mutation that could reduce it checks `Unallocated ≥ 0` on the server before writing, because `Unallocated ≤ Balance` always holds. Those mutations are `logTransaction`, `editTransaction`, `deleteTransaction`, the Allocation writes, and the Debt and Repayment writes. The rule is the same for every Bank Account, and no account type or flag allows an overdraft. Anything negative or owed, such as an IOU or a credit card balance, belongs in the Debt module, not in a Bank Account.
+A Bank Account's `Balance` must never go negative. Every mutation that could reduce it checks `Unallocated ≥ 0` on the server before writing, because `Unallocated ≤ Balance` always holds. Those mutations are `logTransaction`, `editTransaction`, `deleteTransaction`, the Allocation writes, and the Debt and Repayment writes. The check replays the account's whole history in date order with the change applied (`ledger.ts`, called from `figures.server.ts`), so it also rejects a change that would leave Balance or Unallocated negative at an earlier date, such as an expense backdated before the income that covers it. Within a day, income counts first, then everything else in the order it was logged, and days are UTC days. An account whose history was already negative before the change doesn't block unrelated writes. The rule is the same for every Bank Account, and no account type or flag allows an overdraft. Anything negative or owed, such as an IOU or a credit card balance, belongs in the Debt module, not in a Bank Account.
 
 ### Ownership through the Bank Account
 
