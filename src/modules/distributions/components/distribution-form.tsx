@@ -1,6 +1,6 @@
 import { useSelector } from "@tanstack/react-form";
 import { useQuery } from "@tanstack/react-query";
-import { useImperativeHandle, type Ref } from "react";
+import { useImperativeHandle, useRef, type Ref } from "react";
 import z from "zod";
 
 import { Button } from "#/components/ui/button";
@@ -28,7 +28,10 @@ import { bucketsQueryOptions } from "#/modules/buckets/query-options";
 import { debtsQueryOptions } from "#/modules/debts/query-options";
 import { DistributionLinesField } from "#/modules/distributions/components/distribution-lines-field";
 import { SplitSummary } from "#/modules/distributions/components/split-summary";
-import { validateDistributionName, type getDistributions } from "#/modules/distributions/functions";
+import {
+  validateDistributionName,
+  type SavedDistribution,
+} from "#/modules/distributions/functions";
 import {
   useCreateDistributionMutation,
   useEditDistributionMutation,
@@ -41,6 +44,7 @@ import {
   type DistributionLineDraft,
   type DistributionLineTarget,
 } from "#/modules/distributions/utils";
+import { confirm } from "#/stores/use-confirm";
 
 const FALLBACK_CURRENCY = "PHP";
 
@@ -48,8 +52,6 @@ export type DistributionFormControls = {
   isDirty: () => boolean;
   reset: () => void;
 };
-
-type SavedDistribution = Awaited<ReturnType<typeof getDistributions>>[number];
 
 /** Buckets first, then Debts, the order picking in the line editor keeps them in. */
 function toLineDrafts(distribution: SavedDistribution): DistributionLineDraft[] {
@@ -97,11 +99,18 @@ function mergeSelectedTargets(
 type DistributionFormProps = {
   /** The saved Distribution to edit. Without it, the form creates one. */
   distribution?: SavedDistribution;
+  /** A saved Distribution to prefill a new one from. Nothing is saved until the User presses Save. */
+  duplicateOf?: SavedDistribution;
   onSaved: () => void;
   ref: Ref<DistributionFormControls>;
 };
 
-export function DistributionForm({ distribution, onSaved, ref }: DistributionFormProps) {
+export function DistributionForm({
+  distribution,
+  duplicateOf,
+  onSaved,
+  ref,
+}: DistributionFormProps) {
   const createMutation = useCreateDistributionMutation();
   const editMutation = useEditDistributionMutation();
 
@@ -109,12 +118,14 @@ export function DistributionForm({ distribution, onSaved, ref }: DistributionFor
   const debtsQuery = useQuery(debtsQueryOptions);
   const bankAccountsQuery = useQuery(bankAccountsQueryOption());
 
-  const defaultValues: z.input<typeof createDistributionSchema> = distribution
+  const source = distribution ?? duplicateOf;
+
+  const defaultValues: z.input<typeof createDistributionSchema> = source
     ? {
-        name: distribution.name,
-        bankAccountId: distribution.bankAccount.id,
-        amount: centsToAmountInput(distribution.amount),
-        lines: toLineDrafts(distribution),
+        name: duplicateOf ? `${duplicateOf.name} copy` : source.name,
+        bankAccountId: source.bankAccount.id,
+        amount: centsToAmountInput(source.amount),
+        lines: toLineDrafts(source),
       }
     : {
         name: "",
@@ -154,10 +165,20 @@ export function DistributionForm({ distribution, onSaved, ref }: DistributionFor
     },
   });
 
+  // The account the lines were built for. It moves only when a switch is accepted, so a cancelled
+  // switch can put the previous account back.
+  const committedBankAccountIdRef = useRef(defaultValues.bankAccountId);
+
   useImperativeHandle(
     ref,
-    () => ({ isDirty: () => form.state.isDirty, reset: () => form.reset() }),
-    [form],
+    () => ({
+      isDirty: () => form.state.isDirty,
+      reset: () => {
+        form.reset();
+        committedBankAccountIdRef.current = defaultValues.bankAccountId;
+      },
+    }),
+    [form, defaultValues.bankAccountId],
   );
 
   const bankAccountId = useSelector(form.store, (state) => state.values.bankAccountId);
@@ -211,23 +232,40 @@ export function DistributionForm({ distribution, onSaved, ref }: DistributionFor
             <form.AppField
               name="bankAccountId"
               listeners={{
-                // A Debt line must match the account's currency, so a switch drops the ones that no longer do.
-                onChange: ({ value }) => {
-                  if (!debtsQuery.data) return;
-
-                  const nextCurrency = bankAccountsQuery.data?.find(
-                    (account) => account.id === value,
-                  )?.currency;
+                // Fixed amounts and Debt lines belong to the old currency, so a switch to another one
+                // clears every line, once the User agrees.
+                onChange: async ({ value }) => {
+                  const previousBankAccountId = committedBankAccountIdRef.current;
                   const currentLines = form.getFieldValue("lines") as DistributionLineDraft[];
-                  const keptLines = currentLines.filter(
-                    (line) =>
-                      line.kind === "bucket" ||
-                      debtsQuery.data?.find((debt) => debt.id === line.debtId)?.currency ===
-                        nextCurrency,
-                  );
 
-                  if (keptLines.length !== currentLines.length) {
-                    form.setFieldValue("lines", keptLines);
+                  const currencyOf = (id: string) =>
+                    bankAccountsQuery.data?.find((account) => account.id === id)?.currency;
+                  const previousCurrency = currencyOf(previousBankAccountId);
+                  const nextCurrency = currencyOf(value);
+
+                  const resetsLines =
+                    currentLines.length > 0 &&
+                    previousCurrency !== undefined &&
+                    nextCurrency !== undefined &&
+                    previousCurrency !== nextCurrency;
+
+                  if (!resetsLines) {
+                    committedBankAccountIdRef.current = value;
+
+                    return;
+                  }
+
+                  const confirmed = await confirm("Reset lines?", {
+                    description: `This account is in ${nextCurrency}, but the lines were set up in ${previousCurrency}. Switching clears all of them. The default amount stays.`,
+                    confirmLabel: "Reset Lines",
+                    cancelLabel: "Cancel",
+                  });
+
+                  if (confirmed) {
+                    committedBankAccountIdRef.current = value;
+                    form.setFieldValue("lines", []);
+                  } else {
+                    form.setFieldValue("bankAccountId", previousBankAccountId);
                   }
                 },
               }}

@@ -1,5 +1,7 @@
 import { useRef } from "react";
 
+import type { SavedDistribution } from "#/modules/distributions/functions";
+
 import {
   createDrawerHandle,
   DrawerContent,
@@ -12,7 +14,9 @@ import {
 } from "#/modules/distributions/components/distribution-form";
 import { confirm } from "#/stores/use-confirm";
 
-export const createDistributionDrawerHandle = createDrawerHandle();
+export const createDistributionDrawerHandle = createDrawerHandle<{
+  duplicateOf?: SavedDistribution;
+}>();
 
 export function CreateDistributionDrawer() {
   const formControlsRef = useRef<DistributionFormControls>(null);
@@ -37,12 +41,17 @@ export function CreateDistributionDrawer() {
 
   return (
     <ResponsiveDrawer handle={createDistributionDrawerHandle} onOpenChange={handleOnOpenChange}>
-      <DrawerContent>
-        <DistributionForm
-          onSaved={() => createDistributionDrawerHandle.close()}
-          ref={formControlsRef}
-        />
-      </DrawerContent>
+      {({ payload }) => (
+        <DrawerContent>
+          <DistributionForm
+            // Keyed by the original, so duplicating another Distribution starts from its values.
+            key={payload?.duplicateOf?.id}
+            duplicateOf={payload?.duplicateOf}
+            onSaved={() => createDistributionDrawerHandle.close()}
+            ref={formControlsRef}
+          />
+        </DrawerContent>
+      )}
     </ResponsiveDrawer>
   );
 }

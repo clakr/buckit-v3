@@ -75,6 +75,8 @@ export const getDistributions = createServerFn({
       .sort((a, b) => a.name.localeCompare(b.name));
   });
 
+export type SavedDistribution = Awaited<ReturnType<typeof getDistributions>>[number];
+
 export const validateDistributionName = createServerFn({
   method: "GET",
 })

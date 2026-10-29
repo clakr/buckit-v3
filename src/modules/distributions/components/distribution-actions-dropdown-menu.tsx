@@ -1,6 +1,6 @@
-import { IconBolt, IconDots, IconEdit, IconTrash } from "@tabler/icons-react";
+import { IconBolt, IconCopy, IconDots, IconEdit, IconTrash } from "@tabler/icons-react";
 
-import type { Distribution } from "#/db/schema";
+import type { SavedDistribution } from "#/modules/distributions/functions";
 
 import { Button } from "#/components/ui/button";
 import {
@@ -10,22 +10,29 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "#/components/ui/dropdown-menu";
+import { createDistributionDrawerHandle } from "#/modules/distributions/components/create-distribution-drawer";
 import { editDistributionDrawerHandle } from "#/modules/distributions/components/edit-distribution-drawer";
 import { triggerDistributionDrawerHandle } from "#/modules/distributions/components/trigger-distribution-drawer";
 import { useDeleteDistributionMutation } from "#/modules/distributions/mutations";
 import { confirm } from "#/stores/use-confirm";
 
 type Props = {
-  distributionId: Distribution["id"];
+  distribution: SavedDistribution;
 };
 
-export function DistributionActionsDropdownMenu({ distributionId }: Props) {
+export function DistributionActionsDropdownMenu({ distribution }: Props) {
+  const distributionId = distribution.id;
+
   function handleOpenTriggerDistributionDrawer() {
     triggerDistributionDrawerHandle.openWithPayload({ distributionId });
   }
 
   function handleOpenEditDistributionDrawer() {
     editDistributionDrawerHandle.openWithPayload({ distributionId });
+  }
+
+  function handleOpenDuplicateDistributionDrawer() {
+    createDistributionDrawerHandle.openWithPayload({ duplicateOf: distribution });
   }
 
   const mutation = useDeleteDistributionMutation();
@@ -64,6 +71,10 @@ export function DistributionActionsDropdownMenu({ distributionId }: Props) {
           <DropdownMenuItem onClick={handleOpenEditDistributionDrawer}>
             <IconEdit />
             Edit
+          </DropdownMenuItem>
+          <DropdownMenuItem onClick={handleOpenDuplicateDistributionDrawer}>
+            <IconCopy />
+            Duplicate
           </DropdownMenuItem>
           <DropdownMenuItem onClick={handleDeleteDistribution}>
             <IconTrash />

@@ -1,13 +1,11 @@
 import type { DataTableColumnDef } from "#/components/ui/data-table";
-import type { getDistributions } from "#/modules/distributions/functions";
+import type { SavedDistribution } from "#/modules/distributions/functions";
 
 import { SortableTableHead } from "#/components/table/sortable-table-head";
 import { formatMoney } from "#/lib/money";
 import { DistributionActionsDropdownMenu } from "#/modules/distributions/components/distribution-actions-dropdown-menu";
 
-type DistributionRow = Awaited<ReturnType<typeof getDistributions>>[number];
-
-function formatLine(line: DistributionRow["lines"][number], currency: string) {
+function formatLine(line: SavedDistribution["lines"][number], currency: string) {
   const value =
     line.basisPoints === null
       ? formatMoney(line.amount ?? 0, currency)
@@ -16,7 +14,7 @@ function formatLine(line: DistributionRow["lines"][number], currency: string) {
   return `${line.targetName} ${value}`;
 }
 
-export const INDEX_COLUMNS: DataTableColumnDef<DistributionRow>[] = [
+export const INDEX_COLUMNS: DataTableColumnDef<SavedDistribution>[] = [
   {
     accessorKey: "name",
     header: ({ column }) => <SortableTableHead column={column}>Name</SortableTableHead>,
@@ -63,6 +61,6 @@ export const INDEX_COLUMNS: DataTableColumnDef<DistributionRow>[] = [
   {
     accessorKey: "actions",
     header: "",
-    cell: ({ row }) => <DistributionActionsDropdownMenu distributionId={row.original.id} />,
+    cell: ({ row }) => <DistributionActionsDropdownMenu distribution={row.original} />,
   },
 ];
