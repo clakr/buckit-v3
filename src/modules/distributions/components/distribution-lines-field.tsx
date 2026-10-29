@@ -15,7 +15,7 @@ import {
   ComboboxValue,
   useComboboxAnchor,
 } from "#/components/ui/combobox";
-import { Field, FieldError, FieldLabel } from "#/components/ui/field";
+import { Field, FieldDescription, FieldError, FieldLabel } from "#/components/ui/field";
 import { ToggleGroup, ToggleGroupItem } from "#/components/ui/toggle-group";
 import { formatMoney } from "#/lib/money";
 import { cn } from "#/lib/utils";
@@ -23,10 +23,12 @@ import { SEGMENT_SHADES } from "#/modules/distributions/components/split-summary
 import {
   computeDistributionPlan,
   draftsToPlanLines,
+  getLineTargetId,
   type DistributionLineDraft,
 } from "#/modules/distributions/utils";
 
 type Bucket = { id: string; name: string };
+type LineDebt = { id: string; name: string; direction: "receivable" | "payable" };
 
 const PRESSED_STYLE =
   "data-pressed:bg-primary data-pressed:text-primary-foreground data-pressed:hover:bg-primary/90";
@@ -34,33 +36,45 @@ const PRESSED_STYLE =
 type Props = {
   lines: DistributionLineDraft[];
   buckets: Bucket[];
+  /** Only Debts in the Bank Account's currency, because a Debt line is paid through that account. */
+  debts: LineDebt[];
+  /** Why the Debt picker is off, when there is no account to take its currency from. */
+  debtsUnavailableReason: string | null;
   currency: string;
   amountCents: number;
   errors: ({ message?: string } | undefined)[];
   onSelectBuckets: (bucketIds: string[]) => void;
+  onSelectDebts: (debtIds: string[]) => void;
   onChangeMode: (index: number, mode: DistributionLineDraft["mode"]) => void;
   onRemove: (index: number) => void;
   /** The value input is a form field, so the form renders it. */
   renderValueInput: (index: number) => ReactNode;
 };
 
-/** Pick Buckets in a multiple-select Combobox. Each gets a compact card with its value. */
+/** Pick Buckets and Debts in multiple-select Comboboxes. Each gets a compact card with its value. */
 export function DistributionLinesField({
   lines,
   buckets,
+  debts,
+  debtsUnavailableReason,
   currency,
   amountCents,
   errors,
   onSelectBuckets,
+  onSelectDebts,
   onChangeMode,
   onRemove,
   renderValueInput,
 }: Props) {
-  const anchor = useComboboxAnchor();
+  const bucketAnchor = useComboboxAnchor();
+  const debtAnchor = useComboboxAnchor();
   const plan = computeDistributionPlan(draftsToPlanLines(lines), amountCents);
 
-  const selected = lines.flatMap(
-    (line) => buckets.find((bucket) => bucket.id === line.bucketId) ?? [],
+  const selectedBuckets = lines.flatMap((line) =>
+    line.kind === "bucket" ? (buckets.find((bucket) => bucket.id === line.bucketId) ?? []) : [],
+  );
+  const selectedDebts = lines.flatMap((line) =>
+    line.kind === "debt" ? (debts.find((debt) => debt.id === line.debtId) ?? []) : [],
   );
 
   return (
@@ -70,12 +84,12 @@ export function DistributionLinesField({
         multiple
         autoHighlight
         items={buckets}
-        value={selected}
+        value={selectedBuckets}
         onValueChange={(next: Bucket[]) => onSelectBuckets(next.map((bucket) => bucket.id))}
         itemToStringLabel={(bucket: Bucket) => bucket.name}
         itemToStringValue={(bucket: Bucket) => bucket.id}
       >
-        <ComboboxChips ref={anchor}>
+        <ComboboxChips ref={bucketAnchor}>
           <ComboboxValue>
             {(values: Bucket[]) => (
               <>
@@ -87,7 +101,7 @@ export function DistributionLinesField({
             )}
           </ComboboxValue>
         </ComboboxChips>
-        <ComboboxContent anchor={anchor}>
+        <ComboboxContent anchor={bucketAnchor}>
           <ComboboxEmpty>No Buckets found.</ComboboxEmpty>
           <ComboboxList>
             {(bucket: Bucket) => (
@@ -99,12 +113,56 @@ export function DistributionLinesField({
         </ComboboxContent>
       </Combobox>
 
+      <Combobox
+        multiple
+        autoHighlight
+        disabled={debtsUnavailableReason !== null}
+        items={debts}
+        value={selectedDebts}
+        onValueChange={(next: LineDebt[]) => onSelectDebts(next.map((debt) => debt.id))}
+        itemToStringLabel={(debt: LineDebt) => debt.name}
+        itemToStringValue={(debt: LineDebt) => debt.id}
+      >
+        <ComboboxChips ref={debtAnchor}>
+          <ComboboxValue>
+            {(values: LineDebt[]) => (
+              <>
+                {values.map((debt) => (
+                  <ComboboxChip key={debt.id}>{debt.name}</ComboboxChip>
+                ))}
+                <ComboboxChipsInput placeholder={values.length ? "" : "Pick Debts"} />
+              </>
+            )}
+          </ComboboxValue>
+        </ComboboxChips>
+        <ComboboxContent anchor={debtAnchor}>
+          <ComboboxEmpty>No Debts in {currency}.</ComboboxEmpty>
+          <ComboboxList>
+            {(debt: LineDebt) => (
+              <ComboboxItem key={debt.id} value={debt}>
+                <span className="min-w-0 flex-1 truncate">{debt.name}</span>
+                <span className="text-muted-foreground capitalize">{debt.direction}</span>
+              </ComboboxItem>
+            )}
+          </ComboboxList>
+        </ComboboxContent>
+      </Combobox>
+      {debtsUnavailableReason ? (
+        <FieldDescription>{debtsUnavailableReason}</FieldDescription>
+      ) : null}
+
       {plan.plannedLines.map((line, index) => {
-        const bucket = buckets.find((other) => other.id === line.id);
         const draft = lines[index];
+        const targetName =
+          draft.kind === "bucket"
+            ? buckets.find((bucket) => bucket.id === draft.bucketId)?.name
+            : debts.find((debt) => debt.id === draft.debtId)?.name;
 
         return (
-          <div key={line.id} className="flex flex-col gap-y-1.5 rounded-md border p-2">
+          <div
+            key={getLineTargetId(draft)}
+            className="flex flex-col gap-y-1.5 rounded-md border p-2"
+          >
             <div className="flex items-center gap-x-2">
               <span
                 className={cn(
@@ -112,7 +170,10 @@ export function DistributionLinesField({
                   SEGMENT_SHADES[index % SEGMENT_SHADES.length],
                 )}
               />
-              <span className="min-w-0 flex-1 truncate font-medium">{bucket?.name}</span>
+              <span className="min-w-0 flex-1 truncate font-medium">{targetName}</span>
+              {draft.kind === "debt" ? (
+                <span className="text-muted-foreground capitalize">{draft.direction}</span>
+              ) : null}
               <span className="text-muted-foreground tabular-nums">
                 {formatMoney(line.cents, currency)}
               </span>
@@ -120,7 +181,7 @@ export function DistributionLinesField({
                 type="button"
                 variant="ghost"
                 size="icon-xs"
-                aria-label={`Remove ${bucket?.name}`}
+                aria-label={`Remove ${targetName}`}
                 onClick={() => onRemove(index)}
               >
                 <IconX />

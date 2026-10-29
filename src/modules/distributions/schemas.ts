@@ -1,7 +1,11 @@
 import { z } from "zod";
 
 import { amountSchema, hasAtMostTwoDecimals } from "#/lib/money";
-import { computeDistributionPlan } from "#/modules/distributions/utils";
+import {
+  computeDistributionPlan,
+  getLineTargetId,
+  getPlanLineKind,
+} from "#/modules/distributions/utils";
 
 const nameSchema = z
   .string()
@@ -27,17 +31,32 @@ const distributionLineSchema = z.discriminatedUnion("mode", [
   z.object({ mode: z.literal("percent"), value: percentageSchema }),
 ]);
 
+const distributionLineTargetSchema = z.discriminatedUnion("kind", [
+  z.object({ kind: z.literal("bucket"), bucketId: z.string().min(1) }),
+  z.object({
+    kind: z.literal("debt"),
+    debtId: z.string().min(1),
+    // Only for the form's own check. Save recomputes it from the Debt, which the request can't set.
+    direction: z.enum(["receivable", "payable"]),
+  }),
+]);
+
 export const createDistributionSchema = z
   .object({
     name: nameSchema,
     bankAccountId: z.string().min(1, "Select a bank account"),
     amount: amountSchema,
     lines: z
-      .array(z.intersection(z.object({ bucketId: z.string().min(1) }), distributionLineSchema))
+      .array(z.intersection(distributionLineTargetSchema, distributionLineSchema))
       .min(1, "Add at least one line."),
   })
   .superRefine((distribution, context) => {
-    const bucketIds = distribution.lines.map((line) => line.bucketId);
+    const bucketIds = distribution.lines.flatMap((line) =>
+      line.kind === "bucket" ? [line.bucketId] : [],
+    );
+    const debtIds = distribution.lines.flatMap((line) =>
+      line.kind === "debt" ? [line.debtId] : [],
+    );
 
     if (new Set(bucketIds).size !== bucketIds.length) {
       context.addIssue({
@@ -46,11 +65,18 @@ export const createDistributionSchema = z
         message: "A bucket can only have one line.",
       });
     }
+    if (new Set(debtIds).size !== debtIds.length) {
+      context.addIssue({
+        code: "custom",
+        path: ["lines"],
+        message: "A debt can only have one line.",
+      });
+    }
 
     const plan = computeDistributionPlan(
       distribution.lines.map((line) => ({
-        id: line.bucketId,
-        kind: "bucket" as const,
+        id: getLineTargetId(line),
+        kind: getPlanLineKind(line),
         value:
           line.mode === "fixed"
             ? { mode: "fixed" as const, cents: line.value }
@@ -63,7 +89,14 @@ export const createDistributionSchema = z
       context.addIssue({
         code: "custom",
         path: ["lines"],
-        message: "Bucket lines can't add up to more than the default amount.",
+        message: "Bucket and payable lines can't add up to more than the default amount.",
+      });
+    }
+    if (plan.exceedsReceivable) {
+      context.addIssue({
+        code: "custom",
+        path: ["lines"],
+        message: "Receivable lines can't add up to more than the default amount.",
       });
     }
   });

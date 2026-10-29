@@ -70,21 +70,71 @@ export function computeDistributionPlan<Id extends string>(
   };
 }
 
+/** What a line points at. A Debt line carries its Debt's direction, which decides how it is written. */
+export type DistributionLineTarget =
+  | { kind: "bucket"; bucketId: string }
+  | { kind: "debt"; debtId: string; direction: "receivable" | "payable" };
+
 /** A line as the form holds it: the value is whatever the User has typed so far. */
-export type DistributionLineDraft = {
-  bucketId: string;
+export type DistributionLineDraft = DistributionLineTarget & {
   mode: "fixed" | "percent";
   value: unknown;
 };
 
+export function getLineTargetId(target: DistributionLineTarget) {
+  return target.kind === "bucket" ? target.bucketId : target.debtId;
+}
+
+export function getPlanLineKind(target: DistributionLineTarget): DistributionLineKind {
+  return target.kind === "bucket" ? "bucket" : target.direction;
+}
+
 /** Reads the form's drafts forgivingly, so a half-typed value counts as zero instead of throwing. */
 export function draftsToPlanLines(drafts: DistributionLineDraft[]): DistributionPlanLine[] {
   return drafts.map((draft) => ({
-    id: draft.bucketId,
-    kind: "bucket",
+    id: getLineTargetId(draft),
+    kind: getPlanLineKind(draft),
     value:
       draft.mode === "fixed"
         ? { mode: "fixed", cents: toCents(String(draft.value ?? "")) }
         : { mode: "percent", basisPoints: toBasisPoints(String(draft.value ?? "")) },
   }));
+}
+
+export type DebtLineWarning = {
+  debtId: string;
+  kind: "overpays" | "settled" | "forgiven";
+  /** What the line pays beyond the Debt's Outstanding. Set only for `overpays`. */
+  overpaidByCents: number | null;
+};
+
+/**
+ * A Debt line never caps itself, so the User is warned instead. A Forgiven Debt is reopened by the
+ * Repayment, a Settled one is already paid off, and an open one may be paid more than it owes.
+ */
+export function getDebtLineWarnings(
+  plannedLines: { id: string; kind: DistributionLineKind; cents: number }[],
+  debts: { id: string; outstanding: number; status: "open" | "settled" | "forgiven" }[],
+): DebtLineWarning[] {
+  return plannedLines.flatMap((line): DebtLineWarning[] => {
+    if (line.kind === "bucket" || line.cents <= 0) return [];
+
+    const debt = debts.find(({ id }) => id === line.id);
+    if (!debt) return [];
+
+    if (debt.status === "forgiven")
+      return [{ debtId: debt.id, kind: "forgiven", overpaidByCents: null }];
+    if (debt.status === "settled")
+      return [{ debtId: debt.id, kind: "settled", overpaidByCents: null }];
+    if (line.cents > debt.outstanding)
+      return [
+        {
+          debtId: debt.id,
+          kind: "overpays",
+          overpaidByCents: line.cents - debt.outstanding,
+        },
+      ];
+
+    return [];
+  });
 }

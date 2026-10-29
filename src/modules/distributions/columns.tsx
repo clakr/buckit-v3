@@ -13,7 +13,7 @@ function formatLine(line: DistributionRow["lines"][number], currency: string) {
       ? formatMoney(line.amount ?? 0, currency)
       : `${line.basisPoints / 100}%`;
 
-  return `${line.bucketName} ${value}`;
+  return `${line.targetName} ${value}`;
 }
 
 export const INDEX_COLUMNS: DataTableColumnDef<DistributionRow>[] = [

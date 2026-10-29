@@ -28,6 +28,7 @@ import { getCurrency, isCurrencyCode } from "#/lib/utils";
 import { BankAccountSelectField } from "#/modules/bank-accounts/components/bank-account-select-field";
 import { bankAccountsQueryOption } from "#/modules/bank-accounts/query-options";
 import { bucketsQueryOptions } from "#/modules/buckets/query-options";
+import { debtsQueryOptions } from "#/modules/debts/query-options";
 import { DistributionLinesField } from "#/modules/distributions/components/distribution-lines-field";
 import { SplitSummary } from "#/modules/distributions/components/split-summary";
 import { validateDistributionName } from "#/modules/distributions/functions";
@@ -35,8 +36,10 @@ import { useCreateDistributionMutation } from "#/modules/distributions/mutations
 import { createDistributionSchema } from "#/modules/distributions/schemas";
 import {
   draftsToPlanLines,
+  getLineTargetId,
   toCents,
   type DistributionLineDraft,
+  type DistributionLineTarget,
 } from "#/modules/distributions/utils";
 import { confirm } from "#/stores/use-confirm";
 
@@ -82,6 +85,27 @@ export function CreateDistributionDrawer() {
   );
 }
 
+/** Keeps the lines already typed for targets that stay picked, and starts new ones at 10%. */
+function mergeSelectedTargets(
+  current: DistributionLineDraft[],
+  kind: DistributionLineTarget["kind"],
+  picked: DistributionLineTarget[],
+): DistributionLineDraft[] {
+  const pickedLines = picked.map(
+    (target) =>
+      current.find((line) => getLineTargetId(line) === getLineTargetId(target)) ?? {
+        ...target,
+        mode: "percent" as const,
+        value: "10",
+      },
+  );
+
+  const otherLines = current.filter((line) => line.kind !== kind);
+
+  // Buckets first, then Debts, so picking in either box never reorders the other's lines.
+  return kind === "bucket" ? [...pickedLines, ...otherLines] : [...otherLines, ...pickedLines];
+}
+
 function CreateDistributionForm({
   onCreate,
   ref,
@@ -92,6 +116,7 @@ function CreateDistributionForm({
   const mutation = useCreateDistributionMutation();
 
   const bucketsQuery = useQuery(bucketsQueryOptions);
+  const debtsQuery = useQuery(debtsQueryOptions);
   const bankAccountsQuery = useQuery(bankAccountsQueryOption());
 
   const defaultValues: z.input<typeof createDistributionSchema> = {
@@ -132,6 +157,10 @@ function CreateDistributionForm({
 
   const bankAccount = bankAccountsQuery.data?.find((account) => account.id === bankAccountId);
   const currency = bankAccount?.currency ?? FALLBACK_CURRENCY;
+  // The picker only lists Debts the account can repay. Without an account there is no currency yet.
+  const pickableDebts = bankAccount
+    ? (debtsQuery.data ?? []).filter((debt) => debt.currency === bankAccount.currency)
+    : [];
   const currencySymbol =
     (isCurrencyCode(currency) ? getCurrency(currency)?.symbol : undefined) ?? currency;
 
@@ -164,7 +193,30 @@ function CreateDistributionForm({
                 <field.ValidatedInput label="Name" placeholder="Payday" maxLength={100} />
               )}
             </form.AppField>
-            <form.AppField name="bankAccountId">
+            <form.AppField
+              name="bankAccountId"
+              listeners={{
+                // A Debt line must match the account's currency, so a switch drops the ones that no longer do.
+                onChange: ({ value }) => {
+                  if (!debtsQuery.data) return;
+
+                  const nextCurrency = bankAccountsQuery.data?.find(
+                    (account) => account.id === value,
+                  )?.currency;
+                  const currentLines = form.getFieldValue("lines") as DistributionLineDraft[];
+                  const keptLines = currentLines.filter(
+                    (line) =>
+                      line.kind === "bucket" ||
+                      debtsQuery.data?.find((debt) => debt.id === line.debtId)?.currency ===
+                        nextCurrency,
+                  );
+
+                  if (keptLines.length !== currentLines.length) {
+                    form.setFieldValue("lines", keptLines);
+                  }
+                },
+              }}
+            >
               {() => (
                 <BankAccountSelectField
                   label="Bank Account"
@@ -194,6 +246,10 @@ function CreateDistributionForm({
                 <DistributionLinesField
                   lines={linesField.state.value as DistributionLineDraft[]}
                   buckets={bucketsQuery.data ?? []}
+                  debts={pickableDebts}
+                  debtsUnavailableReason={
+                    bankAccount ? null : "Select a bank account to pick Debts."
+                  }
                   currency={currency}
                   amountCents={toCents(String(amount ?? ""))}
                   errors={
@@ -203,19 +259,31 @@ function CreateDistributionForm({
                   }
                   onSelectBuckets={(bucketIds) =>
                     linesField.handleChange(
-                      bucketIds.map(
-                        (bucketId) =>
-                          linesField.state.value.find((line) => line.bucketId === bucketId) ?? {
-                            bucketId,
-                            mode: "percent" as const,
-                            value: "10",
-                          },
+                      mergeSelectedTargets(
+                        linesField.state.value as DistributionLineDraft[],
+                        "bucket",
+                        bucketIds.map((bucketId) => ({ kind: "bucket" as const, bucketId })),
+                      ),
+                    )
+                  }
+                  onSelectDebts={(debtIds) =>
+                    linesField.handleChange(
+                      mergeSelectedTargets(
+                        linesField.state.value as DistributionLineDraft[],
+                        "debt",
+                        debtIds.flatMap((debtId) => {
+                          const debt = pickableDebts.find((candidate) => candidate.id === debtId);
+
+                          return debt
+                            ? [{ kind: "debt" as const, debtId, direction: debt.direction }]
+                            : [];
+                        }),
                       ),
                     )
                   }
                   onChangeMode={(index, mode) =>
                     linesField.replaceValue(index, {
-                      bucketId: linesField.state.value[index].bucketId,
+                      ...(linesField.state.value[index] as DistributionLineDraft),
                       mode,
                       value: mode === "percent" ? "10" : "",
                     })

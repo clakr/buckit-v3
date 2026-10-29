@@ -24,7 +24,7 @@ export function useTriggerDistributionMutation() {
     meta: {
       success: {
         title: "Distribution Triggered",
-        description: "Your income and allocations have been recorded.",
+        description: "Your income, allocations and repayments have been recorded.",
       },
       error: {
         title: "Failed to Trigger Distribution",

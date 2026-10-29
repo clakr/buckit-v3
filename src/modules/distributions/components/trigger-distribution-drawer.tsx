@@ -1,3 +1,4 @@
+import { IconAlertTriangle } from "@tabler/icons-react";
 import { useSelector } from "@tanstack/react-form";
 import { useQuery } from "@tanstack/react-query";
 import { useImperativeHandle, useRef, type Ref } from "react";
@@ -23,11 +24,15 @@ import { useAppForm } from "#/integrations/tanstack-form";
 import { centsToAmountInput, formatMoney } from "#/lib/money";
 import { SplitSummary } from "#/modules/distributions/components/split-summary";
 import { useTriggerDistributionMutation } from "#/modules/distributions/mutations";
-import { distributionsQueryOptions } from "#/modules/distributions/query-options";
+import {
+  distributionPreviewQueryOptions,
+  distributionsQueryOptions,
+} from "#/modules/distributions/query-options";
 import { triggerDistributionSchema } from "#/modules/distributions/schemas";
 import {
   computeDistributionPlan,
   toCents,
+  type DebtLineWarning,
   type DistributionPlanLine,
 } from "#/modules/distributions/utils";
 import { confirm } from "#/stores/use-confirm";
@@ -83,6 +88,23 @@ type TriggerDistributionFormProps = {
   ref: Ref<TriggerDistributionFormControls>;
 };
 
+function describeRecord(kind: DistributionPlanLine["kind"], targetName: string | undefined) {
+  if (kind === "bucket") return `Allocation to ${targetName}`;
+
+  return `Repayment on ${targetName} (${kind === "receivable" ? "income" : "expense"})`;
+}
+
+function describeWarning(warning: DebtLineWarning, debtName: string, currency: string) {
+  switch (warning.kind) {
+    case "overpays":
+      return `${debtName}: overpays by ${formatMoney(warning.overpaidByCents ?? 0, currency)}. It will be applied as written.`;
+    case "settled":
+      return `${debtName} is already Settled. The repayment will still be applied.`;
+    case "forgiven":
+      return `${debtName} is Forgiven. The repayment will reopen it.`;
+  }
+}
+
 function TriggerDistributionForm({ distributionId, ref }: TriggerDistributionFormProps) {
   const {
     status,
@@ -131,17 +153,21 @@ function TriggerDistributionForm({ distributionId, ref }: TriggerDistributionFor
 
   const currency = distribution?.bankAccount.currency ?? "";
   const planLines: DistributionPlanLine[] = (distribution?.lines ?? []).map((line) => ({
-    id: line.id,
-    kind: "bucket",
+    id: line.targetId,
+    kind: line.kind,
     value:
       line.basisPoints === null
         ? { mode: "fixed", cents: line.amount ?? 0 }
         : { mode: "percent", basisPoints: line.basisPoints },
   }));
   const plan = computeDistributionPlan(planLines, amountCents);
-  const bucketNameByLineId = new Map(
-    (distribution?.lines ?? []).map((line) => [line.id, line.bucketName]),
+  const targetNameById = new Map(
+    (distribution?.lines ?? []).map((line) => [line.targetId, line.targetName]),
   );
+
+  // Warnings never block. They ride along the typed amount, so the previous ones stay up while it loads.
+  const previewQuery = useQuery(distributionPreviewQueryOptions(distributionId, amountCents));
+  const warnings = amountCents > 0 ? (previewQuery.data?.warnings ?? []) : [];
 
   return (
     <>
@@ -193,11 +219,18 @@ function TriggerDistributionForm({ distributionId, ref }: TriggerDistributionFor
                   onChange: ({ value }) => {
                     const typedPlan = computeDistributionPlan(planLines, toCents(String(value)));
 
-                    return typedPlan.exceedsBucketAndPayable
-                      ? {
-                          message: `Bucket lines add up to ${formatMoney(typedPlan.bucketAndPayableTotal, currency)}, more than this amount.`,
-                        }
-                      : undefined;
+                    if (typedPlan.exceedsBucketAndPayable) {
+                      return {
+                        message: `Bucket and payable lines add up to ${formatMoney(typedPlan.bucketAndPayableTotal, currency)}, more than this amount.`,
+                      };
+                    }
+                    if (typedPlan.exceedsReceivable) {
+                      return {
+                        message: `Receivable lines add up to ${formatMoney(typedPlan.receivableTotal, currency)}, more than this amount.`,
+                      };
+                    }
+
+                    return undefined;
                   },
                 }}
               >
@@ -232,13 +265,29 @@ function TriggerDistributionForm({ distributionId, ref }: TriggerDistributionFor
                       data-skipped={line.cents <= 0}
                     >
                       <span className="min-w-0 wrap-break-word">
-                        Allocation to {bucketNameByLineId.get(line.id)}
+                        {describeRecord(line.kind, targetNameById.get(line.id))}
                       </span>
                       <span>{formatMoney(line.cents, currency)}</span>
                     </li>
                   ))}
                 </ul>
               </div>
+              {warnings.length > 0 ? (
+                <ul className="flex flex-col gap-y-1.5 rounded-md border border-amber-500/50 bg-amber-500/10 p-2">
+                  {warnings.map((warning) => (
+                    <li key={warning.debtId} className="flex items-start gap-x-2">
+                      <IconAlertTriangle className="mt-0.5 size-3.5 shrink-0 text-amber-600" />
+                      <span className="min-w-0 wrap-break-word">
+                        {describeWarning(
+                          warning,
+                          targetNameById.get(warning.debtId) ?? "This debt",
+                          currency,
+                        )}
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+              ) : null}
               <SplitSummary lines={planLines} amountCents={amountCents} currency={currency} />
             </FieldGroup>
           </form>
