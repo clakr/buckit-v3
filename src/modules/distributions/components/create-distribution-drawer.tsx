@@ -12,6 +12,10 @@ import {
   DistributionForm,
   type DistributionFormControls,
 } from "#/modules/distributions/components/distribution-form";
+import {
+  DistributionNestedDrawerRoots,
+  useDistributionNestedDrawers,
+} from "#/modules/distributions/components/distribution-nested-drawers";
 import { confirm } from "#/stores/use-confirm";
 
 export const createDistributionDrawerHandle = createDrawerHandle<{
@@ -20,6 +24,7 @@ export const createDistributionDrawerHandle = createDrawerHandle<{
 
 export function CreateDistributionDrawer() {
   const formControlsRef = useRef<DistributionFormControls>(null);
+  const nestedDrawers = useDistributionNestedDrawers();
 
   async function handleOnOpenChange(open: boolean, eventDetails: DrawerChangeEventDetails) {
     if (open || !formControlsRef.current?.isDirty()) return;
@@ -42,15 +47,22 @@ export function CreateDistributionDrawer() {
   return (
     <ResponsiveDrawer handle={createDistributionDrawerHandle} onOpenChange={handleOnOpenChange}>
       {({ payload }) => (
-        <DrawerContent>
-          <DistributionForm
-            // Keyed by the original, so duplicating another Distribution starts from its values.
-            key={payload?.duplicateOf?.id}
-            duplicateOf={payload?.duplicateOf}
-            onSaved={() => createDistributionDrawerHandle.close()}
-            ref={formControlsRef}
+        <>
+          <DrawerContent ref={nestedDrawers.popupRef}>
+            <DistributionForm
+              // Keyed by the original, so duplicating another Distribution starts from its values.
+              key={payload?.duplicateOf?.id}
+              duplicateOf={payload?.duplicateOf}
+              onSaved={() => createDistributionDrawerHandle.close()}
+              nestedDrawers={nestedDrawers}
+              ref={formControlsRef}
+            />
+          </DrawerContent>
+          <DistributionNestedDrawerRoots
+            nestedDrawers={nestedDrawers}
+            formControlsRef={formControlsRef}
           />
-        </DrawerContent>
+        </>
       )}
     </ResponsiveDrawer>
   );

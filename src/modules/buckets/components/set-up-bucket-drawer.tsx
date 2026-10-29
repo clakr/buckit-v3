@@ -10,6 +10,8 @@ import {
 } from "react";
 import z from "zod";
 
+import type { Bucket } from "#/db/schema";
+
 import { Button } from "#/components/ui/button";
 import {
   createDrawerHandle,
@@ -65,6 +67,7 @@ export function SetUpBucketDrawer() {
 type SetUpBucketDrawerRootProps = {
   handle: SetUpBucketDrawerHandle;
   finalFocus?: ComponentProps<typeof DrawerContent>["finalFocus"];
+  onSetUp?: (bucket: Bucket) => void;
 };
 
 /**
@@ -72,11 +75,15 @@ type SetUpBucketDrawerRootProps = {
  * parent's `Suspense` can't unmount it. Open it from a `DrawerTrigger` bound to the same
  * `handle`.
  */
-export function NestedSetUpBucketDrawer({ handle, finalFocus }: SetUpBucketDrawerRootProps) {
-  return <SetUpBucketDrawerRoot handle={handle} finalFocus={finalFocus} />;
+export function NestedSetUpBucketDrawer({
+  handle,
+  finalFocus,
+  onSetUp,
+}: SetUpBucketDrawerRootProps) {
+  return <SetUpBucketDrawerRoot handle={handle} finalFocus={finalFocus} onSetUp={onSetUp} />;
 }
 
-function SetUpBucketDrawerRoot({ handle, finalFocus }: SetUpBucketDrawerRootProps) {
+function SetUpBucketDrawerRoot({ handle, finalFocus, onSetUp }: SetUpBucketDrawerRootProps) {
   const formControlsRef = useRef<SetUpBucketFormControls>(null);
   const popupRef = useRef<HTMLDivElement>(null);
   const registerButtonRef = useRef<HTMLButtonElement>(null);
@@ -108,7 +115,10 @@ function SetUpBucketDrawerRoot({ handle, finalFocus }: SetUpBucketDrawerRootProp
     <ResponsiveDrawer handle={handle} onOpenChange={handleOnOpenChange}>
       <DrawerContent ref={popupRef} finalFocus={finalFocus}>
         <SetUpBucketForm
-          onSetUp={() => handle.close()}
+          onSetUp={(bucket) => {
+            handle.close();
+            onSetUp?.(bucket);
+          }}
           nestedRegisterBankAccountDrawerHandle={nestedRegisterBankAccountDrawerHandle}
           registerButtonRef={registerButtonRef}
           ref={formControlsRef}
@@ -123,7 +133,7 @@ function SetUpBucketDrawerRoot({ handle, finalFocus }: SetUpBucketDrawerRootProp
 }
 
 type SetUpBucketFormProps = {
-  onSetUp: () => void;
+  onSetUp: (bucket: Bucket) => void;
   nestedRegisterBankAccountDrawerHandle: NestedRegisterBankAccountDrawerHandle;
   registerButtonRef: RefObject<HTMLButtonElement | null>;
   ref: Ref<SetUpBucketFormControls>;
@@ -154,8 +164,10 @@ function SetUpBucketForm({
       onChange: setUpBucketWithGoalSchema,
     },
     onSubmit: async ({ value: data }) => {
+      let bucket: Bucket;
+
       try {
-        await mutation.mutateAsync({ data });
+        [bucket] = await mutation.mutateAsync({ data });
       } catch (error) {
         console.error(error);
 
@@ -163,7 +175,7 @@ function SetUpBucketForm({
       }
 
       form.reset();
-      onSetUp();
+      onSetUp(bucket);
     },
   });
 

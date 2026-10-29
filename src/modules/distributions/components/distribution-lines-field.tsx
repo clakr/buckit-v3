@@ -1,4 +1,4 @@
-import type { ReactNode } from "react";
+import type { ReactNode, RefObject } from "react";
 
 import { IconX } from "@tabler/icons-react";
 
@@ -15,6 +15,7 @@ import {
   ComboboxValue,
   useComboboxAnchor,
 } from "#/components/ui/combobox";
+import { createDrawerHandle, DrawerTrigger } from "#/components/ui/drawer";
 import { Field, FieldDescription, FieldError, FieldLabel } from "#/components/ui/field";
 import { ToggleGroup, ToggleGroupItem } from "#/components/ui/toggle-group";
 import { formatMoney } from "#/lib/money";
@@ -36,6 +37,8 @@ const PRESSED_STYLE =
 type Props = {
   lines: DistributionLineDraft[];
   buckets: Bucket[];
+  setUpBucketHandle: ReturnType<typeof createDrawerHandle>;
+  setUpBucketButtonRef: RefObject<HTMLButtonElement | null>;
   /** Only Debts in the Bank Account's currency, because a Debt line is paid through that account. */
   debts: LineDebt[];
   /** Why the Debt picker is off, when there is no account to take its currency from. */
@@ -55,6 +58,8 @@ type Props = {
 export function DistributionLinesField({
   lines,
   buckets,
+  setUpBucketHandle,
+  setUpBucketButtonRef,
   debts,
   debtsUnavailableReason,
   currency,
@@ -112,6 +117,13 @@ export function DistributionLinesField({
           </ComboboxList>
         </ComboboxContent>
       </Combobox>
+      <DrawerTrigger
+        ref={setUpBucketButtonRef}
+        handle={setUpBucketHandle}
+        render={<Button type="button" variant="outline" size="sm" className="w-fit" />}
+      >
+        Set up a new Bucket
+      </DrawerTrigger>
 
       <Combobox
         multiple

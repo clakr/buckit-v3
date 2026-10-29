@@ -19,6 +19,11 @@ import {
   DistributionForm,
   type DistributionFormControls,
 } from "#/modules/distributions/components/distribution-form";
+import {
+  DistributionNestedDrawerRoots,
+  useDistributionNestedDrawers,
+  type DistributionNestedDrawers,
+} from "#/modules/distributions/components/distribution-nested-drawers";
 import { distributionsQueryOptions } from "#/modules/distributions/query-options";
 import { confirm } from "#/stores/use-confirm";
 
@@ -28,6 +33,7 @@ export const editDistributionDrawerHandle = createDrawerHandle<{
 
 export function EditDistributionDrawer() {
   const formControlsRef = useRef<DistributionFormControls>(null);
+  const nestedDrawers = useDistributionNestedDrawers();
 
   async function handleOnOpenChange(open: boolean, eventDetails: DrawerChangeEventDetails) {
     if (open || !formControlsRef.current?.isDirty()) return;
@@ -50,14 +56,21 @@ export function EditDistributionDrawer() {
   return (
     <ResponsiveDrawer handle={editDistributionDrawerHandle} onOpenChange={handleOnOpenChange}>
       {({ payload }) => (
-        <DrawerContent>
-          {payload ? (
-            <EditDistributionContent
-              distributionId={payload.distributionId}
-              ref={formControlsRef}
-            />
-          ) : null}
-        </DrawerContent>
+        <>
+          <DrawerContent ref={nestedDrawers.popupRef}>
+            {payload ? (
+              <EditDistributionContent
+                distributionId={payload.distributionId}
+                nestedDrawers={nestedDrawers}
+                ref={formControlsRef}
+              />
+            ) : null}
+          </DrawerContent>
+          <DistributionNestedDrawerRoots
+            nestedDrawers={nestedDrawers}
+            formControlsRef={formControlsRef}
+          />
+        </>
       )}
     </ResponsiveDrawer>
   );
@@ -65,9 +78,11 @@ export function EditDistributionDrawer() {
 
 function EditDistributionContent({
   distributionId,
+  nestedDrawers,
   ref,
 }: {
   distributionId: Distribution["id"];
+  nestedDrawers: DistributionNestedDrawers;
   ref: React.Ref<DistributionFormControls>;
 }) {
   const {
@@ -87,6 +102,7 @@ function EditDistributionContent({
         key={distribution.id}
         distribution={distribution}
         onSaved={() => editDistributionDrawerHandle.close()}
+        nestedDrawers={nestedDrawers}
         ref={ref}
       />
     );

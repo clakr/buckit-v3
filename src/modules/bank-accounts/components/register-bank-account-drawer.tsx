@@ -1,6 +1,8 @@
 import { useImperativeHandle, useRef, type ComponentProps, type Ref } from "react";
 import z from "zod";
 
+import type { BankAccount } from "#/db/schema";
+
 import { CurrencyCombobox } from "#/components/currency-combobox";
 import { Button } from "#/components/ui/button";
 import {
@@ -44,6 +46,7 @@ export function RegisterBankAccountDrawer() {
 type RegisterBankAccountDrawerRootProps = {
   handle: RegisterBankAccountDrawerHandle;
   finalFocus?: ComponentProps<typeof DrawerContent>["finalFocus"];
+  onRegistered?: (bankAccount: BankAccount) => void;
 };
 
 /**
@@ -54,11 +57,22 @@ type RegisterBankAccountDrawerRootProps = {
 export function NestedRegisterBankAccountDrawer({
   handle,
   finalFocus,
+  onRegistered,
 }: RegisterBankAccountDrawerRootProps) {
-  return <RegisterBankAccountDrawerRoot handle={handle} finalFocus={finalFocus} />;
+  return (
+    <RegisterBankAccountDrawerRoot
+      handle={handle}
+      finalFocus={finalFocus}
+      onRegistered={onRegistered}
+    />
+  );
 }
 
-function RegisterBankAccountDrawerRoot({ handle, finalFocus }: RegisterBankAccountDrawerRootProps) {
+function RegisterBankAccountDrawerRoot({
+  handle,
+  finalFocus,
+  onRegistered,
+}: RegisterBankAccountDrawerRootProps) {
   const formControlsRef = useRef<RegisterBankAccountFormControls>(null);
 
   async function handleOnOpenChange(open: boolean, eventDetails: DrawerChangeEventDetails) {
@@ -86,7 +100,10 @@ function RegisterBankAccountDrawerRoot({ handle, finalFocus }: RegisterBankAccou
           {payload ? (
             <RegisterBankAccountForm
               currency={payload.currency}
-              onRegistered={() => handle.close()}
+              onRegistered={(bankAccount) => {
+                handle.close();
+                onRegistered?.(bankAccount);
+              }}
               ref={formControlsRef}
             />
           ) : null}
@@ -98,7 +115,7 @@ function RegisterBankAccountDrawerRoot({ handle, finalFocus }: RegisterBankAccou
 
 type RegisterBankAccountFormProps = {
   currency: string;
-  onRegistered: () => void;
+  onRegistered: (bankAccount: BankAccount) => void;
   ref: Ref<RegisterBankAccountFormControls>;
 };
 
@@ -117,8 +134,10 @@ function RegisterBankAccountForm({ currency, onRegistered, ref }: RegisterBankAc
       onChange: registerBankAccountSchema,
     },
     onSubmit: async ({ value: data }) => {
+      let bankAccount: BankAccount;
+
       try {
-        await mutation.mutateAsync({ data });
+        [bankAccount] = await mutation.mutateAsync({ data });
       } catch (error) {
         console.error(error);
 
@@ -126,7 +145,7 @@ function RegisterBankAccountForm({ currency, onRegistered, ref }: RegisterBankAc
       }
 
       form.reset();
-      onRegistered();
+      onRegistered(bankAccount);
     },
   });
 

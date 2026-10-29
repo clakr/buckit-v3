@@ -3,6 +3,8 @@ import { useQuery } from "@tanstack/react-query";
 import { useImperativeHandle, useRef, type Ref } from "react";
 import z from "zod";
 
+import type { DistributionNestedDrawers } from "#/modules/distributions/components/distribution-nested-drawers";
+
 import { Button } from "#/components/ui/button";
 import {
   DrawerClose,
@@ -10,6 +12,7 @@ import {
   DrawerFooter,
   DrawerHeader,
   DrawerTitle,
+  DrawerTrigger,
 } from "#/components/ui/drawer";
 import { FieldError, FieldGroup } from "#/components/ui/field";
 import {
@@ -51,6 +54,10 @@ const FALLBACK_CURRENCY = "PHP";
 export type DistributionFormControls = {
   isDirty: () => boolean;
   reset: () => void;
+  /** Adds a line for a Bucket the User just set up, keeping the lines already typed. */
+  selectBucket: (bucketId: string) => void;
+  /** Picks a Bank Account the User just registered. */
+  selectBankAccount: (bankAccountId: string) => void;
 };
 
 /** Buckets first, then Debts, the order picking in the line editor keeps them in. */
@@ -102,6 +109,7 @@ type DistributionFormProps = {
   /** A saved Distribution to prefill a new one from. Nothing is saved until the User presses Save. */
   duplicateOf?: SavedDistribution;
   onSaved: () => void;
+  nestedDrawers: DistributionNestedDrawers;
   ref: Ref<DistributionFormControls>;
 };
 
@@ -109,6 +117,7 @@ export function DistributionForm({
   distribution,
   duplicateOf,
   onSaved,
+  nestedDrawers,
   ref,
 }: DistributionFormProps) {
   const createMutation = useCreateDistributionMutation();
@@ -177,6 +186,19 @@ export function DistributionForm({
         form.reset();
         committedBankAccountIdRef.current = defaultValues.bankAccountId;
       },
+      selectBucket: (bucketId) => {
+        const currentLines = form.getFieldValue("lines") as DistributionLineDraft[];
+        const pickedBuckets = currentLines.filter((line) => line.kind === "bucket");
+
+        form.setFieldValue(
+          "lines",
+          mergeSelectedTargets(currentLines, "bucket", [
+            ...pickedBuckets,
+            { kind: "bucket", bucketId },
+          ]),
+        );
+      },
+      selectBankAccount: (bankAccountId) => form.setFieldValue("bankAccountId", bankAccountId),
     }),
     [form, defaultValues.bankAccountId],
   );
@@ -279,7 +301,19 @@ export function DistributionForm({
                   currency={null}
                   bankAccountsQuery={bankAccountsQuery}
                   bankAccounts={bankAccountsQuery.data}
-                  emptyContent={<FieldError>Register a bank account first.</FieldError>}
+                  emptyContent={
+                    <>
+                      <FieldError>Register a bank account first.</FieldError>
+                      <DrawerTrigger
+                        ref={nestedDrawers.registerBankAccountButtonRef}
+                        handle={nestedDrawers.registerBankAccountHandle}
+                        payload={{ currency: FALLBACK_CURRENCY }}
+                        render={<Button type="button" variant="outline" />}
+                      >
+                        Register an account
+                      </DrawerTrigger>
+                    </>
+                  }
                 />
               )}
             </form.AppField>
@@ -301,6 +335,8 @@ export function DistributionForm({
                   lines={linesField.state.value as DistributionLineDraft[]}
                   buckets={bucketsQuery.data ?? []}
                   debts={pickableDebts}
+                  setUpBucketHandle={nestedDrawers.setUpBucketHandle}
+                  setUpBucketButtonRef={nestedDrawers.setUpBucketButtonRef}
                   debtsUnavailableReason={
                     bankAccount ? null : "Select a bank account to pick Debts."
                   }
