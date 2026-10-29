@@ -3,6 +3,7 @@ import type { getDistributions } from "#/modules/distributions/functions";
 
 import { SortableTableHead } from "#/components/table/sortable-table-head";
 import { formatMoney } from "#/lib/money";
+import { DistributionActionsDropdownMenu } from "#/modules/distributions/components/distribution-actions-dropdown-menu";
 
 type DistributionRow = Awaited<ReturnType<typeof getDistributions>>[number];
 
@@ -58,5 +59,10 @@ export const INDEX_COLUMNS: DataTableColumnDef<DistributionRow>[] = [
           .join(", ")}
       </span>
     ),
+  },
+  {
+    accessorKey: "actions",
+    header: "",
+    cell: ({ row }) => <DistributionActionsDropdownMenu distributionId={row.original.id} />,
   },
 ];

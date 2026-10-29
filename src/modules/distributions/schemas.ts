@@ -72,3 +72,12 @@ export const validateDistributionNameSchema = z.object({
   name: nameSchema,
   excludeId: z.string().optional(),
 });
+
+export const verifyUserDistributionMiddlewareSchema = z.looseObject({
+  distributionId: z.string().min(1, "No distribution ID provided"),
+});
+
+export const triggerDistributionSchema = z.strictObject({
+  ...verifyUserDistributionMiddlewareSchema.shape,
+  amount: amountSchema,
+});
