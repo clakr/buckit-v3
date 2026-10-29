@@ -4,6 +4,7 @@ import type { getBankAccountDeletionImpact } from "#/modules/bank-accounts/funct
 
 import { formatMoney } from "#/lib/money";
 import { DebtStatusBadge } from "#/modules/debts/components/debt-status-badge";
+import { DistributionDeletionList } from "#/modules/distributions/components/distribution-deletion-list";
 
 type Props = {
   impact: Awaited<ReturnType<typeof getBankAccountDeletionImpact>>;
@@ -43,12 +44,13 @@ export function BankAccountDeletionSummary({ impact }: Props) {
     return formatMoney(value, impact.bankAccount.currency);
   }
 
-  const { buckets: affectedBuckets, debts: affectedDebts } = impact;
+  const { buckets: affectedBuckets, debts: affectedDebts, distributions } = impact;
 
   const hasChangesElsewhere = affectedBuckets.length > 0 || affectedDebts.length > 0;
 
   return (
     <div className="flex flex-col gap-y-3">
+      <DistributionDeletionList distributions={distributions} via="bank-account" />
       {hasChangesElsewhere ? (
         <table className="w-full tabular-nums">
           <thead className="text-[0.65rem] tracking-wide text-muted-foreground uppercase">
@@ -110,7 +112,7 @@ export function BankAccountDeletionSummary({ impact }: Props) {
             })}
           </tbody>
         </table>
-      ) : (
+      ) : distributions.length ? null : (
         <p className="text-muted-foreground">Nothing outside this account is affected.</p>
       )}
     </div>

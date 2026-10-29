@@ -3,6 +3,7 @@ import { IconBuildingBank } from "@tabler/icons-react";
 import type { DebtDeletionImpact } from "#/modules/debts/deletion.server";
 
 import { formatMoney } from "#/lib/money";
+import { DistributionDeletionList } from "#/modules/distributions/components/distribution-deletion-list";
 
 type Props = {
   impact: DebtDeletionImpact;
@@ -39,8 +40,15 @@ export function DebtDeletionSummary({ impact, deleteTransactions }: Props) {
 
   return (
     <div className="flex flex-col gap-y-3">
+      <DistributionDeletionList
+        distributions={impact.distributions}
+        via="line"
+        targetName={impact.debt.name}
+      />
       {!transactionCount ? (
-        <p className="text-muted-foreground">Nothing outside this debt is affected.</p>
+        impact.distributions.length ? null : (
+          <p className="text-muted-foreground">Nothing outside this debt is affected.</p>
+        )
       ) : deleteTransactions ? (
         <table className="w-full tabular-nums">
           <thead className="text-[0.65rem] tracking-wide text-muted-foreground uppercase">

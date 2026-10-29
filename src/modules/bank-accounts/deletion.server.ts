@@ -10,6 +10,10 @@ import {
   withoutRepayments,
   type DebtStatus,
 } from "#/modules/debts/figures.server";
+import {
+  loadBankAccountDistributionImpact,
+  type DistributionDeletionImpact,
+} from "#/modules/distributions/cleanup.server";
 import { isRepaymentBackedBy } from "#/modules/transactions/linked.server";
 
 function selectBankAccountTransactionIds(db: DB, bankAccountId: BankAccount["id"]) {
@@ -40,6 +44,7 @@ export type BankAccountDeletionImpact = {
   allocationCount: number;
   removedRepaymentCount: number;
   removedWithdrawalCount: number;
+  distributions: DistributionDeletionImpact[];
   buckets: { id: string; name: string; before: number; after: number }[];
   debts: {
     id: string;
@@ -65,6 +70,7 @@ export async function loadBankAccountDeletionImpact(
     [{ removedWithdrawalCount }],
     orphanedDebts,
     affectedBuckets,
+    distributions,
   ] = await Promise.all([
     db.query.bankAccounts.findFirst({
       where: { id: bankAccountId, userId },
@@ -85,6 +91,7 @@ export async function loadBankAccountDeletionImpact(
       .where(isRemovedWithdrawal(db, bankAccountId)),
     db.select({ id: debts.id }).from(debts).where(isOrphanedDebt(db, bankAccountId)),
     getBucketsWithFigures(db, { userId, allocatedFrom: bankAccountId }),
+    loadBankAccountDistributionImpact(db, userId, bankAccountId),
   ]);
 
   if (!bankAccount) throw new NotFoundError("This account doesn't exist or may have been deleted.");
@@ -105,6 +112,7 @@ export async function loadBankAccountDeletionImpact(
     allocationCount: bankAccount.allocations.length,
     removedRepaymentCount: removedRepaymentIds.size,
     removedWithdrawalCount,
+    distributions,
     buckets: affectedBuckets.map((bucket) => {
       const before =
         bucket.subtotals.find((subtotal) => subtotal.currency === bankAccount.currency)?.amount ??

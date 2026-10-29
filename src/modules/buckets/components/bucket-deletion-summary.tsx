@@ -3,6 +3,7 @@ import { IconBuildingBank } from "@tabler/icons-react";
 import type { getBucketDeletionImpact } from "#/modules/buckets/functions";
 
 import { formatMoney } from "#/lib/money";
+import { DistributionDeletionList } from "#/modules/distributions/components/distribution-deletion-list";
 
 type Props = {
   impact: Awaited<ReturnType<typeof getBucketDeletionImpact>>;
@@ -32,6 +33,11 @@ export function getBucketDeletionDescription({ impact }: Props) {
 export function BucketDeletionSummary({ impact }: Props) {
   return (
     <div className="flex flex-col gap-y-3">
+      <DistributionDeletionList
+        distributions={impact.distributions}
+        via="line"
+        targetName={impact.bucket.name}
+      />
       {impact.bankAccounts.length ? (
         <>
           <table className="w-full tabular-nums">
@@ -69,7 +75,7 @@ export function BucketDeletionSummary({ impact }: Props) {
           </table>
           <p className="text-muted-foreground">Account balances don't change.</p>
         </>
-      ) : (
+      ) : impact.distributions.length ? null : (
         <p className="text-muted-foreground">Nothing outside this bucket is affected.</p>
       )}
     </div>

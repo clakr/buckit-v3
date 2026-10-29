@@ -6,11 +6,16 @@ import { allocations, withdrawals, type BankAccount, type Bucket } from "#/db/sc
 import { NotFoundError } from "#/lib/errors";
 import { getBankAccountsWithFigures } from "#/modules/bank-accounts/figures.server";
 import { getBucketsWithFigures } from "#/modules/buckets/figures.server";
+import {
+  loadBucketDistributionImpact,
+  type DistributionDeletionImpact,
+} from "#/modules/distributions/cleanup.server";
 
 export type BucketDeletionImpact = {
   bucket: Pick<Bucket, "id" | "name">;
   allocationCount: number;
   withdrawalCount: number;
+  distributions: DistributionDeletionImpact[];
   bankAccounts: {
     id: BankAccount["id"];
     name: BankAccount["name"];
@@ -25,7 +30,7 @@ export async function loadBucketDeletionImpact(
   userId: string,
   bucketId: Bucket["id"],
 ): Promise<BucketDeletionImpact> {
-  const [[bucket], [{ allocationCount }], [{ withdrawalCount }], userBankAccounts] =
+  const [[bucket], [{ allocationCount }], [{ withdrawalCount }], distributions, userBankAccounts] =
     await Promise.all([
       getBucketsWithFigures(db, { userId, bucketId }),
       db
@@ -36,6 +41,7 @@ export async function loadBucketDeletionImpact(
         .select({ withdrawalCount: count() })
         .from(withdrawals)
         .where(eq(withdrawals.bucketId, bucketId)),
+      loadBucketDistributionImpact(db, userId, bucketId),
       getBankAccountsWithFigures(db, { userId }),
     ]);
 
@@ -49,6 +55,7 @@ export async function loadBucketDeletionImpact(
     bucket: { id: bucket.id, name: bucket.name },
     allocationCount,
     withdrawalCount,
+    distributions,
     bankAccounts: userBankAccounts
       .filter((bankAccount) => releasedByBankAccountId.has(bankAccount.id))
       .map((bankAccount) => ({

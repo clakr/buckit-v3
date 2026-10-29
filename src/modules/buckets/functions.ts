@@ -13,6 +13,7 @@ import { loadBucketLedger } from "#/modules/buckets/ledger.server";
 import { verifyUserBucketMiddleware } from "#/modules/buckets/middlewares";
 import { bucketNameRule } from "#/modules/buckets/name.server";
 import { editBucketSchema, validateBucketNameSchema } from "#/modules/buckets/schemas";
+import { deleteDistributionsEmptiedByBucket } from "#/modules/distributions/cleanup.server";
 import { findFundingBankAccount } from "#/modules/goals/funding.server";
 import { setUpBucketWithGoalSchema } from "#/modules/goals/schemas";
 import { getGoalProgress } from "#/modules/goals/utils";
@@ -200,5 +201,10 @@ export const deleteBucket = createServerFn({
   .handler(async ({ data }) => {
     const db = getDB(env.db);
 
-    return db.delete(buckets).where(eq(buckets.id, data.bucketId)).returning();
+    const [, deleted] = await db.batch([
+      deleteDistributionsEmptiedByBucket(db, data.bucketId),
+      db.delete(buckets).where(eq(buckets.id, data.bucketId)).returning(),
+    ]);
+
+    return deleted;
   });
