@@ -41,73 +41,86 @@ const distributionLineTargetSchema = z.discriminatedUnion("kind", [
   }),
 ]);
 
-export const createDistributionSchema = z
-  .object({
-    name: nameSchema,
-    bankAccountId: z.string().min(1, "Select a bank account"),
-    amount: amountSchema,
-    lines: z
-      .array(z.intersection(distributionLineTargetSchema, distributionLineSchema))
-      .min(1, "Add at least one line."),
+export const verifyUserDistributionMiddlewareSchema = z.looseObject({
+  distributionId: z.string().min(1, "No distribution ID provided"),
+});
+
+const distributionFieldsSchema = z.object({
+  name: nameSchema,
+  amount: amountSchema,
+  lines: z
+    .array(z.intersection(distributionLineTargetSchema, distributionLineSchema))
+    .min(1, "Add at least one line."),
+});
+
+// Create and edit share every rule, including the one-line minimum.
+function refineDistributionRules(
+  distribution: z.output<typeof distributionFieldsSchema>,
+  context: z.RefinementCtx,
+) {
+  const bucketIds = distribution.lines.flatMap((line) =>
+    line.kind === "bucket" ? [line.bucketId] : [],
+  );
+  const debtIds = distribution.lines.flatMap((line) => (line.kind === "debt" ? [line.debtId] : []));
+
+  if (new Set(bucketIds).size !== bucketIds.length) {
+    context.addIssue({
+      code: "custom",
+      path: ["lines"],
+      message: "A bucket can only have one line.",
+    });
+  }
+  if (new Set(debtIds).size !== debtIds.length) {
+    context.addIssue({
+      code: "custom",
+      path: ["lines"],
+      message: "A debt can only have one line.",
+    });
+  }
+
+  const plan = computeDistributionPlan(
+    distribution.lines.map((line) => ({
+      id: getLineTargetId(line),
+      kind: getPlanLineKind(line),
+      value:
+        line.mode === "fixed"
+          ? { mode: "fixed" as const, cents: line.value }
+          : { mode: "percent" as const, basisPoints: line.value },
+    })),
+    distribution.amount,
+  );
+
+  if (plan.exceedsBucketAndPayable) {
+    context.addIssue({
+      code: "custom",
+      path: ["lines"],
+      message: "Bucket and payable lines can't add up to more than the default amount.",
+    });
+  }
+  if (plan.exceedsReceivable) {
+    context.addIssue({
+      code: "custom",
+      path: ["lines"],
+      message: "Receivable lines can't add up to more than the default amount.",
+    });
+  }
+}
+
+export const createDistributionSchema = distributionFieldsSchema
+  .extend({ bankAccountId: z.string().min(1, "Select a bank account") })
+  .superRefine(refineDistributionRules);
+
+// A strictObject, so a request that carries a `bankAccountId` is rejected (story 37).
+export const editDistributionSchema = z
+  .strictObject({
+    ...verifyUserDistributionMiddlewareSchema.shape,
+    ...distributionFieldsSchema.shape,
   })
-  .superRefine((distribution, context) => {
-    const bucketIds = distribution.lines.flatMap((line) =>
-      line.kind === "bucket" ? [line.bucketId] : [],
-    );
-    const debtIds = distribution.lines.flatMap((line) =>
-      line.kind === "debt" ? [line.debtId] : [],
-    );
-
-    if (new Set(bucketIds).size !== bucketIds.length) {
-      context.addIssue({
-        code: "custom",
-        path: ["lines"],
-        message: "A bucket can only have one line.",
-      });
-    }
-    if (new Set(debtIds).size !== debtIds.length) {
-      context.addIssue({
-        code: "custom",
-        path: ["lines"],
-        message: "A debt can only have one line.",
-      });
-    }
-
-    const plan = computeDistributionPlan(
-      distribution.lines.map((line) => ({
-        id: getLineTargetId(line),
-        kind: getPlanLineKind(line),
-        value:
-          line.mode === "fixed"
-            ? { mode: "fixed" as const, cents: line.value }
-            : { mode: "percent" as const, basisPoints: line.value },
-      })),
-      distribution.amount,
-    );
-
-    if (plan.exceedsBucketAndPayable) {
-      context.addIssue({
-        code: "custom",
-        path: ["lines"],
-        message: "Bucket and payable lines can't add up to more than the default amount.",
-      });
-    }
-    if (plan.exceedsReceivable) {
-      context.addIssue({
-        code: "custom",
-        path: ["lines"],
-        message: "Receivable lines can't add up to more than the default amount.",
-      });
-    }
-  });
+  .superRefine(refineDistributionRules);
 
 export const validateDistributionNameSchema = z.object({
   name: nameSchema,
   excludeId: z.string().optional(),
-});
-
-export const verifyUserDistributionMiddlewareSchema = z.looseObject({
-  distributionId: z.string().min(1, "No distribution ID provided"),
 });
 
 export const triggerDistributionSchema = z.strictObject({

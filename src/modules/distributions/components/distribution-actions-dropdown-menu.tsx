@@ -1,4 +1,4 @@
-import { IconBolt, IconDots } from "@tabler/icons-react";
+import { IconBolt, IconDots, IconEdit, IconTrash } from "@tabler/icons-react";
 
 import type { Distribution } from "#/db/schema";
 
@@ -10,7 +10,10 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "#/components/ui/dropdown-menu";
+import { editDistributionDrawerHandle } from "#/modules/distributions/components/edit-distribution-drawer";
 import { triggerDistributionDrawerHandle } from "#/modules/distributions/components/trigger-distribution-drawer";
+import { useDeleteDistributionMutation } from "#/modules/distributions/mutations";
+import { confirm } from "#/stores/use-confirm";
 
 type Props = {
   distributionId: Distribution["id"];
@@ -19,6 +22,31 @@ type Props = {
 export function DistributionActionsDropdownMenu({ distributionId }: Props) {
   function handleOpenTriggerDistributionDrawer() {
     triggerDistributionDrawerHandle.openWithPayload({ distributionId });
+  }
+
+  function handleOpenEditDistributionDrawer() {
+    editDistributionDrawerHandle.openWithPayload({ distributionId });
+  }
+
+  const mutation = useDeleteDistributionMutation();
+
+  async function handleDeleteDistribution() {
+    const confirmed = await confirm("Delete Distribution?", {
+      description:
+        "Delete this distribution? Every record it wrote earlier stays. Only the saved routine is removed.",
+      confirmLabel: "Delete Distribution",
+      cancelLabel: "Cancel",
+    });
+
+    if (!confirmed) return;
+
+    try {
+      await mutation.mutateAsync({ data: { distributionId } });
+    } catch (error) {
+      console.error(error);
+
+      return;
+    }
   }
 
   return (
@@ -32,6 +60,14 @@ export function DistributionActionsDropdownMenu({ distributionId }: Props) {
           <DropdownMenuItem onClick={handleOpenTriggerDistributionDrawer}>
             <IconBolt />
             Trigger
+          </DropdownMenuItem>
+          <DropdownMenuItem onClick={handleOpenEditDistributionDrawer}>
+            <IconEdit />
+            Edit
+          </DropdownMenuItem>
+          <DropdownMenuItem onClick={handleDeleteDistribution}>
+            <IconTrash />
+            Delete
           </DropdownMenuItem>
         </DropdownMenuGroup>
       </DropdownMenuContent>

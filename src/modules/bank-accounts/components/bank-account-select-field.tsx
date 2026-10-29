@@ -29,6 +29,7 @@ type Props = {
   bankAccountsQuery: Pick<UseQueryResult<BankAccountWithFigures[]>, "status" | "refetch">;
   bankAccounts: BankAccountWithFigures[] | undefined;
   emptyContent: ReactNode;
+  disabled?: boolean;
 };
 
 export function BankAccountSelectField({
@@ -39,6 +40,7 @@ export function BankAccountSelectField({
   bankAccountsQuery,
   bankAccounts,
   emptyContent,
+  disabled,
 }: Props) {
   const field = useFieldContext<string | null | undefined>();
 
@@ -73,7 +75,7 @@ export function BankAccountSelectField({
           items={bankAccounts?.map((account) => ({ value: account.id, label: account.name }))}
           value={field.state.value ?? ""}
           onValueChange={(value) => field.handleChange(value as string)}
-          disabled={status !== "success"}
+          disabled={disabled || status !== "success"}
         >
           <SelectTrigger
             id={id}

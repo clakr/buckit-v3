@@ -1,8 +1,12 @@
+import type { z } from "zod";
+
 import { createServerFn } from "@tanstack/react-start";
 import { env } from "cloudflare:workers";
+import { and, eq } from "drizzle-orm";
 import { uuidv7 } from "uuidv7";
 
 import type { DB } from "#/db";
+import type { BankAccount } from "#/db/schema";
 
 import { getDB } from "#/db";
 import { allocations, distributionLines, distributions, transactions } from "#/db/schema";
@@ -17,6 +21,7 @@ import { verifyUserDistributionMiddleware } from "#/modules/distributions/middle
 import { distributionNameRule } from "#/modules/distributions/name.server";
 import {
   createDistributionSchema,
+  editDistributionSchema,
   triggerDistributionSchema,
   validateDistributionNameSchema,
 } from "#/modules/distributions/schemas";
@@ -100,24 +105,7 @@ export const createDistribution = createServerFn({
     if (!bankAccount)
       throw new NotFoundError("This account doesn't exist or may have been deleted.");
 
-    const debts = await assertOwnedLineTargets(db, context.userId, bankAccount, {
-      bucketIds: data.lines.flatMap((line) => (line.kind === "bucket" ? [line.bucketId] : [])),
-      debtIds: data.lines.flatMap((line) => (line.kind === "debt" ? [line.debtId] : [])),
-    });
-
-    // The form's own direction is a hint. The blocking rules use the Debts' stored directions.
-    const plan = computeDistributionPlan(
-      data.lines.map((line) => ({
-        id: getLineTargetId(line),
-        kind: line.kind === "bucket" ? ("bucket" as const) : getDebtDirection(debts, line.debtId),
-        value:
-          line.mode === "fixed"
-            ? { mode: "fixed" as const, cents: line.value }
-            : { mode: "percent" as const, basisPoints: line.value },
-      })),
-      data.amount,
-    );
-    assertPlanFits(plan, "default amount");
+    await assertLinesFit(db, context.userId, bankAccount, data);
 
     const distributionId = uuidv7();
 
@@ -134,21 +122,123 @@ export const createDistribution = createServerFn({
             amount: data.amount,
           })
           .returning(),
-        db.insert(distributionLines).values(
-          data.lines.map((line) => ({
-            id: uuidv7(),
-            distributionId,
-            bucketId: line.kind === "bucket" ? line.bucketId : null,
-            debtId: line.kind === "debt" ? line.debtId : null,
-            amount: line.mode === "fixed" ? line.value : null,
-            basisPoints: line.mode === "percent" ? line.value : null,
-          })),
-        ),
+        db.insert(distributionLines).values(buildLineRows(distributionId, data.lines)),
       ]),
     );
 
     return distributionRows[0];
   });
+
+// A Distribution's Bank Account is fixed once saved, so the edit schema accepts none and the
+// account is read back from the stored row.
+export const editDistribution = createServerFn({
+  method: "POST",
+})
+  .middleware([verifyUserDistributionMiddleware])
+  .validator(editDistributionSchema)
+  .handler(async ({ context, data }) => {
+    const db = getDB(env.db);
+
+    const { isValid, message } = await distributionNameRule.check(db, context.userId, {
+      name: data.name,
+      excludeId: data.distributionId,
+    });
+
+    if (!isValid) throw new ConflictError(message);
+
+    const distribution = await db.query.distributions.findFirst({
+      where: { id: data.distributionId, userId: context.userId },
+      columns: { bankAccountId: true },
+    });
+    if (!distribution)
+      throw new NotFoundError("This distribution doesn't exist or may have been deleted.");
+
+    const bankAccount = await findOwnedBankAccount(db, context.userId, distribution.bankAccountId);
+    if (!bankAccount)
+      throw new NotFoundError("This account doesn't exist or may have been deleted.");
+
+    await assertLinesFit(db, context.userId, bankAccount, data);
+
+    // One batch is one D1 transaction, so a failed line insert keeps the old lines. The lines are
+    // replaced, not diffed, because a line stores only its input and nothing points at one.
+    const [distributionRows] = await distributionNameRule.write(
+      db.batch([
+        db
+          .update(distributions)
+          .set({ name: data.name, amount: data.amount })
+          .where(
+            and(
+              eq(distributions.id, data.distributionId),
+              eq(distributions.userId, context.userId),
+            ),
+          )
+          .returning(),
+        db
+          .delete(distributionLines)
+          .where(eq(distributionLines.distributionId, data.distributionId)),
+        db.insert(distributionLines).values(buildLineRows(data.distributionId, data.lines)),
+      ]),
+    );
+
+    return distributionRows[0];
+  });
+
+// Deleting loses no history: the lines cascade and every record a trigger wrote stays (ADR 0007).
+export const deleteDistribution = createServerFn({
+  method: "POST",
+})
+  .middleware([verifyUserDistributionMiddleware])
+  .handler(async ({ context, data }) => {
+    const db = getDB(env.db);
+
+    return db
+      .delete(distributions)
+      .where(
+        and(eq(distributions.id, data.distributionId), eq(distributions.userId, context.userId)),
+      )
+      .returning();
+  });
+
+type DistributionInput = z.output<typeof createDistributionSchema>;
+
+// A line's ids come from the request, so ownership and currency are checked again here, and the
+// plan must fit the default amount. Create and edit apply the same rules.
+async function assertLinesFit(
+  db: DB,
+  userId: string,
+  bankAccount: Pick<BankAccount, "currency">,
+  { amount, lines }: Pick<DistributionInput, "amount" | "lines">,
+) {
+  const debts = await assertOwnedLineTargets(db, userId, bankAccount, {
+    bucketIds: lines.flatMap((line) => (line.kind === "bucket" ? [line.bucketId] : [])),
+    debtIds: lines.flatMap((line) => (line.kind === "debt" ? [line.debtId] : [])),
+  });
+
+  // The form's own direction is a hint. The blocking rules use the Debts' stored directions.
+  const plan = computeDistributionPlan(
+    lines.map((line) => ({
+      id: getLineTargetId(line),
+      kind: line.kind === "bucket" ? ("bucket" as const) : getDebtDirection(debts, line.debtId),
+      value:
+        line.mode === "fixed"
+          ? { mode: "fixed" as const, cents: line.value }
+          : { mode: "percent" as const, basisPoints: line.value },
+    })),
+    amount,
+  );
+  assertPlanFits(plan, "default amount");
+}
+
+function buildLineRows(distributionId: string, lines: DistributionInput["lines"]) {
+  return lines.map((line) => ({
+    id: uuidv7(),
+    distributionId,
+    bucketId: line.kind === "bucket" ? line.bucketId : null,
+    debtId: line.kind === "debt" ? line.debtId : null,
+    amount: line.mode === "fixed" ? line.value : null,
+    basisPoints: line.mode === "percent" ? line.value : null,
+  }));
+}
 
 function getDebtDirection(
   debts: { id: string; direction: "receivable" | "payable" }[],

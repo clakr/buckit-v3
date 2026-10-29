@@ -1,6 +1,11 @@
 import { useMutation } from "@tanstack/react-query";
 
-import { createDistribution, triggerDistribution } from "#/modules/distributions/functions";
+import {
+  createDistribution,
+  deleteDistribution,
+  editDistribution,
+  triggerDistribution,
+} from "#/modules/distributions/functions";
 
 export function useCreateDistributionMutation() {
   return useMutation({
@@ -12,6 +17,38 @@ export function useCreateDistributionMutation() {
       },
       error: {
         title: "Failed to Create Distribution",
+        description: "Please try again.",
+      },
+    },
+  });
+}
+
+export function useEditDistributionMutation() {
+  return useMutation({
+    mutationFn: editDistribution,
+    meta: {
+      success: {
+        title: "Distribution Updated",
+        description: "The distribution has been saved.",
+      },
+      error: {
+        title: "Failed to Update Distribution",
+        description: "Please try again.",
+      },
+    },
+  });
+}
+
+export function useDeleteDistributionMutation() {
+  return useMutation({
+    mutationFn: deleteDistribution,
+    meta: {
+      success: {
+        title: "Distribution Deleted",
+        description: "The distribution has been removed. Its records stay.",
+      },
+      error: {
+        title: "Failed to Delete Distribution",
         description: "Please try again.",
       },
     },
