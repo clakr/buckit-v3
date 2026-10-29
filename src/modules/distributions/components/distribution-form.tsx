@@ -5,6 +5,8 @@ import z from "zod";
 
 import type { DistributionNestedDrawers } from "#/modules/distributions/components/distribution-nested-drawers";
 
+import type { Debt } from "#/db/schema";
+
 import { Button } from "#/components/ui/button";
 import {
   DrawerClose,
@@ -56,6 +58,8 @@ export type DistributionFormControls = {
   reset: () => void;
   /** Adds a line for a Bucket the User just set up, keeping the lines already typed. */
   selectBucket: (bucketId: string) => void;
+  /** Adds a line for a Debt the User just recorded, keeping the lines already typed. */
+  selectDebt: (debt: Pick<Debt, "id" | "direction">) => void;
   /** Picks a Bank Account the User just registered. */
   selectBankAccount: (bankAccountId: string) => void;
 };
@@ -198,6 +202,18 @@ export function DistributionForm({
           ]),
         );
       },
+      selectDebt: (debt) => {
+        const currentLines = form.getFieldValue("lines") as DistributionLineDraft[];
+        const pickedDebts = currentLines.filter((line) => line.kind === "debt");
+
+        form.setFieldValue(
+          "lines",
+          mergeSelectedTargets(currentLines, "debt", [
+            ...pickedDebts,
+            { kind: "debt", debtId: debt.id, direction: debt.direction },
+          ]),
+        );
+      },
       selectBankAccount: (bankAccountId) => form.setFieldValue("bankAccountId", bankAccountId),
     }),
     [form, defaultValues.bankAccountId],
@@ -337,6 +353,8 @@ export function DistributionForm({
                   debts={pickableDebts}
                   setUpBucketHandle={nestedDrawers.setUpBucketHandle}
                   setUpBucketButtonRef={nestedDrawers.setUpBucketButtonRef}
+                  recordDebtHandle={nestedDrawers.recordDebtHandle}
+                  recordDebtButtonRef={nestedDrawers.recordDebtButtonRef}
                   debtsUnavailableReason={
                     bankAccount ? null : "Select a bank account to pick Debts."
                   }

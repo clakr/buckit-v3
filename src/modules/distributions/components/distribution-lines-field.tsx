@@ -20,6 +20,7 @@ import { Field, FieldDescription, FieldError, FieldLabel } from "#/components/ui
 import { ToggleGroup, ToggleGroupItem } from "#/components/ui/toggle-group";
 import { formatMoney } from "#/lib/money";
 import { cn } from "#/lib/utils";
+import type { RecordDebtDrawerPayload } from "#/modules/debts/components/record-debt-drawer";
 import { SEGMENT_SHADES } from "#/modules/distributions/components/split-summary";
 import {
   computeDistributionPlan,
@@ -39,6 +40,8 @@ type Props = {
   buckets: Bucket[];
   setUpBucketHandle: ReturnType<typeof createDrawerHandle>;
   setUpBucketButtonRef: RefObject<HTMLButtonElement | null>;
+  recordDebtHandle: ReturnType<typeof createDrawerHandle<RecordDebtDrawerPayload>>;
+  recordDebtButtonRef: RefObject<HTMLButtonElement | null>;
   /** Only Debts in the Bank Account's currency, because a Debt line is paid through that account. */
   debts: LineDebt[];
   /** Why the Debt picker is off, when there is no account to take its currency from. */
@@ -60,6 +63,8 @@ export function DistributionLinesField({
   buckets,
   setUpBucketHandle,
   setUpBucketButtonRef,
+  recordDebtHandle,
+  recordDebtButtonRef,
   debts,
   debtsUnavailableReason,
   currency,
@@ -162,6 +167,15 @@ export function DistributionLinesField({
       {debtsUnavailableReason ? (
         <FieldDescription>{debtsUnavailableReason}</FieldDescription>
       ) : null}
+      <DrawerTrigger
+        ref={recordDebtButtonRef}
+        handle={recordDebtHandle}
+        payload={{ currency }}
+        disabled={debtsUnavailableReason !== null}
+        render={<Button type="button" variant="outline" size="sm" className="w-fit" />}
+      >
+        Record a new Debt
+      </DrawerTrigger>
 
       {plan.plannedLines.map((line, index) => {
         const draft = lines[index];

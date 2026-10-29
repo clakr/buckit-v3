@@ -8,6 +8,10 @@ import {
   type RegisterBankAccountDrawerPayload,
 } from "#/modules/bank-accounts/components/register-bank-account-drawer";
 import { NestedSetUpBucketDrawer } from "#/modules/buckets/components/set-up-bucket-drawer";
+import {
+  NestedRecordDebtDrawer,
+  type RecordDebtDrawerPayload,
+} from "#/modules/debts/components/record-debt-drawer";
 
 export type DistributionNestedDrawers = {
   popupRef: RefObject<HTMLDivElement | null>;
@@ -17,6 +21,8 @@ export type DistributionNestedDrawers = {
     typeof createDrawerHandle<RegisterBankAccountDrawerPayload>
   >;
   registerBankAccountButtonRef: RefObject<HTMLButtonElement | null>;
+  recordDebtHandle: ReturnType<typeof createDrawerHandle<RecordDebtDrawerPayload>>;
+  recordDebtButtonRef: RefObject<HTMLButtonElement | null>;
 };
 
 /** Handles are per Distribution Drawer, because Create and Edit are both mounted on the page. */
@@ -24,10 +30,12 @@ export function useDistributionNestedDrawers(): DistributionNestedDrawers {
   const popupRef = useRef<HTMLDivElement>(null);
   const setUpBucketButtonRef = useRef<HTMLButtonElement>(null);
   const registerBankAccountButtonRef = useRef<HTMLButtonElement>(null);
+  const recordDebtButtonRef = useRef<HTMLButtonElement>(null);
   const [setUpBucketHandle] = useState(() => createDrawerHandle());
   const [registerBankAccountHandle] = useState(() =>
     createDrawerHandle<RegisterBankAccountDrawerPayload>(),
   );
+  const [recordDebtHandle] = useState(() => createDrawerHandle<RecordDebtDrawerPayload>());
 
   return {
     popupRef,
@@ -35,6 +43,8 @@ export function useDistributionNestedDrawers(): DistributionNestedDrawers {
     setUpBucketButtonRef,
     registerBankAccountHandle,
     registerBankAccountButtonRef,
+    recordDebtHandle,
+    recordDebtButtonRef,
   };
 }
 
@@ -63,6 +73,11 @@ export function DistributionNestedDrawerRoots({ nestedDrawers, formControlsRef }
           nestedDrawers.registerBankAccountButtonRef.current ?? nestedDrawers.popupRef.current
         }
         onRegistered={(bankAccount) => formControlsRef.current?.selectBankAccount(bankAccount.id)}
+      />
+      <NestedRecordDebtDrawer
+        handle={nestedDrawers.recordDebtHandle}
+        finalFocus={() => nestedDrawers.recordDebtButtonRef.current ?? nestedDrawers.popupRef.current}
+        onRecorded={(debt) => formControlsRef.current?.selectDebt(debt)}
       />
     </>
   );

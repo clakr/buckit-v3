@@ -1,7 +1,9 @@
 import { useSelector } from "@tanstack/react-form";
 import { useQuery } from "@tanstack/react-query";
-import { useImperativeHandle, useRef, type Ref, type RefObject } from "react";
+import { useImperativeHandle, useRef, useState, type ComponentProps, type Ref, type RefObject } from "react";
 import z from "zod";
+
+import type { Debt } from "#/db/schema";
 
 import { CurrencyCombobox } from "#/components/currency-combobox";
 import { Button } from "#/components/ui/button";
@@ -32,10 +34,11 @@ import { confirm } from "#/stores/use-confirm";
 
 import { debtDirectionEnum, recordDebtSchema } from "../schemas";
 
-export const recordDebtDrawerHandle = createDrawerHandle();
+export type RecordDebtDrawerPayload = { currency: string };
 
-const nestedRegisterBankAccountDrawerHandle =
-  createDrawerHandle<RegisterBankAccountDrawerPayload>();
+type RecordDebtDrawerHandle = ReturnType<typeof createDrawerHandle<RecordDebtDrawerPayload>>;
+
+export const recordDebtDrawerHandle = createDrawerHandle<RecordDebtDrawerPayload>();
 
 type RecordDebtFormControls = {
   isDirty: () => boolean;
@@ -43,9 +46,37 @@ type RecordDebtFormControls = {
 };
 
 export function RecordDebtDrawer() {
+  return <RecordDebtDrawerRoot handle={recordDebtDrawerHandle} />;
+}
+
+type RecordDebtDrawerRootProps = {
+  handle: RecordDebtDrawerHandle;
+  finalFocus?: ComponentProps<typeof DrawerContent>["finalFocus"];
+  onRecorded?: (debt: Debt) => void;
+};
+
+/**
+ * Render beside a parent's `DrawerContent`, inside its Root, so Base UI nests it and the
+ * parent's `Suspense` can't unmount it. Open it from a `DrawerTrigger` bound to the same
+ * `handle` with a `{ currency }` payload, which locks the Debt's currency.
+ */
+export function NestedRecordDebtDrawer({
+  handle,
+  finalFocus,
+  onRecorded,
+}: RecordDebtDrawerRootProps) {
+  return <RecordDebtDrawerRoot handle={handle} finalFocus={finalFocus} onRecorded={onRecorded} />;
+}
+
+function RecordDebtDrawerRoot({ handle, finalFocus, onRecorded }: RecordDebtDrawerRootProps) {
   const formControlsRef = useRef<RecordDebtFormControls>(null);
   const popupRef = useRef<HTMLDivElement>(null);
   const registerButtonRef = useRef<HTMLButtonElement>(null);
+
+  // Per Root: the global and the Distribution-nested Record Debt each nest their own Register.
+  const [nestedRegisterBankAccountDrawerHandle] = useState(() =>
+    createDrawerHandle<RegisterBankAccountDrawerPayload>(),
+  );
 
   async function handleOnOpenChange(open: boolean, eventDetails: DrawerChangeEventDetails) {
     if (open || !formControlsRef.current?.isDirty()) return;
@@ -62,34 +93,59 @@ export function RecordDebtDrawer() {
     if (confirmed) return;
 
     formControlsRef.current.reset();
-    recordDebtDrawerHandle.close();
+    handle.close();
   }
 
   return (
-    <ResponsiveDrawer handle={recordDebtDrawerHandle} onOpenChange={handleOnOpenChange}>
-      <DrawerContent ref={popupRef}>
-        <RecordDebtForm registerButtonRef={registerButtonRef} ref={formControlsRef} />
-      </DrawerContent>
-      <NestedRegisterBankAccountDrawer
-        handle={nestedRegisterBankAccountDrawerHandle}
-        finalFocus={() => registerButtonRef.current ?? popupRef.current}
-      />
+    <ResponsiveDrawer handle={handle} onOpenChange={handleOnOpenChange}>
+      {({ payload }) => (
+        <>
+          <DrawerContent ref={popupRef} finalFocus={finalFocus}>
+            <RecordDebtForm
+              lockedCurrency={payload?.currency}
+              onRecorded={(debt) => {
+                handle.close();
+                onRecorded?.(debt);
+              }}
+              nestedRegisterBankAccountDrawerHandle={nestedRegisterBankAccountDrawerHandle}
+              registerButtonRef={registerButtonRef}
+              ref={formControlsRef}
+            />
+          </DrawerContent>
+          <NestedRegisterBankAccountDrawer
+            handle={nestedRegisterBankAccountDrawerHandle}
+            finalFocus={() => registerButtonRef.current ?? popupRef.current}
+          />
+        </>
+      )}
     </ResponsiveDrawer>
   );
 }
 
 type RecordDebtFormProps = {
+  /** Fixes the Debt's currency, so the User can't pick another one. */
+  lockedCurrency?: string;
+  onRecorded: (debt: Debt) => void;
+  nestedRegisterBankAccountDrawerHandle: ReturnType<
+    typeof createDrawerHandle<RegisterBankAccountDrawerPayload>
+  >;
   registerButtonRef: RefObject<HTMLButtonElement | null>;
   ref: Ref<RecordDebtFormControls>;
 };
 
-function RecordDebtForm({ registerButtonRef, ref }: RecordDebtFormProps) {
+function RecordDebtForm({
+  lockedCurrency,
+  onRecorded,
+  nestedRegisterBankAccountDrawerHandle,
+  registerButtonRef,
+  ref,
+}: RecordDebtFormProps) {
   const mutation = useRecordDebtMutation();
 
   const defaultValues: z.input<typeof recordDebtSchema> = {
     name: "",
     direction: "receivable",
-    currency: "PHP",
+    currency: lockedCurrency ?? "PHP",
     amount: 0,
     date: new Date(),
     note: "",
@@ -101,8 +157,10 @@ function RecordDebtForm({ registerButtonRef, ref }: RecordDebtFormProps) {
       onChange: recordDebtSchema,
     },
     onSubmit: async ({ value: data }) => {
+      let debt: Debt;
+
       try {
-        await mutation.mutateAsync({ data });
+        debt = await mutation.mutateAsync({ data });
       } catch (error) {
         console.error(error);
 
@@ -110,7 +168,7 @@ function RecordDebtForm({ registerButtonRef, ref }: RecordDebtFormProps) {
       }
 
       form.reset();
-      recordDebtDrawerHandle.close();
+      onRecorded(debt);
     },
   });
 
@@ -183,6 +241,7 @@ function RecordDebtForm({ registerButtonRef, ref }: RecordDebtFormProps) {
                   <form.AppField name="currency">
                     {(field) => (
                       <CurrencyCombobox
+                        disabled={lockedCurrency !== undefined}
                         value={field.state.value}
                         onValueChange={(value) => {
                           field.handleChange(value?.toString() ?? "");
