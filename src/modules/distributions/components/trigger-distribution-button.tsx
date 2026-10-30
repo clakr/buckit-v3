@@ -7,16 +7,19 @@ import { triggerDistributionDrawerHandle } from "#/modules/distributions/compone
 
 /** Trigger is what a routine is for, so it sits one click from the row, beside the menu. */
 export function TriggerDistributionButton({ distribution }: { distribution: SavedDistribution }) {
+  const label = `Trigger ${distribution.name}`;
+
   return (
     <Button
-      variant="outline"
-      size="sm"
+      variant="ghost"
+      size="icon"
+      title={label}
+      aria-label={label}
       onClick={() =>
         triggerDistributionDrawerHandle.openWithPayload({ distributionId: distribution.id })
       }
     >
       <IconBolt />
-      Trigger
     </Button>
   );
 }

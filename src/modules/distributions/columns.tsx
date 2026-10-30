@@ -34,7 +34,7 @@ export const INDEX_COLUMNS: DataTableColumnDef<SavedDistribution>[] = [
     // Not sortable: each row is in its own Bank Account's currency, so cents don't compare.
     header: () => <div data-currency>Default Amount</div>,
     cell: ({ row }) => (
-      <span className="block text-end tabular-nums">
+      <span className="block text-end font-semibold tabular-nums">
         {formatMoney(row.original.amount, row.original.bankAccount.currency)}
       </span>
     ),
@@ -54,7 +54,7 @@ export const INDEX_COLUMNS: DataTableColumnDef<SavedDistribution>[] = [
       );
 
       return (
-        <span className="block text-end tabular-nums">
+        <span className="block text-end font-semibold tabular-nums">
           {formatMoney(remainingCents, row.original.bankAccount.currency)}
         </span>
       );
