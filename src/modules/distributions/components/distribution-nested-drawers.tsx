@@ -16,21 +16,20 @@ import {
 export type DistributionNestedDrawers = {
   popupRef: RefObject<HTMLDivElement | null>;
   setUpBucketHandle: ReturnType<typeof createDrawerHandle>;
-  setUpBucketButtonRef: RefObject<HTMLButtonElement | null>;
+  /** The line picker's Create New button, which both the Set Up Bucket and Record Debt Drawers return focus to. */
+  createTargetButtonRef: RefObject<HTMLButtonElement | null>;
   registerBankAccountHandle: ReturnType<
     typeof createDrawerHandle<RegisterBankAccountDrawerPayload>
   >;
   registerBankAccountButtonRef: RefObject<HTMLButtonElement | null>;
   recordDebtHandle: ReturnType<typeof createDrawerHandle<RecordDebtDrawerPayload>>;
-  recordDebtButtonRef: RefObject<HTMLButtonElement | null>;
 };
 
 /** Handles are per Distribution Drawer, because Create and Edit are both mounted on the page. */
 export function useDistributionNestedDrawers(): DistributionNestedDrawers {
   const popupRef = useRef<HTMLDivElement>(null);
-  const setUpBucketButtonRef = useRef<HTMLButtonElement>(null);
+  const createTargetButtonRef = useRef<HTMLButtonElement>(null);
   const registerBankAccountButtonRef = useRef<HTMLButtonElement>(null);
-  const recordDebtButtonRef = useRef<HTMLButtonElement>(null);
   const [setUpBucketHandle] = useState(() => createDrawerHandle());
   const [registerBankAccountHandle] = useState(() =>
     createDrawerHandle<RegisterBankAccountDrawerPayload>(),
@@ -40,11 +39,10 @@ export function useDistributionNestedDrawers(): DistributionNestedDrawers {
   return {
     popupRef,
     setUpBucketHandle,
-    setUpBucketButtonRef,
+    createTargetButtonRef,
     registerBankAccountHandle,
     registerBankAccountButtonRef,
     recordDebtHandle,
-    recordDebtButtonRef,
   };
 }
 
@@ -63,7 +61,7 @@ export function DistributionNestedDrawerRoots({ nestedDrawers, formControlsRef }
       <NestedSetUpBucketDrawer
         handle={nestedDrawers.setUpBucketHandle}
         finalFocus={() =>
-          nestedDrawers.setUpBucketButtonRef.current ?? nestedDrawers.popupRef.current
+          nestedDrawers.createTargetButtonRef.current ?? nestedDrawers.popupRef.current
         }
         onSetUp={(bucket) => formControlsRef.current?.selectBucket(bucket.id)}
       />
@@ -76,7 +74,9 @@ export function DistributionNestedDrawerRoots({ nestedDrawers, formControlsRef }
       />
       <NestedRecordDebtDrawer
         handle={nestedDrawers.recordDebtHandle}
-        finalFocus={() => nestedDrawers.recordDebtButtonRef.current ?? nestedDrawers.popupRef.current}
+        finalFocus={() =>
+          nestedDrawers.createTargetButtonRef.current ?? nestedDrawers.popupRef.current
+        }
         onRecorded={(debt) => formControlsRef.current?.selectDebt(debt)}
       />
     </>

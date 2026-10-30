@@ -3,9 +3,8 @@ import { useQuery } from "@tanstack/react-query";
 import { useImperativeHandle, useRef, type Ref } from "react";
 import z from "zod";
 
-import type { DistributionNestedDrawers } from "#/modules/distributions/components/distribution-nested-drawers";
-
 import type { Debt } from "#/db/schema";
+import type { DistributionNestedDrawers } from "#/modules/distributions/components/distribution-nested-drawers";
 
 import { Button } from "#/components/ui/button";
 import {
@@ -55,6 +54,8 @@ const FALLBACK_CURRENCY = "PHP";
 
 export type DistributionFormControls = {
   isDirty: () => boolean;
+  /** The name of the Distribution being copied, when the form is a Duplicate. */
+  duplicateOfName: string | undefined;
   reset: () => void;
   /** Adds a line for a Bucket the User just set up, keeping the lines already typed. */
   selectBucket: (bucketId: string) => void;
@@ -89,7 +90,6 @@ function toLineDrafts(distribution: SavedDistribution): DistributionLineDraft[] 
 /** Keeps the lines already typed for targets that stay picked, and starts new ones at 10%. */
 function mergeSelectedTargets(
   current: DistributionLineDraft[],
-  kind: DistributionLineTarget["kind"],
   picked: DistributionLineTarget[],
 ): DistributionLineDraft[] {
   const pickedLines = picked.map(
@@ -101,10 +101,11 @@ function mergeSelectedTargets(
       },
   );
 
-  const otherLines = current.filter((line) => line.kind !== kind);
-
-  // Buckets first, then Debts, so picking in either box never reorders the other's lines.
-  return kind === "bucket" ? [...pickedLines, ...otherLines] : [...otherLines, ...pickedLines];
+  // Buckets first, then Debts, whatever order they were picked in.
+  return [
+    ...pickedLines.filter((line) => line.kind === "bucket"),
+    ...pickedLines.filter((line) => line.kind === "debt"),
+  ];
 }
 
 type DistributionFormProps = {
@@ -186,37 +187,33 @@ export function DistributionForm({
     ref,
     () => ({
       isDirty: () => form.state.isDirty,
+      duplicateOfName: duplicateOf?.name,
       reset: () => {
         form.reset();
         committedBankAccountIdRef.current = defaultValues.bankAccountId;
       },
       selectBucket: (bucketId) => {
         const currentLines = form.getFieldValue("lines") as DistributionLineDraft[];
-        const pickedBuckets = currentLines.filter((line) => line.kind === "bucket");
 
         form.setFieldValue(
           "lines",
-          mergeSelectedTargets(currentLines, "bucket", [
-            ...pickedBuckets,
-            { kind: "bucket", bucketId },
-          ]),
+          mergeSelectedTargets(currentLines, [...currentLines, { kind: "bucket", bucketId }]),
         );
       },
       selectDebt: (debt) => {
         const currentLines = form.getFieldValue("lines") as DistributionLineDraft[];
-        const pickedDebts = currentLines.filter((line) => line.kind === "debt");
 
         form.setFieldValue(
           "lines",
-          mergeSelectedTargets(currentLines, "debt", [
-            ...pickedDebts,
+          mergeSelectedTargets(currentLines, [
+            ...currentLines,
             { kind: "debt", debtId: debt.id, direction: debt.direction },
           ]),
         );
       },
       selectBankAccount: (bankAccountId) => form.setFieldValue("bankAccountId", bankAccountId),
     }),
-    [form, defaultValues.bankAccountId],
+    [form, defaultValues.bankAccountId, duplicateOf?.name],
   );
 
   const bankAccountId = useSelector(form.store, (state) => state.values.bankAccountId);
@@ -232,15 +229,29 @@ export function DistributionForm({
   const currencySymbol =
     (isCurrencyCode(currency) ? getCurrency(currency)?.symbol : undefined) ?? currency;
 
+  const copy = distribution
+    ? {
+        title: "Edit Distribution",
+        description: "Update the name, default amount or lines of this distribution.",
+        submitLabel: "Edit Distribution",
+      }
+    : duplicateOf
+      ? {
+          title: "Duplicate Distribution",
+          description: `Copy ${duplicateOf.name} into a new distribution. Nothing is saved until you confirm.`,
+          submitLabel: "Duplicate Distribution",
+        }
+      : {
+          title: "Create Distribution",
+          description: "Save a routine you can trigger each payday.",
+          submitLabel: "Create Distribution",
+        };
+
   return (
     <>
       <DrawerHeader>
-        <DrawerTitle>{distribution ? "Edit Distribution" : "Create Distribution"}</DrawerTitle>
-        <DrawerDescription>
-          {distribution
-            ? "Update the name, default amount or lines of this distribution."
-            : "Save a routine you can trigger each payday."}
-        </DrawerDescription>
+        <DrawerTitle>{copy.title}</DrawerTitle>
+        <DrawerDescription>{copy.description}</DrawerDescription>
       </DrawerHeader>
       <div className="min-h-0 flex-1 overflow-y-auto p-4">
         <form
@@ -352,9 +363,8 @@ export function DistributionForm({
                   buckets={bucketsQuery.data ?? []}
                   debts={pickableDebts}
                   setUpBucketHandle={nestedDrawers.setUpBucketHandle}
-                  setUpBucketButtonRef={nestedDrawers.setUpBucketButtonRef}
                   recordDebtHandle={nestedDrawers.recordDebtHandle}
-                  recordDebtButtonRef={nestedDrawers.recordDebtButtonRef}
+                  createTargetButtonRef={nestedDrawers.createTargetButtonRef}
                   debtsUnavailableReason={
                     bankAccount ? null : "Select a bank account to pick Debts."
                   }
@@ -365,27 +375,11 @@ export function DistributionForm({
                       ? (linesField.state.meta.errors as { message?: string }[])
                       : []
                   }
-                  onSelectBuckets={(bucketIds) =>
+                  onSelectTargets={(targets) =>
                     linesField.handleChange(
                       mergeSelectedTargets(
                         linesField.state.value as DistributionLineDraft[],
-                        "bucket",
-                        bucketIds.map((bucketId) => ({ kind: "bucket" as const, bucketId })),
-                      ),
-                    )
-                  }
-                  onSelectDebts={(debtIds) =>
-                    linesField.handleChange(
-                      mergeSelectedTargets(
-                        linesField.state.value as DistributionLineDraft[],
-                        "debt",
-                        debtIds.flatMap((debtId) => {
-                          const debt = pickableDebts.find((candidate) => candidate.id === debtId);
-
-                          return debt
-                            ? [{ kind: "debt" as const, debtId, direction: debt.direction }]
-                            : [];
-                        }),
+                        targets,
                       ),
                     )
                   }
@@ -447,9 +441,7 @@ export function DistributionForm({
       </div>
       <DrawerFooter className="border-t pt-4">
         <form.AppForm>
-          <form.Button form={form.formId}>
-            {distribution ? "Edit Distribution" : "Create Distribution"}
-          </form.Button>
+          <form.Button form={form.formId}>{copy.submitLabel}</form.Button>
         </form.AppForm>
         <DrawerClose render={<Button variant="outline" />}>Cancel</DrawerClose>
       </DrawerFooter>

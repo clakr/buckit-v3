@@ -31,12 +31,18 @@ export function CreateDistributionDrawer() {
 
     eventDetails.cancel();
 
-    const confirmed = await confirm("Discard new distribution?", {
-      description: "The distribution details you entered will be lost.",
-      confirmLabel: "Keep Editing",
-      cancelLabel: "Discard",
-      dismissValue: true,
-    });
+    const duplicateOfName = formControlsRef.current.duplicateOfName;
+    const confirmed = await confirm(
+      duplicateOfName ? "Discard duplicate distribution?" : "Discard new distribution?",
+      {
+        description: duplicateOfName
+          ? `The copy of ${duplicateOfName} you were editing will be lost. The original stays as it is.`
+          : "The distribution details you entered will be lost.",
+        confirmLabel: "Keep Editing",
+        cancelLabel: "Discard",
+        dismissValue: true,
+      },
+    );
 
     if (confirmed) return;
 

@@ -1,6 +1,9 @@
 import type { ReactNode, RefObject } from "react";
 
-import { IconX } from "@tabler/icons-react";
+import { IconChevronDown, IconX } from "@tabler/icons-react";
+
+import type { createDrawerHandle } from "#/components/ui/drawer";
+import type { RecordDebtDrawerPayload } from "#/modules/debts/components/record-debt-drawer";
 
 import { Button } from "#/components/ui/button";
 import {
@@ -8,29 +11,44 @@ import {
   ComboboxChip,
   ComboboxChips,
   ComboboxChipsInput,
+  ComboboxCollection,
   ComboboxContent,
   ComboboxEmpty,
+  ComboboxGroup,
   ComboboxItem,
+  ComboboxLabel,
   ComboboxList,
   ComboboxValue,
   useComboboxAnchor,
 } from "#/components/ui/combobox";
-import { createDrawerHandle, DrawerTrigger } from "#/components/ui/drawer";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuGroup,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "#/components/ui/dropdown-menu";
 import { Field, FieldDescription, FieldError, FieldLabel } from "#/components/ui/field";
+import { InputGroup, InputGroupAddon, InputGroupButton } from "#/components/ui/input-group";
 import { ToggleGroup, ToggleGroupItem } from "#/components/ui/toggle-group";
 import { formatMoney } from "#/lib/money";
 import { cn } from "#/lib/utils";
-import type { RecordDebtDrawerPayload } from "#/modules/debts/components/record-debt-drawer";
 import { SEGMENT_SHADES } from "#/modules/distributions/components/split-summary";
 import {
   computeDistributionPlan,
   draftsToPlanLines,
   getLineTargetId,
   type DistributionLineDraft,
+  type DistributionLineTarget,
 } from "#/modules/distributions/utils";
 
 type Bucket = { id: string; name: string };
 type LineDebt = { id: string; name: string; direction: "receivable" | "payable" };
+
+/** One entry in the picker. Buckets and Debts share it, so the kind tells them apart. */
+type LineOption =
+  | { kind: "bucket"; id: string; name: string }
+  | { kind: "debt"; id: string; name: string; direction: LineDebt["direction"] };
 
 const PRESSED_STYLE =
   "data-pressed:bg-primary data-pressed:text-primary-foreground data-pressed:hover:bg-primary/90";
@@ -39,52 +57,63 @@ type Props = {
   lines: DistributionLineDraft[];
   buckets: Bucket[];
   setUpBucketHandle: ReturnType<typeof createDrawerHandle>;
-  setUpBucketButtonRef: RefObject<HTMLButtonElement | null>;
   recordDebtHandle: ReturnType<typeof createDrawerHandle<RecordDebtDrawerPayload>>;
-  recordDebtButtonRef: RefObject<HTMLButtonElement | null>;
+  /** The menu button the nested Drawers return focus to once they close. */
+  createTargetButtonRef: RefObject<HTMLButtonElement | null>;
   /** Only Debts in the Bank Account's currency, because a Debt line is paid through that account. */
   debts: LineDebt[];
-  /** Why the Debt picker is off, when there is no account to take its currency from. */
+  /** Why Debts can't be picked or recorded, when there is no account to take their currency from. */
   debtsUnavailableReason: string | null;
   currency: string;
   amountCents: number;
   errors: ({ message?: string } | undefined)[];
-  onSelectBuckets: (bucketIds: string[]) => void;
-  onSelectDebts: (debtIds: string[]) => void;
+  onSelectTargets: (targets: DistributionLineTarget[]) => void;
   onChangeMode: (index: number, mode: DistributionLineDraft["mode"]) => void;
   onRemove: (index: number) => void;
   /** The value input is a form field, so the form renders it. */
   renderValueInput: (index: number) => ReactNode;
 };
 
-/** Pick Buckets and Debts in multiple-select Comboboxes. Each gets a compact card with its value. */
+function toLineTarget(option: LineOption): DistributionLineTarget {
+  return option.kind === "bucket"
+    ? { kind: "bucket", bucketId: option.id }
+    : { kind: "debt", debtId: option.id, direction: option.direction };
+}
+
+/**
+ * Pick Buckets and Debts in one multiple-select Combobox, grouped by kind. Each pick gets a compact
+ * card with its value. The picker's add-on creates a new Bucket or Debt through a nested Drawer.
+ */
 export function DistributionLinesField({
   lines,
   buckets,
   setUpBucketHandle,
-  setUpBucketButtonRef,
   recordDebtHandle,
-  recordDebtButtonRef,
+  createTargetButtonRef,
   debts,
   debtsUnavailableReason,
   currency,
   amountCents,
   errors,
-  onSelectBuckets,
-  onSelectDebts,
+  onSelectTargets,
   onChangeMode,
   onRemove,
   renderValueInput,
 }: Props) {
-  const bucketAnchor = useComboboxAnchor();
-  const debtAnchor = useComboboxAnchor();
+  const anchor = useComboboxAnchor();
   const plan = computeDistributionPlan(draftsToPlanLines(lines), amountCents);
 
-  const selectedBuckets = lines.flatMap((line) =>
-    line.kind === "bucket" ? (buckets.find((bucket) => bucket.id === line.bucketId) ?? []) : [],
-  );
-  const selectedDebts = lines.flatMap((line) =>
-    line.kind === "debt" ? (debts.find((debt) => debt.id === line.debtId) ?? []) : [],
+  const bucketOptions = buckets.map((bucket): LineOption => ({ kind: "bucket", ...bucket }));
+  const debtOptions = debts.map((debt): LineOption => ({ kind: "debt", ...debt }));
+  const groups = [
+    { value: "Buckets", items: bucketOptions },
+    { value: "Debts", items: debtOptions },
+  ];
+
+  const selectedOptions = lines.flatMap((line) =>
+    [...bucketOptions, ...debtOptions].filter(
+      (option) => option.kind === line.kind && option.id === getLineTargetId(line),
+    ),
   );
 
   return (
@@ -93,73 +122,80 @@ export function DistributionLinesField({
       <Combobox
         multiple
         autoHighlight
-        items={buckets}
-        value={selectedBuckets}
-        onValueChange={(next: Bucket[]) => onSelectBuckets(next.map((bucket) => bucket.id))}
-        itemToStringLabel={(bucket: Bucket) => bucket.name}
-        itemToStringValue={(bucket: Bucket) => bucket.id}
+        items={groups}
+        value={selectedOptions}
+        onValueChange={(next: LineOption[]) => onSelectTargets(next.map(toLineTarget))}
+        isItemEqualToValue={(option: LineOption, selected: LineOption) =>
+          option.kind === selected.kind && option.id === selected.id
+        }
+        itemToStringLabel={(option: LineOption) => option.name}
+        itemToStringValue={(option: LineOption) => `${option.kind}:${option.id}`}
       >
-        <ComboboxChips ref={bucketAnchor}>
-          <ComboboxValue>
-            {(values: Bucket[]) => (
-              <>
-                {values.map((bucket) => (
-                  <ComboboxChip key={bucket.id}>{bucket.name}</ComboboxChip>
-                ))}
-                <ComboboxChipsInput placeholder={values.length ? "" : "Pick Buckets"} />
-              </>
-            )}
-          </ComboboxValue>
-        </ComboboxChips>
-        <ComboboxContent anchor={bucketAnchor}>
-          <ComboboxEmpty>No Buckets found.</ComboboxEmpty>
+        <InputGroup
+          ref={anchor}
+          className="h-auto min-h-7 focus-within:border-ring focus-within:ring-2 focus-within:ring-ring/30"
+        >
+          <ComboboxChips className="min-w-0 flex-1 border-0 bg-transparent focus-within:ring-0 dark:bg-transparent">
+            <ComboboxValue>
+              {(values: LineOption[]) => (
+                <>
+                  {values.map((option) => (
+                    <ComboboxChip key={`${option.kind}:${option.id}`}>{option.name}</ComboboxChip>
+                  ))}
+                  <ComboboxChipsInput placeholder={values.length ? "" : "Pick Buckets and Debts"} />
+                </>
+              )}
+            </ComboboxValue>
+          </ComboboxChips>
+          <InputGroupAddon align="inline-end">
+            <DropdownMenu>
+              <DropdownMenuTrigger
+                ref={createTargetButtonRef}
+                render={<InputGroupButton variant="ghost" className="pr-1.5! text-xs" />}
+              >
+                Create New
+                <IconChevronDown />
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-fit">
+                <DropdownMenuGroup>
+                  <DropdownMenuItem onClick={() => setUpBucketHandle.open(null)}>
+                    New Bucket
+                  </DropdownMenuItem>
+                  <DropdownMenuItem
+                    disabled={debtsUnavailableReason !== null}
+                    onClick={() => recordDebtHandle.openWithPayload({ currency })}
+                  >
+                    <span className="flex flex-col">
+                      New Debt
+                      {debtsUnavailableReason ? (
+                        <span className="max-w-48 text-muted-foreground">
+                          {debtsUnavailableReason}
+                        </span>
+                      ) : null}
+                    </span>
+                  </DropdownMenuItem>
+                </DropdownMenuGroup>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </InputGroupAddon>
+        </InputGroup>
+        <ComboboxContent anchor={anchor}>
+          <ComboboxEmpty>No Buckets or Debts found.</ComboboxEmpty>
           <ComboboxList>
-            {(bucket: Bucket) => (
-              <ComboboxItem key={bucket.id} value={bucket}>
-                {bucket.name}
-              </ComboboxItem>
-            )}
-          </ComboboxList>
-        </ComboboxContent>
-      </Combobox>
-      <DrawerTrigger
-        ref={setUpBucketButtonRef}
-        handle={setUpBucketHandle}
-        render={<Button type="button" variant="outline" size="sm" className="w-fit" />}
-      >
-        Set up a new Bucket
-      </DrawerTrigger>
-
-      <Combobox
-        multiple
-        autoHighlight
-        disabled={debtsUnavailableReason !== null}
-        items={debts}
-        value={selectedDebts}
-        onValueChange={(next: LineDebt[]) => onSelectDebts(next.map((debt) => debt.id))}
-        itemToStringLabel={(debt: LineDebt) => debt.name}
-        itemToStringValue={(debt: LineDebt) => debt.id}
-      >
-        <ComboboxChips ref={debtAnchor}>
-          <ComboboxValue>
-            {(values: LineDebt[]) => (
-              <>
-                {values.map((debt) => (
-                  <ComboboxChip key={debt.id}>{debt.name}</ComboboxChip>
-                ))}
-                <ComboboxChipsInput placeholder={values.length ? "" : "Pick Debts"} />
-              </>
-            )}
-          </ComboboxValue>
-        </ComboboxChips>
-        <ComboboxContent anchor={debtAnchor}>
-          <ComboboxEmpty>No Debts in {currency}.</ComboboxEmpty>
-          <ComboboxList>
-            {(debt: LineDebt) => (
-              <ComboboxItem key={debt.id} value={debt}>
-                <span className="min-w-0 flex-1 truncate">{debt.name}</span>
-                <span className="text-muted-foreground capitalize">{debt.direction}</span>
-              </ComboboxItem>
+            {(group: (typeof groups)[number]) => (
+              <ComboboxGroup key={group.value} items={group.items}>
+                <ComboboxLabel>{group.value}</ComboboxLabel>
+                <ComboboxCollection>
+                  {(option: LineOption) => (
+                    <ComboboxItem key={`${option.kind}:${option.id}`} value={option}>
+                      <span className="min-w-0 flex-1 truncate">{option.name}</span>
+                      {option.kind === "debt" ? (
+                        <span className="text-muted-foreground capitalize">{option.direction}</span>
+                      ) : null}
+                    </ComboboxItem>
+                  )}
+                </ComboboxCollection>
+              </ComboboxGroup>
             )}
           </ComboboxList>
         </ComboboxContent>
@@ -167,15 +203,6 @@ export function DistributionLinesField({
       {debtsUnavailableReason ? (
         <FieldDescription>{debtsUnavailableReason}</FieldDescription>
       ) : null}
-      <DrawerTrigger
-        ref={recordDebtButtonRef}
-        handle={recordDebtHandle}
-        payload={{ currency }}
-        disabled={debtsUnavailableReason !== null}
-        render={<Button type="button" variant="outline" size="sm" className="w-fit" />}
-      >
-        Record a new Debt
-      </DrawerTrigger>
 
       {plan.plannedLines.map((line, index) => {
         const draft = lines[index];
