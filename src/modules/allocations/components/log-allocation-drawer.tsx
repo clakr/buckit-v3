@@ -281,6 +281,43 @@ function LogAllocationForm({
                   )}
                 </form.AppField>
               ) : null}
+              {start.from === "bank-account" ? (
+                <form.AppField name="bucketId">
+                  {(field) => {
+                    const options = buckets?.map((b) => ({ value: b.id, label: b.name })) ?? [];
+
+                    if (!options.length) {
+                      const isInvalid = field.state.meta.isTouched && !field.state.meta.isValid;
+
+                      return (
+                        <Field data-invalid={isInvalid}>
+                          <FieldLabel>Bucket</FieldLabel>
+                          <p className="text-muted-foreground">
+                            You have no buckets to allocate into yet.
+                          </p>
+                          <DrawerTrigger
+                            ref={setUpBucketButtonRef}
+                            handle={nestedSetUpBucketDrawerHandle}
+                            render={<Button type="button" variant="outline" />}
+                          >
+                            Set Up Bucket
+                          </DrawerTrigger>
+                          {isInvalid && <FieldError errors={field.state.meta.errors} />}
+                        </Field>
+                      );
+                    }
+
+                    return (
+                      <field.Select
+                        label="Bucket"
+                        items={options}
+                        placeholder="Select bucket"
+                        options={options}
+                      />
+                    );
+                  }}
+                </form.AppField>
+              ) : null}
               <form.AppField
                 name="amount"
                 validators={{
@@ -322,43 +359,6 @@ function LogAllocationForm({
                   />
                 )}
               </form.AppField>
-              {start.from === "bank-account" ? (
-                <form.AppField name="bucketId">
-                  {(field) => {
-                    const options = buckets?.map((b) => ({ value: b.id, label: b.name })) ?? [];
-
-                    if (!options.length) {
-                      const isInvalid = field.state.meta.isTouched && !field.state.meta.isValid;
-
-                      return (
-                        <Field data-invalid={isInvalid}>
-                          <FieldLabel>Bucket</FieldLabel>
-                          <p className="text-muted-foreground">
-                            You have no buckets to allocate into yet.
-                          </p>
-                          <DrawerTrigger
-                            ref={setUpBucketButtonRef}
-                            handle={nestedSetUpBucketDrawerHandle}
-                            render={<Button type="button" variant="outline" />}
-                          >
-                            Set Up Bucket
-                          </DrawerTrigger>
-                          {isInvalid && <FieldError errors={field.state.meta.errors} />}
-                        </Field>
-                      );
-                    }
-
-                    return (
-                      <field.Select
-                        label="Bucket"
-                        items={options}
-                        placeholder="Select bucket"
-                        options={options}
-                      />
-                    );
-                  }}
-                </form.AppField>
-              ) : null}
               <form.AppField name="date">
                 {(field) => <field.Datepicker label="Date" />}
               </form.AppField>

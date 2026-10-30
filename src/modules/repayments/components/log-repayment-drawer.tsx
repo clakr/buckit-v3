@@ -206,6 +206,33 @@ function LogRepaymentForm({ debtId, registerButtonRef, ref }: LogRepaymentFormPr
             }}
           >
             <FieldGroup>
+              <form.AppField name="bankAccountId">
+                {() => (
+                  <BankAccountSelectField
+                    label="Bank Account"
+                    description="Optional. Leave it empty if no money moved through a tracked account."
+                    placeholder="No bank account"
+                    currency={debt.currency}
+                    bankAccountsQuery={{ status: bankAccountsStatus, refetch: refetchBankAccounts }}
+                    bankAccounts={bankAccounts}
+                    emptyContent={
+                      <>
+                        <p className="text-muted-foreground">
+                          No {debt.currency} accounts, so this repayment is logged without one.
+                        </p>
+                        <DrawerTrigger
+                          ref={registerButtonRef}
+                          handle={nestedRegisterBankAccountDrawerHandle}
+                          payload={{ currency: debt.currency }}
+                          render={<Button type="button" variant="outline" />}
+                        >
+                          Register a/an {debt.currency} account
+                        </DrawerTrigger>
+                      </>
+                    }
+                  />
+                )}
+              </form.AppField>
               <form.AppField
                 name="amount"
                 validators={{
@@ -238,33 +265,6 @@ function LogRepaymentForm({ debtId, registerButtonRef, ref }: LogRepaymentFormPr
                     required
                     placeholder="0.00"
                     currency={debt.currency}
-                  />
-                )}
-              </form.AppField>
-              <form.AppField name="bankAccountId">
-                {() => (
-                  <BankAccountSelectField
-                    label="Bank Account"
-                    description="Optional. Leave it empty if no money moved through a tracked account."
-                    placeholder="No bank account"
-                    currency={debt.currency}
-                    bankAccountsQuery={{ status: bankAccountsStatus, refetch: refetchBankAccounts }}
-                    bankAccounts={bankAccounts}
-                    emptyContent={
-                      <>
-                        <p className="text-muted-foreground">
-                          No {debt.currency} accounts, so this repayment is logged without one.
-                        </p>
-                        <DrawerTrigger
-                          ref={registerButtonRef}
-                          handle={nestedRegisterBankAccountDrawerHandle}
-                          payload={{ currency: debt.currency }}
-                          render={<Button type="button" variant="outline" />}
-                        >
-                          Register a/an {debt.currency} account
-                        </DrawerTrigger>
-                      </>
-                    }
                   />
                 )}
               </form.AppField>
