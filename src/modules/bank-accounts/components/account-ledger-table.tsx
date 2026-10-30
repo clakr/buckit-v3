@@ -171,7 +171,7 @@ export function AccountLedgerTable({ bankAccount }: Props) {
   );
 }
 
-function DateBadge({ date }: { date: Date }) {
+export function DateBadge({ date }: { date: Date }) {
   return (
     <Tooltip>
       <TooltipTrigger render={<Badge variant="secondary" className="capitalize" />}>
@@ -183,7 +183,7 @@ function DateBadge({ date }: { date: Date }) {
   );
 }
 
-function FigureCell({
+export function FigureCell({
   value,
   change,
   format,
@@ -206,7 +206,7 @@ function FigureCell({
   );
 }
 
-function EntryLabel({ entry }: { entry: AccountLedgerEntry }) {
+export function EntryLabel({ entry }: { entry: AccountLedgerEntry }) {
   const { bucket, debt } = entry;
 
   if (entry.kind === "allocation" && bucket)
@@ -259,6 +259,6 @@ function BucketLink({ bucket }: { bucket: NonNullable<AccountLedgerEntry["bucket
   );
 }
 
-function EntryNote({ note }: { note: string }) {
+export function EntryNote({ note }: { note: string }) {
   return <span className="block text-xs font-normal text-muted-foreground">"{note}"</span>;
 }

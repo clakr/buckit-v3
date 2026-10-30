@@ -1,9 +1,10 @@
 import { IconPencil, IconPlus } from "@tabler/icons-react";
 import { useSuspenseQuery } from "@tanstack/react-query";
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 
 import { Heading } from "#/components/heading";
 import { Main } from "#/components/main";
+import { PrototypeSwitcher } from "#/components/prototype-switcher";
 import { RouteRetryButton } from "#/components/route-retry-button";
 import { StateTemplate } from "#/components/state-template";
 import { Button } from "#/components/ui/button";
@@ -11,12 +12,18 @@ import { DrawerTrigger } from "#/components/ui/drawer";
 import { loadOrThrowRouteNotFound } from "#/lib/errors";
 import { formatPageTitle } from "#/lib/utils";
 import { logAllocationDrawerHandle } from "#/modules/allocations/components/log-allocation-drawer";
-import { AccountLedgerTable } from "#/modules/bank-accounts/components/account-ledger-table";
+import { AccountLedgerPrototype } from "#/modules/bank-accounts/components/account-ledger-prototype";
 import { editBankAccountDrawerHandle } from "#/modules/bank-accounts/components/edit-bank-account-drawer";
 import { bankAccountQueryOption } from "#/modules/bank-accounts/query-options";
 import { logTransactionDrawerHandle } from "#/modules/transactions/components/log-transaction-drawer";
 
+const VARIANTS = ["A", "B", "C"] as const;
+type Variant = (typeof VARIANTS)[number];
+
 export const Route = createFileRoute("/_protected/accounts/$accountId")({
+  validateSearch: (search: Record<string, unknown>): { variant?: Variant } => ({
+    variant: VARIANTS.includes(search.variant as Variant) ? (search.variant as Variant) : undefined,
+  }),
   context: ({ params }) => ({
     bankAccountQueryOptions: bankAccountQueryOption(params.accountId),
   }),
@@ -70,6 +77,8 @@ export const Route = createFileRoute("/_protected/accounts/$accountId")({
 
 function RouteComponent() {
   const { accountId } = Route.useParams();
+  const { variant = "A" } = Route.useSearch();
+  const navigate = useNavigate({ from: Route.fullPath });
   const { bankAccountQueryOptions } = Route.useRouteContext();
 
   const { data: bankAccount } = useSuspenseQuery(bankAccountQueryOptions);
@@ -106,7 +115,14 @@ function RouteComponent() {
         </div>
       </div>
 
-      <AccountLedgerTable bankAccount={bankAccount} />
+      <AccountLedgerPrototype bankAccount={bankAccount} variant={variant} />
+
+      <PrototypeSwitcher
+        variants={VARIANTS}
+        current={variant}
+        names={{ A: "Numbered pages", B: "Show earlier", C: "Month window" }}
+        onChange={(next) => navigate({ search: { variant: next }, replace: true })}
+      />
     </Main>
   );
 }
