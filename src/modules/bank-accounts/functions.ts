@@ -12,11 +12,12 @@ import {
   getBankAccountsWithFigures,
   getBankAccountsWithFiguresAndTrend,
 } from "#/modules/bank-accounts/figures.server";
-import { loadAccountLedger } from "#/modules/bank-accounts/ledger.server";
+import { loadAccountLedgerPage } from "#/modules/bank-accounts/ledger.server";
 import { verifyUserBankAccountMiddleware } from "#/modules/bank-accounts/middlewares";
 import { bankAccountNameRule } from "#/modules/bank-accounts/name.server";
 import {
   editBankAccountSchema,
+  getBankAccountLedgerSchema,
   getBankAccountsSchema,
   registerBankAccountSchema,
   validateBankAccountNameSchema,
@@ -55,13 +56,12 @@ export const getBankAccount = createServerFn({
       },
     });
 
-    const [bankAccount, [figures], ledger] = await Promise.all([
+    const [bankAccount, [figures]] = await Promise.all([
       bankAccountQuery,
       getBankAccountsWithFigures(db, {
         userId: context.userId,
         bankAccountId: data.bankAccountId,
       }),
-      loadAccountLedger(db, data.bankAccountId),
     ]);
 
     if (!bankAccount || !figures)
@@ -72,8 +72,30 @@ export const getBankAccount = createServerFn({
       balance: figures.balance,
       unallocated: figures.unallocated,
       totalEarmarked: figures.totalEarmarked,
-      ledger,
     };
+  });
+
+export const getBankAccountLedger = createServerFn({
+  method: "GET",
+})
+  .middleware([verifyUserBankAccountMiddleware])
+  .validator(getBankAccountLedgerSchema)
+  .handler(async ({ data }) => {
+    const db = getDB(env.db);
+
+    const bankAccount = await db.query.bankAccounts.findFirst({
+      where: { id: data.bankAccountId },
+      columns: { id: true, startingBalance: true },
+    });
+
+    if (!bankAccount)
+      throw new NotFoundError("This account doesn't exist or may have been deleted.");
+
+    return loadAccountLedgerPage(
+      db,
+      { bankAccountId: bankAccount.id, startingBalance: bankAccount.startingBalance },
+      { pageIndex: data.pageIndex, pageSize: data.pageSize },
+    );
   });
 
 export const validateBankAccountName = createServerFn({

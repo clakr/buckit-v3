@@ -1,9 +1,12 @@
 import { IconArrowsExchange, IconCircleDottedLetterH, IconPlus } from "@tabler/icons-react";
+import { useSuspenseQuery } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";
+import { useState, useTransition } from "react";
 
 import type { getBankAccount } from "#/modules/bank-accounts/functions";
 import type { AccountLedgerEntry } from "#/modules/bank-accounts/ledger.server";
 
+import { LedgerPager } from "#/components/ledger-pager";
 import { Badge } from "#/components/ui/badge";
 import { Button } from "#/components/ui/button";
 import { DrawerTrigger } from "#/components/ui/drawer";
@@ -24,11 +27,12 @@ import {
   TableRow,
 } from "#/components/ui/table";
 import { Tooltip, TooltipContent, TooltipTrigger } from "#/components/ui/tooltip";
+import { DEFAULT_LEDGER_PAGE, type LedgerPageRequest } from "#/lib/ledger-page";
 import { formatMoney } from "#/lib/money";
 import { cn, formatDateTime, formatToRelative } from "#/lib/utils";
 import { AllocationActionsDropdownMenu } from "#/modules/allocations/components/allocation-actions-dropdown-menu";
 import { logAllocationDrawerHandle } from "#/modules/allocations/components/log-allocation-drawer";
-import { replayLedger } from "#/modules/bank-accounts/ledger";
+import { bankAccountLedgerQueryOption } from "#/modules/bank-accounts/query-options";
 import { logTransactionDrawerHandle } from "#/modules/transactions/components/log-transaction-drawer";
 import { TransactionActionsDropdownMenu } from "#/modules/transactions/components/transaction-actions-dropdown-menu";
 
@@ -41,9 +45,13 @@ export function AccountLedgerTable({ bankAccount }: Props) {
     return formatMoney(value, bankAccount.currency);
   }
 
-  const { startingBalance, ledger } = bankAccount;
-  const steps = replayLedger(startingBalance, ledger).reverse();
-  const hasEntries = steps.length > 0;
+  const { startingBalance } = bankAccount;
+
+  const [page, setPage] = useState<LedgerPageRequest>(DEFAULT_LEDGER_PAGE);
+  const [isPending, startTransition] = useTransition();
+  const { data: ledgerPage } = useSuspenseQuery(bankAccountLedgerQueryOption(bankAccount.id, page));
+  const { entries, opening, isOldestPage, ...paging } = ledgerPage;
+  const hasEntries = paging.total > 0;
 
   return (
     <div className="flex flex-col gap-y-3">
@@ -71,7 +79,7 @@ export function AccountLedgerTable({ bankAccount }: Props) {
         </span>
       </p>
 
-      <Table>
+      <Table aria-busy={isPending} className={cn(isPending && "opacity-60 transition-opacity")}>
         <TableHeader>
           <TableRow>
             <TableHead>Date</TableHead>
@@ -82,7 +90,7 @@ export function AccountLedgerTable({ bankAccount }: Props) {
           </TableRow>
         </TableHeader>
         <TableBody>
-          {steps.map((step) => (
+          {entries.map((step) => (
             <TableRow key={step.id}>
               <TableCell>
                 <DateBadge date={step.date} />
@@ -115,19 +123,38 @@ export function AccountLedgerTable({ bankAccount }: Props) {
             </TableRow>
           ))}
 
-          <TableRow className="bg-muted/40">
-            <TableCell>
-              <DateBadge date={bankAccount.createdAt} />
-            </TableCell>
-            <TableCell className="font-medium">Opening balance</TableCell>
-            <TableCell className="text-end font-semibold tabular-nums">
-              {formatAccountAmount(startingBalance)}
-            </TableCell>
-            <TableCell className="text-end font-semibold tabular-nums">
-              {formatAccountAmount(startingBalance)}
-            </TableCell>
-            <TableCell />
-          </TableRow>
+          {isOldestPage ? (
+            <TableRow className="bg-muted/40">
+              <TableCell>
+                <DateBadge date={bankAccount.createdAt} />
+              </TableCell>
+              <TableCell className="font-medium">Opening balance</TableCell>
+              <TableCell className="text-end font-semibold tabular-nums">
+                {formatAccountAmount(startingBalance)}
+              </TableCell>
+              <TableCell className="text-end font-semibold tabular-nums">
+                {formatAccountAmount(startingBalance)}
+              </TableCell>
+              <TableCell />
+            </TableRow>
+          ) : (
+            <TableRow className="bg-muted/40">
+              <TableCell />
+              <TableCell className="whitespace-normal">
+                <span className="font-medium">Brought forward</span>
+                <span className="block text-xs text-muted-foreground">
+                  Figures before this page's oldest entry
+                </span>
+              </TableCell>
+              <TableCell className="text-end font-semibold tabular-nums">
+                {formatAccountAmount(opening.balance)}
+              </TableCell>
+              <TableCell className="text-end font-semibold tabular-nums">
+                {formatAccountAmount(opening.unallocated)}
+              </TableCell>
+              <TableCell />
+            </TableRow>
+          )}
 
           {hasEntries ? null : (
             <TableRow className="hover:bg-transparent">
@@ -167,6 +194,14 @@ export function AccountLedgerTable({ bankAccount }: Props) {
           )}
         </TableBody>
       </Table>
+
+      <LedgerPager
+        paging={paging}
+        onPageChange={(pageIndex) =>
+          startTransition(() => setPage({ pageIndex, pageSize: paging.pageSize }))
+        }
+        onPageSizeChange={(pageSize) => startTransition(() => setPage({ pageIndex: 0, pageSize }))}
+      />
     </div>
   );
 }

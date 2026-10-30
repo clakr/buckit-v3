@@ -9,19 +9,34 @@ import { StateTemplate } from "#/components/state-template";
 import { Button } from "#/components/ui/button";
 import { DrawerTrigger } from "#/components/ui/drawer";
 import { loadOrThrowRouteNotFound } from "#/lib/errors";
+import { DEFAULT_LEDGER_PAGE } from "#/lib/ledger-page";
 import { formatPageTitle } from "#/lib/utils";
 import { logAllocationDrawerHandle } from "#/modules/allocations/components/log-allocation-drawer";
 import { AccountLedgerTable } from "#/modules/bank-accounts/components/account-ledger-table";
 import { editBankAccountDrawerHandle } from "#/modules/bank-accounts/components/edit-bank-account-drawer";
-import { bankAccountQueryOption } from "#/modules/bank-accounts/query-options";
+import {
+  bankAccountLedgerQueryOption,
+  bankAccountQueryOption,
+} from "#/modules/bank-accounts/query-options";
 import { logTransactionDrawerHandle } from "#/modules/transactions/components/log-transaction-drawer";
 
 export const Route = createFileRoute("/_protected/accounts/$accountId")({
   context: ({ params }) => ({
     bankAccountQueryOptions: bankAccountQueryOption(params.accountId),
+    bankAccountLedgerQueryOptions: bankAccountLedgerQueryOption(
+      params.accountId,
+      DEFAULT_LEDGER_PAGE,
+    ),
   }),
-  loader: async ({ context: { queryClient, bankAccountQueryOptions } }) => {
-    const bankAccount = await loadOrThrowRouteNotFound(queryClient.query(bankAccountQueryOptions));
+  loader: async ({
+    context: { queryClient, bankAccountQueryOptions, bankAccountLedgerQueryOptions },
+  }) => {
+    const [bankAccount] = await loadOrThrowRouteNotFound(
+      Promise.all([
+        queryClient.query(bankAccountQueryOptions),
+        queryClient.query(bankAccountLedgerQueryOptions),
+      ]),
+    );
 
     return { name: bankAccount.name };
   },

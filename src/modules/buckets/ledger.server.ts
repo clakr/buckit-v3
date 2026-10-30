@@ -1,7 +1,8 @@
 import { eq } from "drizzle-orm";
 
 import type { DB } from "#/db";
-import type { HeldMovement } from "#/modules/buckets/ledger";
+import type { LedgerPageRequest, LedgerPaging } from "#/lib/ledger-page";
+import type { HeldMovement, HeldStep } from "#/modules/buckets/ledger";
 
 import {
   allocations,
@@ -11,12 +12,42 @@ import {
   type BankAccount,
   type Bucket,
 } from "#/db/schema";
+import { getLedgerPage } from "#/lib/ledger-page";
+import { replayHeld } from "#/modules/buckets/ledger";
 
 export type BucketLedgerEntry = HeldMovement & {
   recordId: string;
   note: string | null;
   bankAccount: Pick<BankAccount, "id" | "name" | "currency">;
 };
+
+export type BucketLedgerPage = LedgerPaging & {
+  entries: HeldStep<BucketLedgerEntry>[];
+  opening: { currency: string; held: number }[];
+  isOldestPage: boolean;
+};
+
+export function pageBucketLedger(
+  ledger: BucketLedgerEntry[],
+  request: LedgerPageRequest,
+): BucketLedgerPage {
+  const steps = replayHeld(ledger, (entry) => entry.bankAccount.currency).reverse();
+  const { items, end, ...paging } = getLedgerPage(steps, request);
+
+  const heldBeforePage = new Map<string, number>();
+  for (const { bankAccount, held } of steps.slice(end)) {
+    if (!heldBeforePage.has(bankAccount.currency)) heldBeforePage.set(bankAccount.currency, held);
+  }
+
+  return {
+    ...paging,
+    entries: items,
+    opening: [...heldBeforePage]
+      .map(([currency, held]) => ({ currency, held }))
+      .sort((a, b) => a.currency.localeCompare(b.currency)),
+    isOldestPage: end >= steps.length,
+  };
+}
 
 export async function loadBucketLedger(
   db: DB,

@@ -1,10 +1,12 @@
 import { IconCircleDottedLetterH, IconPlus } from "@tabler/icons-react";
+import { useSuspenseQuery } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";
+import { useState, useTransition } from "react";
 
 import type { Bucket } from "#/db/schema";
-import type { getBucketLedger } from "#/modules/buckets/functions";
 import type { BucketLedgerEntry } from "#/modules/buckets/ledger.server";
 
+import { LedgerPager } from "#/components/ledger-pager";
 import { Badge } from "#/components/ui/badge";
 import { Button } from "#/components/ui/button";
 import { DrawerTrigger } from "#/components/ui/drawer";
@@ -26,21 +28,23 @@ import {
 } from "#/components/ui/table";
 import { Tooltip, TooltipContent, TooltipTrigger } from "#/components/ui/tooltip";
 import { MODULE_ICONS } from "#/lib/constants";
+import { DEFAULT_LEDGER_PAGE, type LedgerPageRequest } from "#/lib/ledger-page";
 import { formatMoney } from "#/lib/money";
 import { cn, formatDateTime, formatToRelative } from "#/lib/utils";
 import { AllocationActionsDropdownMenu } from "#/modules/allocations/components/allocation-actions-dropdown-menu";
 import { logAllocationDrawerHandle } from "#/modules/allocations/components/log-allocation-drawer";
-import { replayHeld } from "#/modules/buckets/ledger";
+import { bucketLedgerQueryOption } from "#/modules/buckets/query-options";
 import { WithdrawalActionsDropdownMenu } from "#/modules/withdrawals/components/withdrawal-actions-dropdown-menu";
 
 type Props = {
   bucketId: Bucket["id"];
-  bucketLedger: Awaited<ReturnType<typeof getBucketLedger>>;
 };
 
-export function BucketLedgerTable({ bucketId, bucketLedger }: Props) {
-  const { subtotals, holdings, ledger } = bucketLedger;
-  const steps = replayHeld(ledger, (entry) => entry.bankAccount.currency).reverse();
+export function BucketLedgerTable({ bucketId }: Props) {
+  const [page, setPage] = useState<LedgerPageRequest>(DEFAULT_LEDGER_PAGE);
+  const [isPending, startTransition] = useTransition();
+  const { data: bucketLedger } = useSuspenseQuery(bucketLedgerQueryOption(bucketId, page));
+  const { subtotals, holdings, entries, opening, isOldestPage, ...paging } = bucketLedger;
 
   return (
     <div className="flex flex-col gap-y-3">
@@ -78,7 +82,7 @@ export function BucketLedgerTable({ bucketId, bucketLedger }: Props) {
         ) : null}
       </div>
 
-      <Table>
+      <Table aria-busy={isPending} className={cn(isPending && "opacity-60 transition-opacity")}>
         <TableHeader>
           <TableRow>
             <TableHead>Date</TableHead>
@@ -88,7 +92,7 @@ export function BucketLedgerTable({ bucketId, bucketLedger }: Props) {
           </TableRow>
         </TableHeader>
         <TableBody>
-          {steps.map((step) => (
+          {entries.map((step) => (
             <TableRow key={step.id}>
               <TableCell>
                 <DateBadge date={step.date} />
@@ -114,7 +118,27 @@ export function BucketLedgerTable({ bucketId, bucketLedger }: Props) {
             </TableRow>
           ))}
 
-          {steps.length ? null : (
+          {isOldestPage || opening.length === 0 ? null : (
+            <TableRow className="bg-muted/40">
+              <TableCell />
+              <TableCell className="whitespace-normal">
+                <span className="font-medium">Brought forward</span>
+                <span className="block text-xs text-muted-foreground">
+                  Held before this page's oldest entry
+                </span>
+              </TableCell>
+              <TableCell className="text-end font-semibold tabular-nums">
+                {opening.map(({ currency, held }) => (
+                  <span key={currency} className="block">
+                    {formatMoney(held, currency)}
+                  </span>
+                ))}
+              </TableCell>
+              <TableCell />
+            </TableRow>
+          )}
+
+          {paging.total > 0 ? null : (
             <TableRow className="hover:bg-transparent">
               <TableCell colSpan={4} className="px-0 py-2">
                 <Empty className="min-h-[15vh] border border-dashed">
@@ -143,6 +167,14 @@ export function BucketLedgerTable({ bucketId, bucketLedger }: Props) {
           )}
         </TableBody>
       </Table>
+
+      <LedgerPager
+        paging={paging}
+        onPageChange={(pageIndex) =>
+          startTransition(() => setPage({ pageIndex, pageSize: paging.pageSize }))
+        }
+        onPageSizeChange={(pageSize) => startTransition(() => setPage({ pageIndex: 0, pageSize }))}
+      />
     </div>
   );
 }

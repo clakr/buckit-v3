@@ -1,6 +1,7 @@
 import { z } from "zod";
 
 import { CURRENCIES_CODES } from "#/lib/constants";
+import { ledgerPageSchema } from "#/lib/ledger-page";
 import { nonNegativeAmountSchema } from "#/lib/money";
 
 export const verifyUserBankAccountMiddlewareSchema = z.looseObject({
@@ -34,3 +35,8 @@ export const validateBankAccountNameSchema = z.object({
 export const getBankAccountsSchema = z
   .object({ currency: z.enum(CURRENCIES_CODES).optional() })
   .optional();
+
+export const getBankAccountLedgerSchema = z.strictObject({
+  ...verifyUserBankAccountMiddlewareSchema.shape,
+  ...ledgerPageSchema.shape,
+});

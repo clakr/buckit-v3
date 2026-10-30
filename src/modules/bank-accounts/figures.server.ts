@@ -117,7 +117,7 @@ function getLatestTransactionDate(db: DB) {
     .where(eq(transactions.bankAccountId, bankAccounts.id));
 }
 
-async function loadLedgerMovements(db: DB, bankAccountIds: BankAccount["id"][]) {
+export async function loadLedgerMovements(db: DB, bankAccountIds: BankAccount["id"][]) {
   const [transactionRows, allocationRows] = await Promise.all([
     db
       .select({

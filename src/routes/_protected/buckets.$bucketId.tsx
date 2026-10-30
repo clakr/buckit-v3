@@ -10,6 +10,7 @@ import { Button } from "#/components/ui/button";
 import { DrawerTrigger } from "#/components/ui/drawer";
 import { Tooltip, TooltipContent, TooltipTrigger } from "#/components/ui/tooltip";
 import { loadOrThrowRouteNotFound } from "#/lib/errors";
+import { DEFAULT_LEDGER_PAGE } from "#/lib/ledger-page";
 import { formatPageTitle } from "#/lib/utils";
 import { logAllocationDrawerHandle } from "#/modules/allocations/components/log-allocation-drawer";
 import { BucketLedgerTable } from "#/modules/buckets/components/bucket-ledger-table";
@@ -24,7 +25,7 @@ import { withdrawalSourcesQueryOption } from "#/modules/withdrawals/query-option
 export const Route = createFileRoute("/_protected/buckets/$bucketId")({
   context: ({ params }) => ({
     bucketQueryOptions: bucketQueryOption(params.bucketId),
-    bucketLedgerQueryOptions: bucketLedgerQueryOption(params.bucketId),
+    bucketLedgerQueryOptions: bucketLedgerQueryOption(params.bucketId, DEFAULT_LEDGER_PAGE),
     withdrawalSourcesQueryOptions: withdrawalSourcesQueryOption(params.bucketId),
     goalQueryOptions: bucketGoalQueryOption(params.bucketId),
   }),
@@ -93,15 +94,10 @@ export const Route = createFileRoute("/_protected/buckets/$bucketId")({
 
 function RouteComponent() {
   const { bucketId } = Route.useParams();
-  const {
-    bucketQueryOptions,
-    bucketLedgerQueryOptions,
-    withdrawalSourcesQueryOptions,
-    goalQueryOptions,
-  } = Route.useRouteContext();
+  const { bucketQueryOptions, withdrawalSourcesQueryOptions, goalQueryOptions } =
+    Route.useRouteContext();
 
   const { data: bucket } = useSuspenseQuery(bucketQueryOptions);
-  const { data: bucketLedger } = useSuspenseQuery(bucketLedgerQueryOptions);
   const { data: withdrawalSources } = useSuspenseQuery(withdrawalSourcesQueryOptions);
   const { data: goal } = useSuspenseQuery(goalQueryOptions);
 
@@ -165,7 +161,7 @@ function RouteComponent() {
 
       {goal ? <BucketGoalCard goal={goal} /> : null}
 
-      <BucketLedgerTable bucketId={bucketId} bucketLedger={bucketLedger} />
+      <BucketLedgerTable bucketId={bucketId} />
     </Main>
   );
 }

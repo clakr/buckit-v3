@@ -1,10 +1,12 @@
 import { queryOptions } from "@tanstack/react-query";
 
 import type { BankAccount } from "#/db/schema";
+import type { LedgerPageRequest } from "#/lib/ledger-page";
 
 import {
   getBankAccount,
   getBankAccountDeletionImpact,
+  getBankAccountLedger,
   getBankAccounts,
   getBankAccountsWithTrend,
 } from "#/modules/bank-accounts/functions";
@@ -42,6 +44,22 @@ export function bankAccountDeletionImpactQueryOption(bankAccountId: BankAccount[
       getBankAccountDeletionImpact({
         data: {
           bankAccountId,
+        },
+      }),
+  });
+}
+
+export function bankAccountLedgerQueryOption(
+  bankAccountId: BankAccount["id"],
+  page: LedgerPageRequest,
+) {
+  return queryOptions({
+    queryKey: ["bank-accounts", bankAccountId, "ledger", page],
+    queryFn: () =>
+      getBankAccountLedger({
+        data: {
+          bankAccountId,
+          ...page,
         },
       }),
   });

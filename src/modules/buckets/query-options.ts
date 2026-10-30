@@ -1,6 +1,7 @@
 import { queryOptions } from "@tanstack/react-query";
 
 import type { Bucket } from "#/db/schema";
+import type { LedgerPageRequest } from "#/lib/ledger-page";
 
 import {
   getBucket,
@@ -38,13 +39,14 @@ export function bucketDeletionImpactQueryOption(bucketId: Bucket["id"]) {
   });
 }
 
-export function bucketLedgerQueryOption(bucketId: Bucket["id"]) {
+export function bucketLedgerQueryOption(bucketId: Bucket["id"], page: LedgerPageRequest) {
   return queryOptions({
-    queryKey: ["buckets", bucketId, "ledger"],
+    queryKey: ["buckets", bucketId, "ledger", page],
     queryFn: () =>
       getBucketLedger({
         data: {
           bucketId,
+          ...page,
         },
       }),
   });

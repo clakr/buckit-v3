@@ -9,10 +9,14 @@ import { ConflictError, NotFoundError } from "#/lib/errors";
 import { authMiddleware } from "#/modules/authentication/middlewares";
 import { loadBucketDeletionImpact } from "#/modules/buckets/deletion.server";
 import { getBucketActivities, getBucketsWithFigures } from "#/modules/buckets/figures.server";
-import { loadBucketLedger } from "#/modules/buckets/ledger.server";
+import { loadBucketLedger, pageBucketLedger } from "#/modules/buckets/ledger.server";
 import { verifyUserBucketMiddleware } from "#/modules/buckets/middlewares";
 import { bucketNameRule } from "#/modules/buckets/name.server";
-import { editBucketSchema, validateBucketNameSchema } from "#/modules/buckets/schemas";
+import {
+  editBucketSchema,
+  getBucketLedgerSchema,
+  validateBucketNameSchema,
+} from "#/modules/buckets/schemas";
 import { deleteDistributionsEmptiedByBucket } from "#/modules/distributions/cleanup.server";
 import { findFundingBankAccount } from "#/modules/goals/funding.server";
 import { setUpBucketWithGoalSchema } from "#/modules/goals/schemas";
@@ -77,6 +81,7 @@ export const getBucketLedger = createServerFn({
   method: "GET",
 })
   .middleware([verifyUserBucketMiddleware])
+  .validator(getBucketLedgerSchema)
   .handler(async ({ context, data }) => {
     const db = getDB(env.db);
 
@@ -97,7 +102,7 @@ export const getBucketLedger = createServerFn({
         .filter(({ amount }) => amount !== 0)
         .map((held) => ({ ...held, name: bankAccountNameById.get(held.bankAccountId) ?? "" }))
         .sort((a, b) => a.name.localeCompare(b.name)),
-      ledger,
+      ...pageBucketLedger(ledger, { pageIndex: data.pageIndex, pageSize: data.pageSize }),
     };
   });
 

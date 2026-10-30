@@ -1,5 +1,7 @@
 import { z } from "zod";
 
+import { ledgerPageSchema } from "#/lib/ledger-page";
+
 export const verifyUserBucketMiddlewareSchema = z.looseObject({
   bucketId: z.string().min(1, "No bucket ID provided"),
 });
@@ -24,4 +26,9 @@ export const editBucketSchema = z.strictObject({
 export const validateBucketNameSchema = z.object({
   name: setUpBucketSchema.shape.name,
   excludeId: z.string().optional(),
+});
+
+export const getBucketLedgerSchema = z.strictObject({
+  ...verifyUserBucketMiddlewareSchema.shape,
+  ...ledgerPageSchema.shape,
 });
