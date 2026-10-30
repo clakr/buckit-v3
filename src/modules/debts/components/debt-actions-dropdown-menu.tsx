@@ -1,4 +1,12 @@
-import { IconDots, IconEye, IconPlus } from "@tabler/icons-react";
+import {
+  IconArrowBackUp,
+  IconCashBanknote,
+  IconDots,
+  IconEye,
+  IconHeartHandshake,
+  IconPencil,
+  IconTrash,
+} from "@tabler/icons-react";
 import { Link } from "@tanstack/react-router";
 
 import { Button } from "#/components/ui/button";
@@ -75,7 +83,7 @@ export function DebtActionsDropdownMenu({ debt }: Props) {
       <DropdownMenuContent className="w-fit">
         <DropdownMenuGroup>
           <DropdownMenuItem onClick={handleOpenLogRepaymentDrawer}>
-            <IconPlus />
+            <IconCashBanknote />
             Log Repayment
           </DropdownMenuItem>
         </DropdownMenuGroup>
@@ -86,23 +94,26 @@ export function DebtActionsDropdownMenu({ debt }: Props) {
             View
           </DropdownMenuItem>
           <DropdownMenuItem onClick={handleOpenEditDebtDrawer}>
-            <svg />
+            <IconPencil />
             Edit
           </DropdownMenuItem>
           {status === "open" ? (
             <DropdownMenuItem onClick={handleForgiveDebt}>
-              <svg />
+              <IconHeartHandshake />
               Forgive
             </DropdownMenuItem>
           ) : null}
           {status === "forgiven" ? (
             <DropdownMenuItem onClick={handleUnforgiveDebt}>
-              <svg />
+              <IconArrowBackUp />
               Unforgive
             </DropdownMenuItem>
           ) : null}
+        </DropdownMenuGroup>
+        <DropdownMenuSeparator />
+        <DropdownMenuGroup>
           <DropdownMenuItem variant="destructive" onClick={handleOpenDeleteDebtDialog}>
-            <svg />
+            <IconTrash />
             Delete
           </DropdownMenuItem>
         </DropdownMenuGroup>

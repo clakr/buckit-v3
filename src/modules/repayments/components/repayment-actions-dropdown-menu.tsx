@@ -1,4 +1,4 @@
-import { IconDots, IconEdit } from "@tabler/icons-react";
+import { IconDots, IconPencil } from "@tabler/icons-react";
 
 import type { Debt, Repayment } from "#/db/schema";
 
@@ -32,7 +32,7 @@ export function RepaymentActionsDropdownMenu({ debtId, repaymentId }: Props) {
       <DropdownMenuContent className="w-fit">
         <DropdownMenuGroup>
           <DropdownMenuItem onClick={handleOpenEditRepaymentDrawer}>
-            <IconEdit />
+            <IconPencil />
             Edit
           </DropdownMenuItem>
         </DropdownMenuGroup>

@@ -1,4 +1,11 @@
-import { IconDots, IconEye, IconPlus } from "@tabler/icons-react";
+import {
+  IconDots,
+  IconEye,
+  IconPencil,
+  IconPigMoney,
+  IconReceipt,
+  IconTrash,
+} from "@tabler/icons-react";
 import { Link } from "@tanstack/react-router";
 
 import type { getBankAccounts } from "#/modules/bank-accounts/functions";
@@ -50,11 +57,11 @@ export function BankAccountActionsDropdownMenu({ account }: Props) {
       <DropdownMenuContent className="w-fit">
         <DropdownMenuGroup>
           <DropdownMenuItem onClick={handleOpenLogTransactionDrawer}>
-            <IconPlus />
+            <IconReceipt />
             Log Transaction
           </DropdownMenuItem>
           <DropdownMenuItem onClick={handleOpenLogAllocationDrawer}>
-            <svg />
+            <IconPigMoney />
             Allocate Money
           </DropdownMenuItem>
         </DropdownMenuGroup>
@@ -67,11 +74,14 @@ export function BankAccountActionsDropdownMenu({ account }: Props) {
             View
           </DropdownMenuItem>
           <DropdownMenuItem onClick={handleOpenEditBankAccountDrawer}>
-            <svg />
+            <IconPencil />
             Edit
           </DropdownMenuItem>
+        </DropdownMenuGroup>
+        <DropdownMenuSeparator />
+        <DropdownMenuGroup>
           <DropdownMenuItem variant="destructive" onClick={handleOpenDeleteBankAccountDialog}>
-            <svg />
+            <IconTrash />
             Delete
           </DropdownMenuItem>
         </DropdownMenuGroup>

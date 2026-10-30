@@ -1,4 +1,12 @@
-import { IconDots, IconEye, IconPlus } from "@tabler/icons-react";
+import {
+  IconCashMinus,
+  IconDots,
+  IconEye,
+  IconPencil,
+  IconPigMoney,
+  IconTarget,
+  IconTrash,
+} from "@tabler/icons-react";
 import { Link } from "@tanstack/react-router";
 
 import type { getBuckets } from "#/modules/buckets/functions";
@@ -55,16 +63,16 @@ export function BucketActionsDropdownMenu({ bucket }: Props) {
       <DropdownMenuContent className="w-fit">
         <DropdownMenuGroup>
           <DropdownMenuItem onClick={handleOpenLogAllocationDrawer}>
-            <IconPlus />
+            <IconPigMoney />
             Allocate Money
           </DropdownMenuItem>
           <DropdownMenuItem onClick={handleOpenWithdrawDrawer}>
-            <svg />
+            <IconCashMinus />
             Withdraw Money
           </DropdownMenuItem>
           {bucket.goal ? null : (
             <DropdownMenuItem onClick={handleOpenAddGoalDrawer}>
-              <svg />
+              <IconTarget />
               Add Goal
             </DropdownMenuItem>
           )}
@@ -76,11 +84,14 @@ export function BucketActionsDropdownMenu({ bucket }: Props) {
             View
           </DropdownMenuItem>
           <DropdownMenuItem onClick={handleOpenEditBucketDrawer}>
-            <svg />
+            <IconPencil />
             Edit
           </DropdownMenuItem>
+        </DropdownMenuGroup>
+        <DropdownMenuSeparator />
+        <DropdownMenuGroup>
           <DropdownMenuItem variant="destructive" onClick={handleOpenDeleteBucketDialog}>
-            <svg />
+            <IconTrash />
             Delete
           </DropdownMenuItem>
         </DropdownMenuGroup>

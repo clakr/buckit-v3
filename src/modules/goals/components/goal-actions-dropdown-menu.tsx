@@ -1,4 +1,4 @@
-import { IconDots, IconEdit } from "@tabler/icons-react";
+import { IconDots, IconPencil, IconTrash } from "@tabler/icons-react";
 
 import type { Bucket, Goal } from "#/db/schema";
 
@@ -8,6 +8,7 @@ import {
   DropdownMenuContent,
   DropdownMenuGroup,
   DropdownMenuItem,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "#/components/ui/dropdown-menu";
 import { editGoalDrawerHandle } from "#/modules/goals/components/edit-goal-drawer";
@@ -55,11 +56,14 @@ export function GoalActionsDropdownMenu({ goalId, bucketId }: Props) {
       <DropdownMenuContent className="w-fit">
         <DropdownMenuGroup>
           <DropdownMenuItem onClick={handleOpenEditGoalDrawer}>
-            <IconEdit />
+            <IconPencil />
             Edit
           </DropdownMenuItem>
+        </DropdownMenuGroup>
+        <DropdownMenuSeparator />
+        <DropdownMenuGroup>
           <DropdownMenuItem variant="destructive" onClick={handleRemoveGoal}>
-            <svg />
+            <IconTrash />
             Remove
           </DropdownMenuItem>
         </DropdownMenuGroup>

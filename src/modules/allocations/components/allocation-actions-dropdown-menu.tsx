@@ -1,4 +1,4 @@
-import { IconDots, IconEdit } from "@tabler/icons-react";
+import { IconDots, IconPencil, IconTrash } from "@tabler/icons-react";
 
 import type { Allocation } from "#/db/schema";
 
@@ -8,6 +8,7 @@ import {
   DropdownMenuContent,
   DropdownMenuGroup,
   DropdownMenuItem,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "#/components/ui/dropdown-menu";
 import { editAllocationDrawerHandle } from "#/modules/allocations/components/edit-allocation-drawer";
@@ -54,11 +55,14 @@ export function AllocationActionsDropdownMenu({ allocationId }: Props) {
       <DropdownMenuContent className="w-fit">
         <DropdownMenuGroup>
           <DropdownMenuItem onClick={handleOpenEditAllocationDrawer}>
-            <IconEdit />
+            <IconPencil />
             Edit
           </DropdownMenuItem>
+        </DropdownMenuGroup>
+        <DropdownMenuSeparator />
+        <DropdownMenuGroup>
           <DropdownMenuItem variant="destructive" onClick={handleDeleteAllocation}>
-            <svg />
+            <IconTrash />
             Delete
           </DropdownMenuItem>
         </DropdownMenuGroup>

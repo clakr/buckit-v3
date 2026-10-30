@@ -1,4 +1,4 @@
-import { IconDots, IconEdit } from "@tabler/icons-react";
+import { IconDots, IconPencil, IconTrash } from "@tabler/icons-react";
 
 import type { Transaction } from "#/db/schema";
 
@@ -8,6 +8,7 @@ import {
   DropdownMenuContent,
   DropdownMenuGroup,
   DropdownMenuItem,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "#/components/ui/dropdown-menu";
 import { AppError, SessionExpiredError } from "#/lib/errors";
@@ -85,11 +86,14 @@ export function TransactionActionsDropdownMenu({ transactionId }: Props) {
       <DropdownMenuContent className="w-fit">
         <DropdownMenuGroup>
           <DropdownMenuItem onClick={handleOpenEditTransactionDrawer}>
-            <IconEdit />
+            <IconPencil />
             Edit
           </DropdownMenuItem>
+        </DropdownMenuGroup>
+        <DropdownMenuSeparator />
+        <DropdownMenuGroup>
           <DropdownMenuItem variant="destructive" onClick={handleDeleteTransaction}>
-            <svg />
+            <IconTrash />
             Delete
           </DropdownMenuItem>
         </DropdownMenuGroup>

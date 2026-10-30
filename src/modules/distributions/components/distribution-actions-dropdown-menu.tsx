@@ -1,4 +1,4 @@
-import { IconBolt, IconCopy, IconDots, IconEdit, IconTrash } from "@tabler/icons-react";
+import { IconBolt, IconCopy, IconDots, IconPencil, IconTrash } from "@tabler/icons-react";
 
 import type { SavedDistribution } from "#/modules/distributions/functions";
 
@@ -8,6 +8,7 @@ import {
   DropdownMenuContent,
   DropdownMenuGroup,
   DropdownMenuItem,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "#/components/ui/dropdown-menu";
 import { createDistributionDrawerHandle } from "#/modules/distributions/components/create-distribution-drawer";
@@ -69,14 +70,20 @@ export function DistributionActionsDropdownMenu({ distribution }: Props) {
             <IconBolt />
             Trigger
           </DropdownMenuItem>
+        </DropdownMenuGroup>
+        <DropdownMenuSeparator />
+        <DropdownMenuGroup>
           <DropdownMenuItem onClick={handleOpenEditDistributionDrawer}>
-            <IconEdit />
+            <IconPencil />
             Edit
           </DropdownMenuItem>
           <DropdownMenuItem onClick={handleOpenDuplicateDistributionDrawer}>
             <IconCopy />
             Duplicate
           </DropdownMenuItem>
+        </DropdownMenuGroup>
+        <DropdownMenuSeparator />
+        <DropdownMenuGroup>
           <DropdownMenuItem variant="destructive" onClick={handleDeleteDistribution}>
             <IconTrash />
             Delete
