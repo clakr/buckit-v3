@@ -1,36 +1,40 @@
+import { Pie, PieChart, Sector } from "recharts";
+
 import type { SavedDistribution } from "#/modules/distributions/functions";
 
+import { ChartContainer } from "#/components/ui/chart";
 import { Tooltip, TooltipContent, TooltipTrigger } from "#/components/ui/tooltip";
 import { formatMoney } from "#/lib/money";
 import { cn } from "#/lib/utils";
 import { computeDistributionPlan, savedLinesToPlanLines } from "#/modules/distributions/utils";
 
-// Same shades, in the same order, as the drawer's split bar and line dots.
-const SLICE_FILLS = [
-  "fill-primary",
-  "fill-primary/75",
-  "fill-primary/55",
-  "fill-primary/40",
-  "fill-primary/25",
+// Same shades, in the same order, as the drawer's split bar and line dots. The label colour is
+// whichever of foreground and primary-foreground reads on its shade.
+const SLICE_STYLES = [
+  { fill: "fill-primary", text: "fill-primary-foreground" },
+  { fill: "fill-primary/75", text: "fill-primary-foreground" },
+  { fill: "fill-primary/55", text: "fill-foreground" },
+  { fill: "fill-primary/40", text: "fill-foreground" },
+  { fill: "fill-primary/25", text: "fill-foreground" },
 ];
+const UNALLOCATED_STYLE = { fill: "fill-muted", text: "fill-muted-foreground" };
+const EXCEEDS_STYLE = { fill: "fill-destructive", text: "fill-background" };
 
-const PIE_SIZE = 40;
-const PIE_CENTER = PIE_SIZE / 2;
-const PIE_RADIUS = PIE_CENTER - 1;
+/** A slice narrower than this has no room for its percentage. The tooltip still lists it. */
+const MIN_LABELLED_FRACTION = 0.12;
+
+const PIE_SIZE = 80;
+
+type Slice = {
+  id: string;
+  name: string;
+  cents: number;
+  fraction: number;
+  style: { fill: string; text: string };
+};
 
 function formatCount(count: number, singular: string) {
   return `${count} ${singular}${count === 1 ? "" : "s"}`;
-}
-
-function getSlicePath(startFraction: number, endFraction: number) {
-  const point = (fraction: number) => {
-    const angle = fraction * 2 * Math.PI;
-
-    return `${PIE_CENTER + PIE_RADIUS * Math.sin(angle)} ${PIE_CENTER - PIE_RADIUS * Math.cos(angle)}`;
-  };
-  const largeArc = endFraction - startFraction > 0.5 ? 1 : 0;
-
-  return `M ${PIE_CENTER} ${PIE_CENTER} L ${point(startFraction)} A ${PIE_RADIUS} ${PIE_RADIUS} 0 ${largeArc} 1 ${point(endFraction)} Z`;
 }
 
 /** How the Default Amount divides across the lines, with what stays Unallocated as the grey rest. */
@@ -52,51 +56,81 @@ export function DistributionSplitCell({ distribution }: { distribution: SavedDis
     pieTotal > 0 ? Math.round((plan.bucketAndPayableTotal / pieTotal) * 100) : 0;
 
   // A receivable line repays a Debt out of the amount without leaving the account, so it has no slice.
-  let startFraction = 0;
-  const slices = plan.plannedLines.flatMap((line, index) => {
-    if (line.kind === "receivable" || line.cents <= 0 || pieTotal <= 0) return [];
-
-    const endFraction = startFraction + line.cents / pieTotal;
-    const slice = { id: line.id, index, startFraction, endFraction };
-    startFraction = endFraction;
-
-    return [slice];
-  });
+  const slices: Slice[] = plan.plannedLines.flatMap((line, index) =>
+    line.kind === "receivable" || line.cents <= 0 || pieTotal <= 0
+      ? []
+      : [
+          {
+            id: line.id,
+            name: lines[index].targetName,
+            cents: line.cents,
+            fraction: line.cents / pieTotal,
+            style: plan.exceedsBucketAndPayable
+              ? EXCEEDS_STYLE
+              : SLICE_STYLES[index % SLICE_STYLES.length],
+          },
+        ],
+  );
+  const unallocatedCents = pieTotal - plan.bucketAndPayableTotal;
+  if (unallocatedCents > 0) {
+    slices.push({
+      id: "unallocated",
+      name: "Unallocated",
+      cents: unallocatedCents,
+      fraction: unallocatedCents / pieTotal,
+      style: UNALLOCATED_STYLE,
+    });
+  }
 
   return (
     <Tooltip>
       <TooltipTrigger render={<div className="flex items-center gap-x-3 text-start" />}>
-        <svg
-          viewBox={`0 0 ${PIE_SIZE} ${PIE_SIZE}`}
-          className="size-10 shrink-0"
+        <ChartContainer
+          config={{}}
+          className="aspect-square size-20 shrink-0"
+          initialDimension={{ width: PIE_SIZE, height: PIE_SIZE }}
           role="img"
           aria-label={`${percentAllocated}% allocated to ${summary}`}
         >
-          <circle cx={PIE_CENTER} cy={PIE_CENTER} r={PIE_RADIUS} className="fill-muted" />
-          {slices.map((slice) =>
-            slice.endFraction - slice.startFraction >= 0.9999 ? (
-              <circle
-                key={slice.id}
-                cx={PIE_CENTER}
-                cy={PIE_CENTER}
-                r={PIE_RADIUS}
-                className={cn(
-                  SLICE_FILLS[slice.index % SLICE_FILLS.length],
-                  plan.exceedsBucketAndPayable && "fill-destructive",
-                )}
-              />
-            ) : (
-              <path
-                key={slice.id}
-                d={getSlicePath(slice.startFraction, slice.endFraction)}
-                className={cn(
-                  SLICE_FILLS[slice.index % SLICE_FILLS.length],
-                  plan.exceedsBucketAndPayable && "fill-destructive",
-                )}
-              />
-            ),
-          )}
-        </svg>
+          <PieChart accessibilityLayer={false}>
+            <Pie
+              data={slices}
+              dataKey="cents"
+              nameKey="name"
+              outerRadius="100%"
+              startAngle={90}
+              endAngle={-270}
+              stroke="none"
+              isAnimationActive={false}
+              rootTabIndex={-1}
+              labelLine={false}
+              shape={(props) => {
+                const slice: Slice = props.payload;
+
+                return <Sector {...props} className={slice.style.fill} />;
+              }}
+              label={({ cx, cy, midAngle, outerRadius, payload }) => {
+                const slice: Slice = payload;
+                if (slice.fraction < MIN_LABELLED_FRACTION) return null;
+
+                const angle = (-(midAngle ?? 0) * Math.PI) / 180;
+                const radius = outerRadius * 0.62;
+
+                return (
+                  <text
+                    x={cx + radius * Math.cos(angle)}
+                    y={cy + radius * Math.sin(angle)}
+                    textAnchor="middle"
+                    dominantBaseline="central"
+                    className={cn("text-[10px] font-semibold tabular-nums", slice.style.text)}
+                  >
+                    {Math.round(slice.fraction * 100)}%
+                  </text>
+                );
+              }}
+            />
+          </PieChart>
+        </ChartContainer>
         <span className="text-xs text-muted-foreground">{summary}</span>
       </TooltipTrigger>
       <TooltipContent>
