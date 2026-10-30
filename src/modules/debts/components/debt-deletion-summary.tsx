@@ -39,17 +39,13 @@ export function DebtDeletionSummary({ impact, deleteTransactions }: Props) {
   const bankAccountsLabel = getLinkedBankAccountsLabel(impact);
 
   return (
-    <div className="flex flex-col gap-y-3">
+    <div className="flex flex-col gap-y-3 empty:hidden">
       <DistributionDeletionList
         distributions={impact.distributions}
         via="line"
         targetName={impact.debt.name}
       />
-      {!transactionCount ? (
-        impact.distributions.length ? null : (
-          <p className="text-muted-foreground">Nothing outside this debt is affected.</p>
-        )
-      ) : deleteTransactions ? (
+      {!transactionCount ? null : deleteTransactions ? (
         <table className="w-full tabular-nums">
           <thead className="text-[0.65rem] tracking-wide text-muted-foreground uppercase">
             <tr className="border-b">

@@ -32,7 +32,7 @@ export function getBucketDeletionDescription({ impact }: Props) {
 
 export function BucketDeletionSummary({ impact }: Props) {
   return (
-    <div className="flex flex-col gap-y-3">
+    <div className="flex flex-col gap-y-3 empty:hidden">
       <DistributionDeletionList
         distributions={impact.distributions}
         via="line"
@@ -75,9 +75,7 @@ export function BucketDeletionSummary({ impact }: Props) {
           </table>
           <p className="text-muted-foreground">Account balances don't change.</p>
         </>
-      ) : impact.distributions.length ? null : (
-        <p className="text-muted-foreground">Nothing outside this bucket is affected.</p>
-      )}
+      ) : null}
     </div>
   );
 }

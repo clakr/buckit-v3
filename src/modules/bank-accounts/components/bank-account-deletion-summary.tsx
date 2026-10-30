@@ -49,7 +49,7 @@ export function BankAccountDeletionSummary({ impact }: Props) {
   const hasChangesElsewhere = affectedBuckets.length > 0 || affectedDebts.length > 0;
 
   return (
-    <div className="flex flex-col gap-y-3">
+    <div className="flex flex-col gap-y-3 empty:hidden">
       <DistributionDeletionList distributions={distributions} via="bank-account" />
       {hasChangesElsewhere ? (
         <table className="w-full tabular-nums">
@@ -112,9 +112,7 @@ export function BankAccountDeletionSummary({ impact }: Props) {
             })}
           </tbody>
         </table>
-      ) : distributions.length ? null : (
-        <p className="text-muted-foreground">Nothing outside this account is affected.</p>
-      )}
+      ) : null}
     </div>
   );
 }
