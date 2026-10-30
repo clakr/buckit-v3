@@ -70,6 +70,25 @@ export function computeDistributionPlan<Id extends string>(
   };
 }
 
+/** Reads saved lines as plan lines, so the trigger and the index work out the same split. */
+export function savedLinesToPlanLines(
+  lines: {
+    targetId: string;
+    kind: DistributionLineKind;
+    basisPoints: number | null;
+    amount: number | null;
+  }[],
+): DistributionPlanLine[] {
+  return lines.map((line) => ({
+    id: line.targetId,
+    kind: line.kind,
+    value:
+      line.basisPoints === null
+        ? { mode: "fixed", cents: line.amount ?? 0 }
+        : { mode: "percent", basisPoints: line.basisPoints },
+  }));
+}
+
 /** What a line points at. A Debt line carries its Debt's direction, which decides how it is written. */
 export type DistributionLineTarget =
   | { kind: "bucket"; bucketId: string }

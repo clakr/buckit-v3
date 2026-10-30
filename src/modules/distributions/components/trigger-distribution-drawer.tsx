@@ -31,6 +31,7 @@ import {
 import { triggerDistributionSchema } from "#/modules/distributions/schemas";
 import {
   computeDistributionPlan,
+  savedLinesToPlanLines,
   toCents,
   type DebtLineWarning,
   type DistributionPlanLine,
@@ -152,14 +153,7 @@ function TriggerDistributionForm({ distributionId, ref }: TriggerDistributionFor
   const amountCents = toCents(String(amount ?? ""));
 
   const currency = distribution?.bankAccount.currency ?? "";
-  const planLines: DistributionPlanLine[] = (distribution?.lines ?? []).map((line) => ({
-    id: line.targetId,
-    kind: line.kind,
-    value:
-      line.basisPoints === null
-        ? { mode: "fixed", cents: line.amount ?? 0 }
-        : { mode: "percent", basisPoints: line.basisPoints },
-  }));
+  const planLines = savedLinesToPlanLines(distribution?.lines ?? []);
   const plan = computeDistributionPlan(planLines, amountCents);
   const targetNameById = new Map(
     (distribution?.lines ?? []).map((line) => [line.targetId, line.targetName]),
