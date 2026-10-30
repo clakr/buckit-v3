@@ -19,7 +19,7 @@ export function TriggerDistributionButton({ distribution }: { distribution: Save
         triggerDistributionDrawerHandle.openWithPayload({ distributionId: distribution.id })
       }
     >
-      <IconBolt />
+      <IconBolt aria-hidden />
     </Button>
   );
 }

@@ -50,7 +50,7 @@ export function GoalActionsDropdownMenu({ goalId, bucketId }: Props) {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger render={<Button variant="ghost" size="icon" />}>
-        <IconDots />
+        <IconDots aria-hidden />
         <span className="sr-only">Open Goal Action Menu</span>
       </DropdownMenuTrigger>
       <DropdownMenuContent className="w-fit">

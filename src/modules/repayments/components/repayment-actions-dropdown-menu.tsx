@@ -26,7 +26,7 @@ export function RepaymentActionsDropdownMenu({ debtId, repaymentId }: Props) {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger render={<Button variant="ghost" size="icon" />}>
-        <IconDots />
+        <IconDots aria-hidden />
         <span className="sr-only">Open Repayment Action Menu</span>
       </DropdownMenuTrigger>
       <DropdownMenuContent className="w-fit">

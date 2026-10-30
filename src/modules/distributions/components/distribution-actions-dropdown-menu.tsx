@@ -61,7 +61,7 @@ export function DistributionActionsDropdownMenu({ distribution }: Props) {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger render={<Button variant="ghost" size="icon" />}>
-        <IconDots />
+        <IconDots aria-hidden />
         <span className="sr-only">Open Distribution Action Menu</span>
       </DropdownMenuTrigger>
       <DropdownMenuContent className="w-fit">

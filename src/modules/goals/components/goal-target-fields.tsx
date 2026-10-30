@@ -103,7 +103,7 @@ export function GoalTargetDateField() {
             aria-label="Clear target date"
             onClick={() => field.handleChange(null)}
           >
-            <IconX />
+            <IconX aria-hidden />
           </Button>
         ) : null}
       </div>

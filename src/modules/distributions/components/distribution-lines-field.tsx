@@ -237,7 +237,7 @@ export function DistributionLinesField({
                 aria-label={`Remove ${targetName}`}
                 onClick={() => onRemove(index)}
               >
-                <IconX />
+                <IconX aria-hidden />
               </Button>
             </div>
             <div className="flex items-start gap-x-2">

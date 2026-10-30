@@ -27,7 +27,7 @@ function ComboboxTrigger({ className, children, ...props }: ComboboxPrimitive.Tr
       {...props}
     >
       {children}
-      <IconChevronDown className="pointer-events-none size-3.5 text-muted-foreground" />
+      <IconChevronDown aria-hidden className="pointer-events-none size-3.5 text-muted-foreground" />
     </ComboboxPrimitive.Trigger>
   );
 }
@@ -40,7 +40,7 @@ function ComboboxClear({ className, ...props }: ComboboxPrimitive.Clear.Props) {
       className={cn(className)}
       {...props}
     >
-      <IconX className="pointer-events-none" />
+      <IconX aria-hidden className="pointer-events-none" />
     </ComboboxPrimitive.Clear>
   );
 }
@@ -232,7 +232,7 @@ function ComboboxChip({
           className="-ml-1 opacity-50 hover:opacity-100"
           data-slot="combobox-chip-remove"
         >
-          <IconX className="pointer-events-none" />
+          <IconX aria-hidden className="pointer-events-none" />
         </ComboboxPrimitive.ChipRemove>
       )}
     </ComboboxPrimitive.Chip>

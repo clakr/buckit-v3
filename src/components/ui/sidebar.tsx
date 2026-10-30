@@ -234,7 +234,7 @@ function Sidebar({
 }
 
 function SidebarTrigger({ className, onClick, ...props }: React.ComponentProps<typeof Button>) {
-  const { toggleSidebar } = useSidebar();
+  const { toggleSidebar, isMobile, open, openMobile } = useSidebar();
 
   return (
     <Button
@@ -243,13 +243,14 @@ function SidebarTrigger({ className, onClick, ...props }: React.ComponentProps<t
       variant="ghost"
       size="icon-sm"
       className={cn(className)}
+      aria-expanded={isMobile ? openMobile : open}
       onClick={(event) => {
         onClick?.(event);
         toggleSidebar();
       }}
       {...props}
     >
-      <IconLayoutSidebar />
+      <IconLayoutSidebar aria-hidden />
       <span className="sr-only">Toggle Sidebar</span>
     </Button>
   );

@@ -77,7 +77,7 @@ export function DebtActionsDropdownMenu({ debt }: Props) {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger render={<Button variant="ghost" size="icon" />}>
-        <IconDots />
+        <IconDots aria-hidden />
         <span className="sr-only">Open Debt Menu</span>
       </DropdownMenuTrigger>
       <DropdownMenuContent className="w-fit">

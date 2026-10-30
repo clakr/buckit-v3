@@ -80,7 +80,7 @@ export function TransactionActionsDropdownMenu({ transactionId }: Props) {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger render={<Button variant="ghost" size="icon" />}>
-        <IconDots />
+        <IconDots aria-hidden />
         <span className="sr-only">Open Transaction Action Menu</span>
       </DropdownMenuTrigger>
       <DropdownMenuContent className="w-fit">
