@@ -70,7 +70,7 @@ export function BankAccountActionsDropdownMenu({ account }: Props) {
             <svg />
             Edit
           </DropdownMenuItem>
-          <DropdownMenuItem onClick={handleOpenDeleteBankAccountDialog}>
+          <DropdownMenuItem variant="destructive" onClick={handleOpenDeleteBankAccountDialog}>
             <svg />
             Delete
           </DropdownMenuItem>

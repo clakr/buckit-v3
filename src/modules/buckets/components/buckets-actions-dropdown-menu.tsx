@@ -79,7 +79,7 @@ export function BucketActionsDropdownMenu({ bucket }: Props) {
             <svg />
             Edit
           </DropdownMenuItem>
-          <DropdownMenuItem onClick={handleOpenDeleteBucketDialog}>
+          <DropdownMenuItem variant="destructive" onClick={handleOpenDeleteBucketDialog}>
             <svg />
             Delete
           </DropdownMenuItem>

@@ -31,6 +31,7 @@ export function WithdrawalActionsDropdownMenu({ withdrawalId }: Props) {
         "Delete this withdrawal? Its expense transaction will be deleted too, and the money goes back into the bucket.",
       confirmLabel: "Delete Withdrawal",
       cancelLabel: "Cancel",
+      destructive: true,
     });
 
     if (!confirmed) return;
@@ -56,7 +57,7 @@ export function WithdrawalActionsDropdownMenu({ withdrawalId }: Props) {
             <IconEdit />
             Edit
           </DropdownMenuItem>
-          <DropdownMenuItem onClick={handleDeleteWithdrawal}>
+          <DropdownMenuItem variant="destructive" onClick={handleDeleteWithdrawal}>
             <svg />
             Delete
           </DropdownMenuItem>

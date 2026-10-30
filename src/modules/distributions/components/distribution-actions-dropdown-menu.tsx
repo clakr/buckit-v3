@@ -43,6 +43,7 @@ export function DistributionActionsDropdownMenu({ distribution }: Props) {
         "Delete this distribution? Every record it wrote earlier stays. Only the saved routine is removed.",
       confirmLabel: "Delete Distribution",
       cancelLabel: "Cancel",
+      destructive: true,
     });
 
     if (!confirmed) return;
@@ -76,7 +77,7 @@ export function DistributionActionsDropdownMenu({ distribution }: Props) {
             <IconCopy />
             Duplicate
           </DropdownMenuItem>
-          <DropdownMenuItem onClick={handleDeleteDistribution}>
+          <DropdownMenuItem variant="destructive" onClick={handleDeleteDistribution}>
             <IconTrash />
             Delete
           </DropdownMenuItem>

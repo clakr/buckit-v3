@@ -62,6 +62,7 @@ export function TransactionActionsDropdownMenu({ transactionId }: Props) {
       description: message,
       confirmLabel: "Delete Transaction",
       cancelLabel: "Cancel",
+      destructive: true,
     });
 
     if (!confirmed) return;
@@ -87,7 +88,7 @@ export function TransactionActionsDropdownMenu({ transactionId }: Props) {
             <IconEdit />
             Edit
           </DropdownMenuItem>
-          <DropdownMenuItem onClick={handleDeleteTransaction}>
+          <DropdownMenuItem variant="destructive" onClick={handleDeleteTransaction}>
             <svg />
             Delete
           </DropdownMenuItem>

@@ -32,6 +32,7 @@ export function GoalActionsDropdownMenu({ goalId, bucketId }: Props) {
         "Remove this goal? The bucket, its allocations and its withdrawals stay as they are.",
       confirmLabel: "Remove Goal",
       cancelLabel: "Cancel",
+      destructive: true,
     });
 
     if (!confirmed) return;
@@ -57,7 +58,7 @@ export function GoalActionsDropdownMenu({ goalId, bucketId }: Props) {
             <IconEdit />
             Edit
           </DropdownMenuItem>
-          <DropdownMenuItem onClick={handleRemoveGoal}>
+          <DropdownMenuItem variant="destructive" onClick={handleRemoveGoal}>
             <svg />
             Remove
           </DropdownMenuItem>

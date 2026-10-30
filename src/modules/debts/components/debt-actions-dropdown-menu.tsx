@@ -101,7 +101,7 @@ export function DebtActionsDropdownMenu({ debt }: Props) {
               Unforgive
             </DropdownMenuItem>
           ) : null}
-          <DropdownMenuItem onClick={handleOpenDeleteDebtDialog}>
+          <DropdownMenuItem variant="destructive" onClick={handleOpenDeleteDebtDialog}>
             <svg />
             Delete
           </DropdownMenuItem>

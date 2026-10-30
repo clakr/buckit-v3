@@ -31,6 +31,7 @@ export function AllocationActionsDropdownMenu({ allocationId }: Props) {
         "Delete this allocation? Whatever its bucket still holds of it returns to the account's unallocated pool. If some has already been withdrawn, it can't be deleted.",
       confirmLabel: "Delete Allocation",
       cancelLabel: "Cancel",
+      destructive: true,
     });
 
     if (!confirmed) return;
@@ -56,7 +57,7 @@ export function AllocationActionsDropdownMenu({ allocationId }: Props) {
             <IconEdit />
             Edit
           </DropdownMenuItem>
-          <DropdownMenuItem onClick={handleDeleteAllocation}>
+          <DropdownMenuItem variant="destructive" onClick={handleDeleteAllocation}>
             <svg />
             Delete
           </DropdownMenuItem>

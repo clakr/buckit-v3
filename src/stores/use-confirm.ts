@@ -5,6 +5,7 @@ interface ConfirmOptions {
   confirmLabel?: string;
   cancelLabel?: string;
   dismissValue?: boolean;
+  destructive?: boolean;
 }
 
 interface ConfirmState {
@@ -14,6 +15,7 @@ interface ConfirmState {
   confirmLabel: string;
   cancelLabel: string | null;
   dismissValue: boolean;
+  destructive: boolean;
   resolve: ((value: boolean) => void) | null;
   confirm: (title: string, options?: ConfirmOptions) => Promise<boolean>;
   reset: () => void;
@@ -26,6 +28,7 @@ export const useConfirmStore = create<ConfirmState>()((set, get) => ({
   confirmLabel: "Continue",
   cancelLabel: null,
   dismissValue: false,
+  destructive: false,
   resolve: null,
 
   confirm: (title, options) => {
@@ -40,6 +43,7 @@ export const useConfirmStore = create<ConfirmState>()((set, get) => ({
         confirmLabel: options?.confirmLabel ?? "Continue",
         cancelLabel: options?.cancelLabel,
         dismissValue: options?.dismissValue ?? false,
+        destructive: options?.destructive ?? false,
         resolve,
       });
     });
