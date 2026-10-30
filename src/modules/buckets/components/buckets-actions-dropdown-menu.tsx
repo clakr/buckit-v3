@@ -1,4 +1,4 @@
-import { IconDots, IconEye, IconPlus, IconTarget } from "@tabler/icons-react";
+import { IconDots, IconEye, IconPlus } from "@tabler/icons-react";
 import { Link } from "@tanstack/react-router";
 
 import type { getBuckets } from "#/modules/buckets/functions";
