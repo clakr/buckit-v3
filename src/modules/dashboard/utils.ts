@@ -6,17 +6,25 @@ import { BALANCE_TREND_DAYS } from "#/modules/bank-accounts/utils";
 
 export const DEFAULT_DASHBOARD_CURRENCY: BankAccount["currency"] = "PHP";
 
+export type AccountBreakdown = {
+  id: BankAccount["id"];
+  name: BankAccount["name"];
+  unallocated: number;
+  earmarked: number;
+};
+
 export type CurrencySummary = {
   currency: BankAccount["currency"];
   balance: number;
   unallocated: number;
   earmarked: number;
   trend: BalanceTrend;
+  accounts: AccountBreakdown[];
   receivableOutstanding: number;
   payableOutstanding: number;
 };
 
-type SummarizedBankAccount = Pick<BankAccount, "currency"> & {
+type SummarizedBankAccount = Pick<BankAccount, "id" | "name" | "currency"> & {
   balance: number;
   unallocated: number;
   totalEarmarked: number;
@@ -40,6 +48,7 @@ export function createEmptySummary(currency: BankAccount["currency"]): CurrencyS
       net: 0,
       hasActivity: false,
     },
+    accounts: [],
     receivableOutstanding: 0,
     payableOutstanding: 0,
   };
@@ -80,6 +89,12 @@ export function getCurrencySummaries(
     summary.unallocated += bankAccount.unallocated;
     summary.earmarked += bankAccount.totalEarmarked;
     summary.trend = addTrend(summary.trend, bankAccount.trend);
+    summary.accounts.push({
+      id: bankAccount.id,
+      name: bankAccount.name,
+      unallocated: bankAccount.unallocated,
+      earmarked: bankAccount.totalEarmarked,
+    });
   }
 
   for (const debt of debts) {
@@ -88,6 +103,13 @@ export function getCurrencySummaries(
     const summary = getOrCreateSummary(debt.currency);
     if (debt.direction === "receivable") summary.receivableOutstanding += debt.outstanding;
     else summary.payableOutstanding += debt.outstanding;
+  }
+
+  for (const summary of summaryByCurrency.values()) {
+    summary.accounts.sort(
+      (a, b) =>
+        b.unallocated + b.earmarked - (a.unallocated + a.earmarked) || a.name.localeCompare(b.name),
+    );
   }
 
   return [...summaryByCurrency.values()].sort(

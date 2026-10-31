@@ -40,7 +40,7 @@ export function getBankAccountFigures(
 
 export const BALANCE_TREND_DAYS = 90;
 
-const DAY_MS = 86_400_000;
+export const DAY_MS = 86_400_000;
 
 export type BalanceTrend = {
   openingBalance: number;

@@ -8,6 +8,8 @@ import { Main } from "#/components/main";
 import { RouteRetryButton } from "#/components/route-retry-button";
 import { StateTemplate } from "#/components/state-template";
 import { formatPageTitle, isCurrencyCode } from "#/lib/utils";
+import { AccountBreakdownChart } from "#/modules/dashboard/components/account-breakdown-chart";
+import { BalanceTrendChart } from "#/modules/dashboard/components/balance-trend-chart";
 import { CurrencySwitcher } from "#/modules/dashboard/components/currency-switcher";
 import { KpiTiles } from "#/modules/dashboard/components/kpi-tiles";
 import { dashboardQueryOptions } from "#/modules/dashboard/query-options";
@@ -73,6 +75,11 @@ function RouteComponent() {
       </div>
 
       <KpiTiles summary={summary} />
+
+      <div className="grid gap-3 lg:grid-cols-2">
+        <BalanceTrendChart summary={summary} trendWindowStart={data.trendWindowStart} />
+        <AccountBreakdownChart summary={summary} />
+      </div>
     </Main>
   );
 }

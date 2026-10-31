@@ -4,6 +4,7 @@ import { env } from "cloudflare:workers";
 import { getDB } from "#/db";
 import { authMiddleware } from "#/modules/authentication/middlewares";
 import { getBankAccountsWithFiguresAndTrend } from "#/modules/bank-accounts/figures.server";
+import { getBalanceTrendWindowStart } from "#/modules/bank-accounts/utils";
 import { getCurrencySummaries } from "#/modules/dashboard/utils";
 import { getDebtsWithFigures } from "#/modules/debts/figures.server";
 
@@ -19,5 +20,8 @@ export const getDashboard = createServerFn({
       getDebtsWithFigures(db, { userId: context.userId }),
     ]);
 
-    return { currencySummaries: getCurrencySummaries(bankAccounts, debts) };
+    return {
+      currencySummaries: getCurrencySummaries(bankAccounts, debts),
+      trendWindowStart: getBalanceTrendWindowStart(new Date()).getTime(),
+    };
   });
