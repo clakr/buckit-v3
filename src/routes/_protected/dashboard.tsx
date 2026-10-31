@@ -1,33 +1,29 @@
 import { useSuspenseQuery } from "@tanstack/react-query";
-import { createFileRoute, useRouter } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
+
+import type { BankAccount } from "#/db/schema";
 
 import { Heading } from "#/components/heading";
 import { Main } from "#/components/main";
 import { RouteRetryButton } from "#/components/route-retry-button";
 import { StateTemplate } from "#/components/state-template";
-import { Button } from "#/components/ui/button";
-import { formatPageTitle } from "#/lib/utils";
-import { logAllocationDrawerHandle } from "#/modules/allocations/components/log-allocation-drawer";
-import { signOut } from "#/modules/authentication/session";
-import { bankAccountsQueryOption } from "#/modules/bank-accounts/query-options";
-import { bucketsQueryOptions } from "#/modules/buckets/query-options";
-import { BankAccountPickerButton } from "#/modules/dashboard/components/bank-account-picker-button";
-import { CurrencyTotalsCard } from "#/modules/dashboard/components/currency-totals-card";
-import { GettingStartedChecklist } from "#/modules/dashboard/components/getting-started-checklist";
-import { getCurrencyTotals } from "#/modules/dashboard/utils";
-import { logTransactionDrawerHandle } from "#/modules/transactions/components/log-transaction-drawer";
+import { formatPageTitle, isCurrencyCode } from "#/lib/utils";
+import { CurrencySwitcher } from "#/modules/dashboard/components/currency-switcher";
+import { KpiTiles } from "#/modules/dashboard/components/kpi-tiles";
+import { dashboardQueryOptions } from "#/modules/dashboard/query-options";
+import { selectCurrencySummary } from "#/modules/dashboard/utils";
 
 export const Route = createFileRoute("/_protected/dashboard")({
   head: () => ({ meta: [{ title: formatPageTitle("Dashboard") }] }),
-  context: () => ({
-    bankAccountsQueryOptions: bankAccountsQueryOption(),
-    bucketsQueryOptions,
+  validateSearch: (search: Record<string, unknown>): { currency?: BankAccount["currency"] } => ({
+    currency:
+      typeof search.currency === "string" && isCurrencyCode(search.currency)
+        ? search.currency
+        : undefined,
   }),
-  loader: async ({ context: { queryClient, bankAccountsQueryOptions, bucketsQueryOptions } }) => {
-    await Promise.all([
-      queryClient.query(bankAccountsQueryOptions),
-      queryClient.query(bucketsQueryOptions),
-    ]);
+  context: () => ({ dashboardQueryOptions }),
+  loader: async ({ context: { queryClient, dashboardQueryOptions } }) => {
+    await queryClient.query(dashboardQueryOptions);
   },
   pendingComponent: () => (
     <Main>
@@ -36,7 +32,7 @@ export const Route = createFileRoute("/_protected/dashboard")({
       <StateTemplate
         state="loading"
         title="Loading dashboard..."
-        description="Fetching your accounts and buckets..."
+        description="Fetching your accounts and debts..."
       />
     </Main>
   ),
@@ -47,7 +43,7 @@ export const Route = createFileRoute("/_protected/dashboard")({
       <StateTemplate
         state="error"
         title="Could not load dashboard."
-        description="We weren't able to retrieve your accounts and buckets. Please try again."
+        description="We weren't able to retrieve your overview. Please try again."
         content={<RouteRetryButton />}
       />
     </Main>
@@ -56,59 +52,27 @@ export const Route = createFileRoute("/_protected/dashboard")({
 });
 
 function RouteComponent() {
-  const { bankAccountsQueryOptions, bucketsQueryOptions } = Route.useRouteContext();
-  const { data: bankAccounts } = useSuspenseQuery(bankAccountsQueryOptions);
-  const { data: buckets } = useSuspenseQuery(bucketsQueryOptions);
+  const { dashboardQueryOptions } = Route.useRouteContext();
+  const { data } = useSuspenseQuery(dashboardQueryOptions);
+  const { currency } = Route.useSearch();
+  const navigate = useNavigate({ from: Route.fullPath });
 
-  const router = useRouter();
-
-  const currencyTotals = getCurrencyTotals(bankAccounts);
-  const hasBankAccounts = bankAccounts.length > 0;
-
-  function handleOpenLogTransactionDrawer(bankAccountId: string) {
-    logTransactionDrawerHandle.openWithPayload({ bankAccountId });
-  }
-
-  function handleOpenLogAllocationDrawer(bankAccountId: string) {
-    logAllocationDrawerHandle.openWithPayload({ start: { from: "bank-account", bankAccountId } });
-  }
+  const summary = selectCurrencySummary(data.currencySummaries, currency);
 
   return (
     <Main>
-      <div className="flex items-center justify-between gap-x-3">
+      <div className="flex items-center justify-between">
         <Heading>Dashboard</Heading>
-
-        <div className="flex items-center gap-x-2">
-          {hasBankAccounts ? (
-            <>
-              <BankAccountPickerButton
-                label="Log Transaction"
-                bankAccounts={bankAccounts}
-                onSelect={handleOpenLogTransactionDrawer}
-              />
-              <BankAccountPickerButton
-                label="Allocate Money"
-                variant="outline"
-                bankAccounts={bankAccounts}
-                onSelect={handleOpenLogAllocationDrawer}
-              />
-            </>
-          ) : null}
-          <Button variant="ghost" onClick={() => signOut(router)}>
-            logout
-          </Button>
-        </div>
+        <CurrencySwitcher
+          currencies={data.currencySummaries.map((currencySummary) => currencySummary.currency)}
+          value={summary.currency}
+          onValueChange={(selectedCurrency) =>
+            navigate({ search: { currency: selectedCurrency }, replace: true })
+          }
+        />
       </div>
 
-      <GettingStartedChecklist bankAccounts={bankAccounts} bucketCount={buckets.length} />
-
-      {currencyTotals.length > 0 ? (
-        <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
-          {currencyTotals.map((totals) => (
-            <CurrencyTotalsCard key={totals.currency} totals={totals} />
-          ))}
-        </div>
-      ) : null}
+      <KpiTiles summary={summary} />
     </Main>
   );
 }
