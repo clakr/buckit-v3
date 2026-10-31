@@ -11,7 +11,9 @@ import { formatPageTitle, isCurrencyCode } from "#/lib/utils";
 import { AccountBreakdownChart } from "#/modules/dashboard/components/account-breakdown-chart";
 import { BalanceTrendChart } from "#/modules/dashboard/components/balance-trend-chart";
 import { CurrencySwitcher } from "#/modules/dashboard/components/currency-switcher";
+import { GoalLanesCard } from "#/modules/dashboard/components/goal-lanes-card";
 import { KpiTiles } from "#/modules/dashboard/components/kpi-tiles";
+import { OpenDebtsCard } from "#/modules/dashboard/components/open-debts-card";
 import { dashboardQueryOptions } from "#/modules/dashboard/query-options";
 import { selectCurrencySummary } from "#/modules/dashboard/utils";
 
@@ -79,6 +81,11 @@ function RouteComponent() {
       <div className="grid gap-3 lg:grid-cols-2">
         <BalanceTrendChart summary={summary} trendWindowStart={data.trendWindowStart} />
         <AccountBreakdownChart summary={summary} />
+      </div>
+
+      <div className="grid gap-3 lg:grid-cols-2">
+        <GoalLanesCard summary={summary} />
+        <OpenDebtsCard summary={summary} />
       </div>
     </Main>
   );

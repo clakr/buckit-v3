@@ -1,8 +1,9 @@
-import type { BankAccount, Debt } from "#/db/schema";
+import type { BankAccount, Bucket, Debt, Goal } from "#/db/schema";
 import type { BalanceTrend } from "#/modules/bank-accounts/utils";
 import type { DebtStatus } from "#/modules/debts/figures.server";
 
 import { BALANCE_TREND_DAYS } from "#/modules/bank-accounts/utils";
+import { getGoalStatus, type GoalStatus } from "#/modules/goals/utils";
 
 export const DEFAULT_DASHBOARD_CURRENCY: BankAccount["currency"] = "PHP";
 
@@ -11,6 +12,17 @@ export type AccountBreakdown = {
   name: BankAccount["name"];
   unallocated: number;
   earmarked: number;
+};
+
+export type GoalLane = {
+  bucketId: Bucket["id"];
+  bucketName: Bucket["name"];
+  goal: Pick<Goal, "targetAmount" | "currency" | "targetDate"> & { progress: number };
+};
+
+export type OpenDebt = Pick<Debt, "id" | "name" | "direction" | "currency" | "amount"> & {
+  outstanding: number;
+  repaid: number;
 };
 
 export type CurrencySummary = {
@@ -22,6 +34,8 @@ export type CurrencySummary = {
   accounts: AccountBreakdown[];
   receivableOutstanding: number;
   payableOutstanding: number;
+  goalLanes: GoalLane[];
+  openDebts: OpenDebt[];
 };
 
 type SummarizedBankAccount = Pick<BankAccount, "id" | "name" | "currency"> & {
@@ -31,9 +45,14 @@ type SummarizedBankAccount = Pick<BankAccount, "id" | "name" | "currency"> & {
   trend: BalanceTrend;
 };
 
-type SummarizedDebt = Pick<Debt, "currency" | "direction"> & {
+type SummarizedDebt = Pick<Debt, "id" | "name" | "currency" | "direction" | "amount"> & {
   outstanding: number;
+  repaid: number;
   status: DebtStatus;
+};
+
+type SummarizedBucket = Pick<Bucket, "id" | "name"> & {
+  goal: GoalLane["goal"] | null;
 };
 
 export function createEmptySummary(currency: BankAccount["currency"]): CurrencySummary {
@@ -51,7 +70,25 @@ export function createEmptySummary(currency: BankAccount["currency"]): CurrencyS
     accounts: [],
     receivableOutstanding: 0,
     payableOutstanding: 0,
+    goalLanes: [],
+    openDebts: [],
   };
+}
+
+const GOAL_STATUS_ORDER = {
+  overdue: 0,
+  "in progress": 1,
+  reached: 2,
+} satisfies Record<GoalStatus, number>;
+
+// Overdue first, then nearest target date (no date last). Reached Goals sink to the bottom,
+// since nothing is left to act on.
+function compareGoalLanes(a: GoalLane, b: GoalLane) {
+  return (
+    GOAL_STATUS_ORDER[getGoalStatus(a.goal)] - GOAL_STATUS_ORDER[getGoalStatus(b.goal)] ||
+    (a.goal.targetDate?.getTime() ?? Infinity) - (b.goal.targetDate?.getTime() ?? Infinity) ||
+    a.bucketName.localeCompare(b.bucketName)
+  );
 }
 
 function addTrend(total: BalanceTrend, trend: BalanceTrend): BalanceTrend {
@@ -70,6 +107,7 @@ function addTrend(total: BalanceTrend, trend: BalanceTrend): BalanceTrend {
 export function getCurrencySummaries(
   bankAccounts: SummarizedBankAccount[],
   debts: SummarizedDebt[],
+  buckets: SummarizedBucket[],
 ): CurrencySummary[] {
   const summaryByCurrency = new Map<BankAccount["currency"], CurrencySummary>();
 
@@ -103,6 +141,26 @@ export function getCurrencySummaries(
     const summary = getOrCreateSummary(debt.currency);
     if (debt.direction === "receivable") summary.receivableOutstanding += debt.outstanding;
     else summary.payableOutstanding += debt.outstanding;
+
+    summary.openDebts.push({
+      id: debt.id,
+      name: debt.name,
+      direction: debt.direction,
+      currency: debt.currency,
+      amount: debt.amount,
+      outstanding: debt.outstanding,
+      repaid: debt.repaid,
+    });
+  }
+
+  for (const bucket of buckets) {
+    if (!bucket.goal) continue;
+
+    getOrCreateSummary(bucket.goal.currency).goalLanes.push({
+      bucketId: bucket.id,
+      bucketName: bucket.name,
+      goal: bucket.goal,
+    });
   }
 
   for (const summary of summaryByCurrency.values()) {
@@ -110,6 +168,8 @@ export function getCurrencySummaries(
       (a, b) =>
         b.unallocated + b.earmarked - (a.unallocated + a.earmarked) || a.name.localeCompare(b.name),
     );
+    summary.goalLanes.sort(compareGoalLanes);
+    summary.openDebts.sort((a, b) => b.outstanding - a.outstanding || a.name.localeCompare(b.name));
   }
 
   return [...summaryByCurrency.values()].sort(
