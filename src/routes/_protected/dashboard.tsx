@@ -10,6 +10,7 @@ import { StateTemplate } from "#/components/state-template";
 import { formatPageTitle, isCurrencyCode } from "#/lib/utils";
 import { AccountBreakdownChart } from "#/modules/dashboard/components/account-breakdown-chart";
 import { BalanceTrendChart } from "#/modules/dashboard/components/balance-trend-chart";
+import { CashflowChart } from "#/modules/dashboard/components/cashflow-chart";
 import { CurrencySwitcher } from "#/modules/dashboard/components/currency-switcher";
 import { DashboardActions } from "#/modules/dashboard/components/dashboard-actions";
 import { GettingStartedCard } from "#/modules/dashboard/components/getting-started-card";
@@ -100,6 +101,8 @@ function RouteComponent() {
         <BalanceTrendChart summary={summary} trendWindowStart={data.trendWindowStart} />
         <AccountBreakdownChart summary={summary} />
       </div>
+
+      <CashflowChart summary={summary} />
 
       <div className="grid gap-3 lg:grid-cols-2">
         <GoalLanesCard summary={summary} />

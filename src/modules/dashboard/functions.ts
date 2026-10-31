@@ -7,6 +7,7 @@ import { getBankAccountsWithFiguresAndTrend } from "#/modules/bank-accounts/figu
 import { getBalanceTrendWindowStart } from "#/modules/bank-accounts/utils";
 import { getBucketsWithFigures } from "#/modules/buckets/figures.server";
 import { getRecentLedgerMovements } from "#/modules/dashboard/activity.server";
+import { getCashflowByCurrency } from "#/modules/dashboard/cashflow.server";
 import { getCurrencySummaries } from "#/modules/dashboard/utils";
 import { getDebtsWithFigures } from "#/modules/debts/figures.server";
 import { getGoalProgress } from "#/modules/goals/utils";
@@ -38,10 +39,13 @@ export const getDashboard = createServerFn({
         }),
       ]);
 
-    const recentLedgerMovements = await getRecentLedgerMovements(db, {
-      userId: context.userId,
-      currencies: [...new Set(bankAccounts.map((bankAccount) => bankAccount.currency))],
-    });
+    const [recentLedgerMovements, cashflows] = await Promise.all([
+      getRecentLedgerMovements(db, {
+        userId: context.userId,
+        currencies: [...new Set(bankAccounts.map((bankAccount) => bankAccount.currency))],
+      }),
+      getCashflowByCurrency(db, { userId: context.userId }),
+    ]);
 
     const goalByBucketId = new Map(bucketGoals.map((goal) => [goal.bucketId, goal]));
     const buckets = bucketsWithFigures.map((bucket) => {
@@ -69,7 +73,7 @@ export const getDashboard = createServerFn({
         name: distribution.name,
         currency: distribution.bankAccount.currency,
       })),
-      currencySummaries: getCurrencySummaries(bankAccounts, debts, buckets, recentLedgerMovements),
+      currencySummaries: getCurrencySummaries(bankAccounts, debts, buckets, recentLedgerMovements, cashflows),
       trendWindowStart: getBalanceTrendWindowStart(new Date()).getTime(),
     };
   });

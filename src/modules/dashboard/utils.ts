@@ -1,4 +1,4 @@
-import type { BankAccount, Bucket, Debt, Goal, Repayment } from "#/db/schema";
+import type { BankAccount, Bucket, Debt, Goal, Repayment, Transaction } from "#/db/schema";
 import type { BalanceTrend } from "#/modules/bank-accounts/utils";
 import type { DebtStatus } from "#/modules/debts/figures.server";
 
@@ -25,6 +25,59 @@ export type OpenDebt = Pick<Debt, "id" | "name" | "direction" | "currency" | "am
   repaid: number;
 };
 
+export const CASHFLOW_MONTHS = 6;
+
+export type MonthlyCashflow = {
+  // First instant of the month, in UTC, so labels don't shift with the viewer's time zone.
+  month: number;
+  income: number;
+  expense: number;
+};
+
+export type Cashflow = {
+  months: MonthlyCashflow[];
+  hasActivity: boolean;
+};
+
+// The current month plus the five before it, oldest first.
+export function getCashflowWindowStart(now: Date) {
+  return getCashflowMonthStart(now, 0);
+}
+
+function getCashflowMonthStart(now: Date, index: number) {
+  return Date.UTC(now.getUTCFullYear(), now.getUTCMonth() - (CASHFLOW_MONTHS - 1) + index, 1);
+}
+
+export function getCashflow(
+  transactions: Pick<Transaction, "type" | "amount" | "date">[],
+  now: Date,
+): Cashflow {
+  const months = Array.from(
+    { length: CASHFLOW_MONTHS },
+    (_, index): MonthlyCashflow => ({
+      month: getCashflowMonthStart(now, index),
+      income: 0,
+      expense: 0,
+    }),
+  );
+  let hasActivity = false;
+
+  for (const { type, amount, date } of transactions) {
+    const monthIndex =
+      (date.getUTCFullYear() - now.getUTCFullYear()) * 12 +
+      date.getUTCMonth() -
+      now.getUTCMonth() +
+      (CASHFLOW_MONTHS - 1);
+    // Outside the window: older than six months, or future-dated past the current month.
+    if (monthIndex < 0 || monthIndex >= CASHFLOW_MONTHS) continue;
+
+    months[monthIndex][type] += amount;
+    hasActivity = true;
+  }
+
+  return { months, hasActivity };
+}
+
 export const RECENT_MOVEMENTS_LIMIT = 8;
 
 export type RecentMovement = {
@@ -44,6 +97,7 @@ export type CurrencySummary = {
   unallocated: number;
   earmarked: number;
   trend: BalanceTrend;
+  cashflow: Cashflow;
   accounts: AccountBreakdown[];
   receivableOutstanding: number;
   payableOutstanding: number;
@@ -82,6 +136,7 @@ export function createEmptySummary(currency: BankAccount["currency"]): CurrencyS
       net: 0,
       hasActivity: false,
     },
+    cashflow: getCashflow([], new Date()),
     accounts: [],
     receivableOutstanding: 0,
     payableOutstanding: 0,
@@ -133,6 +188,7 @@ export function getCurrencySummaries(
   debts: SummarizedDebt[],
   buckets: SummarizedBucket[],
   ledgerMovements: Map<BankAccount["currency"], RecentMovement[]>,
+  cashflows: Map<BankAccount["currency"], Cashflow>,
 ): CurrencySummary[] {
   const summaryByCurrency = new Map<BankAccount["currency"], CurrencySummary>();
 
@@ -162,6 +218,10 @@ export function getCurrencySummaries(
 
   for (const [currency, movements] of ledgerMovements) {
     getOrCreateSummary(currency).recentMovements.push(...movements);
+  }
+
+  for (const [currency, cashflow] of cashflows) {
+    getOrCreateSummary(currency).cashflow = cashflow;
   }
 
   for (const debt of debts) {
