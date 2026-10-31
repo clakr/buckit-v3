@@ -6,6 +6,7 @@ import { authMiddleware } from "#/modules/authentication/middlewares";
 import { getBankAccountsWithFiguresAndTrend } from "#/modules/bank-accounts/figures.server";
 import { getBalanceTrendWindowStart } from "#/modules/bank-accounts/utils";
 import { getBucketsWithFigures } from "#/modules/buckets/figures.server";
+import { getRecentLedgerMovements } from "#/modules/dashboard/activity.server";
 import { getCurrencySummaries } from "#/modules/dashboard/utils";
 import { getDebtsWithFigures } from "#/modules/debts/figures.server";
 import { getGoalProgress } from "#/modules/goals/utils";
@@ -27,6 +28,11 @@ export const getDashboard = createServerFn({
       }),
     ]);
 
+    const recentLedgerMovements = await getRecentLedgerMovements(db, {
+      userId: context.userId,
+      currencies: [...new Set(bankAccounts.map((bankAccount) => bankAccount.currency))],
+    });
+
     const goalByBucketId = new Map(bucketGoals.map((goal) => [goal.bucketId, goal]));
     const buckets = bucketsWithFigures.map((bucket) => {
       const goal = goalByBucketId.get(bucket.id);
@@ -39,7 +45,7 @@ export const getDashboard = createServerFn({
     });
 
     return {
-      currencySummaries: getCurrencySummaries(bankAccounts, debts, buckets),
+      currencySummaries: getCurrencySummaries(bankAccounts, debts, buckets, recentLedgerMovements),
       trendWindowStart: getBalanceTrendWindowStart(new Date()).getTime(),
     };
   });

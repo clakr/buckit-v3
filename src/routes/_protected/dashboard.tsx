@@ -14,6 +14,7 @@ import { CurrencySwitcher } from "#/modules/dashboard/components/currency-switch
 import { GoalLanesCard } from "#/modules/dashboard/components/goal-lanes-card";
 import { KpiTiles } from "#/modules/dashboard/components/kpi-tiles";
 import { OpenDebtsCard } from "#/modules/dashboard/components/open-debts-card";
+import { RecentActivityCard } from "#/modules/dashboard/components/recent-activity-card";
 import { dashboardQueryOptions } from "#/modules/dashboard/query-options";
 import { selectCurrencySummary } from "#/modules/dashboard/utils";
 
@@ -87,6 +88,8 @@ function RouteComponent() {
         <GoalLanesCard summary={summary} />
         <OpenDebtsCard summary={summary} />
       </div>
+
+      <RecentActivityCard summary={summary} />
     </Main>
   );
 }

@@ -359,6 +359,7 @@ export const relations = defineRelations(
       bankAccount: r.one.bankAccounts({
         from: r.transactions.bankAccountId,
         to: r.bankAccounts.id,
+        optional: false,
       }),
       withdrawal: r.one.withdrawals({
         from: r.transactions.id,
@@ -369,10 +370,12 @@ export const relations = defineRelations(
       bankAccount: r.one.bankAccounts({
         from: r.allocations.bankAccountId,
         to: r.bankAccounts.id,
+        optional: false,
       }),
       bucket: r.one.buckets({
         from: r.allocations.bucketId,
         to: r.buckets.id,
+        optional: false,
       }),
     },
     debts: {

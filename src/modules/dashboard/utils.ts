@@ -1,4 +1,4 @@
-import type { BankAccount, Bucket, Debt, Goal } from "#/db/schema";
+import type { BankAccount, Bucket, Debt, Goal, Repayment } from "#/db/schema";
 import type { BalanceTrend } from "#/modules/bank-accounts/utils";
 import type { DebtStatus } from "#/modules/debts/figures.server";
 
@@ -25,6 +25,19 @@ export type OpenDebt = Pick<Debt, "id" | "name" | "direction" | "currency" | "am
   repaid: number;
 };
 
+export const RECENT_MOVEMENTS_LIMIT = 8;
+
+export type RecentMovement = {
+  key: string;
+  kind: "income" | "expense" | "allocation" | "repayment";
+  // Which way the money moved relative to the User. Allocations only earmark, so they have none.
+  flow: "in" | "out" | null;
+  amount: number;
+  date: Date;
+  createdAt: Date;
+  owner: { kind: "bankAccount" | "bucket" | "debt"; id: string; name: string };
+};
+
 export type CurrencySummary = {
   currency: BankAccount["currency"];
   balance: number;
@@ -36,6 +49,7 @@ export type CurrencySummary = {
   payableOutstanding: number;
   goalLanes: GoalLane[];
   openDebts: OpenDebt[];
+  recentMovements: RecentMovement[];
 };
 
 type SummarizedBankAccount = Pick<BankAccount, "id" | "name" | "currency"> & {
@@ -49,6 +63,7 @@ type SummarizedDebt = Pick<Debt, "id" | "name" | "currency" | "direction" | "amo
   outstanding: number;
   repaid: number;
   status: DebtStatus;
+  repayments: { id: Repayment["id"]; amount: number; date: Date; createdAt: Date }[];
 };
 
 type SummarizedBucket = Pick<Bucket, "id" | "name"> & {
@@ -72,6 +87,7 @@ export function createEmptySummary(currency: BankAccount["currency"]): CurrencyS
     payableOutstanding: 0,
     goalLanes: [],
     openDebts: [],
+    recentMovements: [],
   };
 }
 
@@ -88,6 +104,14 @@ function compareGoalLanes(a: GoalLane, b: GoalLane) {
     GOAL_STATUS_ORDER[getGoalStatus(a.goal)] - GOAL_STATUS_ORDER[getGoalStatus(b.goal)] ||
     (a.goal.targetDate?.getTime() ?? Infinity) - (b.goal.targetDate?.getTime() ?? Infinity) ||
     a.bucketName.localeCompare(b.bucketName)
+  );
+}
+
+function compareMovementsNewestFirst(a: RecentMovement, b: RecentMovement) {
+  return (
+    b.date.getTime() - a.date.getTime() ||
+    b.createdAt.getTime() - a.createdAt.getTime() ||
+    a.key.localeCompare(b.key)
   );
 }
 
@@ -108,6 +132,7 @@ export function getCurrencySummaries(
   bankAccounts: SummarizedBankAccount[],
   debts: SummarizedDebt[],
   buckets: SummarizedBucket[],
+  ledgerMovements: Map<BankAccount["currency"], RecentMovement[]>,
 ): CurrencySummary[] {
   const summaryByCurrency = new Map<BankAccount["currency"], CurrencySummary>();
 
@@ -135,10 +160,28 @@ export function getCurrencySummaries(
     });
   }
 
+  for (const [currency, movements] of ledgerMovements) {
+    getOrCreateSummary(currency).recentMovements.push(...movements);
+  }
+
   for (const debt of debts) {
+    const summary = getOrCreateSummary(debt.currency);
+
+    // A Repayment is the Debt's record, so it stands in for the Transaction it may be linked to.
+    for (const repayment of debt.repayments) {
+      summary.recentMovements.push({
+        key: `repayment:${repayment.id}`,
+        kind: "repayment",
+        flow: debt.direction === "receivable" ? "in" : "out",
+        amount: repayment.amount,
+        date: repayment.date,
+        createdAt: repayment.createdAt,
+        owner: { kind: "debt", id: debt.id, name: debt.name },
+      });
+    }
+
     if (debt.status !== "open") continue;
 
-    const summary = getOrCreateSummary(debt.currency);
     if (debt.direction === "receivable") summary.receivableOutstanding += debt.outstanding;
     else summary.payableOutstanding += debt.outstanding;
 
@@ -170,6 +213,9 @@ export function getCurrencySummaries(
     );
     summary.goalLanes.sort(compareGoalLanes);
     summary.openDebts.sort((a, b) => b.outstanding - a.outstanding || a.name.localeCompare(b.name));
+    summary.recentMovements = summary.recentMovements
+      .sort(compareMovementsNewestFirst)
+      .slice(0, RECENT_MOVEMENTS_LIMIT);
   }
 
   return [...summaryByCurrency.values()].sort(
