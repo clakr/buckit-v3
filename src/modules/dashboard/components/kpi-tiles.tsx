@@ -44,7 +44,7 @@ export function KpiTiles({ summary }: KpiTilesProps) {
   return (
     <section
       aria-label={`${currency} overview`}
-      className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4"
+      className="grid gap-1 rounded-lg bg-muted/50 p-1 ring-1 ring-foreground/10 sm:grid-cols-2 xl:grid-cols-4"
     >
       <KpiTile
         label="Balance"

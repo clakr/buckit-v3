@@ -2,8 +2,9 @@ import { IconChartAreaLine } from "@tabler/icons-react";
 import { useId } from "react";
 import { Area, AreaChart, CartesianGrid, XAxis, YAxis } from "recharts";
 
+import { InsetCard, InsetCardContent } from "#/components/inset-card";
 import { StateTemplate } from "#/components/state-template";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "#/components/ui/card";
+import { CardDescription, CardTitle } from "#/components/ui/card";
 import {
   ChartContainer,
   ChartTooltip,
@@ -17,6 +18,7 @@ import { type CurrencySummary } from "#/modules/dashboard/utils";
 type BalanceTrendChartProps = {
   summary: CurrencySummary;
   trendWindowStart: number;
+  className?: string;
 };
 
 const chartConfig = {
@@ -28,7 +30,11 @@ function formatTrendDate(date: number, options: Intl.DateTimeFormatOptions) {
   return new Date(date).toLocaleDateString("en-US", { ...options, timeZone: "UTC" });
 }
 
-export function BalanceTrendChart({ summary, trendWindowStart }: BalanceTrendChartProps) {
+export function BalanceTrendChart({
+  summary,
+  trendWindowStart,
+  className,
+}: BalanceTrendChartProps) {
   const gradientId = `balance-trend-${useId().replace(/:/g, "")}`;
   const { currency, trend } = summary;
 
@@ -38,14 +44,15 @@ export function BalanceTrendChart({ summary, trendWindowStart }: BalanceTrendCha
   }));
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Balance trend</CardTitle>
-        <CardDescription>
-          Combined {currency} Balance over the last {BALANCE_TREND_DAYS} days
-        </CardDescription>
-      </CardHeader>
-      <CardContent>
+    <InsetCard className={className}>
+      <InsetCardContent>
+        <div className="flex flex-col gap-y-1">
+          <CardTitle>Balance Trend</CardTitle>
+          <CardDescription>
+            Combined {currency} Balance over the last {BALANCE_TREND_DAYS} days
+          </CardDescription>
+        </div>
+
         {trend.hasActivity ? (
           <ChartContainer config={chartConfig} className="aspect-auto h-64 w-full">
             <AreaChart data={data} margin={{ top: 8, right: 8, bottom: 0, left: 8 }}>
@@ -104,7 +111,7 @@ export function BalanceTrendChart({ summary, trendWindowStart }: BalanceTrendCha
             description={`Transactions in ${currency} over the last ${BALANCE_TREND_DAYS} days will chart here.`}
           />
         )}
-      </CardContent>
-    </Card>
+      </InsetCardContent>
+    </InsetCard>
   );
 }

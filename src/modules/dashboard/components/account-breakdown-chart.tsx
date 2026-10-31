@@ -1,8 +1,11 @@
-import { IconBuildingBank } from "@tabler/icons-react";
+import { IconBuildingBank, IconPlus } from "@tabler/icons-react";
+import { Link } from "@tanstack/react-router";
 import { Bar, BarChart, CartesianGrid, XAxis, YAxis } from "recharts";
 
+import { InsetCard, InsetCardContent, InsetCardFooter } from "#/components/inset-card";
 import { StateTemplate } from "#/components/state-template";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "#/components/ui/card";
+import { Button } from "#/components/ui/button";
+import { CardDescription, CardTitle } from "#/components/ui/card";
 import {
   ChartContainer,
   ChartLegend,
@@ -11,15 +14,19 @@ import {
   ChartTooltipContent,
   type ChartConfig,
 } from "#/components/ui/chart";
+import { DrawerTrigger } from "#/components/ui/drawer";
+import { MODULE_ICONS } from "#/lib/constants";
 import { formatMoney } from "#/lib/money";
+import { registerBankAccountDrawerHandle } from "#/modules/bank-accounts/components/register-bank-account-drawer";
 import { type CurrencySummary } from "#/modules/dashboard/utils";
 
 type AccountBreakdownChartProps = {
   summary: CurrencySummary;
 };
 
-const ROW_HEIGHT = 40;
-const AXIS_HEIGHT = 56;
+// Past this many Accounts, names no longer fit flat under their bars, so they tilt.
+const FLAT_LABEL_LIMIT = 8;
+const LABEL_LENGTH = 16;
 
 const chartConfig = {
   unallocated: { label: "Unallocated", color: "var(--chart-2)" },
@@ -28,35 +35,36 @@ const chartConfig = {
 
 export function AccountBreakdownChart({ summary }: AccountBreakdownChartProps) {
   const { currency, accounts } = summary;
+  const isCrowded = accounts.length > FLAT_LABEL_LIMIT;
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Where it sits</CardTitle>
-        <CardDescription>
-          {currency} Balance per Account, split into Unallocated and Earmarked
-        </CardDescription>
-      </CardHeader>
-      <CardContent>
+    <InsetCard>
+      <InsetCardContent>
+        <div className="flex flex-col gap-y-1">
+          <CardTitle>Where It Sits</CardTitle>
+          <CardDescription>
+            {currency} Balance per Account, split into Unallocated and Earmarked
+          </CardDescription>
+        </div>
+
         {accounts.length > 0 ? (
-          <ChartContainer
-            config={chartConfig}
-            className="aspect-auto w-full"
-            style={{ height: accounts.length * ROW_HEIGHT + AXIS_HEIGHT }}
-          >
-            <BarChart data={accounts} layout="vertical" margin={{ left: 0, right: 8 }}>
-              <CartesianGrid horizontal={false} />
-              <YAxis
-                type="category"
+          <ChartContainer config={chartConfig} className="aspect-auto h-80 w-full">
+            <BarChart data={accounts} margin={{ top: 8, right: 8, bottom: 0, left: 8 }}>
+              <CartesianGrid vertical={false} />
+              <XAxis
                 dataKey="name"
-                width={136}
+                interval={0}
+                height={isCrowded ? 96 : 30}
+                angle={isCrowded ? -45 : 0}
+                textAnchor={isCrowded ? "end" : "middle"}
                 tickLine={false}
                 axisLine={false}
+                tickMargin={8}
                 tickFormatter={(name: string) =>
-                  name.length > 20 ? `${name.slice(0, 19)}…` : name
+                  name.length > LABEL_LENGTH ? `${name.slice(0, LABEL_LENGTH - 1)}…` : name
                 }
               />
-              <XAxis type="number" hide />
+              <YAxis hide />
               <ChartTooltip
                 cursor={false}
                 content={
@@ -87,7 +95,21 @@ export function AccountBreakdownChart({ summary }: AccountBreakdownChartProps) {
             description={`Register a ${currency} Account to see where its money sits.`}
           />
         )}
-      </CardContent>
-    </Card>
+      </InsetCardContent>
+      <InsetCardFooter>
+        <DrawerTrigger
+          handle={registerBankAccountDrawerHandle}
+          payload={{ currency }}
+          render={<Button variant="outline" />}
+        >
+          <IconPlus />
+          Register Account
+        </DrawerTrigger>
+        <Button nativeButton={false} render={<Link to="/accounts" />}>
+          <MODULE_ICONS.accounts />
+          View Accounts
+        </Button>
+      </InsetCardFooter>
+    </InsetCard>
   );
 }

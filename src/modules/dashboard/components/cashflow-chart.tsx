@@ -1,8 +1,9 @@
 import { IconChartBar } from "@tabler/icons-react";
 import { Bar, BarChart, CartesianGrid, XAxis, YAxis } from "recharts";
 
+import { InsetCard, InsetCardContent } from "#/components/inset-card";
 import { StateTemplate } from "#/components/state-template";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "#/components/ui/card";
+import { CardDescription, CardTitle } from "#/components/ui/card";
 import {
   ChartContainer,
   ChartLegend,
@@ -16,6 +17,7 @@ import { CASHFLOW_MONTHS, type CurrencySummary } from "#/modules/dashboard/utils
 
 type CashflowChartProps = {
   summary: CurrencySummary;
+  className?: string;
 };
 
 const chartConfig = {
@@ -28,18 +30,19 @@ function formatMonth(month: number, options: Intl.DateTimeFormatOptions) {
   return new Date(month).toLocaleDateString("en-US", { ...options, timeZone: "UTC" });
 }
 
-export function CashflowChart({ summary }: CashflowChartProps) {
+export function CashflowChart({ summary, className }: CashflowChartProps) {
   const { currency, cashflow } = summary;
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Income vs expense</CardTitle>
-        <CardDescription>
-          {currency} income against expense per month over the last {CASHFLOW_MONTHS} months
-        </CardDescription>
-      </CardHeader>
-      <CardContent>
+    <InsetCard className={className}>
+      <InsetCardContent>
+        <div className="flex flex-col gap-y-1">
+          <CardTitle>Income vs Expense</CardTitle>
+          <CardDescription>
+            {currency} income against expense per month over the last {CASHFLOW_MONTHS} months
+          </CardDescription>
+        </div>
+
         {cashflow.hasActivity ? (
           <ChartContainer config={chartConfig} className="aspect-auto h-64 w-full">
             <BarChart data={cashflow.months} margin={{ top: 8, right: 8, bottom: 0, left: 8 }}>
@@ -85,7 +88,7 @@ export function CashflowChart({ summary }: CashflowChartProps) {
             description={`Transactions in ${currency} over the last ${CASHFLOW_MONTHS} months will chart here.`}
           />
         )}
-      </CardContent>
-    </Card>
+      </InsetCardContent>
+    </InsetCard>
   );
 }

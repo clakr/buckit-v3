@@ -52,14 +52,11 @@ export function getCashflow(
   transactions: Pick<Transaction, "type" | "amount" | "date">[],
   now: Date,
 ): Cashflow {
-  const months = Array.from(
-    { length: CASHFLOW_MONTHS },
-    (_, index): MonthlyCashflow => ({
-      month: getCashflowMonthStart(now, index),
-      income: 0,
-      expense: 0,
-    }),
-  );
+  const months = Array.from({ length: CASHFLOW_MONTHS }, (_, index): MonthlyCashflow => ({
+    month: getCashflowMonthStart(now, index),
+    income: 0,
+    expense: 0,
+  }));
   let hasActivity = false;
 
   for (const { type, amount, date } of transactions) {
@@ -78,7 +75,7 @@ export function getCashflow(
   return { months, hasActivity };
 }
 
-export const RECENT_MOVEMENTS_LIMIT = 8;
+export const RECENT_MOVEMENTS_LIMIT = 10;
 
 export type RecentMovement = {
   key: string;

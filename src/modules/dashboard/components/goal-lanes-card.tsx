@@ -1,16 +1,13 @@
-import { IconTarget } from "@tabler/icons-react";
+import { IconPlus, IconTarget } from "@tabler/icons-react";
 import { Link } from "@tanstack/react-router";
 
+import { InsetCard, InsetCardContent, InsetCardFooter } from "#/components/inset-card";
 import { StateTemplate } from "#/components/state-template";
 import { Button } from "#/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "#/components/ui/card";
+import { CardDescription, CardTitle } from "#/components/ui/card";
+import { DrawerTrigger } from "#/components/ui/drawer";
+import { MODULE_ICONS } from "#/lib/constants";
+import { setUpBucketDrawerHandle } from "#/modules/buckets/components/set-up-bucket-drawer";
 import { BucketGoalRingCell } from "#/modules/goals/components/bucket-goal-ring-cell";
 import { GoalStatusBadge } from "#/modules/goals/components/goal-status-badge";
 import { getGoalStatus } from "#/modules/goals/utils";
@@ -21,21 +18,24 @@ type Props = {
   summary: CurrencySummary;
 };
 
-const VISIBLE_LANES = 4;
+const VISIBLE_LANES = 5;
 
 export function GoalLanesCard({ summary }: Props) {
   const { currency, goalLanes } = summary;
   const visibleLanes = goalLanes.slice(0, VISIBLE_LANES);
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Goals</CardTitle>
-        <CardDescription>{currency} Goals, Overdue first, then nearest target date</CardDescription>
-      </CardHeader>
-      <CardContent>
+    <InsetCard>
+      <InsetCardContent>
+        <div className="flex flex-col gap-y-1">
+          <CardTitle>Goals</CardTitle>
+          <CardDescription>
+            {currency} Goals, Overdue first, then nearest target date
+          </CardDescription>
+        </div>
+
         {visibleLanes.length > 0 ? (
-          <ul className="divide-y">
+          <ul className="min-h-0 flex-1 divide-y overflow-y-auto">
             {visibleLanes.map(({ bucketId, bucketName, goal }) => (
               <li key={bucketId}>
                 <Link
@@ -58,21 +58,24 @@ export function GoalLanesCard({ summary }: Props) {
             icon={<IconTarget />}
             title={`No ${currency} Goals`}
             description={`Add a Goal in ${currency} to a Bucket to track progress toward a target.`}
-            content={
-              <Button nativeButton={false} render={<Link to="/buckets" />}>
-                Go to Buckets
-              </Button>
-            }
           />
         )}
-      </CardContent>
-      {goalLanes.length > VISIBLE_LANES ? (
-        <CardFooter>
-          <Button variant="link" nativeButton={false} render={<Link to="/buckets" />}>
-            View all {goalLanes.length} Goals in Buckets
-          </Button>
-        </CardFooter>
-      ) : null}
-    </Card>
+        {goalLanes.length > VISIBLE_LANES ? (
+          <p className="shrink-0 text-center text-muted-foreground">
+            Showing {VISIBLE_LANES} of {goalLanes.length} Goals
+          </p>
+        ) : null}
+      </InsetCardContent>
+      <InsetCardFooter>
+        <DrawerTrigger handle={setUpBucketDrawerHandle} render={<Button variant="outline" />}>
+          <IconPlus />
+          Create Goal
+        </DrawerTrigger>
+        <Button nativeButton={false} render={<Link to="/buckets" />}>
+          <MODULE_ICONS.buckets />
+          View All
+        </Button>
+      </InsetCardFooter>
+    </InsetCard>
   );
 }

@@ -97,19 +97,22 @@ function RouteComponent() {
 
       <KpiTiles summary={summary} />
 
-      <div className="grid gap-3 lg:grid-cols-2">
-        <BalanceTrendChart summary={summary} trendWindowStart={data.trendWindowStart} />
-        <AccountBreakdownChart summary={summary} />
+      <div className="grid gap-3 lg:grid-cols-10">
+        <BalanceTrendChart
+          summary={summary}
+          trendWindowStart={data.trendWindowStart}
+          className="lg:col-span-6"
+        />
+        <CashflowChart summary={summary} className="lg:col-span-4" />
       </div>
 
-      <CashflowChart summary={summary} />
+      <AccountBreakdownChart summary={summary} />
 
-      <div className="grid gap-3 lg:grid-cols-2">
+      <div className="grid gap-3 *:h-148 lg:grid-cols-3">
         <GoalLanesCard summary={summary} />
         <OpenDebtsCard summary={summary} />
+        <RecentActivityCard summary={summary} />
       </div>
-
-      <RecentActivityCard summary={summary} />
     </Main>
   );
 }

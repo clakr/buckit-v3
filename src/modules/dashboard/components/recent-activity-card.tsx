@@ -1,8 +1,8 @@
 import { Link } from "@tanstack/react-router";
 
+import { InsetCard, InsetCardContent } from "#/components/inset-card";
 import { StateTemplate } from "#/components/state-template";
-import { Button } from "#/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "#/components/ui/card";
+import { CardDescription, CardTitle } from "#/components/ui/card";
 import { MODULE_ICONS } from "#/lib/constants";
 import { formatMoney } from "#/lib/money";
 import { formatDate } from "#/lib/utils";
@@ -53,16 +53,17 @@ export function RecentActivityCard({ summary }: Props) {
   const { currency, recentMovements } = summary;
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Recent activity</CardTitle>
-        <CardDescription>
-          Latest {currency} Transactions, Allocations and Repayments
-        </CardDescription>
-      </CardHeader>
-      <CardContent>
+    <InsetCard>
+      <InsetCardContent>
+        <div className="flex flex-col gap-y-1">
+          <CardTitle>Recent Activity</CardTitle>
+          <CardDescription>
+            Latest {currency} Transactions, Allocations and Repayments
+          </CardDescription>
+        </div>
+
         {recentMovements.length > 0 ? (
-          <ul className="divide-y">
+          <ul className="min-h-0 flex-1 divide-y overflow-y-auto">
             {recentMovements.map((movement) => (
               <li key={movement.key} className="flex items-center justify-between gap-x-3 py-3">
                 <div className="flex min-w-0 flex-col gap-y-1">
@@ -86,15 +87,10 @@ export function RecentActivityCard({ summary }: Props) {
             state="empty"
             icon={<MODULE_ICONS.accounts />}
             title={`No ${currency} activity yet`}
-            description={`Log a Transaction on a ${currency} Account to see it here.`}
-            content={
-              <Button nativeButton={false} render={<Link to="/accounts" />}>
-                Go to Accounts
-              </Button>
-            }
+            description={`Transactions, Allocations and Repayments in ${currency} will show up here.`}
           />
         )}
-      </CardContent>
-    </Card>
+      </InsetCardContent>
+    </InsetCard>
   );
 }
