@@ -1,4 +1,4 @@
-import { useRouterState } from "@tanstack/react-router";
+import { useMatch, useRouterState } from "@tanstack/react-router";
 
 import { Main } from "#/components/main";
 import {
@@ -11,11 +11,17 @@ import {
 import { Spinner } from "#/components/ui/spinner";
 
 /**
- * Root-level pending screen. Fills the whole screen on cold start, when the router has not
- * resolved any location yet. Later navigations load inside the existing layout instead.
+ * Pending screen. Fills the whole screen when it replaces a layout route directly under the root
+ * (cold start), and loads inside the existing layout when a child route is pending.
+ *
+ * Decided from the route tree rather than `resolvedLocation`: the server sets that before
+ * rendering but the client doesn't until its load finishes, so the two rendered different variants.
  */
 export function LoadingScreen() {
-  const isColdStart = useRouterState({ select: (state) => state.resolvedLocation === undefined });
+  const matchId = useMatch({ strict: false, select: (match) => match.id });
+  const isColdStart = useRouterState({
+    select: (state) => state.matches.findIndex((match) => match.id === matchId) <= 1,
+  });
 
   const content = (
     <>
