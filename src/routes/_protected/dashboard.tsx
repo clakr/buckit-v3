@@ -11,6 +11,8 @@ import { formatPageTitle, isCurrencyCode } from "#/lib/utils";
 import { AccountBreakdownChart } from "#/modules/dashboard/components/account-breakdown-chart";
 import { BalanceTrendChart } from "#/modules/dashboard/components/balance-trend-chart";
 import { CurrencySwitcher } from "#/modules/dashboard/components/currency-switcher";
+import { DashboardActions } from "#/modules/dashboard/components/dashboard-actions";
+import { GettingStartedCard } from "#/modules/dashboard/components/getting-started-card";
 import { GoalLanesCard } from "#/modules/dashboard/components/goal-lanes-card";
 import { KpiTiles } from "#/modules/dashboard/components/kpi-tiles";
 import { OpenDebtsCard } from "#/modules/dashboard/components/open-debts-card";
@@ -68,14 +70,29 @@ function RouteComponent() {
     <Main>
       <div className="flex items-center justify-between">
         <Heading>Dashboard</Heading>
-        <CurrencySwitcher
-          currencies={data.currencySummaries.map((currencySummary) => currencySummary.currency)}
-          value={summary.currency}
-          onValueChange={(selectedCurrency) =>
-            navigate({ search: { currency: selectedCurrency }, replace: true })
-          }
-        />
+        <div className="flex items-center gap-x-3">
+          <CurrencySwitcher
+            currencies={data.currencySummaries.map((currencySummary) => currencySummary.currency)}
+            value={summary.currency}
+            onValueChange={(selectedCurrency) =>
+              navigate({ search: { currency: selectedCurrency }, replace: true })
+            }
+          />
+          <DashboardActions
+            currency={summary.currency}
+            accounts={summary.accounts}
+            distributions={data.distributions}
+            hasBucket={data.gettingStarted.hasBucket}
+          />
+        </div>
       </div>
+
+      <GettingStartedCard
+        currency={summary.currency}
+        fundingBankAccountId={data.gettingStarted.fundingBankAccountId}
+        hasBucket={data.gettingStarted.hasBucket}
+        hasAllocation={data.gettingStarted.hasAllocation}
+      />
 
       <KpiTiles summary={summary} />
 

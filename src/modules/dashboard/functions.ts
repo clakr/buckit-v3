@@ -18,15 +18,25 @@ export const getDashboard = createServerFn({
   .handler(async ({ context }) => {
     const db = getDB(env.db);
 
-    const [bankAccounts, debts, bucketsWithFigures, bucketGoals] = await Promise.all([
-      getBankAccountsWithFiguresAndTrend(db, { userId: context.userId }),
-      getDebtsWithFigures(db, { userId: context.userId }),
-      getBucketsWithFigures(db, { userId: context.userId }),
-      db.query.goals.findMany({
-        columns: { bucketId: true, targetAmount: true, currency: true, targetDate: true },
-        where: { bucket: { userId: context.userId } },
-      }),
-    ]);
+    const [bankAccounts, debts, bucketsWithFigures, bucketGoals, firstAllocation, distributions] =
+      await Promise.all([
+        getBankAccountsWithFiguresAndTrend(db, { userId: context.userId }),
+        getDebtsWithFigures(db, { userId: context.userId }),
+        getBucketsWithFigures(db, { userId: context.userId }),
+        db.query.goals.findMany({
+          columns: { bucketId: true, targetAmount: true, currency: true, targetDate: true },
+          where: { bucket: { userId: context.userId } },
+        }),
+        db.query.allocations.findFirst({
+          columns: { id: true },
+          where: { bankAccount: { userId: context.userId } },
+        }),
+        db.query.distributions.findMany({
+          columns: { id: true, name: true },
+          where: { userId: context.userId },
+          with: { bankAccount: { columns: { currency: true } } },
+        }),
+      ]);
 
     const recentLedgerMovements = await getRecentLedgerMovements(db, {
       userId: context.userId,
@@ -44,7 +54,21 @@ export const getDashboard = createServerFn({
       };
     });
 
+    // The account an Allocation starts from when the Dashboard has to pick one: the one with the
+    // most Unallocated money, since that is the one that can actually fund it.
+    const [fundingBankAccount] = [...bankAccounts].sort((a, b) => b.unallocated - a.unallocated);
+
     return {
+      gettingStarted: {
+        fundingBankAccountId: fundingBankAccount?.id ?? null,
+        hasBucket: bucketsWithFigures.length > 0,
+        hasAllocation: firstAllocation !== undefined,
+      },
+      distributions: distributions.map((distribution) => ({
+        id: distribution.id,
+        name: distribution.name,
+        currency: distribution.bankAccount.currency,
+      })),
       currencySummaries: getCurrencySummaries(bankAccounts, debts, buckets, recentLedgerMovements),
       trendWindowStart: getBalanceTrendWindowStart(new Date()).getTime(),
     };
