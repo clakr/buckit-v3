@@ -1,4 +1,3 @@
-import { IconPencil, IconPlus } from "@tabler/icons-react";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute, Link } from "@tanstack/react-router";
 
@@ -7,13 +6,11 @@ import { Main } from "#/components/main";
 import { RouteRetryButton } from "#/components/route-retry-button";
 import { StateTemplate } from "#/components/state-template";
 import { Button } from "#/components/ui/button";
-import { DrawerTrigger } from "#/components/ui/drawer";
 import { loadOrThrowRouteNotFound } from "#/lib/errors";
 import { formatPageTitle } from "#/lib/utils";
+import { DebtDetailActions } from "#/modules/debts/components/debt-detail-actions";
 import { DebtLedgerTable } from "#/modules/debts/components/debt-ledger-table";
-import { editDebtDrawerHandle } from "#/modules/debts/components/edit-debt-drawer";
 import { debtQueryOption } from "#/modules/debts/query-options";
-import { logRepaymentDrawerHandle } from "#/modules/repayments/components/log-repayment-drawer";
 
 export const Route = createFileRoute("/_protected/debts/$debtId")({
   context: ({ params }) => ({
@@ -76,24 +73,7 @@ function RouteComponent() {
     <Main>
       <div className="flex items-baseline justify-between">
         <Heading className="capitalize">{debt.name}</Heading>
-        <div className="flex gap-x-2">
-          <DrawerTrigger
-            handle={editDebtDrawerHandle}
-            payload={{ debtId: debt.id }}
-            render={<Button variant="outline" />}
-          >
-            <IconPencil />
-            Edit
-          </DrawerTrigger>
-          <DrawerTrigger
-            handle={logRepaymentDrawerHandle}
-            payload={{ debtId: debt.id }}
-            render={<Button />}
-          >
-            <IconPlus />
-            Log Repayment
-          </DrawerTrigger>
-        </div>
+        <DebtDetailActions debt={debt} />
       </div>
 
       <DebtLedgerTable debt={debt} />
