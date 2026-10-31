@@ -3,7 +3,7 @@ import { useSuspenseQuery } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";
 import { useState, useTransition } from "react";
 
-import type { Bucket } from "#/db/schema";
+import type { Bucket, Goal } from "#/db/schema";
 import type { BucketLedgerEntry } from "#/modules/buckets/ledger.server";
 
 import { LedgerPager } from "#/components/ledger-pager";
@@ -38,32 +38,38 @@ import { WithdrawalActionsDropdownMenu } from "#/modules/withdrawals/components/
 
 type Props = {
   bucketId: Bucket["id"];
+  goalCurrency?: Goal["currency"];
 };
 
-export function BucketLedgerTable({ bucketId }: Props) {
+export function BucketLedgerTable({ bucketId, goalCurrency }: Props) {
   const [page, setPage] = useState<LedgerPageRequest>(DEFAULT_LEDGER_PAGE);
   const [isPending, startTransition] = useTransition();
   const { data: bucketLedger } = useSuspenseQuery(bucketLedgerQueryOption(bucketId, page));
   const { subtotals, holdings, entries, opening, isOldestPage, ...paging } = bucketLedger;
+  // The Goal panel already shows the Bucket's Subtotal in the Goal's currency.
+  const isHoldsRedundant =
+    goalCurrency !== undefined && subtotals.every(({ currency }) => currency === goalCurrency);
 
   return (
     <div className="flex flex-col gap-y-3">
       <div className="flex flex-col gap-y-1 text-sm text-muted-foreground">
-        <p className="flex flex-wrap items-center gap-x-2">
-          Holds
-          {subtotals.length ? (
-            subtotals.map(({ currency, amount }, index) => (
-              <span key={currency} className="flex items-center gap-x-2">
-                {index > 0 ? "·" : null}
-                <strong className="font-semibold text-foreground tabular-nums">
-                  {formatMoney(amount, currency)}
-                </strong>
-              </span>
-            ))
-          ) : (
-            <strong className="font-semibold text-foreground">nothing yet</strong>
-          )}
-        </p>
+        {isHoldsRedundant ? null : (
+          <p className="flex flex-wrap items-center gap-x-2">
+            Holds
+            {subtotals.length ? (
+              subtotals.map(({ currency, amount }, index) => (
+                <span key={currency} className="flex items-center gap-x-2">
+                  {index > 0 ? "·" : null}
+                  <strong className="font-semibold text-foreground tabular-nums">
+                    {formatMoney(amount, currency)}
+                  </strong>
+                </span>
+              ))
+            ) : (
+              <strong className="font-semibold text-foreground">nothing yet</strong>
+            )}
+          </p>
+        )}
         {holdings.length > 1 ? (
           <p className="flex flex-wrap items-center gap-x-2">
             From

@@ -4,10 +4,11 @@ import {
   IconPencil,
   IconPigMoney,
   IconTarget,
+  IconTargetOff,
   IconTrash,
 } from "@tabler/icons-react";
 
-import type { Bucket } from "#/db/schema";
+import type { Bucket, Goal } from "#/db/schema";
 
 import { Button } from "#/components/ui/button";
 import { ButtonGroup } from "#/components/ui/button-group";
@@ -23,24 +24,55 @@ import {
 import { Tooltip, TooltipContent, TooltipTrigger } from "#/components/ui/tooltip";
 import { logAllocationDrawerHandle } from "#/modules/allocations/components/log-allocation-drawer";
 import { addGoalDrawerHandle } from "#/modules/goals/components/add-goal-drawer";
+import { editGoalDrawerHandle } from "#/modules/goals/components/edit-goal-drawer";
+import { useRemoveGoalMutation } from "#/modules/goals/mutations";
 import { withdrawDrawerHandle } from "#/modules/withdrawals/components/withdraw-drawer";
+import { confirm } from "#/stores/use-confirm";
 
 import { deleteBucketDialogHandle } from "./delete-bucket-dialog";
 import { editBucketDrawerHandle } from "./edit-bucket-drawer";
 
 type Props = {
   bucketId: Bucket["id"];
-  hasGoal: boolean;
+  goalId: Goal["id"] | null;
   holdsMoney: boolean;
 };
 
-export function BucketDetailActions({ bucketId, hasGoal, holdsMoney }: Props) {
+export function BucketDetailActions({ bucketId, goalId, holdsMoney }: Props) {
+  const removeGoalMutation = useRemoveGoalMutation();
+
   function handleOpenWithdrawDrawer() {
     withdrawDrawerHandle.openWithPayload({ bucketId });
   }
 
   function handleOpenAddGoalDrawer() {
     addGoalDrawerHandle.openWithPayload({ bucketId });
+  }
+
+  function handleOpenEditGoalDrawer() {
+    editGoalDrawerHandle.openWithPayload({ bucketId });
+  }
+
+  async function handleRemoveGoal() {
+    if (!goalId) return;
+
+    const confirmed = await confirm("Remove Goal?", {
+      description:
+        "Remove this goal? The bucket, its allocations and its withdrawals stay as they are.",
+      confirmLabel: "Remove Goal",
+      cancelLabel: "Cancel",
+      destructive: true,
+    });
+
+    if (!confirmed) return;
+
+    try {
+      await removeGoalMutation.mutateAsync({ data: { goalId } });
+    } catch (error) {
+      console.error(error);
+
+      return;
+    }
   }
 
   function handleOpenEditBucketDrawer() {
@@ -98,7 +130,12 @@ export function BucketDetailActions({ bucketId, hasGoal, holdsMoney }: Props) {
             </DropdownMenuGroup>
             <DropdownMenuSeparator className="md:hidden" />
             <DropdownMenuGroup>
-              {hasGoal ? null : (
+              {goalId ? (
+                <DropdownMenuItem onClick={handleOpenEditGoalDrawer}>
+                  <IconTarget />
+                  Edit Goal
+                </DropdownMenuItem>
+              ) : (
                 <DropdownMenuItem onClick={handleOpenAddGoalDrawer}>
                   <IconTarget />
                   Add Goal
@@ -106,14 +143,20 @@ export function BucketDetailActions({ bucketId, hasGoal, holdsMoney }: Props) {
               )}
               <DropdownMenuItem onClick={handleOpenEditBucketDrawer}>
                 <IconPencil />
-                Edit
+                Edit Bucket
               </DropdownMenuItem>
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
             <DropdownMenuGroup>
+              {goalId ? (
+                <DropdownMenuItem variant="destructive" onClick={handleRemoveGoal}>
+                  <IconTargetOff />
+                  Remove Goal
+                </DropdownMenuItem>
+              ) : null}
               <DropdownMenuItem variant="destructive" onClick={handleOpenDeleteBucketDialog}>
                 <IconTrash />
-                Delete
+                Delete Bucket
               </DropdownMenuItem>
             </DropdownMenuGroup>
           </DropdownMenuContent>

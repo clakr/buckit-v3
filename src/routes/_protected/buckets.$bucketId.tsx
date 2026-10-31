@@ -1,4 +1,3 @@
-import { IconMinus, IconPencil, IconPlus, IconTarget } from "@tabler/icons-react";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute, Link } from "@tanstack/react-router";
 
@@ -7,19 +6,14 @@ import { Main } from "#/components/main";
 import { RouteRetryButton } from "#/components/route-retry-button";
 import { StateTemplate } from "#/components/state-template";
 import { Button } from "#/components/ui/button";
-import { DrawerTrigger } from "#/components/ui/drawer";
-import { Tooltip, TooltipContent, TooltipTrigger } from "#/components/ui/tooltip";
 import { loadOrThrowRouteNotFound } from "#/lib/errors";
 import { DEFAULT_LEDGER_PAGE } from "#/lib/ledger-page";
 import { formatPageTitle } from "#/lib/utils";
-import { logAllocationDrawerHandle } from "#/modules/allocations/components/log-allocation-drawer";
+import { BucketDetailActions } from "#/modules/buckets/components/bucket-detail-actions";
 import { BucketLedgerTable } from "#/modules/buckets/components/bucket-ledger-table";
-import { editBucketDrawerHandle } from "#/modules/buckets/components/edit-bucket-drawer";
 import { bucketLedgerQueryOption, bucketQueryOption } from "#/modules/buckets/query-options";
-import { addGoalDrawerHandle } from "#/modules/goals/components/add-goal-drawer";
 import { BucketGoalCard } from "#/modules/goals/components/bucket-goal-card";
 import { bucketGoalQueryOption } from "#/modules/goals/query-options";
-import { withdrawDrawerHandle } from "#/modules/withdrawals/components/withdraw-drawer";
 import { withdrawalSourcesQueryOption } from "#/modules/withdrawals/query-options";
 
 export const Route = createFileRoute("/_protected/buckets/$bucketId")({
@@ -107,61 +101,25 @@ function RouteComponent() {
     <Main>
       <div className="flex items-baseline justify-between">
         <Heading className="capitalize">{bucket.name}</Heading>
-        <div className="flex gap-x-2">
-          {goal ? null : (
-            <DrawerTrigger
-              handle={addGoalDrawerHandle}
-              payload={{ bucketId }}
-              render={<Button variant="outline" />}
-            >
-              <IconTarget />
-              Add Goal
-            </DrawerTrigger>
-          )}
-          <Tooltip disabled={holdsMoney}>
-            <TooltipTrigger
-              render={
-                <DrawerTrigger
-                  handle={withdrawDrawerHandle}
-                  payload={{ bucketId }}
-                  disabled={!holdsMoney}
-                  render={
-                    <Button
-                      variant="outline"
-                      focusableWhenDisabled
-                      className="aria-disabled:opacity-50"
-                    />
-                  }
-                />
-              }
-            >
-              <IconMinus />
-              Withdraw
-            </TooltipTrigger>
-            <TooltipContent>Allocate money into this bucket first</TooltipContent>
-          </Tooltip>
-          <DrawerTrigger
-            handle={editBucketDrawerHandle}
-            payload={{ bucketId }}
-            render={<Button variant="outline" />}
-          >
-            <IconPencil />
-            Edit
-          </DrawerTrigger>
-          <DrawerTrigger
-            handle={logAllocationDrawerHandle}
-            payload={{ start: { from: "bucket", bucketId } }}
-            render={<Button />}
-          >
-            <IconPlus />
-            Allocate Money
-          </DrawerTrigger>
-        </div>
+        <BucketDetailActions
+          bucketId={bucketId}
+          goalId={goal?.id ?? null}
+          holdsMoney={holdsMoney}
+        />
       </div>
 
-      {goal ? <BucketGoalCard goal={goal} /> : null}
-
-      <BucketLedgerTable bucketId={bucketId} />
+      {goal ? (
+        <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_20rem] lg:items-start">
+          <aside className="lg:sticky lg:top-4 lg:order-2">
+            <BucketGoalCard goal={goal} />
+          </aside>
+          <div className="min-w-0 lg:order-1">
+            <BucketLedgerTable bucketId={bucketId} goalCurrency={goal.currency} />
+          </div>
+        </div>
+      ) : (
+        <BucketLedgerTable bucketId={bucketId} />
+      )}
     </Main>
   );
 }

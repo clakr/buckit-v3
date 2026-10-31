@@ -10,6 +10,7 @@ import { authMiddleware } from "#/modules/authentication/middlewares";
 import { getBucketsWithFigures } from "#/modules/buckets/figures.server";
 import { verifyUserBucketMiddleware } from "#/modules/buckets/middlewares";
 import { findFundingBankAccount } from "#/modules/goals/funding.server";
+import { getGoalProgressHistory } from "#/modules/goals/history.server";
 import { verifyUserGoalMiddleware } from "#/modules/goals/middlewares";
 import {
   addGoalSchema,
@@ -35,14 +36,15 @@ export const getBucketGoal = createServerFn({
 
     if (!goal || !bucket) return null;
 
-    const fundingBankAccount = await findFundingBankAccount(db, {
-      userId: context.userId,
-      currency: goal.currency,
-    });
+    const [fundingBankAccount, history] = await Promise.all([
+      findFundingBankAccount(db, { userId: context.userId, currency: goal.currency }),
+      getGoalProgressHistory(db, { bucketId: goal.bucketId, currency: goal.currency }),
+    ]);
 
     return {
       ...goal,
       progress: getGoalProgress(bucket.subtotals, goal.currency),
+      history,
       hasFundingBankAccount: Boolean(fundingBankAccount),
     };
   });
