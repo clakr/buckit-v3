@@ -1,24 +1,31 @@
+import { IconError404 } from "@tabler/icons-react";
 import { Link } from "@tanstack/react-router";
 
-import { Main } from "#/components/main";
-import { StateTemplate } from "#/components/state-template";
 import { Button } from "#/components/ui/button";
+import {
+  Empty,
+  EmptyContent,
+  EmptyDescription,
+  EmptyHeader,
+  EmptyMedia,
+  EmptyTitle,
+} from "#/components/ui/empty";
 
-type Props = { title: string; description: string };
-
-export function NotFoundScreen({ title, description }: Props) {
+export function NotFoundScreen() {
   return (
-    <Main>
-      <StateTemplate
-        state="error"
-        title={title}
-        description={description}
-        content={
-          <Button nativeButton={false} render={<Link to="/dashboard" />}>
-            Back to dashboard
-          </Button>
-        }
-      />
-    </Main>
+    <Empty className="min-h-svh rounded-none bg-linear-to-b from-muted/50 from-30% to-background">
+      <EmptyHeader>
+        <EmptyMedia variant="icon">
+          <IconError404 />
+        </EmptyMedia>
+        <EmptyTitle>Page Not Found</EmptyTitle>
+        <EmptyDescription>This page doesn't exist or may have been moved.</EmptyDescription>
+      </EmptyHeader>
+      <EmptyContent className="flex-row justify-center">
+        <Button nativeButton={false} render={<Link to="/dashboard" />}>
+          Back to Dashboard
+        </Button>
+      </EmptyContent>
+    </Empty>
   );
 }
