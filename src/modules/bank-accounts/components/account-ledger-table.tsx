@@ -6,7 +6,7 @@ import { useState, useTransition } from "react";
 import type { getBankAccount } from "#/modules/bank-accounts/functions";
 import type { AccountLedgerEntry } from "#/modules/bank-accounts/ledger.server";
 
-import { LedgerPager } from "#/components/ledger-pager";
+import { Pager } from "#/components/pager";
 import { Badge } from "#/components/ui/badge";
 import { Button } from "#/components/ui/button";
 import { DrawerTrigger } from "#/components/ui/drawer";
@@ -195,7 +195,7 @@ export function AccountLedgerTable({ bankAccount }: Props) {
         </TableBody>
       </Table>
 
-      <LedgerPager
+      <Pager
         paging={paging}
         onPageChange={(pageIndex) =>
           startTransition(() => setPage({ pageIndex, pageSize: paging.pageSize }))

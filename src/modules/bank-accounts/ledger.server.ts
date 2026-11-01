@@ -1,7 +1,8 @@
 import { and, eq, inArray } from "drizzle-orm";
 
 import type { DB } from "#/db";
-import type { LedgerPageRequest, LedgerPaging } from "#/lib/ledger-page";
+import type { LedgerPageRequest } from "#/lib/ledger-page";
+import type { Paging } from "#/lib/paging";
 import type { LedgerFigures, LedgerMovement, LedgerStep } from "#/modules/bank-accounts/ledger";
 
 import {
@@ -33,7 +34,7 @@ type AccountLedgerDetails = {
 export type AccountLedgerEntry = LedgerMovement &
   AccountLedgerDetails & { source: "transaction" | "allocation" };
 
-export type AccountLedgerPage = LedgerPaging & {
+export type AccountLedgerPage = Paging & {
   entries: LedgerStep<AccountLedgerEntry>[];
   opening: LedgerFigures;
   isOldestPage: boolean;

@@ -4,6 +4,7 @@ import {
   IconChevronsLeft,
   IconChevronsRight,
 } from "@tabler/icons-react";
+import { useId } from "react";
 
 import { Button } from "#/components/ui/button";
 import {
@@ -14,12 +15,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from "#/components/ui/select";
-import { LEDGER_PAGE_SIZES, type LedgerPaging } from "#/lib/ledger-page";
+import { PAGE_SIZES, type PageSize, type Paging } from "#/lib/paging";
 
 type Props = {
-  paging: LedgerPaging;
+  paging: Paging;
   onPageChange: (pageIndex: number) => void;
-  onPageSizeChange: (pageSize: (typeof LEDGER_PAGE_SIZES)[number]) => void;
+  onPageSizeChange: (pageSize: PageSize) => void;
 };
 
 function getPageNumbers(current: number, count: number): (number | "gap")[] {
@@ -31,10 +32,11 @@ function getPageNumbers(current: number, count: number): (number | "gap")[] {
   );
 }
 
-export function LedgerPager({ paging, onPageChange, onPageSizeChange }: Props) {
+export function Pager({ paging, onPageChange, onPageSizeChange }: Props) {
+  const pageSizeLabelId = useId();
   const { pageIndex, pageSize, pageCount, total } = paging;
 
-  if (total <= LEDGER_PAGE_SIZES[0]) return null;
+  if (total <= PAGE_SIZES[0]) return null;
 
   const first = pageIndex * pageSize + 1;
   const last = Math.min(first + pageSize - 1, total);
@@ -43,23 +45,21 @@ export function LedgerPager({ paging, onPageChange, onPageSizeChange }: Props) {
 
   return (
     <nav
-      aria-label="Ledger pages"
+      aria-label="Pages"
       className="flex flex-wrap items-center justify-between gap-3 text-xs text-muted-foreground"
     >
-      <div className="flex items-center gap-2">
-        <span id="ledger-page-size-label">Rows per page</span>
+      <div className="flex flex-1 items-center gap-2">
+        <span id={pageSizeLabelId}>Rows per page</span>
         <Select
           value={String(pageSize)}
-          onValueChange={(value) =>
-            onPageSizeChange(Number(value) as (typeof LEDGER_PAGE_SIZES)[number])
-          }
+          onValueChange={(value) => onPageSizeChange(Number(value) as PageSize)}
         >
-          <SelectTrigger size="sm" aria-labelledby="ledger-page-size-label">
+          <SelectTrigger size="sm" aria-labelledby={pageSizeLabelId}>
             <SelectValue />
           </SelectTrigger>
           <SelectContent alignItemWithTrigger={false}>
             <SelectGroup>
-              {LEDGER_PAGE_SIZES.map((size) => (
+              {PAGE_SIZES.map((size) => (
                 <SelectItem key={size} value={String(size)}>
                   {size}
                 </SelectItem>

@@ -1,6 +1,7 @@
 import { IconPlus } from "@tabler/icons-react";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
+import { z } from "zod";
 
 import { Heading } from "#/components/heading";
 import { Main } from "#/components/main";
@@ -10,12 +11,19 @@ import { Button } from "#/components/ui/button";
 import { DataTable } from "#/components/ui/data-table";
 import { DrawerTrigger } from "#/components/ui/drawer";
 import { MODULE_ICONS } from "#/lib/constants";
+import { PAGE_SIZES } from "#/lib/paging";
 import { formatPageTitle } from "#/lib/utils";
 import { INDEX_COLUMNS } from "#/modules/bank-accounts/columns";
 import { registerBankAccountDrawerHandle } from "#/modules/bank-accounts/components/register-bank-account-drawer";
 import { bankAccountsWithTrendQueryOption } from "#/modules/bank-accounts/query-options";
 
+const accountsSearchSchema = z.object({
+  pageIndex: z.number().int().min(0).optional().catch(undefined),
+  pageSize: z.literal(PAGE_SIZES).optional().catch(undefined),
+});
+
 export const Route = createFileRoute("/_protected/accounts/")({
+  validateSearch: accountsSearchSchema,
   head: () => ({ meta: [{ title: formatPageTitle("Accounts") }] }),
   context: () => ({ bankAccountsQueryOptions: bankAccountsWithTrendQueryOption() }),
   loader: async ({ context: { queryClient, bankAccountsQueryOptions } }) => {
@@ -50,6 +58,8 @@ export const Route = createFileRoute("/_protected/accounts/")({
 function RouteComponent() {
   const { bankAccountsQueryOptions } = Route.useRouteContext();
   const { data: bankAccounts } = useSuspenseQuery(bankAccountsQueryOptions);
+  const { pageIndex = 0, pageSize = PAGE_SIZES[0] } = Route.useSearch();
+  const navigate = Route.useNavigate();
 
   const isEmpty = bankAccounts.length === 0;
 
@@ -89,6 +99,10 @@ function RouteComponent() {
           columns={INDEX_COLUMNS}
           data={bankAccounts}
           initialSorting={[{ id: "lastTransactionDate", desc: true }]}
+          pagination={{
+            state: { pageIndex, pageSize },
+            onChange: (state) => navigate({ search: state }),
+          }}
         />
       )}
     </Main>

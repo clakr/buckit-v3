@@ -6,7 +6,7 @@ import { useState, useTransition } from "react";
 import type { Bucket, Goal } from "#/db/schema";
 import type { BucketLedgerEntry } from "#/modules/buckets/ledger.server";
 
-import { LedgerPager } from "#/components/ledger-pager";
+import { Pager } from "#/components/pager";
 import { Badge } from "#/components/ui/badge";
 import { Button } from "#/components/ui/button";
 import { DrawerTrigger } from "#/components/ui/drawer";
@@ -173,7 +173,7 @@ export function BucketLedgerTable({ bucketId, goalCurrency }: Props) {
         </TableBody>
       </Table>
 
-      <LedgerPager
+      <Pager
         paging={paging}
         onPageChange={(pageIndex) =>
           startTransition(() => setPage({ pageIndex, pageSize: paging.pageSize }))

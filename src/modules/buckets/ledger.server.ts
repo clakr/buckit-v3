@@ -1,7 +1,8 @@
 import { eq } from "drizzle-orm";
 
 import type { DB } from "#/db";
-import type { LedgerPageRequest, LedgerPaging } from "#/lib/ledger-page";
+import type { LedgerPageRequest } from "#/lib/ledger-page";
+import type { Paging } from "#/lib/paging";
 import type { HeldMovement, HeldStep } from "#/modules/buckets/ledger";
 
 import {
@@ -21,7 +22,7 @@ export type BucketLedgerEntry = HeldMovement & {
   bankAccount: Pick<BankAccount, "id" | "name" | "currency">;
 };
 
-export type BucketLedgerPage = LedgerPaging & {
+export type BucketLedgerPage = Paging & {
   entries: HeldStep<BucketLedgerEntry>[];
   opening: { currency: string; held: number }[];
   isOldestPage: boolean;
