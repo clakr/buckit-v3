@@ -1,7 +1,7 @@
 import { IconCircleDottedLetterH, IconPlus } from "@tabler/icons-react";
 import { useSuspenseQuery } from "@tanstack/react-query";
-import { Link } from "@tanstack/react-router";
-import { useState, useTransition } from "react";
+import { getRouteApi, Link } from "@tanstack/react-router";
+import { useTransition } from "react";
 
 import type { Bucket, Goal } from "#/db/schema";
 import type { BucketLedgerEntry } from "#/modules/buckets/ledger.server";
@@ -28,7 +28,6 @@ import {
 } from "#/components/ui/table";
 import { Tooltip, TooltipContent, TooltipTrigger } from "#/components/ui/tooltip";
 import { MODULE_ICONS } from "#/lib/constants";
-import { DEFAULT_LEDGER_PAGE, type LedgerPageRequest } from "#/lib/ledger-page";
 import { formatMoney } from "#/lib/money";
 import { cn, formatDateTime, formatToRelative } from "#/lib/utils";
 import { AllocationActionsDropdownMenu } from "#/modules/allocations/components/allocation-actions-dropdown-menu";
@@ -36,13 +35,16 @@ import { logAllocationDrawerHandle } from "#/modules/allocations/components/log-
 import { bucketLedgerQueryOption } from "#/modules/buckets/query-options";
 import { WithdrawalActionsDropdownMenu } from "#/modules/withdrawals/components/withdrawal-actions-dropdown-menu";
 
+const Route = getRouteApi("/_protected/buckets/$bucketId");
+
 type Props = {
   bucketId: Bucket["id"];
   goalCurrency?: Goal["currency"];
 };
 
 export function BucketLedgerTable({ bucketId, goalCurrency }: Props) {
-  const [page, setPage] = useState<LedgerPageRequest>(DEFAULT_LEDGER_PAGE);
+  const page = Route.useSearch();
+  const navigate = Route.useNavigate();
   const [isPending, startTransition] = useTransition();
   const { data: bucketLedger } = useSuspenseQuery(bucketLedgerQueryOption(bucketId, page));
   const { subtotals, holdings, entries, opening, isOldestPage, ...paging } = bucketLedger;
@@ -176,9 +178,15 @@ export function BucketLedgerTable({ bucketId, goalCurrency }: Props) {
       <Pager
         paging={paging}
         onPageChange={(pageIndex) =>
-          startTransition(() => setPage({ pageIndex, pageSize: paging.pageSize }))
+          startTransition(async () => {
+            await navigate({ search: { pageIndex, pageSize: paging.pageSize } });
+          })
         }
-        onPageSizeChange={(pageSize) => startTransition(() => setPage({ pageIndex: 0, pageSize }))}
+        onPageSizeChange={(pageSize) =>
+          startTransition(async () => {
+            await navigate({ search: { pageIndex: 0, pageSize } });
+          })
+        }
       />
     </div>
   );

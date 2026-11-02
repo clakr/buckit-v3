@@ -1,13 +1,13 @@
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-
-import type { BankAccount } from "#/db/schema";
+import { z } from "zod";
 
 import { Heading } from "#/components/heading";
 import { Main } from "#/components/main";
 import { RouteRetryButton } from "#/components/route-retry-button";
 import { StateTemplate } from "#/components/state-template";
-import { formatPageTitle, isCurrencyCode } from "#/lib/utils";
+import { CURRENCIES_CODES } from "#/lib/constants";
+import { formatPageTitle } from "#/lib/utils";
 import { AccountBreakdownChart } from "#/modules/dashboard/components/account-breakdown-chart";
 import { BalanceTrendChart } from "#/modules/dashboard/components/balance-trend-chart";
 import { CashflowChart } from "#/modules/dashboard/components/cashflow-chart";
@@ -21,14 +21,13 @@ import { RecentActivityCard } from "#/modules/dashboard/components/recent-activi
 import { dashboardQueryOptions } from "#/modules/dashboard/query-options";
 import { selectCurrencySummary } from "#/modules/dashboard/utils";
 
+const dashboardSearchSchema = z.object({
+  currency: z.enum(CURRENCIES_CODES).optional().catch(undefined),
+});
+
 export const Route = createFileRoute("/_protected/dashboard")({
   head: () => ({ meta: [{ title: formatPageTitle("Dashboard") }] }),
-  validateSearch: (search: Record<string, unknown>): { currency?: BankAccount["currency"] } => ({
-    currency:
-      typeof search.currency === "string" && isCurrencyCode(search.currency)
-        ? search.currency
-        : undefined,
-  }),
+  validateSearch: dashboardSearchSchema,
   context: () => ({ dashboardQueryOptions }),
   loader: async ({ context: { queryClient, dashboardQueryOptions } }) => {
     await queryClient.query(dashboardQueryOptions);

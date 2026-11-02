@@ -7,7 +7,7 @@ import { RouteRetryButton } from "#/components/route-retry-button";
 import { StateTemplate } from "#/components/state-template";
 import { Button } from "#/components/ui/button";
 import { loadOrThrowRouteNotFound } from "#/lib/errors";
-import { DEFAULT_LEDGER_PAGE } from "#/lib/ledger-page";
+import { ledgerPageSearchSchema } from "#/lib/ledger-page";
 import { formatPageTitle } from "#/lib/utils";
 import { AccountLedgerTable } from "#/modules/bank-accounts/components/account-ledger-table";
 import { BankAccountDetailActions } from "#/modules/bank-accounts/components/bank-account-detail-actions";
@@ -17,12 +17,11 @@ import {
 } from "#/modules/bank-accounts/query-options";
 
 export const Route = createFileRoute("/_protected/accounts/$accountId")({
-  context: ({ params }) => ({
+  validateSearch: ledgerPageSearchSchema,
+  loaderDeps: ({ search: { pageIndex, pageSize } }) => ({ pageIndex, pageSize }),
+  context: ({ params, deps }) => ({
     bankAccountQueryOptions: bankAccountQueryOption(params.accountId),
-    bankAccountLedgerQueryOptions: bankAccountLedgerQueryOption(
-      params.accountId,
-      DEFAULT_LEDGER_PAGE,
-    ),
+    bankAccountLedgerQueryOptions: bankAccountLedgerQueryOption(params.accountId, deps),
   }),
   loader: async ({
     context: { queryClient, bankAccountQueryOptions, bankAccountLedgerQueryOptions },

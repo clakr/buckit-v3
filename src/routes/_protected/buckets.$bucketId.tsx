@@ -7,7 +7,7 @@ import { RouteRetryButton } from "#/components/route-retry-button";
 import { StateTemplate } from "#/components/state-template";
 import { Button } from "#/components/ui/button";
 import { loadOrThrowRouteNotFound } from "#/lib/errors";
-import { DEFAULT_LEDGER_PAGE } from "#/lib/ledger-page";
+import { ledgerPageSearchSchema } from "#/lib/ledger-page";
 import { formatPageTitle } from "#/lib/utils";
 import { BucketDetailActions } from "#/modules/buckets/components/bucket-detail-actions";
 import { BucketLedgerTable } from "#/modules/buckets/components/bucket-ledger-table";
@@ -17,9 +17,11 @@ import { bucketGoalQueryOption } from "#/modules/goals/query-options";
 import { withdrawalSourcesQueryOption } from "#/modules/withdrawals/query-options";
 
 export const Route = createFileRoute("/_protected/buckets/$bucketId")({
-  context: ({ params }) => ({
+  validateSearch: ledgerPageSearchSchema,
+  loaderDeps: ({ search: { pageIndex, pageSize } }) => ({ pageIndex, pageSize }),
+  context: ({ params, deps }) => ({
     bucketQueryOptions: bucketQueryOption(params.bucketId),
-    bucketLedgerQueryOptions: bucketLedgerQueryOption(params.bucketId, DEFAULT_LEDGER_PAGE),
+    bucketLedgerQueryOptions: bucketLedgerQueryOption(params.bucketId, deps),
     withdrawalSourcesQueryOptions: withdrawalSourcesQueryOption(params.bucketId),
     goalQueryOptions: bucketGoalQueryOption(params.bucketId),
   }),

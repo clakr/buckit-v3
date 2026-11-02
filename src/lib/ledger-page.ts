@@ -9,6 +9,15 @@ export const ledgerPageSchema = z.object({
   pageSize: z.literal(PAGE_SIZES),
 });
 
+export const ledgerPageSearchSchema = z.object({
+  pageIndex: ledgerPageSchema.shape.pageIndex
+    .default(DEFAULT_LEDGER_PAGE.pageIndex)
+    .catch(DEFAULT_LEDGER_PAGE.pageIndex),
+  pageSize: ledgerPageSchema.shape.pageSize
+    .default(DEFAULT_LEDGER_PAGE.pageSize)
+    .catch(DEFAULT_LEDGER_PAGE.pageSize),
+});
+
 export type LedgerPageRequest = z.infer<typeof ledgerPageSchema>;
 
 export function getLedgerPage<T>(

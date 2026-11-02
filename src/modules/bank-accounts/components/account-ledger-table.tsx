@@ -1,7 +1,7 @@
 import { IconArrowsExchange, IconCircleDottedLetterH, IconPlus } from "@tabler/icons-react";
 import { useSuspenseQuery } from "@tanstack/react-query";
-import { Link } from "@tanstack/react-router";
-import { useState, useTransition } from "react";
+import { getRouteApi, Link } from "@tanstack/react-router";
+import { useTransition } from "react";
 
 import type { getBankAccount } from "#/modules/bank-accounts/functions";
 import type { AccountLedgerEntry } from "#/modules/bank-accounts/ledger.server";
@@ -27,7 +27,6 @@ import {
   TableRow,
 } from "#/components/ui/table";
 import { Tooltip, TooltipContent, TooltipTrigger } from "#/components/ui/tooltip";
-import { DEFAULT_LEDGER_PAGE, type LedgerPageRequest } from "#/lib/ledger-page";
 import { formatMoney } from "#/lib/money";
 import { cn, formatDateTime, formatToRelative } from "#/lib/utils";
 import { AllocationActionsDropdownMenu } from "#/modules/allocations/components/allocation-actions-dropdown-menu";
@@ -35,6 +34,8 @@ import { logAllocationDrawerHandle } from "#/modules/allocations/components/log-
 import { bankAccountLedgerQueryOption } from "#/modules/bank-accounts/query-options";
 import { logTransactionDrawerHandle } from "#/modules/transactions/components/log-transaction-drawer";
 import { TransactionActionsDropdownMenu } from "#/modules/transactions/components/transaction-actions-dropdown-menu";
+
+const Route = getRouteApi("/_protected/accounts/$accountId");
 
 type Props = {
   bankAccount: Awaited<ReturnType<typeof getBankAccount>>;
@@ -47,7 +48,8 @@ export function AccountLedgerTable({ bankAccount }: Props) {
 
   const { startingBalance } = bankAccount;
 
-  const [page, setPage] = useState<LedgerPageRequest>(DEFAULT_LEDGER_PAGE);
+  const page = Route.useSearch();
+  const navigate = Route.useNavigate();
   const [isPending, startTransition] = useTransition();
   const { data: ledgerPage } = useSuspenseQuery(bankAccountLedgerQueryOption(bankAccount.id, page));
   const { entries, opening, isOldestPage, ...paging } = ledgerPage;
@@ -198,9 +200,15 @@ export function AccountLedgerTable({ bankAccount }: Props) {
       <Pager
         paging={paging}
         onPageChange={(pageIndex) =>
-          startTransition(() => setPage({ pageIndex, pageSize: paging.pageSize }))
+          startTransition(async () => {
+            await navigate({ search: { pageIndex, pageSize: paging.pageSize } });
+          })
         }
-        onPageSizeChange={(pageSize) => startTransition(() => setPage({ pageIndex: 0, pageSize }))}
+        onPageSizeChange={(pageSize) =>
+          startTransition(async () => {
+            await navigate({ search: { pageIndex: 0, pageSize } });
+          })
+        }
       />
     </div>
   );
