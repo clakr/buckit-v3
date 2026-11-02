@@ -1,20 +1,23 @@
-import { and, eq, exists, isNull, ne, notExists, or } from "drizzle-orm";
+import { and, eq, exists, inArray, isNull, ne, notExists, or } from "drizzle-orm";
 
 import type { DB } from "#/db";
 
 import {
+  buckets,
+  debts,
   distributionLines,
   distributions,
+  transactions,
   type BankAccount,
   type Bucket,
   type Debt,
   type Distribution,
+  type Transaction,
 } from "#/db/schema";
 
 export type DistributionDeletionImpact = {
   id: Distribution["id"];
   name: Distribution["name"];
-  /** Deleted outright. Otherwise the Distribution only loses a line. */
   isDeleted: boolean;
 };
 
@@ -32,10 +35,6 @@ function hasLineFor(db: DB, { column, id }: LineTarget) {
   );
 }
 
-/**
- * A Distribution needs at least one line, so removing a target's lines deletes the Distribution
- * when nothing else is left. The preview and the delete both build on this, so they can't disagree.
- */
 function hasOnlyLinesFor(db: DB, target: LineTarget) {
   const { column, id } = target;
 
@@ -88,7 +87,6 @@ export function loadDebtDistributionImpact(db: DB, userId: string, debtId: Debt[
   return loadLineTargetImpact(db, userId, { column: distributionLines.debtId, id: debtId });
 }
 
-/** A Bank Account's Distributions go with it through `ON DELETE CASCADE`. */
 export async function loadBankAccountDistributionImpact(
   db: DB,
   userId: string,
@@ -103,20 +101,41 @@ export async function loadBankAccountDistributionImpact(
   return rows.map((distribution) => ({ ...distribution, isDeleted: true }));
 }
 
-/**
- * Must run before the Bucket's delete in the same batch, because the delete's cascade removes the
- * lines that tell which Distributions are left empty. The other Distributions just lose the line
- * through the cascade.
- */
-export function deleteDistributionsEmptiedByBucket(db: DB, bucketId: Bucket["id"]) {
-  return db
-    .delete(distributions)
-    .where(hasOnlyLinesFor(db, { column: distributionLines.bucketId, id: bucketId }));
+function deleteDistributionsEmptiedBy(db: DB, target: LineTarget) {
+  return db.delete(distributions).where(hasOnlyLinesFor(db, target));
 }
 
-/** Must run before the Debt's delete in the same batch, for the reason above. */
-export function deleteDistributionsEmptiedByDebt(db: DB, debtId: Debt["id"]) {
-  return db
-    .delete(distributions)
-    .where(hasOnlyLinesFor(db, { column: distributionLines.debtId, id: debtId }));
+export async function deleteBucketWithEmptiedDistributions(db: DB, bucketId: Bucket["id"]) {
+  const [, deleted] = await db.batch([
+    deleteDistributionsEmptiedBy(db, { column: distributionLines.bucketId, id: bucketId }),
+    db.delete(buckets).where(eq(buckets.id, bucketId)).returning(),
+  ]);
+
+  return deleted;
+}
+
+export async function deleteDebtWithEmptiedDistributions(
+  db: DB,
+  debtId: Debt["id"],
+  linkedTransactionIds: Transaction["id"][],
+) {
+  const deleteEmptiedDistributions = deleteDistributionsEmptiedBy(db, {
+    column: distributionLines.debtId,
+    id: debtId,
+  });
+  const deleteDebt = db.delete(debts).where(eq(debts.id, debtId)).returning();
+
+  if (!linkedTransactionIds.length) {
+    const [, deleted] = await db.batch([deleteEmptiedDistributions, deleteDebt]);
+
+    return deleted;
+  }
+
+  const [, , deleted] = await db.batch([
+    db.delete(transactions).where(inArray(transactions.id, linkedTransactionIds)),
+    deleteEmptiedDistributions,
+    deleteDebt,
+  ]);
+
+  return deleted;
 }

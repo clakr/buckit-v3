@@ -49,11 +49,6 @@ type RegisterBankAccountDrawerRootProps = {
   onRegistered?: (bankAccount: BankAccount) => void;
 };
 
-/**
- * Render beside a parent's `DrawerContent`, inside its Root, so Base UI nests it and the
- * parent's `Suspense` can't unmount it. Open it from a `DrawerTrigger` bound to the same
- * `handle` with a `{ currency }` payload.
- */
 export function NestedRegisterBankAccountDrawer({
   handle,
   finalFocus,

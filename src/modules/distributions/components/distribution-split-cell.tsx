@@ -8,8 +8,6 @@ import { formatMoney } from "#/lib/money";
 import { cn } from "#/lib/utils";
 import { computeDistributionPlan, savedLinesToPlanLines } from "#/modules/distributions/utils";
 
-// Same shades, in the same order, as the drawer's split bar and line dots. The label colour is
-// whichever of foreground and primary-foreground reads on its shade.
 const SLICE_STYLES = [
   { fill: "fill-primary", text: "fill-primary-foreground" },
   { fill: "fill-primary/75", text: "fill-primary-foreground" },
@@ -20,7 +18,6 @@ const SLICE_STYLES = [
 const UNALLOCATED_STYLE = { fill: "fill-muted", text: "fill-muted-foreground" };
 const EXCEEDS_STYLE = { fill: "fill-destructive", text: "fill-background" };
 
-/** A slice narrower than this has no room for its percentage. The tooltip still lists it. */
 const MIN_LABELLED_FRACTION = 0.12;
 
 const PIE_SIZE = 80;
@@ -37,7 +34,6 @@ function formatCount(count: number, singular: string) {
   return `${count} ${singular}${count === 1 ? "" : "s"}`;
 }
 
-/** How the Default Amount divides across the lines, with what stays Unallocated as the grey rest. */
 export function DistributionSplitCell({ distribution }: { distribution: SavedDistribution }) {
   const { amount, lines, bankAccount } = distribution;
   const plan = computeDistributionPlan(savedLinesToPlanLines(lines), amount);
@@ -55,7 +51,6 @@ export function DistributionSplitCell({ distribution }: { distribution: SavedDis
   const percentAllocated =
     pieTotal > 0 ? Math.round((plan.bucketAndPayableTotal / pieTotal) * 100) : 0;
 
-  // A receivable line repays a Debt out of the amount without leaving the account, so it has no slice.
   const slices: Slice[] = plan.plannedLines.flatMap((line, index) =>
     line.kind === "receivable" || line.cents <= 0 || pieTotal <= 0
       ? []

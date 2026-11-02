@@ -30,8 +30,6 @@ type PickerActionProps = {
   variant?: "default" | "outline";
 };
 
-// Every drawer opens on one record, so a lone choice opens it straight away and several become a
-// menu. A disabled action keeps focus and says what is missing.
 function PickerAction({
   label,
   icon: Icon,

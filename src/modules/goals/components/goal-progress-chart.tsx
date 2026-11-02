@@ -15,7 +15,6 @@ type Props = {
   className?: string;
 };
 
-/** The Bucket's balance in the Goal's currency over time, against the target as a dashed line. */
 export function GoalProgressChart({
   history,
   startedAt,

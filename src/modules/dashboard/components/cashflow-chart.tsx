@@ -25,7 +25,6 @@ const chartConfig = {
   expense: { label: "Expense", color: "var(--chart-4)" },
 } satisfies ChartConfig;
 
-// Months are UTC months, so format them in UTC. The viewer's zone would shift every label.
 function formatMonth(month: number, options: Intl.DateTimeFormatOptions) {
   return new Date(month).toLocaleDateString("en-US", { ...options, timeZone: "UTC" });
 }

@@ -16,8 +16,6 @@ function InsetCard({ className, ...props }: React.ComponentProps<"div">) {
   );
 }
 
-// Sits in the inset's gap above the content. To put a title inside the content instead, use
-// `CardTitle` from `#/components/ui/card` as the first child of `InsetCardContent`.
 function InsetCardTitle({
   className,
   children,
@@ -48,7 +46,6 @@ function InsetCardContent({
   );
 }
 
-// Its children share the row evenly, such as a secondary action beside "View All".
 function InsetCardFooter({ className, ...props }: React.ComponentProps<"div">) {
   return (
     <div

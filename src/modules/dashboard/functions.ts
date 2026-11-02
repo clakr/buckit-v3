@@ -58,8 +58,6 @@ export const getDashboard = createServerFn({
       };
     });
 
-    // The account an Allocation starts from when the Dashboard has to pick one: the one with the
-    // most Unallocated money, since that is the one that can actually fund it.
     const [fundingBankAccount] = [...bankAccounts].sort((a, b) => b.unallocated - a.unallocated);
 
     return {
@@ -73,7 +71,13 @@ export const getDashboard = createServerFn({
         name: distribution.name,
         currency: distribution.bankAccount.currency,
       })),
-      currencySummaries: getCurrencySummaries(bankAccounts, debts, buckets, recentLedgerMovements, cashflows),
+      currencySummaries: getCurrencySummaries(
+        bankAccounts,
+        debts,
+        buckets,
+        recentLedgerMovements,
+        cashflows,
+      ),
       trendWindowStart: getBalanceTrendWindowStart(new Date()).getTime(),
     };
   });

@@ -11,9 +11,6 @@ import {
 import { Spinner } from "#/components/ui/spinner";
 
 /**
- * Pending screen. Fills the whole screen when it replaces a layout route directly under the root
- * (cold start), and loads inside the existing layout when a child route is pending.
- *
  * Decided from the route tree rather than `resolvedLocation`: the server sets that before
  * rendering but the client doesn't until its load finishes, so the two rendered different variants.
  */

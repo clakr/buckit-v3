@@ -51,13 +51,36 @@ function Drawer<Payload>({
   );
 }
 
-function ResponsiveDrawer<Payload>(
-  props: Omit<DrawerPrimitive.Root.Props<Payload>, "swipeDirection">,
-) {
+type ResponsiveDrawerProps<Payload> = Omit<
+  DrawerPrimitive.Root.Props<Payload>,
+  "swipeDirection"
+> & {
+  nestedDrawers?: React.ReactNode;
+};
+
+function ResponsiveDrawer<Payload>({
+  nestedDrawers,
+  children,
+  ...props
+}: ResponsiveDrawerProps<Payload>) {
   const isMobile = useIsMobile();
 
   return (
-    <Drawer showSwipeHandle={isMobile} swipeDirection={isMobile ? "down" : "right"} {...props} />
+    <Drawer showSwipeHandle={isMobile} swipeDirection={isMobile ? "down" : "right"} {...props}>
+      {typeof children === "function" ? (
+        (state) => (
+          <>
+            {children(state)}
+            {nestedDrawers}
+          </>
+        )
+      ) : (
+        <>
+          {children}
+          {nestedDrawers}
+        </>
+      )}
+    </Drawer>
   );
 }
 

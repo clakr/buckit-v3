@@ -31,14 +31,17 @@ const distributionLineSchema = z.discriminatedUnion("mode", [
   z.object({ mode: z.literal("percent"), value: percentageSchema }),
 ]);
 
+const bucketLineTargetSchema = z.object({ kind: z.literal("bucket"), bucketId: z.string().min(1) });
+const debtLineTargetSchema = z.object({ kind: z.literal("debt"), debtId: z.string().min(1) });
+
 const distributionLineTargetSchema = z.discriminatedUnion("kind", [
-  z.object({ kind: z.literal("bucket"), bucketId: z.string().min(1) }),
-  z.object({
-    kind: z.literal("debt"),
-    debtId: z.string().min(1),
-    // Only for the form's own check. Save recomputes it from the Debt, which the request can't set.
-    direction: z.enum(["receivable", "payable"]),
-  }),
+  bucketLineTargetSchema,
+  debtLineTargetSchema,
+]);
+
+const formLineTargetSchema = z.discriminatedUnion("kind", [
+  bucketLineTargetSchema,
+  debtLineTargetSchema.extend({ direction: z.enum(["receivable", "payable"]) }),
 ]);
 
 export const verifyUserDistributionMiddlewareSchema = z.looseObject({
@@ -53,9 +56,8 @@ const distributionFieldsSchema = z.object({
     .min(1, "Add at least one line."),
 });
 
-// Create and edit share every rule, including the one-line minimum.
-function refineDistributionRules(
-  distribution: z.output<typeof distributionFieldsSchema>,
+function refineUniqueLineTargets(
+  distribution: { lines: z.output<typeof distributionLineTargetSchema>[] },
   context: z.RefinementCtx,
 ) {
   const bucketIds = distribution.lines.flatMap((line) =>
@@ -77,6 +79,21 @@ function refineDistributionRules(
       message: "A debt can only have one line.",
     });
   }
+}
+
+const distributionFormFieldsSchema = z.object({
+  ...distributionFieldsSchema.shape,
+  bankAccountId: z.string().min(1, "Select a bank account"),
+  lines: z
+    .array(z.intersection(formLineTargetSchema, distributionLineSchema))
+    .min(1, "Add at least one line."),
+});
+
+function refineDistributionFormRules(
+  distribution: z.output<typeof distributionFormFieldsSchema>,
+  context: z.RefinementCtx,
+) {
+  refineUniqueLineTargets(distribution, context);
 
   const plan = computeDistributionPlan(
     distribution.lines.map((line) => ({
@@ -106,17 +123,20 @@ function refineDistributionRules(
   }
 }
 
+export const createDistributionFormSchema = distributionFormFieldsSchema.superRefine(
+  refineDistributionFormRules,
+);
+
 export const createDistributionSchema = distributionFieldsSchema
   .extend({ bankAccountId: z.string().min(1, "Select a bank account") })
-  .superRefine(refineDistributionRules);
+  .superRefine(refineUniqueLineTargets);
 
-// A strictObject, so a request that carries a `bankAccountId` is rejected (story 37).
 export const editDistributionSchema = z
   .strictObject({
     ...verifyUserDistributionMiddlewareSchema.shape,
     ...distributionFieldsSchema.shape,
   })
-  .superRefine(refineDistributionRules);
+  .superRefine(refineUniqueLineTargets);
 
 export const validateDistributionNameSchema = z.object({
   name: nameSchema,

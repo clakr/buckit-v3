@@ -22,7 +22,6 @@ export function DebtProgressRing({
   const isSettled = outstanding <= 0;
   const isReceivable = direction === "receivable";
 
-  // Floor so a debt with a sliver left never reads as 100% repaid.
   const percentRepaid = isSettled
     ? 100
     : amount === 0

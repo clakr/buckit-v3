@@ -10,7 +10,6 @@ export const SEGMENT_SHADES = [
   "bg-primary/25",
 ];
 
-/** How the amount splits between the lines and what stays Unallocated. */
 export function SplitSummary({
   lines,
   amountCents,

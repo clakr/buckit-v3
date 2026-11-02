@@ -70,11 +70,6 @@ type SetUpBucketDrawerRootProps = {
   onSetUp?: (bucket: Bucket) => void;
 };
 
-/**
- * Render beside a parent's `DrawerContent`, inside its Root, so Base UI nests it and the
- * parent's `Suspense` can't unmount it. Open it from a `DrawerTrigger` bound to the same
- * `handle`.
- */
 export function NestedSetUpBucketDrawer({
   handle,
   finalFocus,
@@ -88,7 +83,6 @@ function SetUpBucketDrawerRoot({ handle, finalFocus, onSetUp }: SetUpBucketDrawe
   const popupRef = useRef<HTMLDivElement>(null);
   const registerButtonRef = useRef<HTMLButtonElement>(null);
 
-  // Per Root: the global and the Log Allocation-nested Set Up Bucket each nest their own Register.
   const [nestedRegisterBankAccountDrawerHandle] = useState(() =>
     createDrawerHandle<RegisterBankAccountDrawerPayload>(),
   );
@@ -112,7 +106,16 @@ function SetUpBucketDrawerRoot({ handle, finalFocus, onSetUp }: SetUpBucketDrawe
   }
 
   return (
-    <ResponsiveDrawer handle={handle} onOpenChange={handleOnOpenChange}>
+    <ResponsiveDrawer
+      handle={handle}
+      onOpenChange={handleOnOpenChange}
+      nestedDrawers={
+        <NestedRegisterBankAccountDrawer
+          handle={nestedRegisterBankAccountDrawerHandle}
+          finalFocus={() => registerButtonRef.current ?? popupRef.current}
+        />
+      }
+    >
       <DrawerContent ref={popupRef} finalFocus={finalFocus}>
         <SetUpBucketForm
           onSetUp={(bucket) => {
@@ -124,10 +127,6 @@ function SetUpBucketDrawerRoot({ handle, finalFocus, onSetUp }: SetUpBucketDrawe
           ref={formControlsRef}
         />
       </DrawerContent>
-      <NestedRegisterBankAccountDrawer
-        handle={nestedRegisterBankAccountDrawerHandle}
-        finalFocus={() => registerButtonRef.current ?? popupRef.current}
-      />
     </ResponsiveDrawer>
   );
 }

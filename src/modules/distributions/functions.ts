@@ -32,7 +32,7 @@ import {
   getLineTargetId,
   type DistributionPlanLine,
 } from "#/modules/distributions/utils";
-import { buildRepaymentStatements } from "#/modules/repayments/storage.server";
+import { buildUncheckedRepaymentStatements } from "#/modules/repayments/storage.server";
 import {
   isRepaymentDateBeforeDebt,
   REPAYMENT_BEFORE_DEBT_MESSAGE,
@@ -111,7 +111,6 @@ export const createDistribution = createServerFn({
 
     const distributionId = uuidv7();
 
-    // One batch is one D1 transaction, so a failed line insert never leaves the Distribution behind.
     const [distributionRows] = await distributionNameRule.write(
       db.batch([
         db
@@ -131,8 +130,6 @@ export const createDistribution = createServerFn({
     return distributionRows[0];
   });
 
-// A Distribution's Bank Account is fixed once saved, so the edit schema accepts none and the
-// account is read back from the stored row.
 export const editDistribution = createServerFn({
   method: "POST",
 })
@@ -161,8 +158,6 @@ export const editDistribution = createServerFn({
 
     await assertLinesFit(db, context.userId, bankAccount, data);
 
-    // One batch is one D1 transaction, so a failed line insert keeps the old lines. The lines are
-    // replaced, not diffed, because a line stores only its input and nothing points at one.
     const [distributionRows] = await distributionNameRule.write(
       db.batch([
         db
@@ -185,7 +180,6 @@ export const editDistribution = createServerFn({
     return distributionRows[0];
   });
 
-// Deleting loses no history: the lines cascade and every record a trigger wrote stays (ADR 0007).
 export const deleteDistribution = createServerFn({
   method: "POST",
 })
@@ -203,8 +197,6 @@ export const deleteDistribution = createServerFn({
 
 type DistributionInput = z.output<typeof createDistributionSchema>;
 
-// A line's ids come from the request, so ownership and currency are checked again here, and the
-// plan must fit the default amount. Create and edit apply the same rules.
 async function assertLinesFit(
   db: DB,
   userId: string,
@@ -216,7 +208,6 @@ async function assertLinesFit(
     debtIds: lines.flatMap((line) => (line.kind === "debt" ? [line.debtId] : [])),
   });
 
-  // The form's own direction is a hint. The blocking rules use the Debts' stored directions.
   const plan = computeDistributionPlan(
     lines.map((line) => ({
       id: getLineTargetId(line),
@@ -269,8 +260,6 @@ function assertPlanFits(
   }
 }
 
-// Loads a saved Distribution with everything a trigger or its preview needs, and checks that it,
-// its account and every line's target still belong to the User.
 async function loadDistributionPlan(
   db: DB,
   userId: string,
@@ -322,8 +311,6 @@ async function loadDistributionPlan(
   };
 }
 
-// Reports what a trigger would warn about, without blocking. Debt lines are never capped, so an
-// overpayment, a Settled Debt or a Forgiven one that would reopen only shows here.
 export const previewDistribution = createServerFn({
   method: "GET",
 })
@@ -340,10 +327,6 @@ export const previewDistribution = createServerFn({
     return { warnings: getDebtLineWarnings(plan.plannedLines, debts) };
   });
 
-// Writes the income, one Allocation per Bucket line and one Repayment per Debt line in a single D1
-// batch, so a failure writes nothing. The app keeps no record of the trigger itself (ADR 0007): the
-// Distribution's name in each note is the only trace. Warnings never block, so a Debt line is
-// applied exactly as written.
 export const triggerDistribution = createServerFn({
   method: "POST",
 })
@@ -440,7 +423,7 @@ export const triggerDistribution = createServerFn({
       ),
       ...debtLines.flatMap(
         (line) =>
-          buildRepaymentStatements(db, {
+          buildUncheckedRepaymentStatements(db, {
             debtId: line.id,
             direction: line.kind,
             bankAccountId: bankAccount.id,
@@ -451,7 +434,5 @@ export const triggerDistribution = createServerFn({
       ),
     ];
 
-    // One batch is one D1 transaction. It is never empty: a zero salary means the `receivable`
-    // lines take the whole amount, and the schema keeps the amount above zero.
     await db.batch(statements as [(typeof statements)[number], ...(typeof statements)[number][]]);
   });

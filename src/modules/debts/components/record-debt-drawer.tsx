@@ -1,6 +1,13 @@
 import { useSelector } from "@tanstack/react-form";
 import { useQuery } from "@tanstack/react-query";
-import { useImperativeHandle, useRef, useState, type ComponentProps, type Ref, type RefObject } from "react";
+import {
+  useImperativeHandle,
+  useRef,
+  useState,
+  type ComponentProps,
+  type Ref,
+  type RefObject,
+} from "react";
 import z from "zod";
 
 import type { Debt } from "#/db/schema";
@@ -55,11 +62,6 @@ type RecordDebtDrawerRootProps = {
   onRecorded?: (debt: Debt) => void;
 };
 
-/**
- * Render beside a parent's `DrawerContent`, inside its Root, so Base UI nests it and the
- * parent's `Suspense` can't unmount it. Open it from a `DrawerTrigger` bound to the same
- * `handle` with a `{ currency }` payload, which locks the Debt's currency.
- */
 export function NestedRecordDebtDrawer({
   handle,
   finalFocus,
@@ -73,7 +75,6 @@ function RecordDebtDrawerRoot({ handle, finalFocus, onRecorded }: RecordDebtDraw
   const popupRef = useRef<HTMLDivElement>(null);
   const registerButtonRef = useRef<HTMLButtonElement>(null);
 
-  // Per Root: the global and the Distribution-nested Record Debt each nest their own Register.
   const [nestedRegisterBankAccountDrawerHandle] = useState(() =>
     createDrawerHandle<RegisterBankAccountDrawerPayload>(),
   );
@@ -97,33 +98,35 @@ function RecordDebtDrawerRoot({ handle, finalFocus, onRecorded }: RecordDebtDraw
   }
 
   return (
-    <ResponsiveDrawer handle={handle} onOpenChange={handleOnOpenChange}>
+    <ResponsiveDrawer
+      handle={handle}
+      onOpenChange={handleOnOpenChange}
+      nestedDrawers={
+        <NestedRegisterBankAccountDrawer
+          handle={nestedRegisterBankAccountDrawerHandle}
+          finalFocus={() => registerButtonRef.current ?? popupRef.current}
+        />
+      }
+    >
       {({ payload }) => (
-        <>
-          <DrawerContent ref={popupRef} finalFocus={finalFocus}>
-            <RecordDebtForm
-              lockedCurrency={payload?.currency}
-              onRecorded={(debt) => {
-                handle.close();
-                onRecorded?.(debt);
-              }}
-              nestedRegisterBankAccountDrawerHandle={nestedRegisterBankAccountDrawerHandle}
-              registerButtonRef={registerButtonRef}
-              ref={formControlsRef}
-            />
-          </DrawerContent>
-          <NestedRegisterBankAccountDrawer
-            handle={nestedRegisterBankAccountDrawerHandle}
-            finalFocus={() => registerButtonRef.current ?? popupRef.current}
+        <DrawerContent ref={popupRef} finalFocus={finalFocus}>
+          <RecordDebtForm
+            lockedCurrency={payload?.currency}
+            onRecorded={(debt) => {
+              handle.close();
+              onRecorded?.(debt);
+            }}
+            nestedRegisterBankAccountDrawerHandle={nestedRegisterBankAccountDrawerHandle}
+            registerButtonRef={registerButtonRef}
+            ref={formControlsRef}
           />
-        </>
+        </DrawerContent>
       )}
     </ResponsiveDrawer>
   );
 }
 
 type RecordDebtFormProps = {
-  /** Fixes the Debt's currency, so the User can't pick another one. */
   lockedCurrency?: string;
   onRecorded: (debt: Debt) => void;
   nestedRegisterBankAccountDrawerHandle: ReturnType<

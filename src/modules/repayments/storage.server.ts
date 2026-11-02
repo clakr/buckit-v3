@@ -95,10 +95,7 @@ type RepaymentStatements = {
   repaymentIndex: number;
 };
 
-// Builds the writes for one Repayment without running them, so a caller can batch them with other
-// writes. It checks nothing: the caller has already loaded the Debt, verified ownership and
-// currency, and checked the Unallocated impact.
-export function buildRepaymentStatements(
+export function buildUncheckedRepaymentStatements(
   db: DB,
   input: RepaymentValues & {
     debtId: Debt["id"];
@@ -183,7 +180,7 @@ export async function addRepayment(
     });
   }
 
-  const { statements, repaymentIndex } = buildRepaymentStatements(db, {
+  const { statements, repaymentIndex } = buildUncheckedRepaymentStatements(db, {
     ...input,
     direction: debt.direction,
   });

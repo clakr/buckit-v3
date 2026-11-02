@@ -28,7 +28,6 @@ export type OpenDebt = Pick<Debt, "id" | "name" | "direction" | "currency" | "am
 export const CASHFLOW_MONTHS = 6;
 
 export type MonthlyCashflow = {
-  // First instant of the month, in UTC, so labels don't shift with the viewer's time zone.
   month: number;
   income: number;
   expense: number;
@@ -39,7 +38,6 @@ export type Cashflow = {
   hasActivity: boolean;
 };
 
-// The current month plus the five before it, oldest first.
 export function getCashflowWindowStart(now: Date) {
   return getCashflowMonthStart(now, 0);
 }
@@ -65,7 +63,6 @@ export function getCashflow(
       date.getUTCMonth() -
       now.getUTCMonth() +
       (CASHFLOW_MONTHS - 1);
-    // Outside the window: older than six months, or future-dated past the current month.
     if (monthIndex < 0 || monthIndex >= CASHFLOW_MONTHS) continue;
 
     months[monthIndex][type] += amount;
@@ -80,7 +77,6 @@ export const RECENT_MOVEMENTS_LIMIT = 10;
 export type RecentMovement = {
   key: string;
   kind: "income" | "expense" | "allocation" | "repayment";
-  // Which way the money moved relative to the User. Allocations only earmark, so they have none.
   flow: "in" | "out" | null;
   amount: number;
   date: Date;
@@ -149,8 +145,6 @@ const GOAL_STATUS_ORDER = {
   reached: 2,
 } satisfies Record<GoalStatus, number>;
 
-// Overdue first, then nearest target date (no date last). Reached Goals sink to the bottom,
-// since nothing is left to act on.
 function compareGoalLanes(a: GoalLane, b: GoalLane) {
   return (
     GOAL_STATUS_ORDER[getGoalStatus(a.goal)] - GOAL_STATUS_ORDER[getGoalStatus(b.goal)] ||
@@ -178,8 +172,6 @@ function addTrend(total: BalanceTrend, trend: BalanceTrend): BalanceTrend {
   };
 }
 
-// Currencies are never converted, so every figure is summed within one currency only. Biggest
-// Balance first (ties by currency code), which makes the first entry the default currency.
 export function getCurrencySummaries(
   bankAccounts: SummarizedBankAccount[],
   debts: SummarizedDebt[],
@@ -224,7 +216,6 @@ export function getCurrencySummaries(
   for (const debt of debts) {
     const summary = getOrCreateSummary(debt.currency);
 
-    // A Repayment is the Debt's record, so it stands in for the Transaction it may be linked to.
     for (const repayment of debt.repayments) {
       summary.recentMovements.push({
         key: `repayment:${repayment.id}`,
@@ -280,13 +271,20 @@ export function getCurrencySummaries(
   );
 }
 
+function getDefaultSummary(summaries: CurrencySummary[]) {
+  return summaries.reduce<CurrencySummary | undefined>(
+    (largest, summary) => (largest && largest.balance >= summary.balance ? largest : summary),
+    undefined,
+  );
+}
+
 export function selectCurrencySummary(
   summaries: CurrencySummary[],
   currency: BankAccount["currency"] | undefined,
 ) {
   return (
     summaries.find((summary) => summary.currency === currency) ??
-    summaries[0] ??
+    getDefaultSummary(summaries) ??
     createEmptySummary(DEFAULT_DASHBOARD_CURRENCY)
   );
 }

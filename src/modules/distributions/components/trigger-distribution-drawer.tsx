@@ -154,12 +154,13 @@ function TriggerDistributionForm({ distributionId, ref }: TriggerDistributionFor
 
   const currency = distribution?.bankAccount.currency ?? "";
   const planLines = savedLinesToPlanLines(distribution?.lines ?? []);
-  const plan = computeDistributionPlan(planLines, amountCents);
+  const planFor = (value: unknown) =>
+    computeDistributionPlan(planLines, toCents(String(value ?? "")));
+  const plan = planFor(amount);
   const targetNameById = new Map(
     (distribution?.lines ?? []).map((line) => [line.targetId, line.targetName]),
   );
 
-  // Warnings never block. They ride along the typed amount, so the previous ones stay up while it loads.
   const previewQuery = useQuery(distributionPreviewQueryOptions(distributionId, amountCents));
   const warnings = amountCents > 0 ? (previewQuery.data?.warnings ?? []) : [];
 
@@ -209,9 +210,8 @@ function TriggerDistributionForm({ distributionId, ref }: TriggerDistributionFor
               <form.AppField
                 name="amount"
                 validators={{
-                  // Reads the typed value, not `plan`, which still holds the previous render's amount.
                   onChange: ({ value }) => {
-                    const typedPlan = computeDistributionPlan(planLines, toCents(String(value)));
+                    const typedPlan = planFor(value);
 
                     if (typedPlan.exceedsBucketAndPayable) {
                       return {

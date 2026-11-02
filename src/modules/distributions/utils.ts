@@ -1,4 +1,3 @@
-/** What a line points at. A `receivable` or `payable` is a Debt line, named for the Debt's direction. */
 export type DistributionLineKind = "bucket" | "receivable" | "payable";
 
 export type DistributionLineValue =
@@ -23,7 +22,6 @@ export function toBasisPoints(input: string | number) {
   return toCents(input);
 }
 
-/** A percentage line is that share of the whole amount, rounded half up to the centavo. */
 export function getLineCents(value: DistributionLineValue, amountCents: number) {
   if (value.mode === "fixed") return value.cents;
 
@@ -32,12 +30,6 @@ export function getLineCents(value: DistributionLineValue, amountCents: number) 
   );
 }
 
-/**
- * Works out every line, and the two totals the save and trigger rules check. The Bank Account gains
- * `amountCents` once: `receivableTotal` of it is logged as Repayments and the rest as the salary
- * `income`. Bucket lines are Allocations and `payable` lines are `expense` Repayments, so only those
- * two take money out of what the Distribution adds.
- */
 export function computeDistributionPlan<Id extends string>(
   lines: DistributionPlanLine<Id>[],
   amountCents: number,
@@ -57,20 +49,16 @@ export function computeDistributionPlan<Id extends string>(
 
   return {
     plannedLines,
-    /** Lines worth writing. A line that rounds to zero is left out. */
     writtenLines: plannedLines.filter((line) => line.cents > 0),
     bucketAndPayableTotal,
     receivableTotal,
-    /** The salary `income`, which is skipped when it is zero. */
     salaryCents: amountCents - receivableTotal,
-    /** What stays Unallocated once the Allocations and `payable` Repayments are taken. */
     remainingCents: amountCents - bucketAndPayableTotal,
     exceedsBucketAndPayable: bucketAndPayableTotal > amountCents,
     exceedsReceivable: receivableTotal > amountCents,
   };
 }
 
-/** Reads saved lines as plan lines, so the trigger and the index work out the same split. */
 export function savedLinesToPlanLines(
   lines: {
     targetId: string;
@@ -89,18 +77,18 @@ export function savedLinesToPlanLines(
   }));
 }
 
-/** What a line points at. A Debt line carries its Debt's direction, which decides how it is written. */
 export type DistributionLineTarget =
   | { kind: "bucket"; bucketId: string }
   | { kind: "debt"; debtId: string; direction: "receivable" | "payable" };
 
-/** A line as the form holds it: the value is whatever the User has typed so far. */
 export type DistributionLineDraft = DistributionLineTarget & {
   mode: "fixed" | "percent";
   value: unknown;
 };
 
-export function getLineTargetId(target: DistributionLineTarget) {
+export function getLineTargetId(
+  target: { kind: "bucket"; bucketId: string } | { kind: "debt"; debtId: string },
+) {
   return target.kind === "bucket" ? target.bucketId : target.debtId;
 }
 
@@ -108,7 +96,6 @@ export function getPlanLineKind(target: DistributionLineTarget): DistributionLin
   return target.kind === "bucket" ? "bucket" : target.direction;
 }
 
-/** Reads the form's drafts forgivingly, so a half-typed value counts as zero instead of throwing. */
 export function draftsToPlanLines(drafts: DistributionLineDraft[]): DistributionPlanLine[] {
   return drafts.map((draft) => ({
     id: getLineTargetId(draft),
@@ -123,14 +110,9 @@ export function draftsToPlanLines(drafts: DistributionLineDraft[]): Distribution
 export type DebtLineWarning = {
   debtId: string;
   kind: "overpays" | "settled" | "forgiven";
-  /** What the line pays beyond the Debt's Outstanding. Set only for `overpays`. */
   overpaidByCents: number | null;
 };
 
-/**
- * A Debt line never caps itself, so the User is warned instead. A Forgiven Debt is reopened by the
- * Repayment, a Settled one is already paid off, and an open one may be paid more than it owes.
- */
 export function getDebtLineWarnings(
   plannedLines: { id: string; kind: DistributionLineKind; cents: number }[],
   debts: { id: string; outstanding: number; status: "open" | "settled" | "forgiven" }[],

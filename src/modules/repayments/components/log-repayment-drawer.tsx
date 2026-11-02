@@ -70,23 +70,26 @@ export function LogRepaymentDrawer() {
   }
 
   return (
-    <ResponsiveDrawer handle={logRepaymentDrawerHandle} onOpenChange={handleOnOpenChange}>
+    <ResponsiveDrawer
+      handle={logRepaymentDrawerHandle}
+      onOpenChange={handleOnOpenChange}
+      nestedDrawers={
+        <NestedRegisterBankAccountDrawer
+          handle={nestedRegisterBankAccountDrawerHandle}
+          finalFocus={() => registerButtonRef.current ?? popupRef.current}
+        />
+      }
+    >
       {({ payload }) => (
-        <>
-          <DrawerContent ref={popupRef}>
-            {payload ? (
-              <LogRepaymentForm
-                debtId={payload.debtId}
-                registerButtonRef={registerButtonRef}
-                ref={formControlsRef}
-              />
-            ) : null}
-          </DrawerContent>
-          <NestedRegisterBankAccountDrawer
-            handle={nestedRegisterBankAccountDrawerHandle}
-            finalFocus={() => registerButtonRef.current ?? popupRef.current}
-          />
-        </>
+        <DrawerContent ref={popupRef}>
+          {payload ? (
+            <LogRepaymentForm
+              debtId={payload.debtId}
+              registerButtonRef={registerButtonRef}
+              ref={formControlsRef}
+            />
+          ) : null}
+        </DrawerContent>
       )}
     </ResponsiveDrawer>
   );

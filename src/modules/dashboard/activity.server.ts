@@ -7,10 +7,6 @@ import { repayments } from "#/db/schema";
 
 import { RECENT_MOVEMENTS_LIMIT, type RecentMovement } from "./utils";
 
-// The ledger side of the feed: Transactions and Allocations of one currency's Bank Accounts. Each
-// currency is queried on its own so a busy currency can't push another one off its page of eight.
-// A Transaction a Repayment is linked to is left out, because the Debt's Repayment stands in for it.
-// Withdrawals and Debt originations stay in, as the ordinary Transactions they link to.
 export async function getRecentLedgerMovements(
   db: DB,
   { userId, currencies }: { userId: string; currencies: BankAccount["currency"][] },

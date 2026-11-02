@@ -54,23 +54,26 @@ export function EditDistributionDrawer() {
   }
 
   return (
-    <ResponsiveDrawer handle={editDistributionDrawerHandle} onOpenChange={handleOnOpenChange}>
+    <ResponsiveDrawer
+      handle={editDistributionDrawerHandle}
+      onOpenChange={handleOnOpenChange}
+      nestedDrawers={
+        <DistributionNestedDrawerRoots
+          nestedDrawers={nestedDrawers}
+          formControlsRef={formControlsRef}
+        />
+      }
+    >
       {({ payload }) => (
-        <>
-          <DrawerContent ref={nestedDrawers.popupRef}>
-            {payload ? (
-              <EditDistributionContent
-                distributionId={payload.distributionId}
-                nestedDrawers={nestedDrawers}
-                ref={formControlsRef}
-              />
-            ) : null}
-          </DrawerContent>
-          <DistributionNestedDrawerRoots
-            nestedDrawers={nestedDrawers}
-            formControlsRef={formControlsRef}
-          />
-        </>
+        <DrawerContent ref={nestedDrawers.popupRef}>
+          {payload ? (
+            <EditDistributionContent
+              distributionId={payload.distributionId}
+              nestedDrawers={nestedDrawers}
+              ref={formControlsRef}
+            />
+          ) : null}
+        </DrawerContent>
       )}
     </ResponsiveDrawer>
   );
@@ -96,7 +99,6 @@ function EditDistributionContent({
   });
 
   if (distribution) {
-    // Keyed by id, so opening another Distribution starts the form from its saved values.
     return (
       <DistributionForm
         key={distribution.id}

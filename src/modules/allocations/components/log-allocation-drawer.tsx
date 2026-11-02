@@ -76,19 +76,11 @@ export function LogAllocationDrawer() {
   }
 
   return (
-    <ResponsiveDrawer handle={logAllocationDrawerHandle} onOpenChange={handleOnOpenChange}>
-      {({ payload }) => (
+    <ResponsiveDrawer
+      handle={logAllocationDrawerHandle}
+      onOpenChange={handleOnOpenChange}
+      nestedDrawers={
         <>
-          <DrawerContent ref={popupRef}>
-            {payload ? (
-              <LogAllocationForm
-                start={payload.start}
-                setUpBucketButtonRef={setUpBucketButtonRef}
-                registerButtonRef={registerButtonRef}
-                ref={formControlsRef}
-              />
-            ) : null}
-          </DrawerContent>
           <NestedSetUpBucketDrawer
             handle={nestedSetUpBucketDrawerHandle}
             finalFocus={() => setUpBucketButtonRef.current ?? popupRef.current}
@@ -98,6 +90,19 @@ export function LogAllocationDrawer() {
             finalFocus={() => registerButtonRef.current ?? popupRef.current}
           />
         </>
+      }
+    >
+      {({ payload }) => (
+        <DrawerContent ref={popupRef}>
+          {payload ? (
+            <LogAllocationForm
+              start={payload.start}
+              setUpBucketButtonRef={setUpBucketButtonRef}
+              registerButtonRef={registerButtonRef}
+              ref={formControlsRef}
+            />
+          ) : null}
+        </DrawerContent>
       )}
     </ResponsiveDrawer>
   );

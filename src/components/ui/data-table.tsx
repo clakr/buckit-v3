@@ -43,7 +43,6 @@ interface DataTableProps<TData extends RowData> {
   columns: DataTableColumnDef<TData>[];
   data: TData[];
   initialSorting?: SortingState;
-  /** Replaces "No results." when there are no rows. */
   emptyState?: ReactNode;
 }
 

@@ -40,7 +40,7 @@ import {
   useCreateDistributionMutation,
   useEditDistributionMutation,
 } from "#/modules/distributions/mutations";
-import { createDistributionSchema } from "#/modules/distributions/schemas";
+import { createDistributionFormSchema } from "#/modules/distributions/schemas";
 import {
   draftsToPlanLines,
   getLineTargetId,
@@ -54,18 +54,13 @@ const FALLBACK_CURRENCY = "PHP";
 
 export type DistributionFormControls = {
   isDirty: () => boolean;
-  /** The name of the Distribution being copied, when the form is a Duplicate. */
   duplicateOfName: string | undefined;
   reset: () => void;
-  /** Adds a line for a Bucket the User just set up, keeping the lines already typed. */
   selectBucket: (bucketId: string) => void;
-  /** Adds a line for a Debt the User just recorded, keeping the lines already typed. */
   selectDebt: (debt: Pick<Debt, "id" | "direction">) => void;
-  /** Picks a Bank Account the User just registered. */
   selectBankAccount: (bankAccountId: string) => void;
 };
 
-/** Buckets first, then Debts, the order picking in the line editor keeps them in. */
 function toLineDrafts(distribution: SavedDistribution): DistributionLineDraft[] {
   const drafts = distribution.lines.map((line): DistributionLineDraft => {
     const value = {
@@ -87,7 +82,6 @@ function toLineDrafts(distribution: SavedDistribution): DistributionLineDraft[] 
   ];
 }
 
-/** Keeps the lines already typed for targets that stay picked, and starts new ones at 10%. */
 function mergeSelectedTargets(
   current: DistributionLineDraft[],
   picked: DistributionLineTarget[],
@@ -101,7 +95,6 @@ function mergeSelectedTargets(
       },
   );
 
-  // Buckets first, then Debts, whatever order they were picked in.
   return [
     ...pickedLines.filter((line) => line.kind === "bucket"),
     ...pickedLines.filter((line) => line.kind === "debt"),
@@ -109,9 +102,7 @@ function mergeSelectedTargets(
 }
 
 type DistributionFormProps = {
-  /** The saved Distribution to edit. Without it, the form creates one. */
   distribution?: SavedDistribution;
-  /** A saved Distribution to prefill a new one from. Nothing is saved until the User presses Save. */
   duplicateOf?: SavedDistribution;
   onSaved: () => void;
   nestedDrawers: DistributionNestedDrawers;
@@ -134,7 +125,7 @@ export function DistributionForm({
 
   const source = distribution ?? duplicateOf;
 
-  const defaultValues: z.input<typeof createDistributionSchema> = source
+  const defaultValues: z.input<typeof createDistributionFormSchema> = source
     ? {
         name: duplicateOf ? `${duplicateOf.name} copy` : source.name,
         bankAccountId: source.bankAccount.id,
@@ -151,12 +142,11 @@ export function DistributionForm({
   const form = useAppForm({
     defaultValues,
     validators: {
-      onChange: createDistributionSchema,
+      onChange: createDistributionFormSchema,
     },
     onSubmit: async ({ value: data }) => {
       try {
         if (distribution) {
-          // The edit schema is strict and takes no account, because a saved account never changes.
           await editMutation.mutateAsync({
             data: {
               distributionId: distribution.id,
@@ -179,8 +169,6 @@ export function DistributionForm({
     },
   });
 
-  // The account the lines were built for. It moves only when a switch is accepted, so a cancelled
-  // switch can put the previous account back.
   const committedBankAccountIdRef = useRef(defaultValues.bankAccountId);
 
   useImperativeHandle(
@@ -222,7 +210,6 @@ export function DistributionForm({
 
   const bankAccount = bankAccountsQuery.data?.find((account) => account.id === bankAccountId);
   const currency = bankAccount?.currency ?? FALLBACK_CURRENCY;
-  // The picker only lists Debts the account can repay. Without an account there is no currency yet.
   const pickableDebts = bankAccount
     ? (debtsQuery.data ?? []).filter((debt) => debt.currency === bankAccount.currency)
     : [];
@@ -267,7 +254,7 @@ export function DistributionForm({
               name="name"
               validators={{
                 onChangeAsyncDebounceMs: 500,
-                onChangeAsync: createDistributionSchema.shape.name.superRefine(
+                onChangeAsync: createDistributionFormSchema.shape.name.superRefine(
                   refineNameAvailability((name) =>
                     validateDistributionName({ data: { name, excludeId: distribution?.id } }),
                   ),
@@ -281,8 +268,6 @@ export function DistributionForm({
             <form.AppField
               name="bankAccountId"
               listeners={{
-                // Fixed amounts and Debt lines belong to the old currency, so a switch to another one
-                // clears every line, once the User agrees.
                 onChange: async ({ value }) => {
                   const previousBankAccountId = committedBankAccountIdRef.current;
                   const currentLines = form.getFieldValue("lines") as DistributionLineDraft[];

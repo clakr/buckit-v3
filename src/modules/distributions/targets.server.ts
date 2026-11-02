@@ -7,11 +7,6 @@ type LineTargetIds = { bucketIds: string[]; debtIds: string[] };
 
 type LineDebt = Pick<Debt, "id" | "direction" | "currency">;
 
-/**
- * A line's ids come from the request or from rows that may have outlived their targets, so save and
- * trigger both check that every Bucket and Debt is the User's and that each Debt is in the
- * Bank Account's currency. Returns the Debts, so a caller can tell a line's direction.
- */
 export async function assertOwnedLineTargets(
   db: DB,
   userId: string,

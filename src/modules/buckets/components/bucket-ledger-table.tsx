@@ -46,7 +46,6 @@ export function BucketLedgerTable({ bucketId, goalCurrency }: Props) {
   const [isPending, startTransition] = useTransition();
   const { data: bucketLedger } = useSuspenseQuery(bucketLedgerQueryOption(bucketId, page));
   const { subtotals, holdings, entries, opening, isOldestPage, ...paging } = bucketLedger;
-  // The Goal panel already shows the Bucket's Subtotal in the Goal's currency.
   const isHoldsRedundant =
     goalCurrency !== undefined && subtotals.every(({ currency }) => currency === goalCurrency);
 

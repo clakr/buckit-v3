@@ -51,24 +51,26 @@ export function CreateDistributionDrawer() {
   }
 
   return (
-    <ResponsiveDrawer handle={createDistributionDrawerHandle} onOpenChange={handleOnOpenChange}>
+    <ResponsiveDrawer
+      handle={createDistributionDrawerHandle}
+      onOpenChange={handleOnOpenChange}
+      nestedDrawers={
+        <DistributionNestedDrawerRoots
+          nestedDrawers={nestedDrawers}
+          formControlsRef={formControlsRef}
+        />
+      }
+    >
       {({ payload }) => (
-        <>
-          <DrawerContent ref={nestedDrawers.popupRef}>
-            <DistributionForm
-              // Keyed by the original, so duplicating another Distribution starts from its values.
-              key={payload?.duplicateOf?.id}
-              duplicateOf={payload?.duplicateOf}
-              onSaved={() => createDistributionDrawerHandle.close()}
-              nestedDrawers={nestedDrawers}
-              ref={formControlsRef}
-            />
-          </DrawerContent>
-          <DistributionNestedDrawerRoots
+        <DrawerContent ref={nestedDrawers.popupRef}>
+          <DistributionForm
+            key={payload?.duplicateOf?.id}
+            duplicateOf={payload?.duplicateOf}
+            onSaved={() => createDistributionDrawerHandle.close()}
             nestedDrawers={nestedDrawers}
-            formControlsRef={formControlsRef}
+            ref={formControlsRef}
           />
-        </>
+        </DrawerContent>
       )}
     </ResponsiveDrawer>
   );

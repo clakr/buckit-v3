@@ -6,9 +6,6 @@ import { bankAccounts, transactions, type BankAccount } from "#/db/schema";
 
 import { getCashflow, getCashflowWindowStart, type Cashflow } from "./utils";
 
-// Income and expense per month, one currency at a time since they are never converted. Every
-// Transaction counts, so the totals match the Account ledgers: a Withdrawal's Linked Transaction is
-// an expense, and a Debt origination is an ordinary Transaction there too.
 export async function getCashflowByCurrency(db: DB, { userId }: { userId: string }) {
   const now = new Date();
 

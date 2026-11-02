@@ -17,7 +17,7 @@ import {
   getBucketLedgerSchema,
   validateBucketNameSchema,
 } from "#/modules/buckets/schemas";
-import { deleteDistributionsEmptiedByBucket } from "#/modules/distributions/cleanup.server";
+import { deleteBucketWithEmptiedDistributions } from "#/modules/distributions/cleanup.server";
 import { findFundingBankAccount } from "#/modules/goals/funding.server";
 import { setUpBucketWithGoalSchema } from "#/modules/goals/schemas";
 import { getGoalProgress } from "#/modules/goals/utils";
@@ -148,7 +148,6 @@ export const setUpBucket = createServerFn({
 
     if (!goal) return bucketNameRule.write(insertBucket);
 
-    // One batch is one D1 transaction, so a failed Goal insert never leaves the Bucket behind.
     const [bucketRows] = await bucketNameRule.write(
       db.batch([
         insertBucket,
@@ -204,12 +203,5 @@ export const deleteBucket = createServerFn({
 })
   .middleware([verifyUserBucketMiddleware])
   .handler(async ({ data }) => {
-    const db = getDB(env.db);
-
-    const [, deleted] = await db.batch([
-      deleteDistributionsEmptiedByBucket(db, data.bucketId),
-      db.delete(buckets).where(eq(buckets.id, data.bucketId)).returning(),
-    ]);
-
-    return deleted;
+    return deleteBucketWithEmptiedDistributions(getDB(env.db), data.bucketId);
   });

@@ -66,23 +66,26 @@ export function AddGoalDrawer() {
   }
 
   return (
-    <ResponsiveDrawer handle={addGoalDrawerHandle} onOpenChange={handleOnOpenChange}>
+    <ResponsiveDrawer
+      handle={addGoalDrawerHandle}
+      onOpenChange={handleOnOpenChange}
+      nestedDrawers={
+        <NestedRegisterBankAccountDrawer
+          handle={nestedRegisterBankAccountDrawerHandle}
+          finalFocus={() => registerButtonRef.current ?? popupRef.current}
+        />
+      }
+    >
       {({ payload }) => (
-        <>
-          <DrawerContent ref={popupRef}>
-            {payload ? (
-              <AddGoalForm
-                bucketId={payload.bucketId}
-                registerButtonRef={registerButtonRef}
-                ref={formControlsRef}
-              />
-            ) : null}
-          </DrawerContent>
-          <NestedRegisterBankAccountDrawer
-            handle={nestedRegisterBankAccountDrawerHandle}
-            finalFocus={() => registerButtonRef.current ?? popupRef.current}
-          />
-        </>
+        <DrawerContent ref={popupRef}>
+          {payload ? (
+            <AddGoalForm
+              bucketId={payload.bucketId}
+              registerButtonRef={registerButtonRef}
+              ref={formControlsRef}
+            />
+          ) : null}
+        </DrawerContent>
       )}
     </ResponsiveDrawer>
   );

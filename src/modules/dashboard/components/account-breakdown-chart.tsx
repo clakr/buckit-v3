@@ -24,7 +24,6 @@ type AccountBreakdownChartProps = {
   summary: CurrencySummary;
 };
 
-// Past this many Accounts, names no longer fit flat under their bars, so they tilt.
 const FLAT_LABEL_LIMIT = 8;
 const LABEL_LENGTH = 16;
 

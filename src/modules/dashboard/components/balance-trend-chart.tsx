@@ -25,7 +25,6 @@ const chartConfig = {
   balance: { label: "Balance", color: "var(--chart-3)" },
 } satisfies ChartConfig;
 
-// Trend days are UTC days, so format them in UTC. The viewer's zone would shift every label.
 function formatTrendDate(date: number, options: Intl.DateTimeFormatOptions) {
   return new Date(date).toLocaleDateString("en-US", { ...options, timeZone: "UTC" });
 }

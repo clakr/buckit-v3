@@ -45,7 +45,6 @@ import {
 type Bucket = { id: string; name: string };
 type LineDebt = { id: string; name: string; direction: "receivable" | "payable" };
 
-/** One entry in the picker. Buckets and Debts share it, so the kind tells them apart. */
 type LineOption =
   | { kind: "bucket"; id: string; name: string }
   | { kind: "debt"; id: string; name: string; direction: LineDebt["direction"] };
@@ -58,11 +57,8 @@ type Props = {
   buckets: Bucket[];
   setUpBucketHandle: ReturnType<typeof createDrawerHandle>;
   recordDebtHandle: ReturnType<typeof createDrawerHandle<RecordDebtDrawerPayload>>;
-  /** The menu button the nested Drawers return focus to once they close. */
   createTargetButtonRef: RefObject<HTMLButtonElement | null>;
-  /** Only Debts in the Bank Account's currency, because a Debt line is paid through that account. */
   debts: LineDebt[];
-  /** Why Debts can't be picked or recorded, when there is no account to take their currency from. */
   debtsUnavailableReason: string | null;
   currency: string;
   amountCents: number;
@@ -70,7 +66,6 @@ type Props = {
   onSelectTargets: (targets: DistributionLineTarget[]) => void;
   onChangeMode: (index: number, mode: DistributionLineDraft["mode"]) => void;
   onRemove: (index: number) => void;
-  /** The value input is a form field, so the form renders it. */
   renderValueInput: (index: number) => ReactNode;
 };
 
@@ -80,10 +75,6 @@ function toLineTarget(option: LineOption): DistributionLineTarget {
     : { kind: "debt", debtId: option.id, direction: option.direction };
 }
 
-/**
- * Pick Buckets and Debts in one multiple-select Combobox, grouped by kind. Each pick gets a compact
- * card with its value. The picker's add-on creates a new Bucket or Debt through a nested Drawer.
- */
 export function DistributionLinesField({
   lines,
   buckets,

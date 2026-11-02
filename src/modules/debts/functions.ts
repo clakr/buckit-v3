@@ -1,6 +1,6 @@
 import { createServerFn } from "@tanstack/react-start";
 import { env } from "cloudflare:workers";
-import { eq, inArray } from "drizzle-orm";
+import { eq } from "drizzle-orm";
 import { uuidv7 } from "uuidv7";
 
 import type { DB } from "#/db";
@@ -15,7 +15,7 @@ import { checkUnallocated } from "#/modules/bank-accounts/figures.server";
 import { findOwnedBankAccount } from "#/modules/bank-accounts/ownership.server";
 import { loadDebtDeletionImpact } from "#/modules/debts/deletion.server";
 import { deleteDebtSchema, editDebtSchema, recordDebtSchema } from "#/modules/debts/schemas";
-import { deleteDistributionsEmptiedByDebt } from "#/modules/distributions/cleanup.server";
+import { deleteDebtWithEmptiedDistributions } from "#/modules/distributions/cleanup.server";
 
 import { getDebtsWithFigures } from "./figures.server";
 import { verifyUserDebtMiddleware } from "./middlewares";
@@ -187,28 +187,13 @@ export const deleteDebt = createServerFn({
   .handler(async ({ context, data }) => {
     const db = getDB(env.db);
 
-    const deleteEmptiedDistributions = deleteDistributionsEmptiedByDebt(db, data.debtId);
-    const deleteDebtQuery = db.delete(debts).where(eq(debts.id, data.debtId)).returning();
-
     const { linkedTransactionIds, shortfall } = data.deleteTransactions
       ? await loadDebtDeletionImpact(db, context.userId, data.debtId)
       : { linkedTransactionIds: [], shortfall: null };
 
     if (shortfall) throw new InsufficientFundsError(describeDeleteTransactionsShortfall(shortfall));
 
-    if (!linkedTransactionIds.length) {
-      const [, deleted] = await db.batch([deleteEmptiedDistributions, deleteDebtQuery]);
-
-      return deleted;
-    }
-
-    const [, , deleted] = await db.batch([
-      db.delete(transactions).where(inArray(transactions.id, linkedTransactionIds)),
-      deleteEmptiedDistributions,
-      deleteDebtQuery,
-    ]);
-
-    return deleted;
+    return deleteDebtWithEmptiedDistributions(db, data.debtId, linkedTransactionIds);
   });
 
 export const forgiveDebt = createServerFn({

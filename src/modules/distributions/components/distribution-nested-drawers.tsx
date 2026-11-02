@@ -16,7 +16,6 @@ import {
 export type DistributionNestedDrawers = {
   popupRef: RefObject<HTMLDivElement | null>;
   setUpBucketHandle: ReturnType<typeof createDrawerHandle>;
-  /** The line picker's Create New button, which both the Set Up Bucket and Record Debt Drawers return focus to. */
   createTargetButtonRef: RefObject<HTMLButtonElement | null>;
   registerBankAccountHandle: ReturnType<
     typeof createDrawerHandle<RegisterBankAccountDrawerPayload>
@@ -25,7 +24,6 @@ export type DistributionNestedDrawers = {
   recordDebtHandle: ReturnType<typeof createDrawerHandle<RecordDebtDrawerPayload>>;
 };
 
-/** Handles are per Distribution Drawer, because Create and Edit are both mounted on the page. */
 export function useDistributionNestedDrawers(): DistributionNestedDrawers {
   const popupRef = useRef<HTMLDivElement>(null);
   const createTargetButtonRef = useRef<HTMLButtonElement>(null);
@@ -51,10 +49,6 @@ type Props = {
   formControlsRef: RefObject<DistributionFormControls | null>;
 };
 
-/**
- * Render beside the Distribution Drawer's `DrawerContent`, inside its Root, so the Drawers nest.
- * A saved record is picked on the form, which stays mounted underneath with its input intact.
- */
 export function DistributionNestedDrawerRoots({ nestedDrawers, formControlsRef }: Props) {
   return (
     <>

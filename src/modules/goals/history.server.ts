@@ -6,7 +6,6 @@ import { loadBucketLedger } from "#/modules/buckets/ledger.server";
 
 export type GoalProgressPoint = { date: number; progress: number };
 
-/** The Bucket's running balance in the Goal's currency after each Allocation and Withdrawal. */
 export async function getGoalProgressHistory(
   db: DB,
   { bucketId, currency }: { bucketId: Bucket["id"]; currency: Goal["currency"] },

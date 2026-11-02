@@ -15,7 +15,6 @@ function getEarmarkedPercent({ balance, unallocated, totalEarmarked }: Omit<Prop
   if (balance <= 0) return null;
   if (unallocated <= 0) return 100;
 
-  // Floor so an account with a sliver left never reads as 100% earmarked.
   return Math.floor((totalEarmarked / balance) * 100);
 }
 

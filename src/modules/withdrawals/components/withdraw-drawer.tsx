@@ -89,8 +89,6 @@ function WithdrawForm({ bucketId, ref }: WithdrawFormProps) {
     data: liveSources,
   } = useQuery(withdrawalSourcesQueryOption(bucketId));
 
-  // The save's refetch lands before the Drawer closes and drains the sources, so hold the ones the
-  // user submitted against to keep "Nothing to withdraw" from flashing.
   const [submittedSources, setSubmittedSources] = useState<typeof liveSources>();
   const sources = submittedSources ?? liveSources;
 
