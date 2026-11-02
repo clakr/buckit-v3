@@ -14,8 +14,23 @@ function Table({ className, ...props }: React.ComponentProps<"table">) {
   );
 }
 
-function TableHeader({ className, ...props }: React.ComponentProps<"thead">) {
-  return <thead data-slot="table-header" className={cn("[&_tr]:border-b", className)} {...props} />;
+function TableHeader({
+  className,
+  muted,
+  ...props
+}: React.ComponentProps<"thead"> & { muted?: boolean }) {
+  return (
+    <thead
+      data-slot="table-header"
+      data-muted={muted ? "" : undefined}
+      className={cn(
+        "[&_tr]:border-b",
+        "data-muted:bg-muted/50 data-muted:[&_th]:border-s data-muted:[&_th]:font-sans data-muted:[&_th]:normal-case data-muted:[&_th_button]:normal-case data-muted:[&_th:first-child]:border-s-0",
+        className,
+      )}
+      {...props}
+    />
+  );
 }
 
 function TableBody({ className, ...props }: React.ComponentProps<"tbody">) {

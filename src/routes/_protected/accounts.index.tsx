@@ -4,6 +4,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { z } from "zod";
 
 import { Heading } from "#/components/heading";
+import { InsetCard, InsetCardContent, InsetCardTitle } from "#/components/inset-card";
 import { Main } from "#/components/main";
 import { RouteRetryButton } from "#/components/route-retry-button";
 import { StateTemplate } from "#/components/state-template";
@@ -65,25 +66,11 @@ function RouteComponent() {
 
   return (
     <Main>
-      <div className="flex items-center justify-between">
-        <Heading>Accounts</Heading>
-        <DrawerTrigger
-          handle={registerBankAccountDrawerHandle}
-          payload={{ currency: "PHP" }}
-          render={<Button />}
-        >
-          <IconPlus />
-          Register Account
-        </DrawerTrigger>
-      </div>
-
-      {isEmpty ? (
-        <StateTemplate
-          state="empty"
-          title="No accounts yet."
-          description="Add your first bank account to start tracking."
-          icon={<MODULE_ICONS.accounts />}
-          content={
+      <InsetCard>
+        <InsetCardTitle
+          as="h1"
+          subtitle={`${bankAccounts.length} ${bankAccounts.length === 1 ? "account" : "accounts"}`}
+          action={
             <DrawerTrigger
               handle={registerBankAccountDrawerHandle}
               payload={{ currency: "PHP" }}
@@ -93,18 +80,32 @@ function RouteComponent() {
               Register Account
             </DrawerTrigger>
           }
-        />
-      ) : (
-        <DataTable
-          columns={INDEX_COLUMNS}
-          data={bankAccounts}
-          initialSorting={[{ id: "lastTransactionDate", desc: true }]}
-          pagination={{
-            state: { pageIndex, pageSize },
-            onChange: (state) => navigate({ search: state }),
-          }}
-        />
-      )}
+        >
+          Accounts
+        </InsetCardTitle>
+
+        <InsetCardContent>
+          {isEmpty ? (
+            <StateTemplate
+              state="empty"
+              title="No accounts yet."
+              description="Add your first bank account to start tracking."
+              icon={<MODULE_ICONS.accounts />}
+            />
+          ) : (
+            <DataTable
+              columns={INDEX_COLUMNS}
+              data={bankAccounts}
+              initialSorting={[{ id: "lastTransactionDate", desc: true }]}
+              mutedHeader
+              pagination={{
+                state: { pageIndex, pageSize },
+                onChange: (state) => navigate({ search: state }),
+              }}
+            />
+          )}
+        </InsetCardContent>
+      </InsetCard>
     </Main>
   );
 }

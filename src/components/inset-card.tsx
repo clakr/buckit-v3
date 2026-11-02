@@ -20,15 +20,32 @@ function InsetCardTitle({
   className,
   children,
   action,
+  subtitle,
+  as: TitleElement = "span",
   ...props
-}: React.ComponentProps<"div"> & { action?: React.ReactNode }) {
+}: React.ComponentProps<"div"> & {
+  action?: React.ReactNode;
+  subtitle?: React.ReactNode;
+  as?: "span" | "h1";
+}) {
+  const title = (
+    <TitleElement className="flex items-center gap-x-1.5 font-semibold">{children}</TitleElement>
+  );
+
   return (
     <div
       data-slot="inset-card-title"
       className={cn("flex items-center justify-between gap-x-2 px-2 pt-2 pb-3", className)}
       {...props}
     >
-      <span className="flex items-center gap-x-1.5 font-semibold">{children}</span>
+      {subtitle ? (
+        <div className="flex flex-col">
+          {title}
+          <span className="text-xs text-muted-foreground">{subtitle}</span>
+        </div>
+      ) : (
+        title
+      )}
       {action}
     </div>
   );
