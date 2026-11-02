@@ -40,6 +40,11 @@ export const DATA_TABLE_FEATURES = tableFeatures({
   },
 });
 
+const ARIA_SORT = {
+  asc: "ascending",
+  desc: "descending",
+} as const;
+
 export type DataTableColumnDef<TData extends RowData> = ColumnDef<
   typeof DATA_TABLE_FEATURES,
   TData
@@ -100,8 +105,12 @@ export function DataTable<TData extends RowData>({
             {table.getHeaderGroups().map((headerGroup) => (
               <TableRow key={headerGroup.id}>
                 {headerGroup.headers.map((header) => {
+                  const sortDirection = header.column.getIsSorted();
                   return (
-                    <TableHead key={header.id}>
+                    <TableHead
+                      key={header.id}
+                      aria-sort={sortDirection ? ARIA_SORT[sortDirection] : undefined}
+                    >
                       {header.isPlaceholder
                         ? null
                         : flexRender(header.column.columnDef.header, header.getContext())}
