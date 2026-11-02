@@ -4,8 +4,14 @@ import { createFileRoute } from "@tanstack/react-router";
 import { z } from "zod";
 
 import { Heading } from "#/components/heading";
-import { InsetCard, InsetCardContent, InsetCardTitle } from "#/components/inset-card";
+import {
+  InsetCard,
+  InsetCardContent,
+  InsetCardFooter,
+  InsetCardTitle,
+} from "#/components/inset-card";
 import { Main } from "#/components/main";
+import { Pager } from "#/components/pager";
 import { RouteRetryButton } from "#/components/route-retry-button";
 import { StateTemplate } from "#/components/state-template";
 import { Button } from "#/components/ui/button";
@@ -59,10 +65,13 @@ export const Route = createFileRoute("/_protected/accounts/")({
 function RouteComponent() {
   const { bankAccountsQueryOptions } = Route.useRouteContext();
   const { data: bankAccounts } = useSuspenseQuery(bankAccountsQueryOptions);
-  const { pageIndex = 0, pageSize = PAGE_SIZES[0] } = Route.useSearch();
+  const { pageIndex: requestedPageIndex = 0, pageSize = PAGE_SIZES[0] } = Route.useSearch();
   const navigate = Route.useNavigate();
 
   const isEmpty = bankAccounts.length === 0;
+  const total = bankAccounts.length;
+  const pageCount = Math.max(Math.ceil(total / pageSize), 1);
+  const pageIndex = Math.min(requestedPageIndex, pageCount - 1);
 
   return (
     <Main>
@@ -97,13 +106,28 @@ function RouteComponent() {
               columns={INDEX_COLUMNS}
               data={bankAccounts}
               initialSorting={[{ id: "lastTransactionDate", desc: true }]}
-              pagination={{
-                state: { pageIndex, pageSize },
-                onChange: (state) => navigate({ search: state }),
+              pageIndex={pageIndex}
+              pageSize={pageSize}
+              onSortingChange={() => {
+                if (pageIndex !== 0) navigate({ search: { pageIndex: 0, pageSize } });
               }}
             />
           )}
         </InsetCardContent>
+
+        {total > PAGE_SIZES[0] ? (
+          <InsetCardFooter>
+            <Pager
+              paging={{ pageIndex, pageSize, pageCount, total }}
+              onPageChange={(nextPageIndex) =>
+                navigate({ search: { pageIndex: nextPageIndex, pageSize } })
+              }
+              onPageSizeChange={(nextPageSize) =>
+                navigate({ search: { pageIndex: 0, pageSize: nextPageSize } })
+              }
+            />
+          </InsetCardFooter>
+        ) : null}
       </InsetCard>
     </Main>
   );

@@ -54,7 +54,7 @@ export function Pager({ paging, onPageChange, onPageSizeChange }: Props) {
           value={String(pageSize)}
           onValueChange={(value) => onPageSizeChange(Number(value) as PageSize)}
         >
-          <SelectTrigger size="sm" aria-labelledby={pageSizeLabelId}>
+          <SelectTrigger size="sm" aria-labelledby={pageSizeLabelId} className="bg-background">
             <SelectValue />
           </SelectTrigger>
           <SelectContent alignItemWithTrigger={false}>
@@ -80,6 +80,7 @@ export function Pager({ paging, onPageChange, onPageSizeChange }: Props) {
           aria-label="First page"
           disabled={isFirstPage}
           onClick={() => onPageChange(0)}
+          className="bg-background"
         >
           <IconChevronsLeft />
         </Button>
@@ -89,6 +90,7 @@ export function Pager({ paging, onPageChange, onPageSizeChange }: Props) {
           aria-label="Previous page"
           disabled={isFirstPage}
           onClick={() => onPageChange(pageIndex - 1)}
+          className="bg-background"
         >
           <IconChevronLeft />
         </Button>
@@ -105,6 +107,7 @@ export function Pager({ paging, onPageChange, onPageSizeChange }: Props) {
               aria-label={`Page ${page + 1}`}
               aria-current={page === pageIndex ? "page" : undefined}
               onClick={() => onPageChange(page)}
+              className={page === pageIndex ? "" : "bg-background"}
             >
               {page + 1}
             </Button>
@@ -116,6 +119,7 @@ export function Pager({ paging, onPageChange, onPageSizeChange }: Props) {
           aria-label="Next page"
           disabled={isLastPage}
           onClick={() => onPageChange(pageIndex + 1)}
+          className="bg-background"
         >
           <IconChevronRight />
         </Button>
@@ -125,6 +129,7 @@ export function Pager({ paging, onPageChange, onPageSizeChange }: Props) {
           aria-label="Last page"
           disabled={isLastPage}
           onClick={() => onPageChange(pageCount - 1)}
+          className="bg-background"
         >
           <IconChevronsRight />
         </Button>
