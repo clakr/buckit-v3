@@ -61,7 +61,6 @@ interface DataTableProps<TData extends RowData> {
   initialSorting?: SortingState;
   emptyState?: ReactNode;
   pagination?: DataTablePagination;
-  mutedHeader?: boolean;
 }
 
 export function DataTable<TData extends RowData>({
@@ -70,7 +69,6 @@ export function DataTable<TData extends RowData>({
   initialSorting = [],
   emptyState,
   pagination,
-  mutedHeader,
 }: DataTableProps<TData>) {
   const [sorting, setSorting] = useState<SortingState>(initialSorting);
 
@@ -103,7 +101,7 @@ export function DataTable<TData extends RowData>({
     <div className="flex flex-col gap-3">
       <div className="overflow-hidden rounded-md border">
         <Table>
-          <TableHeader muted={mutedHeader}>
+          <TableHeader>
             {table.getHeaderGroups().map((headerGroup) => (
               <TableRow key={headerGroup.id}>
                 {headerGroup.headers.map((header) => {

@@ -9,12 +9,12 @@ import { Main } from "#/components/main";
 import { RouteRetryButton } from "#/components/route-retry-button";
 import { StateTemplate } from "#/components/state-template";
 import { Button } from "#/components/ui/button";
-import { DataTable } from "#/components/ui/data-table";
 import { DrawerTrigger } from "#/components/ui/drawer";
 import { MODULE_ICONS } from "#/lib/constants";
 import { PAGE_SIZES } from "#/lib/paging";
 import { formatPageTitle } from "#/lib/utils";
 import { INDEX_COLUMNS } from "#/modules/bank-accounts/columns";
+import { AccountsTable } from "#/modules/bank-accounts/components/accounts-table";
 import { registerBankAccountDrawerHandle } from "#/modules/bank-accounts/components/register-bank-account-drawer";
 import { bankAccountsWithTrendQueryOption } from "#/modules/bank-accounts/query-options";
 
@@ -84,7 +84,7 @@ function RouteComponent() {
           Accounts
         </InsetCardTitle>
 
-        <InsetCardContent>
+        <InsetCardContent cardClassName="gap-0 py-0" className="gap-y-0 px-0">
           {isEmpty ? (
             <StateTemplate
               state="empty"
@@ -93,11 +93,10 @@ function RouteComponent() {
               icon={<MODULE_ICONS.accounts />}
             />
           ) : (
-            <DataTable
+            <AccountsTable
               columns={INDEX_COLUMNS}
               data={bankAccounts}
               initialSorting={[{ id: "lastTransactionDate", desc: true }]}
-              mutedHeader
               pagination={{
                 state: { pageIndex, pageSize },
                 onChange: (state) => navigate({ search: state }),
