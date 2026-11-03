@@ -10,18 +10,8 @@ type Props = Pick<
 
 const DAY_MS = 86_400_000;
 
-function RelativeDate({ date, prefix }: { date: Date; prefix: string }) {
-  const relative = Date.now() - date.getTime() < DAY_MS ? "today" : formatToRelative(date);
-
-  return (
-    <Tooltip>
-      <TooltipTrigger render={<span className="text-start" />}>
-        {prefix}
-        {relative}
-      </TooltipTrigger>
-      <TooltipContent>{formatDate(date)}</TooltipContent>
-    </Tooltip>
-  );
+function formatRelativeDate(date: Date) {
+  return Date.now() - date.getTime() < DAY_MS ? "today" : formatToRelative(date);
 }
 
 function formatCount(count: number, singular: string) {
@@ -34,24 +24,24 @@ export function BucketActivityCell({
   allocationCount,
   withdrawalCount,
 }: Props) {
-  const counts = [
-    allocationCount > 0 ? formatCount(allocationCount, "allocation") : null,
-    withdrawalCount > 0 ? formatCount(withdrawalCount, "withdrawal") : null,
-  ].filter(Boolean);
-
   return (
-    <div className="flex max-w-56 flex-col whitespace-normal">
-      <span className="font-semibold">
-        {lastMovedDate ? (
-          <RelativeDate date={lastMovedDate} prefix="Last moved " />
-        ) : (
-          "No movement yet"
-        )}
-      </span>
-      <span className="text-xs text-muted-foreground">
-        <RelativeDate date={createdAt} prefix="Created " />
-        {counts.length > 0 ? ` · ${counts.join(" · ")}` : null}
-      </span>
-    </div>
+    <Tooltip>
+      <TooltipTrigger render={<span className="flex flex-col text-start" />}>
+        <span className="font-semibold">
+          {lastMovedDate ? `Last moved ${formatRelativeDate(lastMovedDate)}` : "No movement yet"}
+        </span>
+        <span className="text-xs text-muted-foreground">
+          Created {formatRelativeDate(createdAt)}
+        </span>
+      </TooltipTrigger>
+      <TooltipContent className="flex flex-col items-start">
+        {lastMovedDate ? <span>Last moved {formatDate(lastMovedDate)}</span> : null}
+        <span>Created {formatDate(createdAt)}</span>
+        <span>
+          {formatCount(allocationCount, "allocation")} ·{" "}
+          {formatCount(withdrawalCount, "withdrawal")}
+        </span>
+      </TooltipContent>
+    </Tooltip>
   );
 }

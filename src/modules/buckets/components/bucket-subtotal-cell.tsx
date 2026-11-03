@@ -3,9 +3,11 @@ import type { getBuckets } from "#/modules/buckets/functions";
 import { formatMoney } from "#/lib/money";
 import { cn } from "#/lib/utils";
 
-type Props = Pick<Awaited<ReturnType<typeof getBuckets>>[number], "subtotals" | "accountCount">;
+type Props = Pick<Awaited<ReturnType<typeof getBuckets>>[number], "subtotals" | "accountCount"> & {
+  selectedCurrencies: string[];
+};
 
-export function BucketSubtotalCell({ subtotals, accountCount }: Props) {
+export function BucketSubtotalCell({ subtotals, accountCount, selectedCurrencies }: Props) {
   if (subtotals.length === 0)
     return (
       <div className="ms-auto flex flex-col items-end">
@@ -19,7 +21,12 @@ export function BucketSubtotalCell({ subtotals, accountCount }: Props) {
       {subtotals.map(({ currency, amount }) => (
         <span
           key={currency}
-          className={cn("font-semibold tabular-nums", amount === 0 && "text-muted-foreground")}
+          className={cn(
+            "font-semibold tabular-nums",
+            (amount === 0 ||
+              (selectedCurrencies.length > 0 && !selectedCurrencies.includes(currency))) &&
+              "text-muted-foreground",
+          )}
         >
           {formatMoney(amount, currency)}
         </span>

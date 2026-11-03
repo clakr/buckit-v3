@@ -1,13 +1,11 @@
 import {
   IconCashMinus,
   IconDots,
-  IconEye,
   IconPencil,
   IconPigMoney,
   IconTarget,
   IconTrash,
 } from "@tabler/icons-react";
-import { Link } from "@tanstack/react-router";
 
 import type { getBuckets } from "#/modules/buckets/functions";
 
@@ -79,10 +77,6 @@ export function BucketActionsDropdownMenu({ bucket }: Props) {
         </DropdownMenuGroup>
         <DropdownMenuSeparator />
         <DropdownMenuGroup>
-          <DropdownMenuItem render={<Link to="/buckets/$bucketId" params={{ bucketId }} />}>
-            <IconEye />
-            View
-          </DropdownMenuItem>
           <DropdownMenuItem onClick={handleOpenEditBucketDrawer}>
             <IconPencil />
             Edit
