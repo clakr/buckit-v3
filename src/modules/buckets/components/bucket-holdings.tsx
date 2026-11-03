@@ -3,8 +3,8 @@ import { Link } from "@tanstack/react-router";
 import type { Goal } from "#/db/schema";
 import type { getBucket } from "#/modules/buckets/functions";
 
+import { Stat } from "#/components/stat";
 import { formatMoney } from "#/lib/money";
-import { AccountStat } from "#/modules/bank-accounts/components/account-stat";
 
 type Props = {
   bucket: Pick<Awaited<ReturnType<typeof getBucket>>, "subtotals" | "holdings">;
@@ -24,11 +24,10 @@ export function BucketHoldings({ bucket, goalCurrency }: Props) {
       {isShownByGoalCard ? null : (
         <dl className="flex flex-wrap items-start gap-x-10 gap-y-3">
           {subtotals.map(({ currency, amount }) => (
-            <AccountStat
+            <Stat
               key={currency}
               label={subtotals.length > 1 ? `Holds in ${currency}` : "Holds"}
-              value={amount}
-              currency={currency}
+              value={formatMoney(amount, currency)}
             />
           ))}
         </dl>

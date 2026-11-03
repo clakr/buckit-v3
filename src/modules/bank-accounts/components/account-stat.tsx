@@ -2,6 +2,7 @@ import { IconArrowDownRight, IconArrowUpRight, IconMinus } from "@tabler/icons-r
 
 import type { BankAccount } from "#/db/schema";
 
+import { Stat } from "#/components/stat";
 import { formatMoney } from "#/lib/money";
 import { cn } from "#/lib/utils";
 import { getNetChangeTone } from "#/modules/bank-accounts/components/net-change-cell";
@@ -16,16 +17,14 @@ type Props = {
 
 export function AccountStat({ label, value, change, currency }: Props) {
   return (
-    <div className="flex flex-col gap-y-0.5">
-      <dt className="text-xs text-muted-foreground">{label}</dt>
-      <dd className="text-xl font-semibold tabular-nums">{formatMoney(value, currency)}</dd>
+    <Stat label={label} value={formatMoney(value, currency)}>
       {change === undefined ? null : (
         <dd className="flex items-center gap-x-1 text-xs">
           <AccountStatChange change={change} currency={currency} />
           <span className="text-muted-foreground">vs {BALANCE_TREND_DAYS}d ago</span>
         </dd>
       )}
-    </div>
+    </Stat>
   );
 }
 
