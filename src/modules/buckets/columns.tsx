@@ -9,10 +9,34 @@ import { BucketActivityCell } from "#/modules/buckets/components/bucket-activity
 import { BucketSubtotalCell } from "#/modules/buckets/components/bucket-subtotal-cell";
 import { BucketActionsDropdownMenu } from "#/modules/buckets/components/buckets-actions-dropdown-menu";
 import { BucketGoalRingCell } from "#/modules/goals/components/bucket-goal-ring-cell";
+import { getGoalStatus } from "#/modules/goals/utils";
 
 type BucketRow = Awaited<ReturnType<typeof getBuckets>>[number];
 
 export const BUCKET_SORT_COLUMN_IDS = ["name", "subtotal", "goal", "activity"] as const;
+
+function getGoalUrgencyRank(goal: BucketRow["goal"]) {
+  if (!goal) return 3;
+
+  const status = getGoalStatus(goal);
+  if (status === "overdue") return 0;
+  if (status === "reached") return 4;
+
+  return goal.targetDate ? 1 : 2;
+}
+
+function getLastActivityTime(bucket: BucketRow) {
+  return (bucket.lastMovedDate ?? bucket.createdAt).getTime();
+}
+
+export function sortBucketsByGoalUrgency(buckets: BucketRow[]) {
+  return [...buckets].sort(
+    (a, b) =>
+      getGoalUrgencyRank(a.goal) - getGoalUrgencyRank(b.goal) ||
+      (a.goal?.targetDate?.getTime() ?? 0) - (b.goal?.targetDate?.getTime() ?? 0) ||
+      getLastActivityTime(b) - getLastActivityTime(a),
+  );
+}
 
 const SUBTOTAL_SORT_DISABLED_REASON = "Filter to one currency to sort by subtotal.";
 

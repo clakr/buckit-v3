@@ -31,6 +31,7 @@ type Props = {
 
 export function BucketActionsDropdownMenu({ bucket }: Props) {
   const bucketId = bucket.id;
+  const holdsMoney = bucket.subtotals.some(({ amount }) => amount > 0);
 
   function handleOpenLogAllocationDrawer() {
     logAllocationDrawerHandle.openWithPayload({ start: { from: "bucket", bucketId } });
@@ -64,7 +65,7 @@ export function BucketActionsDropdownMenu({ bucket }: Props) {
             <IconPigMoney />
             Allocate Money
           </DropdownMenuItem>
-          <DropdownMenuItem onClick={handleOpenWithdrawDrawer}>
+          <DropdownMenuItem disabled={!holdsMoney} onClick={handleOpenWithdrawDrawer}>
             <IconCashMinus />
             Withdraw Money
           </DropdownMenuItem>

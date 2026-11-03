@@ -24,7 +24,11 @@ import { InputGroup, InputGroupAddon, InputGroupInput } from "#/components/ui/in
 import { CURRENCIES_CODES, MODULE_ICONS } from "#/lib/constants";
 import { PAGE_SIZES } from "#/lib/paging";
 import { formatPageTitle } from "#/lib/utils";
-import { BUCKET_SORT_COLUMN_IDS, getIndexColumns } from "#/modules/buckets/columns";
+import {
+  BUCKET_SORT_COLUMN_IDS,
+  getIndexColumns,
+  sortBucketsByGoalUrgency,
+} from "#/modules/buckets/columns";
 import { BucketsCurrencyFilter } from "#/modules/buckets/components/buckets-currency-filter";
 import {
   BUCKET_GOAL_FILTERS,
@@ -50,7 +54,7 @@ const bucketsSearchSchema = z.object({
   sortDirection: z.enum(["asc", "desc"]).optional().catch(undefined),
 });
 
-const DEFAULT_SORTING = [{ id: "activity", desc: true }] satisfies SortingState;
+const DEFAULT_SORTING: SortingState = [];
 
 export const Route = createFileRoute("/_protected/buckets/")({
   validateSearch: bucketsSearchSchema,
@@ -135,7 +139,7 @@ function RouteComponent() {
       selectedCurrencies.length === 0 ||
       subtotals.some(({ currency }) => selectedCurrencies.includes(currency)),
   );
-  const filteredBuckets = bucketsInSelectedCurrencies.filter(
+  const filteredBuckets = sortBucketsByGoalUrgency(bucketsInSelectedCurrencies).filter(
     (bucket) =>
       (selectedGoalFilters.length === 0 ||
         selectedGoalFilters.includes(getBucketGoalFilter(bucket.goal))) &&
@@ -183,10 +187,7 @@ function RouteComponent() {
   function handleSortingChange(nextSorting: SortingState) {
     const [nextSort] = nextSorting;
     const nextSortBy = BUCKET_SORT_COLUMN_IDS.find((id) => id === nextSort?.id);
-    const isDefault =
-      !nextSort ||
-      !nextSortBy ||
-      (nextSort.id === DEFAULT_SORTING[0].id && nextSort.desc === DEFAULT_SORTING[0].desc);
+    const isDefault = !nextSort || !nextSortBy;
 
     void navigate({
       search: (previous) => ({
@@ -235,7 +236,7 @@ function RouteComponent() {
                       selectedCurrencies.length === 0 ||
                       selectedCurrencies.includes(totals.currency),
                   )}
-                  goals={bucketsInSelectedCurrencies.map(({ goal }) => goal)}
+                  buckets={bucketsInSelectedCurrencies}
                 />
 
                 <div className="flex flex-wrap items-center gap-2">

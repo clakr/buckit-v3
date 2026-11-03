@@ -123,7 +123,7 @@ export function BucketDetailActions({ bucketId, goalId, holdsMoney }: Props) {
             <DropdownMenuGroup className="md:hidden">
               <DropdownMenuItem disabled={!holdsMoney} onClick={handleOpenWithdrawDrawer}>
                 <IconCashMinus />
-                {holdsMoney ? "Withdraw Money" : "Withdraw Money (allocate money first)"}
+                Withdraw Money
               </DropdownMenuItem>
             </DropdownMenuGroup>
             <DropdownMenuSeparator className="md:hidden" />
