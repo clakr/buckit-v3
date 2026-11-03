@@ -141,7 +141,7 @@ export function DebtDetailActions({ debt }: Props) {
         <DrawerTrigger
           handle={logRepaymentDrawerHandle}
           payload={{ debtId: debt.id }}
-          render={<Button />}
+          render={<Button variant={status === "settled" ? "outline" : "default"} />}
         >
           <IconCashBanknote />
           Log Repayment

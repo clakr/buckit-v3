@@ -1,15 +1,19 @@
+import type { ReactNode } from "react";
+
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute, Link } from "@tanstack/react-router";
 
-import { Heading } from "#/components/heading";
+import { InsetCard, InsetCardContent, InsetCardTitle } from "#/components/inset-card";
 import { Main } from "#/components/main";
 import { RouteRetryButton } from "#/components/route-retry-button";
 import { StateTemplate } from "#/components/state-template";
 import { Button } from "#/components/ui/button";
 import { loadOrThrowRouteNotFound } from "#/lib/errors";
-import { formatPageTitle } from "#/lib/utils";
+import { formatDate, formatPageTitle } from "#/lib/utils";
 import { DebtDetailActions } from "#/modules/debts/components/debt-detail-actions";
 import { DebtLedgerTable } from "#/modules/debts/components/debt-ledger-table";
+import { DebtPayoff } from "#/modules/debts/components/debt-payoff";
+import { DebtStatusBadge } from "#/modules/debts/components/debt-status-badge";
 import { debtQueryOption } from "#/modules/debts/query-options";
 
 export const Route = createFileRoute("/_protected/debts/$debtId")({
@@ -25,19 +29,16 @@ export const Route = createFileRoute("/_protected/debts/$debtId")({
     meta: [{ title: formatPageTitle(loaderData?.name ?? "Debt") }],
   }),
   pendingComponent: () => (
-    <Main>
-      <Heading className="capitalize">Debt</Heading>
-
+    <DebtStateFrame>
       <StateTemplate
         state="loading"
         title="Loading debt..."
         description="Fetching debt details and history..."
       />
-    </Main>
+    </DebtStateFrame>
   ),
   notFoundComponent: () => (
-    <Main>
-      <Heading className="capitalize">Debt</Heading>
+    <DebtStateFrame>
       <StateTemplate
         state="error"
         title="Debt not found"
@@ -48,21 +49,31 @@ export const Route = createFileRoute("/_protected/debts/$debtId")({
           </Button>
         }
       />
-    </Main>
+    </DebtStateFrame>
   ),
   errorComponent: () => (
-    <Main>
-      <Heading className="capitalize">Debt</Heading>
+    <DebtStateFrame>
       <StateTemplate
         state="error"
         title="Could not load debt"
         description="We weren't able to retrieve this debt. Please check your connection and try again."
         content={<RouteRetryButton />}
       />
-    </Main>
+    </DebtStateFrame>
   ),
   component: RouteComponent,
 });
+
+function DebtStateFrame({ children }: { children: ReactNode }) {
+  return (
+    <Main>
+      <InsetCard>
+        <InsetCardTitle as="h1">Debt</InsetCardTitle>
+        <InsetCardContent>{children}</InsetCardContent>
+      </InsetCard>
+    </Main>
+  );
+}
 
 function RouteComponent() {
   const { debtQueryOptions } = Route.useRouteContext();
@@ -71,12 +82,26 @@ function RouteComponent() {
 
   return (
     <Main>
-      <div className="flex items-baseline justify-between">
-        <Heading className="capitalize">{debt.name}</Heading>
-        <DebtDetailActions debt={debt} />
-      </div>
+      <InsetCard>
+        <InsetCardTitle
+          as="h1"
+          subtitle={
+            <span className="mt-0.5 flex flex-wrap items-center gap-1.5">
+              <DebtStatusBadge status={debt.status} />
+              {debt.direction === "receivable" ? "Owed to you" : "You owe"} · {debt.currency} ·
+              Recorded {formatDate(debt.date)}
+            </span>
+          }
+          action={<DebtDetailActions debt={debt} />}
+        >
+          {debt.name}
+        </InsetCardTitle>
 
-      <DebtLedgerTable debt={debt} />
+        <InsetCardContent cardClassName="gap-0 py-0" className="gap-y-0 px-0">
+          <DebtPayoff debt={debt} />
+          <DebtLedgerTable debt={debt} />
+        </InsetCardContent>
+      </InsetCard>
     </Main>
   );
 }

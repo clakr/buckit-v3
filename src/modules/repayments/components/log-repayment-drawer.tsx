@@ -21,7 +21,12 @@ import {
 import { FieldGroup } from "#/components/ui/field";
 import { useAppForm } from "#/integrations/tanstack-form";
 import { NotFoundError } from "#/lib/errors";
-import { exceedsAvailable, describeInsufficientUnallocated } from "#/lib/money";
+import {
+  centsToAmountInput,
+  describeInsufficientUnallocated,
+  exceedsAvailable,
+  formatMoney,
+} from "#/lib/money";
 import { BankAccountSelectField } from "#/modules/bank-accounts/components/bank-account-select-field";
 import {
   NestedRegisterBankAccountDrawer,
@@ -268,6 +273,21 @@ function LogRepaymentForm({ debtId, registerButtonRef, ref }: LogRepaymentFormPr
                     required
                     placeholder="0.00"
                     currency={debt.currency}
+                    description={
+                      debt.outstanding > 0 ? (
+                        <>
+                          {formatMoney(debt.outstanding, debt.currency)}{" "}
+                          {debt.status === "forgiven" ? "was written off" : "outstanding"}.{" "}
+                          <button
+                            type="button"
+                            className="underline underline-offset-4 hover:text-foreground"
+                            onClick={() => field.handleChange(centsToAmountInput(debt.outstanding))}
+                          >
+                            Use full amount
+                          </button>
+                        </>
+                      ) : undefined
+                    }
                   />
                 )}
               </form.AppField>

@@ -1,4 +1,4 @@
-import { IconPlus, IconReceipt } from "@tabler/icons-react";
+import { IconHeartHandshake, IconPlus, IconReceipt } from "@tabler/icons-react";
 import { Link } from "@tanstack/react-router";
 
 import type { BankAccount } from "#/db/schema";
@@ -29,8 +29,6 @@ import { RepaymentActionsDropdownMenu } from "#/modules/repayments/components/re
 
 import type { getDebt } from "../functions";
 
-import { DebtStatusBadge } from "./debt-status-badge";
-
 type Props = {
   debt: NonNullable<Awaited<ReturnType<typeof getDebt>>>;
 };
@@ -53,132 +51,141 @@ export function DebtLedgerTable({ debt }: Props) {
   const hasRepayments = entries.length > 0;
 
   return (
-    <div className="flex flex-col gap-y-3">
-      <p className="flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
-        <DebtStatusBadge status={debt.status} />
-        <span className="capitalize">{debt.direction}</span>·<span>{debt.currency}</span>·
-        <span>Recorded {formatDate(debt.date)}</span>
-      </p>
+    <Table>
+      <TableHeader>
+        <TableRow className="hover:bg-transparent">
+          <TableHead className="border-s font-medium first:border-0">Date</TableHead>
+          <TableHead className="border-s font-medium first:border-0">Entry</TableHead>
+          <TableHead className="border-s text-end font-medium first:border-0">Change</TableHead>
+          <TableHead className="border-s text-end font-medium first:border-0">
+            Outstanding
+          </TableHead>
+          <TableHead className="border-s font-medium first:border-0" />
+        </TableRow>
+      </TableHeader>
+      <TableBody>
+        <TableRow className="bg-muted/40">
+          <TableCell>{formatDate(debt.date)}</TableCell>
+          <TableCell className="min-w-48 font-medium whitespace-normal">
+            {debt.direction === "receivable"
+              ? `Lent to ${debt.name}`
+              : `Borrowed from ${debt.name}`}
+            {debt.direction === "receivable" ? (
+              <BankAccountMovement preposition="from" bankAccount={debt.originatingBankAccount} />
+            ) : null}
+            {debt.note ? <EntryNote note={debt.note} /> : null}
+          </TableCell>
+          <TableCell className="text-end tabular-nums">+{formatDebtAmount(debt.amount)}</TableCell>
+          <TableCell className="text-end font-semibold tabular-nums">
+            {formatDebtAmount(debt.amount)}
+          </TableCell>
+          <TableCell />
+        </TableRow>
 
-      <Table>
-        <TableHeader>
-          <TableRow>
-            <TableHead>Date</TableHead>
-            <TableHead>Entry</TableHead>
-            <TableHead className="text-end">Change</TableHead>
-            <TableHead className="text-end">Outstanding</TableHead>
-            <TableHead />
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          <TableRow className="bg-muted/40">
-            <TableCell>{formatDate(debt.date)}</TableCell>
-            <TableCell className="font-medium">
-              {debt.direction === "receivable"
-                ? `Lent to ${debt.name}`
-                : `Borrowed from ${debt.name}`}
-              {debt.direction === "receivable" ? (
-                <BankAccountMovement preposition="from" bankAccount={debt.originatingBankAccount} />
-              ) : null}
-              {debt.note ? <EntryNote note={debt.note} /> : null}
+        {entries.map((entry) => (
+          <TableRow key={entry.id}>
+            <TableCell>{formatDate(entry.date)}</TableCell>
+            <TableCell className="min-w-48 whitespace-normal">
+              {debt.direction === "receivable" ? `${debt.name} paid you` : `You paid ${debt.name}`}
+              <BankAccountMovement
+                preposition={debt.direction === "receivable" ? "into" : "from"}
+                bankAccount={entry.bankAccount}
+              />
+              {entry.note ? <EntryNote note={entry.note} /> : null}
             </TableCell>
-            <TableCell className="text-end tabular-nums">
-              +{formatDebtAmount(debt.amount)}
+            <TableCell className="text-end text-emerald-600 tabular-nums">
+              −{formatDebtAmount(entry.amount)}
             </TableCell>
             <TableCell className="text-end font-semibold tabular-nums">
-              {formatDebtAmount(debt.amount)}
+              {formatDebtAmount(Math.max(entry.balance, 0))}
+            </TableCell>
+            <TableCell className="text-end">
+              <RepaymentActionsDropdownMenu debtId={debt.id} repaymentId={entry.id} />
+            </TableCell>
+          </TableRow>
+        ))}
+
+        {debt.forgivenAt ? (
+          <TableRow className="text-muted-foreground">
+            <TableCell>{formatDate(debt.forgivenAt)}</TableCell>
+            <TableCell className="min-w-48 whitespace-normal">
+              <span className="flex items-center gap-x-1.5">
+                <IconHeartHandshake aria-hidden className="size-4" />
+                {debt.direction === "receivable"
+                  ? `You forgave ${debt.name}`
+                  : `${debt.name} forgave you`}
+              </span>
+            </TableCell>
+            <TableCell className="text-end tabular-nums">
+              {outstanding > 0 ? `−${formatDebtAmount(outstanding)}` : "—"}
+            </TableCell>
+            <TableCell className="text-end font-semibold tabular-nums">
+              {formatDebtAmount(0)}
             </TableCell>
             <TableCell />
           </TableRow>
-
-          {entries.map((entry) => (
-            <TableRow key={entry.id}>
-              <TableCell>{formatDate(entry.date)}</TableCell>
-              <TableCell>
-                {debt.direction === "receivable"
-                  ? `${debt.name} paid you`
-                  : `You paid ${debt.name}`}
-                <BankAccountMovement
-                  preposition={debt.direction === "receivable" ? "into" : "from"}
-                  bankAccount={entry.bankAccount}
-                />
-                {entry.note ? <EntryNote note={entry.note} /> : null}
-              </TableCell>
-              <TableCell className="text-end text-emerald-600 tabular-nums">
-                −{formatDebtAmount(entry.amount)}
-              </TableCell>
-              <TableCell className="text-end font-semibold tabular-nums">
-                {formatDebtAmount(Math.max(entry.balance, 0))}
-              </TableCell>
-              <TableCell className="text-end">
-                <RepaymentActionsDropdownMenu debtId={debt.id} repaymentId={entry.id} />
-              </TableCell>
-            </TableRow>
-          ))}
-
-          {hasRepayments ? null : (
-            <TableRow className="hover:bg-transparent">
-              <TableCell colSpan={5} className="px-0 py-2">
-                <Empty className="min-h-[15vh] border border-dashed">
-                  <EmptyHeader>
-                    <EmptyMedia variant="icon">
-                      <IconReceipt />
-                    </EmptyMedia>
-                    <EmptyTitle>No repayments yet.</EmptyTitle>
-                    <EmptyDescription>
-                      Log a repayment to start paying down this debt.
-                    </EmptyDescription>
-                  </EmptyHeader>
-                  <EmptyContent>
-                    <DrawerTrigger
-                      handle={logRepaymentDrawerHandle}
-                      payload={{ debtId: debt.id }}
-                      render={<Button />}
-                    >
-                      <IconPlus />
-                      Log Repayment
-                    </DrawerTrigger>
-                  </EmptyContent>
-                </Empty>
-              </TableCell>
-            </TableRow>
-          )}
-        </TableBody>
-        {hasRepayments ? (
-          <TableFooter>
-            <TableRow>
-              <TableCell colSpan={2}>
-                Total repaid across {entries.length} repayment{entries.length === 1 ? "" : "s"} (
-                {progress.toFixed(0)}%)
-              </TableCell>
-              <TableCell className="text-end tabular-nums">−{formatDebtAmount(repaid)}</TableCell>
-              <TableCell className="text-end font-semibold tabular-nums">
-                {debt.forgivenAt ? (
-                  <span className="text-muted-foreground">
-                    <span className="me-1.5 uppercase">Forgiven</span>
-                    <span className="line-through">
-                      {formatDebtAmount(Math.max(outstanding, 0))}
-                    </span>
-                  </span>
-                ) : outstanding < 0 ? (
-                  <span
-                    className={cn(
-                      "uppercase",
-                      debt.direction === "receivable" ? "text-emerald-600" : "text-amber-600",
-                    )}
-                  >
-                    Overpaid +{formatDebtAmount(-outstanding)}
-                  </span>
-                ) : (
-                  formatDebtAmount(outstanding)
-                )}
-              </TableCell>
-              <TableCell />
-            </TableRow>
-          </TableFooter>
         ) : null}
-      </Table>
-    </div>
+
+        {hasRepayments || debt.forgivenAt ? null : (
+          <TableRow className="hover:bg-transparent">
+            <TableCell colSpan={5} className="p-4">
+              <Empty className="min-h-[15vh] border border-dashed">
+                <EmptyHeader>
+                  <EmptyMedia variant="icon">
+                    <IconReceipt />
+                  </EmptyMedia>
+                  <EmptyTitle>No repayments yet.</EmptyTitle>
+                  <EmptyDescription>
+                    Log a repayment to start paying down this debt.
+                  </EmptyDescription>
+                </EmptyHeader>
+                <EmptyContent>
+                  <DrawerTrigger
+                    handle={logRepaymentDrawerHandle}
+                    payload={{ debtId: debt.id }}
+                    render={<Button />}
+                  >
+                    <IconPlus />
+                    Log Repayment
+                  </DrawerTrigger>
+                </EmptyContent>
+              </Empty>
+            </TableCell>
+          </TableRow>
+        )}
+      </TableBody>
+      {hasRepayments || debt.forgivenAt ? (
+        <TableFooter>
+          <TableRow>
+            <TableCell colSpan={2}>
+              Total repaid across {entries.length} repayment{entries.length === 1 ? "" : "s"} (
+              {progress.toFixed(0)}%)
+            </TableCell>
+            <TableCell className="text-end tabular-nums">−{formatDebtAmount(repaid)}</TableCell>
+            <TableCell className="text-end font-semibold tabular-nums">
+              {debt.forgivenAt ? (
+                <span className="text-muted-foreground">
+                  <span className="me-1.5 uppercase">Forgiven</span>
+                  <span className="line-through">{formatDebtAmount(Math.max(outstanding, 0))}</span>
+                </span>
+              ) : outstanding < 0 ? (
+                <span
+                  className={cn(
+                    "uppercase",
+                    debt.direction === "receivable" ? "text-emerald-600" : "text-amber-600",
+                  )}
+                >
+                  Overpaid +{formatDebtAmount(-outstanding)}
+                </span>
+              ) : (
+                formatDebtAmount(outstanding)
+              )}
+            </TableCell>
+            <TableCell />
+          </TableRow>
+        </TableFooter>
+      ) : null}
+    </Table>
   );
 }
 
