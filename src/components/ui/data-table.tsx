@@ -3,6 +3,7 @@ import {
   createPaginatedRowModel,
   createSortedRowModel,
   flexRender,
+  metaHelper,
   type RowData,
   rowPaginationFeature,
   rowSortingFeature,
@@ -28,6 +29,7 @@ import {
 } from "@/components/ui/table";
 
 export const DATA_TABLE_FEATURES = tableFeatures({
+  columnMeta: metaHelper<{ className?: string }>(),
   rowSortingFeature,
   rowPaginationFeature,
   sortedRowModel: createSortedRowModel(),
@@ -83,7 +85,10 @@ export function DataTable<TData extends RowData>({
     columns,
 
     onSortingChange: (updater) => {
-      setSorting(updater);
+      setSorting((previous) => {
+        const next = typeof updater === "function" ? updater(previous) : updater;
+        return next.length ? next : initialSorting;
+      });
       if (pagination && pagination.state.pageIndex !== 0)
         pagination.onChange({ pageIndex: 0, pageSize });
     },
@@ -91,7 +96,6 @@ export function DataTable<TData extends RowData>({
       sorting,
       pagination: { pageIndex, pageSize },
     },
-    sortDescFirst: true,
 
     manualPagination: !pagination,
     autoResetPageIndex: false,
