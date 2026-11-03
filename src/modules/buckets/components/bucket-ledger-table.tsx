@@ -1,12 +1,9 @@
 import { IconCircleDottedLetterH, IconPlus } from "@tabler/icons-react";
-import { useSuspenseQuery } from "@tanstack/react-query";
-import { getRouteApi, Link } from "@tanstack/react-router";
-import { useTransition } from "react";
+import { Link } from "@tanstack/react-router";
 
-import type { Bucket, Goal } from "#/db/schema";
-import type { BucketLedgerEntry } from "#/modules/buckets/ledger.server";
+import type { Bucket } from "#/db/schema";
+import type { BucketLedgerEntry, BucketLedgerPage } from "#/modules/buckets/ledger.server";
 
-import { Pager } from "#/components/pager";
 import { Badge } from "#/components/ui/badge";
 import { Button } from "#/components/ui/button";
 import { DrawerTrigger } from "#/components/ui/drawer";
@@ -32,163 +29,103 @@ import { formatMoney } from "#/lib/money";
 import { cn, formatDateTime, formatToRelative } from "#/lib/utils";
 import { AllocationActionsDropdownMenu } from "#/modules/allocations/components/allocation-actions-dropdown-menu";
 import { logAllocationDrawerHandle } from "#/modules/allocations/components/log-allocation-drawer";
-import { bucketLedgerQueryOption } from "#/modules/buckets/query-options";
 import { WithdrawalActionsDropdownMenu } from "#/modules/withdrawals/components/withdrawal-actions-dropdown-menu";
-
-const Route = getRouteApi("/_protected/buckets/$bucketId");
 
 type Props = {
   bucketId: Bucket["id"];
-  goalCurrency?: Goal["currency"];
+  ledgerPage: BucketLedgerPage;
+  isPending: boolean;
 };
 
-export function BucketLedgerTable({ bucketId, goalCurrency }: Props) {
-  const page = Route.useSearch();
-  const navigate = Route.useNavigate();
-  const [isPending, startTransition] = useTransition();
-  const { data: bucketLedger } = useSuspenseQuery(bucketLedgerQueryOption(bucketId, page));
-  const { subtotals, holdings, entries, opening, isOldestPage, ...paging } = bucketLedger;
-  const isHoldsRedundant =
-    goalCurrency !== undefined && subtotals.every(({ currency }) => currency === goalCurrency);
+export function BucketLedgerTable({ bucketId, ledgerPage, isPending }: Props) {
+  const { entries, opening, isOldestPage, total } = ledgerPage;
 
   return (
-    <div className="flex flex-col gap-y-3">
-      <div className="flex flex-col gap-y-1 text-sm text-muted-foreground">
-        {isHoldsRedundant ? null : (
-          <p className="flex flex-wrap items-center gap-x-2">
-            Holds
-            {subtotals.length ? (
-              subtotals.map(({ currency, amount }, index) => (
-                <span key={currency} className="flex items-center gap-x-2">
-                  {index > 0 ? "·" : null}
-                  <strong className="font-semibold text-foreground tabular-nums">
-                    {formatMoney(amount, currency)}
-                  </strong>
-                </span>
-              ))
-            ) : (
-              <strong className="font-semibold text-foreground">nothing yet</strong>
-            )}
-          </p>
-        )}
-        {holdings.length > 1 ? (
-          <p className="flex flex-wrap items-center gap-x-2">
-            From
-            {holdings.map(({ bankAccountId, name, currency, amount }, index) => (
-              <span key={bankAccountId} className="flex items-center gap-x-2">
-                {index > 0 ? "·" : null}
-                <span>
-                  {name}{" "}
-                  <span className="font-semibold text-foreground tabular-nums">
-                    {formatMoney(amount, currency)}
-                  </span>
-                </span>
-              </span>
-            ))}
-          </p>
-        ) : null}
-      </div>
-
-      <Table aria-busy={isPending} className={cn(isPending && "opacity-60 transition-opacity")}>
-        <TableHeader>
-          <TableRow>
-            <TableHead>Date</TableHead>
-            <TableHead>Entry</TableHead>
-            <TableHead className="text-end">Held</TableHead>
-            <TableHead />
+    <Table aria-busy={isPending} className={cn(isPending && "opacity-60 transition-opacity")}>
+      <TableHeader>
+        <TableRow className="hover:bg-transparent">
+          <TableHead className="border-s font-medium first:border-0">Date</TableHead>
+          <TableHead className="border-s font-medium first:border-0">Entry</TableHead>
+          <TableHead className="border-s text-end font-medium first:border-0">Held</TableHead>
+          <TableHead className="border-s font-medium first:border-0" />
+        </TableRow>
+      </TableHeader>
+      <TableBody>
+        {entries.map((step) => (
+          <TableRow key={step.id}>
+            <TableCell>
+              <DateBadge date={step.date} />
+            </TableCell>
+            <TableCell className="max-w-72 min-w-48 whitespace-normal">
+              <EntryLabel entry={step} />
+              {step.note ? <EntryNote note={step.note} /> : null}
+            </TableCell>
+            <TableCell className="text-end">
+              <HeldCell
+                value={step.held}
+                change={step.change}
+                currency={step.bankAccount.currency}
+              />
+            </TableCell>
+            <TableCell className="text-end">
+              {step.kind === "allocation" ? (
+                <AllocationActionsDropdownMenu allocationId={step.recordId} />
+              ) : (
+                <WithdrawalActionsDropdownMenu withdrawalId={step.recordId} />
+              )}
+            </TableCell>
           </TableRow>
-        </TableHeader>
-        <TableBody>
-          {entries.map((step) => (
-            <TableRow key={step.id}>
-              <TableCell>
-                <DateBadge date={step.date} />
-              </TableCell>
-              <TableCell className="max-w-72 whitespace-normal">
-                <EntryLabel entry={step} />
-                {step.note ? <EntryNote note={step.note} /> : null}
-              </TableCell>
-              <TableCell className="text-end">
-                <HeldCell
-                  value={step.held}
-                  change={step.change}
-                  currency={step.bankAccount.currency}
-                />
-              </TableCell>
-              <TableCell className="text-end">
-                {step.kind === "allocation" ? (
-                  <AllocationActionsDropdownMenu allocationId={step.recordId} />
-                ) : (
-                  <WithdrawalActionsDropdownMenu withdrawalId={step.recordId} />
-                )}
-              </TableCell>
-            </TableRow>
-          ))}
+        ))}
 
-          {isOldestPage || opening.length === 0 ? null : (
-            <TableRow className="bg-muted/40">
-              <TableCell />
-              <TableCell className="whitespace-normal">
-                <span className="font-medium">Brought forward</span>
-                <span className="block text-xs text-muted-foreground">
-                  Held before this page's oldest entry
+        {isOldestPage || opening.length === 0 ? null : (
+          <TableRow className="bg-muted/40">
+            <TableCell />
+            <TableCell className="whitespace-normal">
+              <span className="font-medium">Brought forward</span>
+              <span className="block text-xs text-muted-foreground">
+                Held before this page's oldest entry
+              </span>
+            </TableCell>
+            <TableCell className="text-end font-semibold tabular-nums">
+              {opening.map(({ currency, held }) => (
+                <span key={currency} className="block">
+                  {formatMoney(held, currency)}
                 </span>
-              </TableCell>
-              <TableCell className="text-end font-semibold tabular-nums">
-                {opening.map(({ currency, held }) => (
-                  <span key={currency} className="block">
-                    {formatMoney(held, currency)}
-                  </span>
-                ))}
-              </TableCell>
-              <TableCell />
-            </TableRow>
-          )}
+              ))}
+            </TableCell>
+            <TableCell />
+          </TableRow>
+        )}
 
-          {paging.total > 0 ? null : (
-            <TableRow className="hover:bg-transparent">
-              <TableCell colSpan={4} className="px-0 py-2">
-                <Empty className="min-h-[15vh] border border-dashed">
-                  <EmptyHeader>
-                    <EmptyMedia variant="icon">
-                      <MODULE_ICONS.buckets />
-                    </EmptyMedia>
-                    <EmptyTitle>Nothing in this bucket yet.</EmptyTitle>
-                    <EmptyDescription>
-                      Move money into this bucket from a bank account to start its history.
-                    </EmptyDescription>
-                  </EmptyHeader>
-                  <EmptyContent>
-                    <DrawerTrigger
-                      handle={logAllocationDrawerHandle}
-                      payload={{ start: { from: "bucket", bucketId } }}
-                      render={<Button />}
-                    >
-                      <IconPlus />
-                      Allocate Money
-                    </DrawerTrigger>
-                  </EmptyContent>
-                </Empty>
-              </TableCell>
-            </TableRow>
-          )}
-        </TableBody>
-      </Table>
-
-      <Pager
-        paging={paging}
-        onPageChange={(pageIndex) =>
-          startTransition(async () => {
-            await navigate({ search: { pageIndex, pageSize: paging.pageSize } });
-          })
-        }
-        onPageSizeChange={(pageSize) =>
-          startTransition(async () => {
-            await navigate({ search: { pageIndex: 0, pageSize } });
-          })
-        }
-      />
-    </div>
+        {total > 0 ? null : (
+          <TableRow className="hover:bg-transparent">
+            <TableCell colSpan={4}>
+              <Empty className="min-h-[15vh] border border-dashed">
+                <EmptyHeader>
+                  <EmptyMedia variant="icon">
+                    <MODULE_ICONS.buckets />
+                  </EmptyMedia>
+                  <EmptyTitle>Nothing in this bucket yet.</EmptyTitle>
+                  <EmptyDescription>
+                    Move money into this bucket from a bank account to start its history.
+                  </EmptyDescription>
+                </EmptyHeader>
+                <EmptyContent>
+                  <DrawerTrigger
+                    handle={logAllocationDrawerHandle}
+                    payload={{ start: { from: "bucket", bucketId } }}
+                    render={<Button />}
+                  >
+                    <IconPlus />
+                    Allocate Money
+                  </DrawerTrigger>
+                </EmptyContent>
+              </Empty>
+            </TableCell>
+          </TableRow>
+        )}
+      </TableBody>
+    </Table>
   );
 }
 

@@ -70,8 +70,6 @@ export function BucketDetailActions({ bucketId, goalId, holdsMoney }: Props) {
       await removeGoalMutation.mutateAsync({ data: { goalId } });
     } catch (error) {
       console.error(error);
-
-      return;
     }
   }
 

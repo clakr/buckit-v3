@@ -63,18 +63,29 @@ export const getBucket = createServerFn({
   method: "GET",
 })
   .middleware([verifyUserBucketMiddleware])
-  .handler(async ({ data }) => {
+  .handler(async ({ context, data }) => {
     const db = getDB(env.db);
 
-    const bucket = await db.query.buckets.findFirst({
-      where: {
-        id: data.bucketId,
-      },
-    });
+    const [[bucket], userBankAccounts] = await Promise.all([
+      getBucketsWithFigures(db, { userId: context.userId, bucketId: data.bucketId }),
+      db.query.bankAccounts.findMany({
+        columns: { id: true, name: true },
+        where: { userId: context.userId },
+      }),
+    ]);
 
     if (!bucket) throw new NotFoundError("This bucket doesn't exist or may have been deleted.");
 
-    return bucket;
+    const bankAccountNameById = new Map(userBankAccounts.map(({ id, name }) => [id, name]));
+    const { heldByBankAccount, ...bucketWithSubtotals } = bucket;
+
+    return {
+      ...bucketWithSubtotals,
+      holdings: heldByBankAccount
+        .filter(({ amount }) => amount !== 0)
+        .map((held) => ({ ...held, name: bankAccountNameById.get(held.bankAccountId) ?? "" }))
+        .sort((a, b) => a.name.localeCompare(b.name)),
+    };
   });
 
 export const getBucketLedger = createServerFn({
@@ -82,28 +93,10 @@ export const getBucketLedger = createServerFn({
 })
   .middleware([verifyUserBucketMiddleware])
   .validator(getBucketLedgerSchema)
-  .handler(async ({ context, data }) => {
-    const db = getDB(env.db);
+  .handler(async ({ data }) => {
+    const ledger = await loadBucketLedger(getDB(env.db), data.bucketId);
 
-    const [[bucket], ledger] = await Promise.all([
-      getBucketsWithFigures(db, { userId: context.userId, bucketId: data.bucketId }),
-      loadBucketLedger(db, data.bucketId),
-    ]);
-
-    if (!bucket) throw new NotFoundError("This bucket doesn't exist or may have been deleted.");
-
-    const bankAccountNameById = new Map(
-      ledger.map(({ bankAccount }) => [bankAccount.id, bankAccount.name]),
-    );
-
-    return {
-      subtotals: bucket.subtotals,
-      holdings: bucket.heldByBankAccount
-        .filter(({ amount }) => amount !== 0)
-        .map((held) => ({ ...held, name: bankAccountNameById.get(held.bankAccountId) ?? "" }))
-        .sort((a, b) => a.name.localeCompare(b.name)),
-      ...pageBucketLedger(ledger, { pageIndex: data.pageIndex, pageSize: data.pageSize }),
-    };
+    return pageBucketLedger(ledger, { pageIndex: data.pageIndex, pageSize: data.pageSize });
   });
 
 export const validateBucketName = createServerFn({
