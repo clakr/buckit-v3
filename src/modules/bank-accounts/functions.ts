@@ -7,10 +7,12 @@ import { getDB } from "#/db";
 import { bankAccounts } from "#/db/schema";
 import { ConflictError, NotFoundError } from "#/lib/errors";
 import { authMiddleware } from "#/modules/authentication/middlewares";
+import { getAccountActivity } from "#/modules/bank-accounts/activity";
 import { loadBankAccountDeletionImpact } from "#/modules/bank-accounts/deletion.server";
 import {
   getBankAccountsWithFigures,
   getBankAccountsWithFiguresAndTrend,
+  loadLedgerMovements,
 } from "#/modules/bank-accounts/figures.server";
 import { loadAccountLedgerPage } from "#/modules/bank-accounts/ledger.server";
 import { verifyUserBankAccountMiddleware } from "#/modules/bank-accounts/middlewares";
@@ -96,6 +98,31 @@ export const getBankAccountLedger = createServerFn({
       { bankAccountId: bankAccount.id, startingBalance: bankAccount.startingBalance },
       { pageIndex: data.pageIndex, pageSize: data.pageSize },
     );
+  });
+
+export const getBankAccountActivity = createServerFn({
+  method: "GET",
+})
+  .middleware([verifyUserBankAccountMiddleware])
+  .handler(async ({ data }) => {
+    const db = getDB(env.db);
+
+    const [bankAccount, movementsByBankAccountId] = await Promise.all([
+      db.query.bankAccounts.findFirst({
+        where: { id: data.bankAccountId },
+        columns: { startingBalance: true },
+      }),
+      loadLedgerMovements(db, [data.bankAccountId]),
+    ]);
+
+    if (!bankAccount)
+      throw new NotFoundError("This account doesn't exist or may have been deleted.");
+
+    return getAccountActivity({
+      startingBalance: bankAccount.startingBalance,
+      movements: movementsByBankAccountId.get(data.bankAccountId) ?? [],
+      now: new Date(),
+    });
   });
 
 export const validateBankAccountName = createServerFn({

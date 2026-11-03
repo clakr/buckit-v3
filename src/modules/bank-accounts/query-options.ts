@@ -5,6 +5,7 @@ import type { LedgerPageRequest } from "#/lib/ledger-page";
 
 import {
   getBankAccount,
+  getBankAccountActivity,
   getBankAccountDeletionImpact,
   getBankAccountLedger,
   getBankAccounts,
@@ -30,6 +31,18 @@ export function bankAccountQueryOption(bankAccountId: BankAccount["id"]) {
     queryKey: ["bank-accounts", bankAccountId],
     queryFn: () =>
       getBankAccount({
+        data: {
+          bankAccountId,
+        },
+      }),
+  });
+}
+
+export function bankAccountActivityQueryOption(bankAccountId: BankAccount["id"]) {
+  return queryOptions({
+    queryKey: ["bank-accounts", bankAccountId, "activity"],
+    queryFn: () =>
+      getBankAccountActivity({
         data: {
           bankAccountId,
         },

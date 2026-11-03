@@ -1,12 +1,9 @@
 import { IconArrowsExchange, IconCircleDottedLetterH, IconPlus } from "@tabler/icons-react";
-import { useSuspenseQuery } from "@tanstack/react-query";
-import { getRouteApi, Link } from "@tanstack/react-router";
-import { useTransition } from "react";
+import { Link } from "@tanstack/react-router";
 
 import type { getBankAccount } from "#/modules/bank-accounts/functions";
-import type { AccountLedgerEntry } from "#/modules/bank-accounts/ledger.server";
+import type { AccountLedgerEntry, AccountLedgerPage } from "#/modules/bank-accounts/ledger.server";
 
-import { Pager } from "#/components/pager";
 import { Badge } from "#/components/ui/badge";
 import { Button } from "#/components/ui/button";
 import { DrawerTrigger } from "#/components/ui/drawer";
@@ -31,186 +28,142 @@ import { formatMoney } from "#/lib/money";
 import { cn, formatDateTime, formatToRelative } from "#/lib/utils";
 import { AllocationActionsDropdownMenu } from "#/modules/allocations/components/allocation-actions-dropdown-menu";
 import { logAllocationDrawerHandle } from "#/modules/allocations/components/log-allocation-drawer";
-import { bankAccountLedgerQueryOption } from "#/modules/bank-accounts/query-options";
 import { logTransactionDrawerHandle } from "#/modules/transactions/components/log-transaction-drawer";
 import { TransactionActionsDropdownMenu } from "#/modules/transactions/components/transaction-actions-dropdown-menu";
 
-const Route = getRouteApi("/_protected/accounts/$accountId");
-
 type Props = {
   bankAccount: Awaited<ReturnType<typeof getBankAccount>>;
+  ledgerPage: AccountLedgerPage;
+  isPending: boolean;
 };
 
-export function AccountLedgerTable({ bankAccount }: Props) {
+export function AccountLedgerTable({ bankAccount, ledgerPage, isPending }: Props) {
   function formatAccountAmount(value: number) {
     return formatMoney(value, bankAccount.currency);
   }
 
   const { startingBalance } = bankAccount;
-
-  const page = Route.useSearch();
-  const navigate = Route.useNavigate();
-  const [isPending, startTransition] = useTransition();
-  const { data: ledgerPage } = useSuspenseQuery(bankAccountLedgerQueryOption(bankAccount.id, page));
-  const { entries, opening, isOldestPage, ...paging } = ledgerPage;
-  const hasEntries = paging.total > 0;
+  const { entries, opening, isOldestPage, total } = ledgerPage;
+  const hasEntries = total > 0;
 
   return (
-    <div className="flex flex-col gap-y-3">
-      <p className="flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
-        <Badge variant="secondary">{bankAccount.currency}</Badge>
-        <span>
-          Balance{" "}
-          <strong className="font-semibold text-foreground tabular-nums">
-            {formatAccountAmount(bankAccount.balance)}
-          </strong>
-        </span>
-        ·
-        <span>
-          Unallocated{" "}
-          <strong className="font-semibold text-foreground tabular-nums">
-            {formatAccountAmount(bankAccount.unallocated)}
-          </strong>
-        </span>
-        ·
-        <span>
-          Earmarked{" "}
-          <strong className="font-semibold text-foreground tabular-nums">
-            {formatAccountAmount(bankAccount.totalEarmarked)}
-          </strong>
-        </span>
-      </p>
-
-      <Table aria-busy={isPending} className={cn(isPending && "opacity-60 transition-opacity")}>
-        <TableHeader>
-          <TableRow>
-            <TableHead>Date</TableHead>
-            <TableHead>Entry</TableHead>
-            <TableHead className="text-end">Balance</TableHead>
-            <TableHead className="text-end">Unallocated</TableHead>
-            <TableHead />
+    <Table aria-busy={isPending} className={cn(isPending && "opacity-60 transition-opacity")}>
+      <TableHeader>
+        <TableRow className="hover:bg-transparent">
+          <TableHead className="border-s font-medium first:border-0">Date</TableHead>
+          <TableHead className="border-s font-medium first:border-0">Entry</TableHead>
+          <TableHead className="border-s text-end font-medium first:border-0">Balance</TableHead>
+          <TableHead className="border-s text-end font-medium first:border-0">
+            Unallocated
+          </TableHead>
+          <TableHead className="border-s font-medium first:border-0" />
+        </TableRow>
+      </TableHeader>
+      <TableBody>
+        {entries.map((step) => (
+          <TableRow key={step.id}>
+            <TableCell>
+              <DateBadge date={step.date} />
+            </TableCell>
+            <TableCell className="max-w-72 whitespace-normal">
+              <EntryLabel entry={step} />
+              {step.note ? <EntryNote note={step.note} /> : null}
+            </TableCell>
+            <TableCell className="text-end">
+              <FigureCell
+                value={step.balance}
+                change={step.change.balance}
+                format={formatAccountAmount}
+              />
+            </TableCell>
+            <TableCell className="text-end">
+              <FigureCell
+                value={step.unallocated}
+                change={step.change.unallocated}
+                format={formatAccountAmount}
+              />
+            </TableCell>
+            <TableCell className="text-end">
+              {step.source === "allocation" ? (
+                <AllocationActionsDropdownMenu allocationId={step.id} />
+              ) : (
+                <TransactionActionsDropdownMenu transactionId={step.id} />
+              )}
+            </TableCell>
           </TableRow>
-        </TableHeader>
-        <TableBody>
-          {entries.map((step) => (
-            <TableRow key={step.id}>
-              <TableCell>
-                <DateBadge date={step.date} />
-              </TableCell>
-              <TableCell className="max-w-72 whitespace-normal">
-                <EntryLabel entry={step} />
-                {step.note ? <EntryNote note={step.note} /> : null}
-              </TableCell>
-              <TableCell className="text-end">
-                <FigureCell
-                  value={step.balance}
-                  change={step.change.balance}
-                  format={formatAccountAmount}
-                />
-              </TableCell>
-              <TableCell className="text-end">
-                <FigureCell
-                  value={step.unallocated}
-                  change={step.change.unallocated}
-                  format={formatAccountAmount}
-                />
-              </TableCell>
-              <TableCell className="text-end">
-                {step.source === "allocation" ? (
-                  <AllocationActionsDropdownMenu allocationId={step.id} />
-                ) : (
-                  <TransactionActionsDropdownMenu transactionId={step.id} />
-                )}
-              </TableCell>
-            </TableRow>
-          ))}
+        ))}
 
-          {isOldestPage ? (
-            <TableRow className="bg-muted/40">
-              <TableCell>
-                <DateBadge date={bankAccount.createdAt} />
-              </TableCell>
-              <TableCell className="font-medium">Opening balance</TableCell>
-              <TableCell className="text-end font-semibold tabular-nums">
-                {formatAccountAmount(startingBalance)}
-              </TableCell>
-              <TableCell className="text-end font-semibold tabular-nums">
-                {formatAccountAmount(startingBalance)}
-              </TableCell>
-              <TableCell />
-            </TableRow>
-          ) : (
-            <TableRow className="bg-muted/40">
-              <TableCell />
-              <TableCell className="whitespace-normal">
-                <span className="font-medium">Brought forward</span>
-                <span className="block text-xs text-muted-foreground">
-                  Figures before this page's oldest entry
-                </span>
-              </TableCell>
-              <TableCell className="text-end font-semibold tabular-nums">
-                {formatAccountAmount(opening.balance)}
-              </TableCell>
-              <TableCell className="text-end font-semibold tabular-nums">
-                {formatAccountAmount(opening.unallocated)}
-              </TableCell>
-              <TableCell />
-            </TableRow>
-          )}
+        {isOldestPage ? (
+          <TableRow className="bg-muted/40">
+            <TableCell>
+              <DateBadge date={bankAccount.createdAt} />
+            </TableCell>
+            <TableCell className="font-medium">Opening balance</TableCell>
+            <TableCell className="text-end font-semibold tabular-nums">
+              {formatAccountAmount(startingBalance)}
+            </TableCell>
+            <TableCell className="text-end font-semibold tabular-nums">
+              {formatAccountAmount(startingBalance)}
+            </TableCell>
+            <TableCell />
+          </TableRow>
+        ) : (
+          <TableRow className="bg-muted/40">
+            <TableCell />
+            <TableCell className="whitespace-normal">
+              <span className="font-medium">Brought forward</span>
+              <span className="block text-xs text-muted-foreground">
+                Figures before this page's oldest entry
+              </span>
+            </TableCell>
+            <TableCell className="text-end font-semibold tabular-nums">
+              {formatAccountAmount(opening.balance)}
+            </TableCell>
+            <TableCell className="text-end font-semibold tabular-nums">
+              {formatAccountAmount(opening.unallocated)}
+            </TableCell>
+            <TableCell />
+          </TableRow>
+        )}
 
-          {hasEntries ? null : (
-            <TableRow className="hover:bg-transparent">
-              <TableCell colSpan={5} className="px-0 py-2">
-                <Empty className="min-h-[15vh] border border-dashed">
-                  <EmptyHeader>
-                    <EmptyMedia variant="icon">
-                      <IconArrowsExchange />
-                    </EmptyMedia>
-                    <EmptyTitle>Nothing logged yet.</EmptyTitle>
-                    <EmptyDescription>
-                      Log income or an expense, or move money into a bucket, to build this account's
-                      history.
-                    </EmptyDescription>
-                  </EmptyHeader>
-                  <EmptyContent className="flex-row justify-center">
-                    <DrawerTrigger
-                      handle={logTransactionDrawerHandle}
-                      payload={{ bankAccountId: bankAccount.id }}
-                      render={<Button />}
-                    >
-                      <IconPlus />
-                      Log Transaction
-                    </DrawerTrigger>
-                    <DrawerTrigger
-                      handle={logAllocationDrawerHandle}
-                      payload={{ start: { from: "bank-account", bankAccountId: bankAccount.id } }}
-                      render={<Button variant="outline" />}
-                    >
-                      <IconPlus />
-                      Allocate Money
-                    </DrawerTrigger>
-                  </EmptyContent>
-                </Empty>
-              </TableCell>
-            </TableRow>
-          )}
-        </TableBody>
-      </Table>
-
-      <Pager
-        paging={paging}
-        onPageChange={(pageIndex) =>
-          startTransition(async () => {
-            await navigate({ search: { pageIndex, pageSize: paging.pageSize } });
-          })
-        }
-        onPageSizeChange={(pageSize) =>
-          startTransition(async () => {
-            await navigate({ search: { pageIndex: 0, pageSize } });
-          })
-        }
-      />
-    </div>
+        {hasEntries ? null : (
+          <TableRow className="hover:bg-transparent">
+            <TableCell colSpan={5}>
+              <Empty className="min-h-[15vh] border border-dashed">
+                <EmptyHeader>
+                  <EmptyMedia variant="icon">
+                    <IconArrowsExchange />
+                  </EmptyMedia>
+                  <EmptyTitle>Nothing logged yet.</EmptyTitle>
+                  <EmptyDescription>
+                    Log income or an expense, or move money into a bucket, to build this account's
+                    history.
+                  </EmptyDescription>
+                </EmptyHeader>
+                <EmptyContent className="flex-row justify-center">
+                  <DrawerTrigger
+                    handle={logTransactionDrawerHandle}
+                    payload={{ bankAccountId: bankAccount.id }}
+                    render={<Button />}
+                  >
+                    <IconPlus />
+                    Log Transaction
+                  </DrawerTrigger>
+                  <DrawerTrigger
+                    handle={logAllocationDrawerHandle}
+                    payload={{ start: { from: "bank-account", bankAccountId: bankAccount.id } }}
+                    render={<Button variant="outline" />}
+                  >
+                    <IconPlus />
+                    Allocate Money
+                  </DrawerTrigger>
+                </EmptyContent>
+              </Empty>
+            </TableCell>
+          </TableRow>
+        )}
+      </TableBody>
+    </Table>
   );
 }
 
