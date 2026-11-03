@@ -18,23 +18,57 @@ import { DrawerTrigger } from "#/components/ui/drawer";
 import { MODULE_ICONS } from "#/lib/constants";
 import { formatMoney } from "#/lib/money";
 import { registerBankAccountDrawerHandle } from "#/modules/bank-accounts/components/register-bank-account-drawer";
-import { type CurrencySummary } from "#/modules/dashboard/utils";
+import { type AccountBreakdown, type CurrencySummary } from "#/modules/dashboard/utils";
 
 type AccountBreakdownChartProps = {
   summary: CurrencySummary;
 };
 
-const FLAT_LABEL_LIMIT = 8;
-const LABEL_LENGTH = 16;
+const VISIBLE_ACCOUNTS = 8;
+const LABEL_LENGTH = 15;
+const ROW_HEIGHT = 36;
+const LEGEND_HEIGHT = 40;
 
 const chartConfig = {
   unallocated: { label: "Unallocated", color: "var(--chart-2)" },
   earmarked: { label: "Earmarked", color: "var(--chart-4)" },
 } satisfies ChartConfig;
 
+type AccountBreakdownRow = AccountBreakdown & { total: number };
+
+function getAccountBreakdownRows(accounts: AccountBreakdown[]): AccountBreakdownRow[] {
+  const withTotal = (account: AccountBreakdown) => ({
+    ...account,
+    total: account.unallocated + account.earmarked,
+  });
+
+  if (accounts.length <= VISIBLE_ACCOUNTS) return accounts.map(withTotal);
+
+  const visibleAccounts = accounts.slice(0, VISIBLE_ACCOUNTS - 1);
+  const otherAccounts = accounts.slice(VISIBLE_ACCOUNTS - 1);
+
+  return [
+    ...visibleAccounts.map(withTotal),
+    withTotal({
+      id: "other",
+      name: `Other (${otherAccounts.length})`,
+      unallocated: otherAccounts.reduce((total, account) => total + account.unallocated, 0),
+      earmarked: otherAccounts.reduce((total, account) => total + account.earmarked, 0),
+    }),
+  ];
+}
+
 export function AccountBreakdownChart({ summary }: AccountBreakdownChartProps) {
   const { currency, accounts } = summary;
-  const isCrowded = accounts.length > FLAT_LABEL_LIMIT;
+  const rows = getAccountBreakdownRows(accounts);
+  const rowsById = new Map(rows.map((row) => [row.id, row]));
+
+  const compactMoneyFormat = new Intl.NumberFormat(undefined, {
+    style: "currency",
+    currency,
+    notation: "compact",
+    maximumFractionDigits: 1,
+  });
 
   return (
     <InsetCard>
@@ -46,28 +80,63 @@ export function AccountBreakdownChart({ summary }: AccountBreakdownChartProps) {
           </CardDescription>
         </div>
 
-        {accounts.length > 0 ? (
-          <ChartContainer config={chartConfig} className="aspect-auto h-80 w-full">
-            <BarChart data={accounts} margin={{ top: 8, right: 8, bottom: 0, left: 8 }}>
-              <CartesianGrid vertical={false} />
-              <XAxis
-                dataKey="name"
-                interval={0}
-                height={isCrowded ? 96 : 30}
-                angle={isCrowded ? -45 : 0}
-                textAnchor={isCrowded ? "end" : "middle"}
+        {rows.length > 0 ? (
+          <ChartContainer
+            config={chartConfig}
+            className="aspect-auto w-full"
+            style={{ height: rows.length * ROW_HEIGHT + LEGEND_HEIGHT }}
+          >
+            <BarChart
+              data={rows}
+              layout="vertical"
+              barCategoryGap={8}
+              margin={{ top: 0, right: 0, bottom: 0, left: 0 }}
+            >
+              <CartesianGrid horizontal={false} />
+              <XAxis type="number" domain={[0, "dataMax"]} hide />
+              <YAxis
+                type="category"
+                dataKey="id"
+                width={120}
                 tickLine={false}
                 axisLine={false}
-                tickMargin={8}
-                tickFormatter={(name: string) =>
-                  name.length > LABEL_LENGTH ? `${name.slice(0, LABEL_LENGTH - 1)}…` : name
+                // Recharts wraps tick text to the axis width, so names render on one line here.
+                tick={({ x, y, payload }) => {
+                  const name = rowsById.get(String(payload.value))?.name ?? "";
+
+                  return (
+                    <text
+                      x={x}
+                      y={y}
+                      dx={-8}
+                      dy="0.355em"
+                      textAnchor="end"
+                      className="fill-muted-foreground"
+                    >
+                      {name.length > LABEL_LENGTH ? `${name.slice(0, LABEL_LENGTH - 1)}…` : name}
+                    </text>
+                  );
+                }}
+              />
+              <YAxis
+                yAxisId="total"
+                orientation="right"
+                type="category"
+                dataKey="id"
+                width={64}
+                tickLine={false}
+                axisLine={false}
+                tickFormatter={(id: string) =>
+                  compactMoneyFormat.format((rowsById.get(id)?.total ?? 0) / 100)
                 }
               />
-              <YAxis hide />
               <ChartTooltip
                 cursor={false}
                 content={
                   <ChartTooltipContent
+                    labelFormatter={(_, payload) =>
+                      (payload[0]?.payload as AccountBreakdownRow | undefined)?.name
+                    }
                     formatter={(value, name) => (
                       <div className="flex w-full items-center justify-between gap-x-4">
                         <span className="text-muted-foreground">
@@ -81,7 +150,7 @@ export function AccountBreakdownChart({ summary }: AccountBreakdownChartProps) {
                   />
                 }
               />
-              <ChartLegend content={<ChartLegendContent />} />
+              <ChartLegend content={<ChartLegendContent />} itemSorter={null} />
               <Bar dataKey="unallocated" stackId="balance" fill="var(--color-unallocated)" />
               <Bar dataKey="earmarked" stackId="balance" fill="var(--color-earmarked)" />
             </BarChart>
@@ -94,6 +163,11 @@ export function AccountBreakdownChart({ summary }: AccountBreakdownChartProps) {
             description={`Register a ${currency} Account to see where its money sits.`}
           />
         )}
+        {accounts.length > VISIBLE_ACCOUNTS ? (
+          <p className="shrink-0 text-center text-muted-foreground">
+            Largest {VISIBLE_ACCOUNTS - 1} of {accounts.length} Accounts, the rest grouped as Other
+          </p>
+        ) : null}
       </InsetCardContent>
       <InsetCardFooter>
         <DrawerTrigger

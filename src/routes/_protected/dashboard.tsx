@@ -13,6 +13,7 @@ import { BalanceTrendChart } from "#/modules/dashboard/components/balance-trend-
 import { CashflowChart } from "#/modules/dashboard/components/cashflow-chart";
 import { CurrencySwitcher } from "#/modules/dashboard/components/currency-switcher";
 import { DashboardActions } from "#/modules/dashboard/components/dashboard-actions";
+import { DashboardSkeleton } from "#/modules/dashboard/components/dashboard-skeleton";
 import { GettingStartedCard } from "#/modules/dashboard/components/getting-started-card";
 import { GoalLanesCard } from "#/modules/dashboard/components/goal-lanes-card";
 import { KpiTiles } from "#/modules/dashboard/components/kpi-tiles";
@@ -36,11 +37,7 @@ export const Route = createFileRoute("/_protected/dashboard")({
     <Main>
       <Heading>Dashboard</Heading>
 
-      <StateTemplate
-        state="loading"
-        title="Loading dashboard..."
-        description="Fetching your accounts and debts..."
-      />
+      <DashboardSkeleton />
     </Main>
   ),
   errorComponent: () => (
@@ -68,9 +65,9 @@ function RouteComponent() {
 
   return (
     <Main>
-      <div className="flex items-center justify-between">
-        <Heading>Dashboard</Heading>
+      <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="flex items-center gap-x-3">
+          <Heading>Dashboard</Heading>
           <CurrencySwitcher
             currencies={data.currencySummaries.map((currencySummary) => currencySummary.currency)}
             value={summary.currency}
@@ -78,13 +75,13 @@ function RouteComponent() {
               navigate({ search: { currency: selectedCurrency }, replace: true })
             }
           />
-          <DashboardActions
-            currency={summary.currency}
-            accounts={summary.accounts}
-            distributions={data.distributions}
-            hasBucket={data.gettingStarted.hasBucket}
-          />
         </div>
+        <DashboardActions
+          currency={summary.currency}
+          accounts={summary.accounts}
+          distributions={data.distributions}
+          hasBucket={data.gettingStarted.hasBucket}
+        />
       </div>
 
       <GettingStartedCard
@@ -107,8 +104,8 @@ function RouteComponent() {
 
       <AccountBreakdownChart summary={summary} />
 
-      <div className="grid gap-3 *:h-148 lg:grid-cols-3">
-        <GoalLanesCard summary={summary} />
+      <div className="grid grid-cols-1 gap-3 *:h-148 lg:grid-cols-3">
+        <GoalLanesCard summary={summary} bucketsWithoutGoal={data.bucketsWithoutGoal} />
         <OpenDebtsCard summary={summary} />
         <RecentActivityCard summary={summary} />
       </div>

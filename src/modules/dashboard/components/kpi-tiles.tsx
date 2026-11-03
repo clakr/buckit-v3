@@ -63,7 +63,7 @@ export function KpiTiles({ summary }: KpiTilesProps) {
         footer="Allocated, minus Withdrawals"
       />
       <KpiTile
-        label="Net debts"
+        label="Net Debts"
         value={formatMoney(netDebts, currency)}
         valueClassName={netDebts < 0 ? "text-amber-600 dark:text-amber-400" : undefined}
         footer={

@@ -106,7 +106,7 @@ export function BalanceTrendChart({
           <StateTemplate
             state="empty"
             icon={<IconChartAreaLine />}
-            title={`No ${currency} activity`}
+            title={`No ${currency} Activity`}
             description={`Transactions in ${currency} over the last ${BALANCE_TREND_DAYS} days will chart here.`}
           />
         )}

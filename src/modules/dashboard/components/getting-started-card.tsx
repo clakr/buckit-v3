@@ -89,7 +89,7 @@ export function GettingStartedCard({
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Getting started</CardTitle>
+        <CardTitle>Getting Started</CardTitle>
         <CardDescription>
           {doneCount} of {steps.length} steps done
         </CardDescription>

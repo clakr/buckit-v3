@@ -52,7 +52,7 @@ function PickerAction({
           }
         >
           <Icon />
-          {label}
+          <span className="max-sm:sr-only">{label}</span>
         </TooltipTrigger>
         <TooltipContent>{disabledReason}</TooltipContent>
       </Tooltip>
@@ -63,7 +63,7 @@ function PickerAction({
     return (
       <Button variant={variant} onClick={() => onPick(options[0].id)}>
         <Icon />
-        {label}
+        <span className="max-sm:sr-only">{label}</span>
       </Button>
     );
   }
@@ -72,7 +72,7 @@ function PickerAction({
     <DropdownMenu>
       <DropdownMenuTrigger render={<Button variant={variant} />}>
         <Icon />
-        {label}
+        <span className="max-sm:sr-only">{label}</span>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-fit">
         {options.map((option) => (

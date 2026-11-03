@@ -64,7 +64,7 @@ export function OpenDebtsCard({ summary }: Props) {
           <StateTemplate
             state="empty"
             icon={<MODULE_ICONS.debts />}
-            title={`No open ${currency} Debts`}
+            title={`No Open ${currency} Debts`}
             description={`Record a Debt in ${currency} to track what you owe or are owed.`}
           />
         )}
