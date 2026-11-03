@@ -16,6 +16,7 @@ type Props = {
 const MOVEMENT_LABELS = {
   income: "Income",
   expense: "Expense",
+  withdrawal: "Withdrawal",
   allocation: "Allocation",
   repayment: "Repayment",
 } satisfies Record<RecentMovement["kind"], string>;
@@ -58,7 +59,7 @@ export function RecentActivityCard({ summary }: Props) {
         <div className="flex flex-col gap-y-1">
           <CardTitle>Recent Activity</CardTitle>
           <CardDescription>
-            Latest {currency} Transactions, Allocations and Repayments
+            Latest {currency} Transactions, Withdrawals, Allocations and Repayments
           </CardDescription>
         </div>
 
@@ -86,8 +87,8 @@ export function RecentActivityCard({ summary }: Props) {
           <StateTemplate
             state="empty"
             icon={<MODULE_ICONS.accounts />}
-            title={`No ${currency} activity yet`}
-            description={`Transactions, Allocations and Repayments in ${currency} will show up here.`}
+            title={`No ${currency} Activity Yet`}
+            description={`Transactions, Withdrawals, Allocations and Repayments in ${currency} will show up here.`}
           />
         )}
       </InsetCardContent>

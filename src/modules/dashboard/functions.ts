@@ -19,31 +19,33 @@ export const getDashboard = createServerFn({
   .handler(async ({ context }) => {
     const db = getDB(env.db);
 
-    const [bankAccounts, debts, bucketsWithFigures, bucketGoals, firstAllocation, distributions] =
-      await Promise.all([
-        getBankAccountsWithFiguresAndTrend(db, { userId: context.userId }),
-        getDebtsWithFigures(db, { userId: context.userId }),
-        getBucketsWithFigures(db, { userId: context.userId }),
-        db.query.goals.findMany({
-          columns: { bucketId: true, targetAmount: true, currency: true, targetDate: true },
-          where: { bucket: { userId: context.userId } },
-        }),
-        db.query.allocations.findFirst({
-          columns: { id: true },
-          where: { bankAccount: { userId: context.userId } },
-        }),
-        db.query.distributions.findMany({
-          columns: { id: true, name: true },
-          where: { userId: context.userId },
-          with: { bankAccount: { columns: { currency: true } } },
-        }),
-      ]);
-
-    const [recentLedgerMovements, cashflows] = await Promise.all([
-      getRecentLedgerMovements(db, {
-        userId: context.userId,
-        currencies: [...new Set(bankAccounts.map((bankAccount) => bankAccount.currency))],
+    const [
+      bankAccounts,
+      debts,
+      bucketsWithFigures,
+      bucketGoals,
+      firstAllocation,
+      distributions,
+      recentLedgerMovements,
+      cashflows,
+    ] = await Promise.all([
+      getBankAccountsWithFiguresAndTrend(db, { userId: context.userId }),
+      getDebtsWithFigures(db, { userId: context.userId }),
+      getBucketsWithFigures(db, { userId: context.userId }),
+      db.query.goals.findMany({
+        columns: { bucketId: true, targetAmount: true, currency: true, targetDate: true },
+        where: { bucket: { userId: context.userId } },
       }),
+      db.query.allocations.findFirst({
+        columns: { id: true },
+        where: { bankAccount: { userId: context.userId } },
+      }),
+      db.query.distributions.findMany({
+        columns: { id: true, name: true },
+        where: { userId: context.userId },
+        with: { bankAccount: { columns: { currency: true } } },
+      }),
+      getRecentLedgerMovements(db, { userId: context.userId }),
       getCashflowByCurrency(db, { userId: context.userId }),
     ]);
 
@@ -66,6 +68,10 @@ export const getDashboard = createServerFn({
         hasBucket: bucketsWithFigures.length > 0,
         hasAllocation: firstAllocation !== undefined,
       },
+      bucketsWithoutGoal: buckets
+        .filter((bucket) => bucket.goal === null)
+        .map((bucket) => ({ id: bucket.id, name: bucket.name }))
+        .sort((a, b) => a.name.localeCompare(b.name)),
       distributions: distributions.map((distribution) => ({
         id: distribution.id,
         name: distribution.name,

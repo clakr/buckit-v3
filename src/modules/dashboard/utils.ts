@@ -76,7 +76,7 @@ export const RECENT_MOVEMENTS_LIMIT = 10;
 
 export type RecentMovement = {
   key: string;
-  kind: "income" | "expense" | "allocation" | "repayment";
+  kind: "income" | "expense" | "withdrawal" | "allocation" | "repayment";
   flow: "in" | "out" | null;
   amount: number;
   date: Date;

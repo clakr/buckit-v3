@@ -1,8 +1,8 @@
-import { and, eq, gte } from "drizzle-orm";
+import { and, eq, gte, isNull } from "drizzle-orm";
 
 import type { DB } from "#/db";
 
-import { bankAccounts, transactions, type BankAccount } from "#/db/schema";
+import { bankAccounts, debts, repayments, transactions, type BankAccount } from "#/db/schema";
 
 import { getCashflow, getCashflowWindowStart, type Cashflow } from "./utils";
 
@@ -18,10 +18,15 @@ export async function getCashflowByCurrency(db: DB, { userId }: { userId: string
     })
     .from(transactions)
     .innerJoin(bankAccounts, eq(bankAccounts.id, transactions.bankAccountId))
+    .leftJoin(repayments, eq(repayments.transactionId, transactions.id))
+    .leftJoin(debts, eq(debts.originatingTransactionId, transactions.id))
     .where(
       and(
         eq(bankAccounts.userId, userId),
         gte(transactions.date, new Date(getCashflowWindowStart(now))),
+        // Lending and repaying move money without earning or spending it.
+        isNull(repayments.id),
+        isNull(debts.id),
       ),
     );
 
