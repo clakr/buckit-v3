@@ -1,9 +1,9 @@
-import { IconPlus } from "@tabler/icons-react";
+import { IconPlus, IconSearch } from "@tabler/icons-react";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
+import { useState } from "react";
 import { z } from "zod";
 
-import { Heading } from "#/components/heading";
 import {
   InsetCard,
   InsetCardContent,
@@ -16,10 +16,16 @@ import { RouteRetryButton } from "#/components/route-retry-button";
 import { StateTemplate } from "#/components/state-template";
 import { Button } from "#/components/ui/button";
 import { DrawerTrigger } from "#/components/ui/drawer";
-import { MODULE_ICONS } from "#/lib/constants";
+import { InputGroup, InputGroupAddon, InputGroupInput } from "#/components/ui/input-group";
+import { CURRENCIES_CODES, MODULE_ICONS } from "#/lib/constants";
 import { PAGE_SIZES } from "#/lib/paging";
 import { formatPageTitle } from "#/lib/utils";
-import { INDEX_COLUMNS } from "#/modules/bank-accounts/columns";
+import { getIndexColumns } from "#/modules/bank-accounts/columns";
+import { AccountsCurrencyFilter } from "#/modules/bank-accounts/components/accounts-currency-filter";
+import {
+  AccountsOverview,
+  getCurrencyTotals,
+} from "#/modules/bank-accounts/components/accounts-overview";
 import { AccountsTable } from "#/modules/bank-accounts/components/accounts-table";
 import { registerBankAccountDrawerHandle } from "#/modules/bank-accounts/components/register-bank-account-drawer";
 import { bankAccountsWithTrendQueryOption } from "#/modules/bank-accounts/query-options";
@@ -27,6 +33,8 @@ import { bankAccountsWithTrendQueryOption } from "#/modules/bank-accounts/query-
 const accountsSearchSchema = z.object({
   pageIndex: z.number().int().min(0).optional().catch(undefined),
   pageSize: z.literal(PAGE_SIZES).optional().catch(undefined),
+  q: z.string().optional().catch(undefined),
+  currencies: z.array(z.enum(CURRENCIES_CODES)).optional().catch(undefined),
 });
 
 export const Route = createFileRoute("/_protected/accounts/")({
@@ -38,25 +46,31 @@ export const Route = createFileRoute("/_protected/accounts/")({
   },
   pendingComponent: () => (
     <Main>
-      <Heading>Accounts</Heading>
-
-      <StateTemplate
-        state="loading"
-        title="Loading accounts..."
-        description="Fetching your bank accounts..."
-      />
+      <InsetCard>
+        <InsetCardTitle as="h1">Accounts</InsetCardTitle>
+        <InsetCardContent>
+          <StateTemplate
+            state="loading"
+            title="Loading accounts..."
+            description="Fetching your bank accounts..."
+          />
+        </InsetCardContent>
+      </InsetCard>
     </Main>
   ),
   errorComponent: () => (
     <Main>
-      <Heading>Accounts</Heading>
-
-      <StateTemplate
-        state="error"
-        title="Could not load accounts."
-        description="We weren't able to retrieve your accounts. Please try again."
-        content={<RouteRetryButton />}
-      />
+      <InsetCard>
+        <InsetCardTitle as="h1">Accounts</InsetCardTitle>
+        <InsetCardContent>
+          <StateTemplate
+            state="error"
+            title="Could not load accounts."
+            description="We weren't able to retrieve your accounts. Please try again."
+            content={<RouteRetryButton />}
+          />
+        </InsetCardContent>
+      </InsetCard>
     </Main>
   ),
   component: RouteComponent,
@@ -65,24 +79,67 @@ export const Route = createFileRoute("/_protected/accounts/")({
 function RouteComponent() {
   const { bankAccountsQueryOptions } = Route.useRouteContext();
   const { data: bankAccounts } = useSuspenseQuery(bankAccountsQueryOptions);
-  const { pageIndex: requestedPageIndex = 0, pageSize = PAGE_SIZES[0] } = Route.useSearch();
+  const {
+    pageIndex: requestedPageIndex = 0,
+    pageSize = PAGE_SIZES[0],
+    q,
+    currencies: requestedCurrencies = [],
+  } = Route.useSearch();
   const navigate = Route.useNavigate();
+  const [query, setQuery] = useState(q ?? "");
+
+  const currencyTotals = getCurrencyTotals(bankAccounts);
+  const selectedCurrencies = requestedCurrencies.filter((requestedCurrency) =>
+    currencyTotals.some((totals) => totals.currency === requestedCurrency),
+  );
+  const isInSelectedCurrencies = (currency: string) =>
+    selectedCurrencies.length === 0 || selectedCurrencies.includes(currency);
+  const canSortAmounts = currencyTotals.length === 1 || selectedCurrencies.length === 1;
+  const normalizedQuery = query.trim().toLowerCase();
+  const filteredAccounts = bankAccounts.filter(
+    (bankAccount) =>
+      isInSelectedCurrencies(bankAccount.currency) &&
+      bankAccount.name.toLowerCase().includes(normalizedQuery),
+  );
 
   const isEmpty = bankAccounts.length === 0;
-  const total = bankAccounts.length;
+  const total = filteredAccounts.length;
   const pageCount = Math.max(Math.ceil(total / pageSize), 1);
   const pageIndex = Math.min(requestedPageIndex, pageCount - 1);
+
+  function handleFiltersChange(filters: { q?: string; currencies?: string[] }) {
+    void navigate({
+      search: (previous) => ({ ...previous, ...filters, pageIndex: undefined }),
+      replace: true,
+    });
+  }
+
+  function handleQueryChange(nextQuery: string) {
+    setQuery(nextQuery);
+    handleFiltersChange({ q: nextQuery || undefined });
+  }
+
+  function handleClearFilters() {
+    setQuery("");
+    handleFiltersChange({ q: undefined, currencies: undefined });
+  }
 
   return (
     <Main>
       <InsetCard>
         <InsetCardTitle
           as="h1"
-          subtitle={`${bankAccounts.length} ${bankAccounts.length === 1 ? "account" : "accounts"}`}
+          subtitle={
+            total === bankAccounts.length
+              ? `${total} ${total === 1 ? "account" : "accounts"}`
+              : `${total} of ${bankAccounts.length} accounts`
+          }
           action={
             <DrawerTrigger
               handle={registerBankAccountDrawerHandle}
-              payload={{ currency: "PHP" }}
+              payload={{
+                currency: selectedCurrencies.length === 1 ? selectedCurrencies[0] : "PHP",
+              }}
               render={<Button />}
             >
               <IconPlus />
@@ -102,16 +159,69 @@ function RouteComponent() {
               icon={<MODULE_ICONS.accounts />}
             />
           ) : (
-            <AccountsTable
-              columns={INDEX_COLUMNS}
-              data={bankAccounts}
-              initialSorting={[{ id: "lastTransactionDate", desc: true }]}
-              pageIndex={pageIndex}
-              pageSize={pageSize}
-              onSortingChange={() => {
-                if (pageIndex !== 0) navigate({ search: { pageIndex: 0, pageSize } });
-              }}
-            />
+            <>
+              <section className="flex flex-col gap-y-4 border-b p-4">
+                <AccountsOverview
+                  currencyTotals={currencyTotals.filter((totals) =>
+                    isInSelectedCurrencies(totals.currency),
+                  )}
+                />
+
+                <div className="flex flex-wrap items-center gap-2">
+                  <InputGroup className="sm:max-w-64">
+                    <InputGroupAddon>
+                      <IconSearch />
+                    </InputGroupAddon>
+                    <InputGroupInput
+                      type="search"
+                      aria-label="Search accounts"
+                      placeholder="Search accounts..."
+                      value={query}
+                      onChange={(event) => handleQueryChange(event.target.value)}
+                    />
+                  </InputGroup>
+
+                  {currencyTotals.length > 1 ? (
+                    <AccountsCurrencyFilter
+                      currencyTotals={currencyTotals}
+                      selectedCurrencies={selectedCurrencies}
+                      onSelectedCurrenciesChange={(currencies) =>
+                        handleFiltersChange({
+                          currencies: currencies.length ? currencies : undefined,
+                        })
+                      }
+                    />
+                  ) : null}
+                </div>
+              </section>
+
+              {total === 0 ? (
+                <StateTemplate
+                  state="empty"
+                  title="No matching accounts."
+                  description="No accounts match these filters. Try another name or currency."
+                  icon={<IconSearch />}
+                  content={
+                    <Button variant="secondary" onClick={handleClearFilters}>
+                      Clear Filters
+                    </Button>
+                  }
+                />
+              ) : (
+                <AccountsTable
+                  key={canSortAmounts ? "single-currency" : "mixed-currencies"}
+                  columns={getIndexColumns({ canSortAmounts })}
+                  data={filteredAccounts}
+                  initialSorting={[{ id: "lastTransactionDate", desc: true }]}
+                  pageIndex={pageIndex}
+                  pageSize={pageSize}
+                  onSortingChange={() => {
+                    if (pageIndex !== 0)
+                      void navigate({ search: (previous) => ({ ...previous, pageIndex: 0 }) });
+                  }}
+                />
+              )}
+            </>
           )}
         </InsetCardContent>
 
@@ -120,10 +230,12 @@ function RouteComponent() {
             <Pager
               paging={{ pageIndex, pageSize, pageCount, total }}
               onPageChange={(nextPageIndex) =>
-                navigate({ search: { pageIndex: nextPageIndex, pageSize } })
+                navigate({ search: (previous) => ({ ...previous, pageIndex: nextPageIndex }) })
               }
               onPageSizeChange={(nextPageSize) =>
-                navigate({ search: { pageIndex: 0, pageSize: nextPageSize } })
+                navigate({
+                  search: (previous) => ({ ...previous, pageIndex: 0, pageSize: nextPageSize }),
+                })
               }
             />
           </InsetCardFooter>

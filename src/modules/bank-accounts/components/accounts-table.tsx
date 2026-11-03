@@ -12,6 +12,7 @@ import {
   TableHeader,
   TableRow,
 } from "#/components/ui/table";
+import { cn } from "#/lib/utils";
 
 const ARIA_SORT = {
   asc: "ascending",
@@ -43,14 +44,16 @@ export function AccountsTable<TData extends RowData>({
     columns,
 
     onSortingChange: (updater) => {
-      setSorting(updater);
+      setSorting((previous) => {
+        const next = typeof updater === "function" ? updater(previous) : updater;
+        return next.length ? next : initialSorting;
+      });
       onSortingChange();
     },
     state: {
       sorting,
       pagination: { pageIndex, pageSize },
     },
-    sortDescFirst: true,
 
     autoResetPageIndex: false,
   });
@@ -66,7 +69,10 @@ export function AccountsTable<TData extends RowData>({
                 <TableHead
                   key={header.id}
                   aria-sort={sortDirection ? ARIA_SORT[sortDirection] : undefined}
-                  className="border-s font-medium first:border-0"
+                  className={cn(
+                    "border-s font-medium first:border-0",
+                    header.column.columnDef.meta?.className,
+                  )}
                 >
                   {header.isPlaceholder
                     ? null
@@ -81,7 +87,7 @@ export function AccountsTable<TData extends RowData>({
         {table.getRowModel().rows.map((row) => (
           <TableRow key={row.id}>
             {row.getAllCells().map((cell) => (
-              <TableCell key={cell.id}>
+              <TableCell key={cell.id} className={cell.column.columnDef.meta?.className}>
                 {flexRender(cell.column.columnDef.cell, cell.getContext())}
               </TableCell>
             ))}

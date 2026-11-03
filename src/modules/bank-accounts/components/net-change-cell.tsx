@@ -19,23 +19,33 @@ export function getNetChangeTone(net: number) {
   return "text-foreground/60";
 }
 
+export function NetChangeAmount({
+  net,
+  currency,
+}: {
+  net: number;
+  currency: BankAccount["currency"];
+}) {
+  const Icon = net > 0 ? IconArrowUpRight : net < 0 ? IconArrowDownRight : IconMinus;
+
+  return (
+    <span
+      className={cn("flex items-center gap-x-1 font-semibold tabular-nums", getNetChangeTone(net))}
+    >
+      <Icon className="size-4" />
+      {net > 0 ? "+" : ""}
+      {formatMoney(net, currency)}
+    </span>
+  );
+}
+
 export function NetChangeCell({ trend, currency }: Props) {
   const { net, hasActivity } = trend;
-  const Icon = net > 0 ? IconArrowUpRight : net < 0 ? IconArrowDownRight : IconMinus;
 
   return (
     <div className="flex flex-col items-end">
       {hasActivity ? (
-        <span
-          className={cn(
-            "flex items-center gap-x-1 font-semibold tabular-nums",
-            getNetChangeTone(net),
-          )}
-        >
-          <Icon className="size-4" />
-          {net > 0 ? "+" : ""}
-          {formatMoney(net, currency)}
-        </span>
+        <NetChangeAmount net={net} currency={currency} />
       ) : (
         <span className="text-muted-foreground">No activity</span>
       )}

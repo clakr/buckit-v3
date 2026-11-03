@@ -1,12 +1,4 @@
-import {
-  IconDots,
-  IconEye,
-  IconPencil,
-  IconPigMoney,
-  IconReceipt,
-  IconTrash,
-} from "@tabler/icons-react";
-import { Link } from "@tanstack/react-router";
+import { IconDots, IconPencil, IconPigMoney, IconReceipt, IconTrash } from "@tabler/icons-react";
 
 import type { getBankAccounts } from "#/modules/bank-accounts/functions";
 
@@ -67,12 +59,6 @@ export function BankAccountActionsDropdownMenu({ account }: Props) {
         </DropdownMenuGroup>
         <DropdownMenuSeparator />
         <DropdownMenuGroup>
-          <DropdownMenuItem
-            render={<Link to="/accounts/$accountId" params={{ accountId: account.id }} />}
-          >
-            <IconEye />
-            View
-          </DropdownMenuItem>
           <DropdownMenuItem onClick={handleOpenEditBankAccountDrawer}>
             <IconPencil />
             Edit
