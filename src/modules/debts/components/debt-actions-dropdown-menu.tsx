@@ -2,12 +2,10 @@ import {
   IconArrowBackUp,
   IconCashBanknote,
   IconDots,
-  IconEye,
   IconHeartHandshake,
   IconPencil,
   IconTrash,
 } from "@tabler/icons-react";
-import { Link } from "@tanstack/react-router";
 
 import { Button } from "#/components/ui/button";
 import {
@@ -89,10 +87,6 @@ export function DebtActionsDropdownMenu({ debt }: Props) {
         </DropdownMenuGroup>
         <DropdownMenuSeparator />
         <DropdownMenuGroup>
-          <DropdownMenuItem render={<Link to="/debts/$debtId" params={{ debtId: debt.id }} />}>
-            <IconEye />
-            View
-          </DropdownMenuItem>
           <DropdownMenuItem onClick={handleOpenEditDebtDrawer}>
             <IconPencil />
             Edit
