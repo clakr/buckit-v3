@@ -2,7 +2,6 @@ import { useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useTransition } from "react";
 
-import { Heading } from "#/components/heading";
 import {
   InsetCard,
   InsetCardContent,
@@ -58,39 +57,50 @@ export const Route = createFileRoute("/_protected/accounts/$accountId")({
   }),
   pendingComponent: () => (
     <Main>
-      <Heading className="capitalize">Account</Heading>
-
-      <StateTemplate
-        state="loading"
-        title="Loading account..."
-        description="Fetching account details and history..."
-      />
+      <InsetCard>
+        <InsetCardTitle as="h1">Account</InsetCardTitle>
+        <InsetCardContent>
+          <StateTemplate
+            state="loading"
+            title="Loading account..."
+            description="Fetching account details and history..."
+          />
+        </InsetCardContent>
+      </InsetCard>
     </Main>
   ),
   notFoundComponent: () => (
     <Main>
-      <Heading className="capitalize">Account</Heading>
-      <StateTemplate
-        state="error"
-        title="Account not found"
-        description="This account doesn't exist or may have been deleted."
-        content={
-          <Button variant="secondary" nativeButton={false} render={<Link to="/accounts" />}>
-            Go back to accounts
-          </Button>
-        }
-      />
+      <InsetCard>
+        <InsetCardTitle as="h1">Account</InsetCardTitle>
+        <InsetCardContent>
+          <StateTemplate
+            state="error"
+            title="Account not found"
+            description="This account doesn't exist or may have been deleted."
+            content={
+              <Button variant="secondary" nativeButton={false} render={<Link to="/accounts" />}>
+                Go back to accounts
+              </Button>
+            }
+          />
+        </InsetCardContent>
+      </InsetCard>
     </Main>
   ),
   errorComponent: () => (
     <Main>
-      <Heading className="capitalize">Account</Heading>
-      <StateTemplate
-        state="error"
-        title="Could not load account"
-        description="We weren't able to retrieve this account. Please check your connection and try again."
-        content={<RouteRetryButton />}
-      />
+      <InsetCard>
+        <InsetCardTitle as="h1">Account</InsetCardTitle>
+        <InsetCardContent>
+          <StateTemplate
+            state="error"
+            title="Could not load account"
+            description="We weren't able to retrieve this account. Please check your connection and try again."
+            content={<RouteRetryButton />}
+          />
+        </InsetCardContent>
+      </InsetCard>
     </Main>
   ),
   component: RouteComponent,

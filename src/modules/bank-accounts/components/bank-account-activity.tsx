@@ -1,4 +1,3 @@
-import { IconArrowDownRight, IconArrowUpRight, IconMinus } from "@tabler/icons-react";
 import { useId } from "react";
 import { Bar, BarChart, CartesianGrid, ReferenceLine, XAxis, YAxis } from "recharts";
 
@@ -8,8 +7,7 @@ import type { BankAccountFigures } from "#/modules/bank-accounts/utils";
 
 import { ChartContainer, ChartTooltip, type ChartConfig } from "#/components/ui/chart";
 import { formatMoney } from "#/lib/money";
-import { cn } from "#/lib/utils";
-import { getNetChangeTone } from "#/modules/bank-accounts/components/net-change-cell";
+import { AccountStat } from "#/modules/bank-accounts/components/account-stat";
 import { BALANCE_TREND_DAYS, DAY_MS } from "#/modules/bank-accounts/utils";
 
 const chartConfig = {
@@ -59,7 +57,7 @@ export function BankAccountActivity({ bankAccount, activity }: Props) {
   return (
     <section aria-label="Account activity" className="flex flex-col gap-y-4 border-b p-4">
       <div className="flex flex-wrap items-end justify-between gap-4">
-        <dl className="flex flex-wrap items-end gap-x-8 gap-y-3">
+        <dl className="flex flex-wrap items-start gap-x-10 gap-y-3">
           <AccountStat
             label="Balance"
             value={bankAccount.balance}
@@ -78,9 +76,6 @@ export function BankAccountActivity({ bankAccount, activity }: Props) {
             change={bankAccount.totalEarmarked - opening.totalEarmarked}
             currency={currency}
           />
-          <span className="pb-1 text-xs text-muted-foreground">
-            vs {BALANCE_TREND_DAYS} days ago
-          </span>
         </dl>
 
         <ul
@@ -194,39 +189,6 @@ export function BankAccountActivity({ bankAccount, activity }: Props) {
         </p>
       )}
     </section>
-  );
-}
-
-function AccountStat({
-  label,
-  value,
-  change,
-  currency,
-}: {
-  label: string;
-  value: number;
-  change: number;
-  currency: BankAccount["currency"];
-}) {
-  const Icon = change > 0 ? IconArrowUpRight : change < 0 ? IconArrowDownRight : IconMinus;
-
-  return (
-    <div className="flex flex-col gap-y-0.5">
-      <dt className="text-xs text-muted-foreground">{label}</dt>
-      <dd className="flex flex-wrap items-end gap-x-1.5">
-        <span className="text-xl font-semibold">{formatMoney(value, currency)}</span>
-        <span
-          className={cn(
-            "flex items-center gap-x-0.5 pb-1 text-xs font-medium tabular-nums",
-            getNetChangeTone(change),
-          )}
-        >
-          <Icon aria-hidden className="size-3.5" />
-          {change > 0 ? "+" : ""}
-          {formatMoney(change, currency)}
-        </span>
-      </dd>
-    </div>
   );
 }
 
