@@ -183,6 +183,6 @@ The sidebar's "Account" menu item is `disabled` and leads nowhere. It would like
 
 Multi-device Sessions already work in the data, but a User has no screen to see which devices are signed in or to sign one out remotely, such as after losing a phone. Not scoped yet.
 
-### `dashboard.tsx` is a placeholder and not audited
+### `dashboard.tsx` is no longer a placeholder
 
-`_protected/dashboard.tsx` has its own logout button, which has gone through the Session module like `SidebarFooter`'s since 2026-10-20. It also prints the raw route context with `<pre>{JSON.stringify(foo, null, 2)}</pre>`. Otherwise it stays untouched on purpose. The route is a placeholder that will be replaced once the core features and real data exist, so any cleanup inside it now would be thrown away with the rest of the file.
+`_protected/dashboard.tsx` used to be a placeholder with its own logout button and a dump of the route context. It became the real overview page in October 2026 (see [`docs/specs/dashboard.md`](../../../docs/specs/dashboard.md)). Both are gone, and signing out happens only from the sidebar footer.
