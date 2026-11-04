@@ -8,6 +8,7 @@ import { getCashflow, getCashflowWindowStart, type Cashflow } from "./utils";
 
 export async function getCashflowByCurrency(db: DB, { userId }: { userId: string }) {
   const now = new Date();
+  const isEarnedOrSpent = and(isNull(repayments.id), isNull(debts.id));
 
   const windowTransactions = await db
     .select({
@@ -24,9 +25,7 @@ export async function getCashflowByCurrency(db: DB, { userId }: { userId: string
       and(
         eq(bankAccounts.userId, userId),
         gte(transactions.date, new Date(getCashflowWindowStart(now))),
-        // Lending and repaying move money without earning or spending it.
-        isNull(repayments.id),
-        isNull(debts.id),
+        isEarnedOrSpent,
       ),
     );
 

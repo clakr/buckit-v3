@@ -19,6 +19,8 @@ function rankNewestPerCurrency(date: AnyColumn, createdAt: AnyColumn) {
 }
 
 export async function getRecentLedgerMovements(db: DB, { userId }: { userId: string }) {
+  const isNotRepaymentTransaction = isNull(repayments.id);
+
   const rankedTransactions = db
     .select({
       id: transactions.id,
@@ -38,8 +40,7 @@ export async function getRecentLedgerMovements(db: DB, { userId }: { userId: str
     .leftJoin(repayments, eq(repayments.transactionId, transactions.id))
     .leftJoin(withdrawals, eq(withdrawals.transactionId, transactions.id))
     .leftJoin(buckets, eq(buckets.id, withdrawals.bucketId))
-    // A repayment's Transaction shows as the Repayment, which the Debt figures already supply.
-    .where(and(eq(bankAccounts.userId, userId), isNull(repayments.id)))
+    .where(and(eq(bankAccounts.userId, userId), isNotRepaymentTransaction))
     .as("ranked_transactions");
 
   const rankedAllocations = db

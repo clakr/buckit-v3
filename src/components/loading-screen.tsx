@@ -10,14 +10,13 @@ import {
 } from "#/components/ui/empty";
 import { Spinner } from "#/components/ui/spinner";
 
-/**
- * Decided from the route tree rather than `resolvedLocation`: the server sets that before
- * rendering but the client doesn't until its load finishes, so the two rendered different variants.
- */
+const TOP_LEVEL_LAYOUT_MATCH_INDEX = 1;
+
 export function LoadingScreen() {
   const matchId = useMatch({ strict: false, select: (match) => match.id });
   const isColdStart = useRouterState({
-    select: (state) => state.matches.findIndex((match) => match.id === matchId) <= 1,
+    select: (state) =>
+      state.matches.findIndex((match) => match.id === matchId) <= TOP_LEVEL_LAYOUT_MATCH_INDEX,
   });
 
   const content = (

@@ -37,24 +37,20 @@ export async function loadOrThrowRouteNotFound<T>(load: Promise<T>) {
   }
 }
 
-// Keyed by a literal `name` rather than `constructor.name`, which minification mangles.
-const APP_ERRORS = {
-  AppError,
-  SessionExpiredError,
-  NotFoundError,
-  ConflictError,
-  InsufficientFundsError,
-  RateLimitedError,
-};
-
-function isAppErrorName(name: string): name is keyof typeof APP_ERRORS {
-  return Object.hasOwn(APP_ERRORS, name);
-}
+const APP_ERRORS_BY_NAME = new Map<string, typeof AppError>(
+  [
+    AppError,
+    SessionExpiredError,
+    NotFoundError,
+    ConflictError,
+    InsufficientFundsError,
+    RateLimitedError,
+  ].map((errorClass) => [new errorClass().name, errorClass]),
+);
 
 export const appErrorSerializationAdapter = createSerializationAdapter({
   key: "app-error",
   test: (value): value is AppError => value instanceof AppError,
   toSerializable: (error) => ({ name: error.name, message: error.message }),
-  fromSerializable: ({ name, message }) =>
-    new (isAppErrorName(name) ? APP_ERRORS[name] : AppError)(message),
+  fromSerializable: ({ name, message }) => new (APP_ERRORS_BY_NAME.get(name) ?? AppError)(message),
 });

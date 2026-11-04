@@ -80,17 +80,16 @@ export function getLowestTriggerableCents(lines: DistributionPlanLine[]) {
       (sum, { value }) => sum + (value.mode === "percent" ? value.basisPoints : 0),
       0,
     );
-    if (basisPoints >= BASIS_POINTS_IN_WHOLE) {
-      if (group.length === 1) continue;
-      // Lines taking the whole amount can round past it on some amounts, however large.
-      return null;
-    }
+    const takesWholeAmount = basisPoints >= BASIS_POINTS_IN_WHOLE;
+    const canRoundPastWholeAmount = takesWholeAmount && group.length > 1;
+    if (canRoundPastWholeAmount) return null;
+    if (takesWholeAmount) continue;
 
-    // Each percent line rounds by at most half a centavo, so past this bound every amount fits.
+    const roundingAllowanceCents = group.length;
     alwaysPassesFrom = Math.max(
       alwaysPassesFrom,
       Math.ceil(
-        ((fixedCents + group.length) * BASIS_POINTS_IN_WHOLE) /
+        ((fixedCents + roundingAllowanceCents) * BASIS_POINTS_IN_WHOLE) /
           (BASIS_POINTS_IN_WHOLE - basisPoints),
       ),
     );
