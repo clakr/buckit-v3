@@ -27,7 +27,7 @@ type Props<TData extends RowData> = {
   onSortingChange: (sorting: SortingState) => void;
 };
 
-export function DebtsTable<TData extends RowData>({
+export function ControlledDataTable<TData extends RowData>({
   columns,
   data,
   sorting,

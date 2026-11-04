@@ -8,6 +8,7 @@ import { z } from "zod";
 
 import type { BankAccount } from "#/db/schema";
 
+import { CurrencyFilter } from "#/components/currency-filter";
 import {
   InsetCard,
   InsetCardContent,
@@ -18,6 +19,7 @@ import { Main } from "#/components/main";
 import { Pager } from "#/components/pager";
 import { RouteRetryButton } from "#/components/route-retry-button";
 import { StateTemplate } from "#/components/state-template";
+import { ControlledDataTable } from "#/components/table/controlled-data-table";
 import { Button } from "#/components/ui/button";
 import { DrawerTrigger } from "#/components/ui/drawer";
 import { InputGroup, InputGroupAddon, InputGroupInput } from "#/components/ui/input-group";
@@ -29,7 +31,6 @@ import {
   getIndexColumns,
   sortBucketsByGoalUrgency,
 } from "#/modules/buckets/columns";
-import { BucketsCurrencyFilter } from "#/modules/buckets/components/buckets-currency-filter";
 import {
   BUCKET_GOAL_FILTERS,
   BucketsGoalFilter,
@@ -40,7 +41,6 @@ import {
   BucketsOverview,
   getBucketCurrencyTotals,
 } from "#/modules/buckets/components/buckets-overview";
-import { BucketsTable } from "#/modules/buckets/components/buckets-table";
 import { setUpBucketDrawerHandle } from "#/modules/buckets/components/set-up-bucket-drawer";
 import { bucketsQueryOptions } from "#/modules/buckets/query-options";
 
@@ -254,8 +254,11 @@ function RouteComponent() {
                   </InputGroup>
 
                   {currencyTotals.length > 1 ? (
-                    <BucketsCurrencyFilter
-                      currencyTotals={currencyTotals}
+                    <CurrencyFilter
+                      currencyCounts={currencyTotals.map(({ currency, bucketCount }) => ({
+                        currency,
+                        count: bucketCount,
+                      }))}
                       selectedCurrencies={selectedCurrencies}
                       onSelectedCurrenciesChange={(currencies) =>
                         handleFiltersChange({
@@ -290,7 +293,7 @@ function RouteComponent() {
                   }
                 />
               ) : (
-                <BucketsTable
+                <ControlledDataTable
                   columns={getIndexColumns({ subtotalSortCurrency, selectedCurrencies })}
                   data={filteredBuckets}
                   sorting={sorting}

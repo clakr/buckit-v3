@@ -1,8 +1,5 @@
 import { IconFilter } from "@tabler/icons-react";
 
-import type { Debt } from "#/db/schema";
-import type { DebtCurrencyTotals } from "#/modules/debts/components/debts-overview";
-
 import { Badge } from "#/components/ui/badge";
 import { Button } from "#/components/ui/button";
 import {
@@ -17,17 +14,17 @@ import {
 } from "#/components/ui/dropdown-menu";
 import { CURRENCIES } from "#/lib/constants";
 
-type Props = {
-  currencyTotals: DebtCurrencyTotals[];
-  selectedCurrencies: Debt["currency"][];
-  onSelectedCurrenciesChange: (currencies: Debt["currency"][]) => void;
+type Props<Currency extends string> = {
+  currencyCounts: { currency: Currency; count: number }[];
+  selectedCurrencies: Currency[];
+  onSelectedCurrenciesChange: (currencies: Currency[]) => void;
 };
 
-export function DebtsCurrencyFilter({
-  currencyTotals,
+export function CurrencyFilter<Currency extends string>({
+  currencyCounts,
   selectedCurrencies,
   onSelectedCurrenciesChange,
-}: Props) {
+}: Props<Currency>) {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger render={<Button variant="outline" />}>
@@ -42,7 +39,7 @@ export function DebtsCurrencyFilter({
       <DropdownMenuContent className="w-52">
         <DropdownMenuGroup>
           <DropdownMenuLabel>Filter by currency</DropdownMenuLabel>
-          {currencyTotals.map(({ currency, debtCount }) => (
+          {currencyCounts.map(({ currency, count }) => (
             <DropdownMenuCheckboxItem
               key={currency}
               checked={selectedCurrencies.includes(currency)}
@@ -56,7 +53,7 @@ export function DebtsCurrencyFilter({
             >
               <span aria-hidden>{CURRENCIES.find(({ code }) => code === currency)?.flag}</span>
               {currency}
-              <span className="ms-auto text-muted-foreground tabular-nums">{debtCount}</span>
+              <span className="ms-auto text-muted-foreground tabular-nums">{count}</span>
             </DropdownMenuCheckboxItem>
           ))}
         </DropdownMenuGroup>

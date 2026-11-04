@@ -4,6 +4,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 import { z } from "zod";
 
+import { CurrencyFilter } from "#/components/currency-filter";
 import {
   InsetCard,
   InsetCardContent,
@@ -21,7 +22,6 @@ import { CURRENCIES_CODES, MODULE_ICONS } from "#/lib/constants";
 import { PAGE_SIZES } from "#/lib/paging";
 import { formatPageTitle } from "#/lib/utils";
 import { getIndexColumns } from "#/modules/bank-accounts/columns";
-import { AccountsCurrencyFilter } from "#/modules/bank-accounts/components/accounts-currency-filter";
 import {
   AccountsOverview,
   getCurrencyTotals,
@@ -182,8 +182,11 @@ function RouteComponent() {
                   </InputGroup>
 
                   {currencyTotals.length > 1 ? (
-                    <AccountsCurrencyFilter
-                      currencyTotals={currencyTotals}
+                    <CurrencyFilter
+                      currencyCounts={currencyTotals.map(({ currency, accountCount }) => ({
+                        currency,
+                        count: accountCount,
+                      }))}
                       selectedCurrencies={selectedCurrencies}
                       onSelectedCurrenciesChange={(currencies) =>
                         handleFiltersChange({

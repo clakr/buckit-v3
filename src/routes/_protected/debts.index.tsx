@@ -9,6 +9,7 @@ import { z } from "zod";
 import type { Debt } from "#/db/schema";
 import type { DebtStatus } from "#/modules/debts/figures.server";
 
+import { CurrencyFilter } from "#/components/currency-filter";
 import {
   InsetCard,
   InsetCardContent,
@@ -19,6 +20,7 @@ import { Main } from "#/components/main";
 import { Pager } from "#/components/pager";
 import { RouteRetryButton } from "#/components/route-retry-button";
 import { StateTemplate } from "#/components/state-template";
+import { ControlledDataTable } from "#/components/table/controlled-data-table";
 import { Button } from "#/components/ui/button";
 import { DrawerTrigger } from "#/components/ui/drawer";
 import { InputGroup, InputGroupAddon, InputGroupInput } from "#/components/ui/input-group";
@@ -30,11 +32,9 @@ import {
   getIndexColumns,
   sortDebtsByQuietness,
 } from "#/modules/debts/columns";
-import { DebtsCurrencyFilter } from "#/modules/debts/components/debts-currency-filter";
 import { DebtsDirectionToggle } from "#/modules/debts/components/debts-direction-toggle";
 import { DebtsOverview, getDebtCurrencyTotals } from "#/modules/debts/components/debts-overview";
 import { DEBT_STATUSES, DebtsStatusFilter } from "#/modules/debts/components/debts-status-filter";
-import { DebtsTable } from "#/modules/debts/components/debts-table";
 import { recordDebtDrawerHandle } from "#/modules/debts/components/record-debt-drawer";
 import { debtsQueryOptions } from "#/modules/debts/query-options";
 
@@ -262,8 +262,11 @@ function RouteComponent() {
                   </InputGroup>
 
                   {currencyTotals.length > 1 ? (
-                    <DebtsCurrencyFilter
-                      currencyTotals={currencyTotals}
+                    <CurrencyFilter
+                      currencyCounts={currencyTotals.map(({ currency, debtCount }) => ({
+                        currency,
+                        count: debtCount,
+                      }))}
                       selectedCurrencies={selectedCurrencies}
                       onSelectedCurrenciesChange={(currencies) =>
                         handleFiltersChange({
@@ -296,7 +299,7 @@ function RouteComponent() {
                   }
                 />
               ) : (
-                <DebtsTable
+                <ControlledDataTable
                   columns={getIndexColumns({ outstandingSortCurrency })}
                   data={filteredDebts}
                   sorting={sorting}
