@@ -115,7 +115,7 @@ export function DistributionRecipeCell({ distribution }: { distribution: Distrib
             aria-label={`Every line in ${distribution.name}`}
             className={cn(
               RECIPE_GRID,
-              "divide-y [&>li]:py-1.5 [&>li:first-child]:pt-0 [&>li:last-child]:pb-0",
+              "divide-y divide-border/75 [&>li]:py-2 [&>li:first-child]:pt-0 [&>li:last-child]:pb-0",
             )}
           >
             {recipeLines.map((line) => (
