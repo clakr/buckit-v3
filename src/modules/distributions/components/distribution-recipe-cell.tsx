@@ -113,7 +113,10 @@ export function DistributionRecipeCell({ distribution }: { distribution: Distrib
         <PopoverContent align="start" className="w-80 text-xs max-sm:w-72">
           <ul
             aria-label={`Every line in ${distribution.name}`}
-            className={cn(RECIPE_GRID, "gap-y-1")}
+            className={cn(
+              RECIPE_GRID,
+              "divide-y [&>li]:py-1.5 [&>li:first-child]:pt-0 [&>li:last-child]:pb-0",
+            )}
           >
             {recipeLines.map((line) => (
               <RecipeLineItem
@@ -123,7 +126,7 @@ export function DistributionRecipeCell({ distribution }: { distribution: Distrib
                 nameClassName="whitespace-normal"
               />
             ))}
-            <li className={cn(RECIPE_ROW, "mt-1 text-muted-foreground")}>
+            <li className={cn(RECIPE_ROW, "text-muted-foreground")}>
               <span className="col-start-2 sm:col-end-4">Unallocated</span>
               <span className="text-end whitespace-nowrap">
                 {formatDistributionAmount(plan.remainingCents)}
