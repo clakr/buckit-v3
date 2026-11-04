@@ -39,9 +39,8 @@ export function DistributionActionsDropdownMenu({ distribution }: Props) {
   const mutation = useDeleteDistributionMutation();
 
   async function handleDeleteDistribution() {
-    const confirmed = await confirm("Delete Distribution?", {
-      description:
-        "Delete this distribution? Every record it wrote earlier stays. Only the saved routine is removed.",
+    const confirmed = await confirm(`Delete "${distribution.name}"?`, {
+      description: "Every record it wrote earlier stays. Only the saved routine is removed.",
       confirmLabel: "Delete Distribution",
       cancelLabel: "Cancel",
       destructive: true,

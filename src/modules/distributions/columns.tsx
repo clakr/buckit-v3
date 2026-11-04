@@ -1,72 +1,69 @@
 import type { DataTableColumnDef } from "#/components/ui/data-table";
-import type { SavedDistribution } from "#/modules/distributions/functions";
+import type { BankAccount } from "#/db/schema";
+import type { DistributionRow } from "#/modules/distributions/attention";
 
 import { SortableTableHead } from "#/components/table/sortable-table-head";
-import { formatMoney } from "#/lib/money";
 import { DistributionActionsDropdownMenu } from "#/modules/distributions/components/distribution-actions-dropdown-menu";
-import { DistributionSplitCell } from "#/modules/distributions/components/distribution-split-cell";
+import { DistributionAmountFigures } from "#/modules/distributions/components/distribution-amount-figures";
+import { DistributionNameCell } from "#/modules/distributions/components/distribution-name-cell";
+import { DistributionRecipeCell } from "#/modules/distributions/components/distribution-recipe-cell";
 import { TriggerDistributionButton } from "#/modules/distributions/components/trigger-distribution-button";
-import { computeDistributionPlan, savedLinesToPlanLines } from "#/modules/distributions/utils";
 
-export const INDEX_COLUMNS: DataTableColumnDef<SavedDistribution>[] = [
-  {
-    accessorKey: "name",
-    header: ({ column }) => <SortableTableHead column={column}>Name</SortableTableHead>,
-    cell: ({ row }) => (
-      <span className="block max-w-[20ch] font-semibold wrap-break-word whitespace-normal">
-        {row.original.name}
-      </span>
-    ),
-  },
-  {
-    id: "bankAccount",
-    accessorFn: ({ bankAccount }) => bankAccount.name,
-    header: ({ column }) => <SortableTableHead column={column}>Bank Account</SortableTableHead>,
-    cell: ({ row }) => (
-      <div className="flex max-w-[20ch] flex-col">
-        <span className="wrap-break-word whitespace-normal">{row.original.bankAccount.name}</span>
-        <span className="text-xs text-muted-foreground">{row.original.bankAccount.currency}</span>
-      </div>
-    ),
-  },
-  {
-    accessorKey: "amount",
-    header: () => <div data-currency>Default Amount</div>,
-    cell: ({ row }) => (
-      <span className="block text-end font-semibold tabular-nums">
-        {formatMoney(row.original.amount, row.original.bankAccount.currency)}
-      </span>
-    ),
-  },
-  {
-    id: "split",
-    header: "Split",
-    cell: ({ row }) => <DistributionSplitCell distribution={row.original} />,
-  },
-  {
-    id: "unallocated",
-    header: () => <div data-currency>Left Unallocated</div>,
-    cell: ({ row }) => {
-      const { remainingCents } = computeDistributionPlan(
-        savedLinesToPlanLines(row.original.lines),
-        row.original.amount,
-      );
+export const DISTRIBUTION_SORT_COLUMN_IDS = ["name", "amount"] as const;
 
-      return (
-        <span className="block text-end font-semibold tabular-nums">
-          {formatMoney(remainingCents, row.original.bankAccount.currency)}
-        </span>
-      );
+const AMOUNT_SORT_DISABLED_REASON = "Filter to one currency to sort by default amount.";
+
+export function getIndexColumns({
+  amountSortCurrency,
+}: {
+  amountSortCurrency: BankAccount["currency"] | null;
+}): DataTableColumnDef<DistributionRow>[] {
+  return [
+    {
+      accessorKey: "name",
+      header: ({ column }) => <SortableTableHead column={column}>Name</SortableTableHead>,
+      cell: ({ row }) => <DistributionNameCell distribution={row.original} />,
     },
-  },
-  {
-    accessorKey: "actions",
-    header: "",
-    cell: ({ row }) => (
-      <div className="flex items-center justify-end gap-x-1">
-        <TriggerDistributionButton distribution={row.original} />
-        <DistributionActionsDropdownMenu distribution={row.original} />
-      </div>
-    ),
-  },
-];
+    {
+      id: "amount",
+      meta: { className: "max-sm:hidden" },
+      accessorFn: ({ amount, bankAccount }) =>
+        bankAccount.currency === amountSortCurrency ? amount : undefined,
+      enableSorting: amountSortCurrency !== null,
+      sortFn: "basic",
+      sortUndefined: "last",
+      header: ({ column }) => (
+        <SortableTableHead
+          column={column}
+          disabledReason={AMOUNT_SORT_DISABLED_REASON}
+          data-currency
+        >
+          Default Amount
+        </SortableTableHead>
+      ),
+      cell: ({ row }) => {
+        return (
+          <div className="flex flex-col items-end text-end">
+            <DistributionAmountFigures distribution={row.original} />
+          </div>
+        );
+      },
+    },
+    {
+      id: "split",
+      meta: { className: "max-sm:hidden" },
+      header: "Where It Goes",
+      cell: ({ row }) => <DistributionRecipeCell distribution={row.original} />,
+    },
+    {
+      accessorKey: "actions",
+      header: "",
+      cell: ({ row }) => (
+        <div className="flex items-center justify-end gap-1 max-sm:flex-col">
+          <TriggerDistributionButton distribution={row.original} />
+          <DistributionActionsDropdownMenu distribution={row.original} />
+        </div>
+      ),
+    },
+  ];
+}

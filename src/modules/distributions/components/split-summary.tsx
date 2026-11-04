@@ -36,22 +36,20 @@ export function SplitSummary({
       </div>
       <div className="flex h-2.5 overflow-hidden rounded-full bg-muted">
         {amountCents
-          ? plan.plannedLines.flatMap((line, index) =>
-              takesMoney(line.kind)
-                ? [
-                    <div
-                      key={line.id}
-                      className={cn(
-                        SEGMENT_SHADES[index % SEGMENT_SHADES.length],
-                        exceeds && "bg-destructive",
-                      )}
-                      style={{
-                        width: `${(line.cents / Math.max(plan.bucketAndPayableTotal, amountCents)) * 100}%`,
-                      }}
-                    />,
-                  ]
-                : [],
-            )
+          ? plan.plannedLines
+              .filter((line) => takesMoney(line.kind))
+              .map((line, index) => (
+                <div
+                  key={line.id}
+                  className={cn(
+                    SEGMENT_SHADES[index % SEGMENT_SHADES.length],
+                    exceeds && "bg-destructive",
+                  )}
+                  style={{
+                    width: `${(line.cents / Math.max(plan.bucketAndPayableTotal, amountCents)) * 100}%`,
+                  }}
+                />
+              ))
           : null}
       </div>
       <div className="flex justify-between text-muted-foreground tabular-nums">

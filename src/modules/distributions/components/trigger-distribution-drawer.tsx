@@ -1,7 +1,7 @@
 import { IconAlertTriangle } from "@tabler/icons-react";
 import { useSelector } from "@tanstack/react-form";
 import { useQuery } from "@tanstack/react-query";
-import { useImperativeHandle, useRef, type Ref } from "react";
+import { useEffect, useImperativeHandle, useRef, useState, type Ref } from "react";
 import z from "zod";
 
 import type { Distribution } from "#/db/schema";
@@ -41,6 +41,8 @@ import { confirm } from "#/stores/use-confirm";
 export const triggerDistributionDrawerHandle = createDrawerHandle<{
   distributionId: Distribution["id"];
 }>();
+
+const PREVIEW_DELAY_MS = 300;
 
 type TriggerDistributionFormControls = {
   isDirty: () => boolean;
@@ -161,8 +163,18 @@ function TriggerDistributionForm({ distributionId, ref }: TriggerDistributionFor
     (distribution?.lines ?? []).map((line) => [line.targetId, line.targetName]),
   );
 
-  const previewQuery = useQuery(distributionPreviewQueryOptions(distributionId, amountCents));
-  const warnings = amountCents > 0 ? (previewQuery.data?.warnings ?? []) : [];
+  const [previewAmountCents, setPreviewAmountCents] = useState(amountCents);
+  useEffect(() => {
+    const timeout = setTimeout(() => setPreviewAmountCents(amountCents), PREVIEW_DELAY_MS);
+    return () => clearTimeout(timeout);
+  }, [amountCents]);
+  const previewQuery = useQuery(
+    distributionPreviewQueryOptions(distributionId, previewAmountCents),
+  );
+  const warnings =
+    amountCents > 0 && previewAmountCents === amountCents && !previewQuery.isPlaceholderData
+      ? (previewQuery.data?.warnings ?? [])
+      : [];
 
   return (
     <>
@@ -246,10 +258,15 @@ function TriggerDistributionForm({ distributionId, ref }: TriggerDistributionFor
                   Dated today and noted &ldquo;{distribution.name}&rdquo;.
                 </p>
                 <ul className="flex flex-col gap-y-1 tabular-nums">
-                  {plan.salaryCents > 0 ? (
-                    <li className="flex justify-between gap-x-4">
+                  {amountCents > 0 ? (
+                    <li
+                      className="flex justify-between gap-x-4 data-[skipped=true]:text-muted-foreground data-[skipped=true]:line-through"
+                      data-skipped={plan.salaryCents <= 0}
+                    >
                       <span>Income</span>
-                      <span>{formatMoney(plan.salaryCents, currency)}</span>
+                      <span className="whitespace-nowrap">
+                        {formatMoney(Math.max(plan.salaryCents, 0), currency)}
+                      </span>
                     </li>
                   ) : null}
                   {plan.plannedLines.map((line) => (
@@ -261,7 +278,7 @@ function TriggerDistributionForm({ distributionId, ref }: TriggerDistributionFor
                       <span className="min-w-0 wrap-break-word">
                         {describeRecord(line.kind, targetNameById.get(line.id))}
                       </span>
-                      <span>{formatMoney(line.cents, currency)}</span>
+                      <span className="whitespace-nowrap">{formatMoney(line.cents, currency)}</span>
                     </li>
                   ))}
                 </ul>

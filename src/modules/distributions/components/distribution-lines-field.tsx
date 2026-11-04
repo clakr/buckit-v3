@@ -211,7 +211,14 @@ export function DistributionLinesField({
               <span
                 className={cn(
                   "size-2 shrink-0 rounded-full",
-                  SEGMENT_SHADES[index % SEGMENT_SHADES.length],
+                  line.kind === "receivable"
+                    ? "border border-emerald-600 dark:border-emerald-400"
+                    : SEGMENT_SHADES[
+                        plan.plannedLines
+                          .slice(0, index)
+                          .filter((plannedLine) => plannedLine.kind !== "receivable").length %
+                          SEGMENT_SHADES.length
+                      ],
                 )}
               />
               <span className="min-w-0 flex-1 truncate font-medium">{targetName}</span>

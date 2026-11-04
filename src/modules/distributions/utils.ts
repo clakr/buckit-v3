@@ -59,6 +59,49 @@ export function computeDistributionPlan<Id extends string>(
   };
 }
 
+export function getLowestTriggerableCents(lines: DistributionPlanLine[]) {
+  const passes = (amountCents: number) => {
+    const plan = computeDistributionPlan(lines, amountCents);
+    return !plan.exceedsBucketAndPayable && !plan.exceedsReceivable;
+  };
+
+  const groups = [
+    lines.filter((line) => line.kind !== "receivable"),
+    lines.filter((line) => line.kind === "receivable"),
+  ];
+
+  let alwaysPassesFrom = 1;
+  for (const group of groups) {
+    const fixedCents = group.reduce(
+      (sum, { value }) => sum + (value.mode === "fixed" ? value.cents : 0),
+      0,
+    );
+    const basisPoints = group.reduce(
+      (sum, { value }) => sum + (value.mode === "percent" ? value.basisPoints : 0),
+      0,
+    );
+    if (basisPoints >= BASIS_POINTS_IN_WHOLE) {
+      if (group.length === 1) continue;
+      // Lines taking the whole amount can round past it on some amounts, however large.
+      return null;
+    }
+
+    // Each percent line rounds by at most half a centavo, so past this bound every amount fits.
+    alwaysPassesFrom = Math.max(
+      alwaysPassesFrom,
+      Math.ceil(
+        ((fixedCents + group.length) * BASIS_POINTS_IN_WHOLE) /
+          (BASIS_POINTS_IN_WHOLE - basisPoints),
+      ),
+    );
+  }
+
+  let lowestCents = alwaysPassesFrom;
+  while (lowestCents > 1 && passes(lowestCents - 1)) lowestCents -= 1;
+
+  return lowestCents;
+}
+
 export function savedLinesToPlanLines(
   lines: {
     targetId: string;
