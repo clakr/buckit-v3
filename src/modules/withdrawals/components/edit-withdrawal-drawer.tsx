@@ -151,7 +151,7 @@ function EditWithdrawalForm({ withdrawalId, ref }: EditWithdrawalFormProps) {
           <StateTemplate
             state="error"
             title="Could not load withdrawal"
-            description="We weren't able to retrieve this withdrawal. Please check your connection and try again."
+            description="We couldn't load this withdrawal. Check your connection and try again."
             content={<Button onClick={() => refetch()}>Retry</Button>}
           />
         ) : null}

@@ -83,7 +83,7 @@ export const Route = createFileRoute("/_protected/distributions/")({
           <StateTemplate
             state="error"
             title="Could not load distributions."
-            description="We weren't able to retrieve your distributions. Please try again."
+            description="We couldn't load your distributions. Please try again."
             content={<RouteRetryButton />}
           />
         </InsetCardContent>

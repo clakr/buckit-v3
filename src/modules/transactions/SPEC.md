@@ -107,11 +107,11 @@ Not implemented. Today a Transaction's only classification is its `income` or `e
 
 ### Transaction list and search across accounts
 
-**Specified, not built.** A view across all of a user's Bank Accounts, filterable by account, type and date, and searchable by note. See [`docs/specs/transaction-list-and-transfer.md`](../../../docs/specs/transaction-list-and-transfer.md).
+**Specified, not built.** It's a view across all of a user's Bank Accounts, filterable by account, type and date, and searchable by note. See [`docs/specs/transaction-list-and-transfer.md`](../../../docs/specs/transaction-list-and-transfer.md).
 
 ### `Distribution` (designed, not built)
 
-A saved preset the User triggers by hand. It logs income on a fixed Bank Account, then splits the amount through Allocations across Buckets and through Repayments across Debts. A `receivable` Debt's Repayment is carved out of the income and written as its own `income` Transaction, so one payday can make several Transactions. See the `Distribution` entry in [`CONTEXT.md`](../../../CONTEXT.md) and [`docs/specs/distribution.md`](../../../docs/specs/distribution.md). It matters here because triggering a Distribution writes Transactions from code, in one batch with the rest, rather than through `logTransaction`.
+A Distribution is a saved preset the User triggers by hand. It logs income on a fixed Bank Account, then splits the amount through Allocations across Buckets and through Repayments across Debts. A `receivable` Debt's Repayment is carved out of the income and written as its own `income` Transaction, so one payday can make several Transactions. See the `Distribution` entry in [`CONTEXT.md`](../../../CONTEXT.md) and [`docs/specs/distribution.md`](../../../docs/specs/distribution.md). It matters here because triggering a Distribution writes Transactions from code, in one batch with the rest, rather than through `logTransaction`.
 
 ### Transfer between own accounts
 

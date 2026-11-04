@@ -138,7 +138,7 @@ function EditGoalForm({ bucketId, ref }: EditGoalFormProps) {
           <StateTemplate
             state="error"
             title="Could not load goal"
-            description="We weren't able to retrieve this goal. Please check your connection and try again."
+            description="We couldn't load this goal. Check your connection and try again."
             content={<Button onClick={() => refetch()}>Retry</Button>}
           />
         ) : null}

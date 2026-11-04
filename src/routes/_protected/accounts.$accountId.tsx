@@ -96,7 +96,7 @@ export const Route = createFileRoute("/_protected/accounts/$accountId")({
           <StateTemplate
             state="error"
             title="Could not load account"
-            description="We weren't able to retrieve this account. Please check your connection and try again."
+            description="We couldn't load this account. Check your connection and try again."
             content={<RouteRetryButton />}
           />
         </InsetCardContent>

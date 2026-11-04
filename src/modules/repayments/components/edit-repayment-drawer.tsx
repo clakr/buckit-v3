@@ -154,7 +154,7 @@ function EditRepaymentForm({ debtId, repaymentId, ref }: EditRepaymentFormProps)
           <StateTemplate
             state="error"
             title="Could not load repayment"
-            description="We weren't able to retrieve this repayment. Please check your connection and try again."
+            description="We couldn't load this repayment. Check your connection and try again."
             content={<Button onClick={() => refetch()}>Retry</Button>}
           />
         ) : null}

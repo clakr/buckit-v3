@@ -80,7 +80,7 @@ export const Route = createFileRoute("/_protected/debts/")({
           <StateTemplate
             state="error"
             title="Could not load debts."
-            description="We weren't able to retrieve your debts. Please try again."
+            description="We couldn't load your debts. Please try again."
             content={<RouteRetryButton />}
           />
         </InsetCardContent>

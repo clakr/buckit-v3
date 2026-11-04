@@ -77,7 +77,7 @@ export const Route = createFileRoute("/_protected/buckets/$bucketId")({
       <StateTemplate
         state="error"
         title="Could not load bucket"
-        description="We weren't able to retrieve this bucket. Please check your connection and try again."
+        description="We couldn't load this bucket. Check your connection and try again."
         content={<RouteRetryButton />}
       />
     </BucketStateFrame>

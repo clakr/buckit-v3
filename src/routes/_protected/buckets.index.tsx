@@ -85,7 +85,7 @@ export const Route = createFileRoute("/_protected/buckets/")({
           <StateTemplate
             state="error"
             title="Could not load buckets."
-            description="We weren't able to retrieve your buckets. Please try again."
+            description="We couldn't load your buckets. Please try again."
             content={<RouteRetryButton />}
           />
         </InsetCardContent>

@@ -228,7 +228,7 @@ function LogAllocationForm({
           <StateTemplate
             state="error"
             title={`Could not load ${loadError.noun}`}
-            description={`We weren't able to retrieve your ${loadError.noun}. Please check your connection and try again.`}
+            description={`We couldn't load your ${loadError.noun}. Check your connection and try again.`}
             content={<Button onClick={() => loadError.retry()}>Retry</Button>}
           />
         ) : null}

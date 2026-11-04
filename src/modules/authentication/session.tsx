@@ -23,7 +23,7 @@ export async function signIn(
     console.error(error);
 
     toast.error("Failed to Sign In", {
-      description: describeErrorForUser(error, "We weren't able to sign you in. Please try again."),
+      description: describeErrorForUser(error, "We couldn't sign you in. Please try again."),
     });
 
     return;
@@ -41,7 +41,7 @@ export async function signUp(router: RegisteredRouter, data: z.infer<typeof sign
     toast.error("Failed to Create Account", {
       description: describeErrorForUser(
         error,
-        "We weren't able to create your account. Please try again.",
+        "We couldn't create your account. Please try again.",
       ),
     });
 
@@ -64,10 +64,7 @@ export async function signOut(router: RegisteredRouter) {
       isLeaving = false;
 
       toast.error("Failed to Sign Out", {
-        description: describeErrorForUser(
-          error,
-          "We weren't able to sign you out. Please try again.",
-        ),
+        description: describeErrorForUser(error, "We couldn't sign you out. Please try again."),
         action:
           error instanceof TypeError ? (
             <Button onClick={() => signOut(router)}>Retry</Button>

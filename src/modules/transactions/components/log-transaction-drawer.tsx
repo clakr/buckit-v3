@@ -135,7 +135,7 @@ function LogTransactionForm({ bankAccountId, ref }: LogTransactionFormProps) {
           <StateTemplate
             state="error"
             title="Could not load accounts"
-            description="We weren't able to retrieve your accounts. Please check your connection and try again."
+            description="We couldn't load your accounts. Check your connection and try again."
             content={<Button onClick={() => refetch()}>Retry</Button>}
           />
         ) : null}

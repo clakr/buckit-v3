@@ -174,7 +174,7 @@ function WithdrawForm({ bucketId, ref }: WithdrawFormProps) {
           <StateTemplate
             state="error"
             title={`Could not load ${loadError.noun}`}
-            description={`We weren't able to retrieve the ${loadError.noun}. Please check your connection and try again.`}
+            description={`We couldn't load the ${loadError.noun}. Check your connection and try again.`}
             content={<Button onClick={() => loadError.retry()}>Retry</Button>}
           />
         ) : null}

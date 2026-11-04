@@ -117,7 +117,7 @@ function DeleteBucketForm({ bucketId }: DeleteBucketFormProps) {
           <StateTemplate
             state="error"
             title="Could not load bucket"
-            description="We weren't able to retrieve this bucket's details. Please check your connection and try again."
+            description="We couldn't load this bucket's details. Check your connection and try again."
             content={<Button onClick={() => refetch()}>Retry</Button>}
           />
         ) : null}

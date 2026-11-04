@@ -133,7 +133,7 @@ function DeleteDebtForm({ debtId }: DeleteDebtFormProps) {
           <StateTemplate
             state="error"
             title="Could not load debt"
-            description="We weren't able to retrieve this debt's details. Please check your connection and try again."
+            description="We couldn't load this debt's details. Check your connection and try again."
             content={<Button onClick={() => refetch()}>Retry</Button>}
           />
         ) : null}

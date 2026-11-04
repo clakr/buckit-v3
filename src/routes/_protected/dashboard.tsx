@@ -47,7 +47,7 @@ export const Route = createFileRoute("/_protected/dashboard")({
       <StateTemplate
         state="error"
         title="Could not load dashboard."
-        description="We weren't able to retrieve your overview. Please try again."
+        description="We couldn't load your overview. Please try again."
         content={<RouteRetryButton />}
       />
     </Main>

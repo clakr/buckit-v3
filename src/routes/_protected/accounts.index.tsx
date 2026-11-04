@@ -66,7 +66,7 @@ export const Route = createFileRoute("/_protected/accounts/")({
           <StateTemplate
             state="error"
             title="Could not load accounts."
-            description="We weren't able to retrieve your accounts. Please try again."
+            description="We couldn't load your accounts. Please try again."
             content={<RouteRetryButton />}
           />
         </InsetCardContent>

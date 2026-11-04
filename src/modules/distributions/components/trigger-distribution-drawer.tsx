@@ -197,7 +197,7 @@ function TriggerDistributionForm({ distributionId, ref }: TriggerDistributionFor
           <StateTemplate
             state="error"
             title="Could not load distribution"
-            description="We weren't able to retrieve this distribution. Please check your connection and try again."
+            description="We couldn't load this distribution. Check your connection and try again."
             content={<Button onClick={() => refetch()}>Retry</Button>}
           />
         ) : null}

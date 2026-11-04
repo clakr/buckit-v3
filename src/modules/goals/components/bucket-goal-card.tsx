@@ -64,9 +64,9 @@ export function BucketGoalCard({ goal }: Props) {
             <PopoverHeader>
               <PopoverTitle>What is a Goal?</PopoverTitle>
               <PopoverDescription>
-                A savings target on this bucket: a target amount in one currency, with an optional
-                target date. It never holds money. Progress is this bucket&apos;s balance in{" "}
-                {goal.currency}, so money held in other currencies isn&apos;t counted.
+                A savings target on this bucket, with a target amount in one currency and an
+                optional target date. It never holds money. Progress is this bucket&apos;s balance
+                in {goal.currency}, so money held in other currencies isn&apos;t counted.
               </PopoverDescription>
             </PopoverHeader>
           </PopoverContent>
