@@ -112,9 +112,10 @@ export const bankAccounts = sqliteTable(
   },
   (t) => [
     unique().on(t.userId, t.name),
-    // This index sits beside the constraint above instead of
-    // replacing it. Dropping a table-level constraint needs a table rebuild, and D1's foreign keys
-    // would cascade-delete every Transaction and Allocation when the old table is dropped.
+    // This index adds to the constraint above instead of replacing it. Dropping a table-level
+    // constraint needs a table rebuild, and D1's foreign keys would cascade-delete every
+    // Transaction, Allocation and Distribution when the old table is dropped, and every
+    // Repayment and Withdrawal through those Transactions.
     uniqueIndex("bank_accounts_user_id_lower_name_unique").on(t.userId, lower(t.name)),
   ],
 );
@@ -133,7 +134,8 @@ export const buckets = sqliteTable(
   },
   (t) => [
     unique().on(t.userId, t.name),
-    // Same reasoning as `bank_accounts`: dropping `buckets` would cascade-delete its Allocations.
+    // The constraint stays for the same reason as on `bank_accounts`. Dropping `buckets` would
+    // cascade-delete its Allocations, Withdrawals, Goal and Distribution lines.
     uniqueIndex("buckets_user_id_lower_name_unique").on(t.userId, lower(t.name)),
   ],
 );
