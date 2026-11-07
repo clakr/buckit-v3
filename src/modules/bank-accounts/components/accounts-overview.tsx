@@ -64,7 +64,7 @@ export function AccountsOverview({ currencyTotals }: { currencyTotals: CurrencyT
       className={cn(
         "flex flex-wrap items-start gap-x-10 gap-y-3",
         currencyTotals.length > 1 &&
-          "max-sm:-mx-4 max-sm:snap-x max-sm:flex-nowrap max-sm:overflow-x-auto max-sm:px-4 max-sm:*:shrink-0 max-sm:*:snap-start",
+          "max-sm:-mx-4 max-sm:snap-x max-sm:scroll-px-4 max-sm:flex-nowrap max-sm:overflow-x-auto max-sm:px-4 max-sm:*:shrink-0 max-sm:*:snap-start",
       )}
     >
       <dl

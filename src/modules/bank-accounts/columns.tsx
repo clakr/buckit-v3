@@ -17,6 +17,20 @@ import { BALANCE_TREND_DAYS } from "#/modules/bank-accounts/utils";
 
 type AccountRow = Awaited<ReturnType<typeof getBankAccountsWithTrend>>[number];
 
+export const ACCOUNT_SORT_COLUMN_IDS = [
+  "name",
+  "balance",
+  "change",
+  "unallocated",
+  "lastTransactionDate",
+] as const;
+
+const AMOUNT_SORT_COLUMN_IDS: readonly string[] = ["balance", "change", "unallocated"];
+
+export function isAmountSortColumn(columnId: string) {
+  return AMOUNT_SORT_COLUMN_IDS.includes(columnId);
+}
+
 const AMOUNT_SORT_DISABLED_REASON = "Filter to one currency to sort by amount.";
 
 export function getIndexColumns({

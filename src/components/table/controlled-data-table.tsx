@@ -40,6 +40,7 @@ export function ControlledDataTable<TData extends RowData>({
     data,
     columns,
 
+    enableMultiSort: false,
     onSortingChange: (updater) =>
       onSortingChange(typeof updater === "function" ? updater(sorting) : updater),
     state: {

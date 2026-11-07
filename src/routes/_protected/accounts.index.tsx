@@ -1,8 +1,12 @@
+import type { SortingState } from "@tanstack/react-table";
+
 import { IconPlus, IconSearch } from "@tabler/icons-react";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { z } from "zod";
+
+import type { BankAccount } from "#/db/schema";
 
 import { CurrencyFilter } from "#/components/currency-filter";
 import {
@@ -15,18 +19,22 @@ import { Main } from "#/components/main";
 import { Pager } from "#/components/pager";
 import { RouteRetryButton } from "#/components/route-retry-button";
 import { StateTemplate } from "#/components/state-template";
+import { ControlledDataTable } from "#/components/table/controlled-data-table";
 import { Button } from "#/components/ui/button";
 import { DrawerTrigger } from "#/components/ui/drawer";
 import { InputGroup, InputGroupAddon, InputGroupInput } from "#/components/ui/input-group";
 import { CURRENCIES_CODES, MODULE_ICONS } from "#/lib/constants";
 import { PAGE_SIZES } from "#/lib/paging";
 import { formatPageTitle } from "#/lib/utils";
-import { getIndexColumns } from "#/modules/bank-accounts/columns";
+import {
+  ACCOUNT_SORT_COLUMN_IDS,
+  getIndexColumns,
+  isAmountSortColumn,
+} from "#/modules/bank-accounts/columns";
 import {
   AccountsOverview,
   getCurrencyTotals,
 } from "#/modules/bank-accounts/components/accounts-overview";
-import { AccountsTable } from "#/modules/bank-accounts/components/accounts-table";
 import { registerBankAccountDrawerHandle } from "#/modules/bank-accounts/components/register-bank-account-drawer";
 import { bankAccountsWithTrendQueryOption } from "#/modules/bank-accounts/query-options";
 
@@ -35,7 +43,12 @@ const accountsSearchSchema = z.object({
   pageSize: z.literal(PAGE_SIZES).optional().catch(undefined),
   q: z.string().optional().catch(undefined),
   currencies: z.array(z.enum(CURRENCIES_CODES)).optional().catch(undefined),
+  sortBy: z.enum(ACCOUNT_SORT_COLUMN_IDS).optional().catch(undefined),
+  sortDirection: z.enum(["asc", "desc"]).optional().catch(undefined),
 });
+
+const DEFAULT_SORT = { id: "lastTransactionDate", desc: true };
+const DEFAULT_SORTING: SortingState = [DEFAULT_SORT];
 
 export const Route = createFileRoute("/_protected/accounts/")({
   validateSearch: accountsSearchSchema,
@@ -82,19 +95,36 @@ function RouteComponent() {
   const {
     pageIndex: requestedPageIndex = 0,
     pageSize = PAGE_SIZES[0],
-    q,
+    q = "",
     currencies: requestedCurrencies = [],
+    sortBy,
+    sortDirection,
   } = Route.useSearch();
   const navigate = Route.useNavigate();
-  const [query, setQuery] = useState(q ?? "");
+  const [query, setQuery] = useState(q);
+  const pushedQueryRef = useRef(q);
+
+  useEffect(() => {
+    if (q === pushedQueryRef.current) return;
+    pushedQueryRef.current = q;
+    setQuery(q);
+  }, [q]);
 
   const currencyTotals = getCurrencyTotals(bankAccounts);
-  const selectedCurrencies = requestedCurrencies.filter((requestedCurrency) =>
-    currencyTotals.some((totals) => totals.currency === requestedCurrency),
-  );
+  const getSelectedCurrencies = (currencies: BankAccount["currency"][]) =>
+    currencies.filter((currency) => currencyTotals.some((totals) => totals.currency === currency));
+  const getCanSortAmounts = (currencies: BankAccount["currency"][]) =>
+    currencyTotals.length === 1 || currencies.length === 1;
+
+  const selectedCurrencies = getSelectedCurrencies(requestedCurrencies);
   const isInSelectedCurrencies = (currency: string) =>
     selectedCurrencies.length === 0 || selectedCurrencies.includes(currency);
-  const canSortAmounts = currencyTotals.length === 1 || selectedCurrencies.length === 1;
+  const canSortAmounts = getCanSortAmounts(selectedCurrencies);
+  const sorting =
+    sortBy && sortDirection && (canSortAmounts || !isAmountSortColumn(sortBy))
+      ? [{ id: sortBy, desc: sortDirection === "desc" }]
+      : DEFAULT_SORTING;
+
   const normalizedQuery = query.trim().toLowerCase();
   const filteredAccounts = bankAccounts.filter(
     (bankAccount) =>
@@ -107,21 +137,48 @@ function RouteComponent() {
   const pageCount = Math.max(Math.ceil(total / pageSize), 1);
   const pageIndex = Math.min(requestedPageIndex, pageCount - 1);
 
-  function handleFiltersChange(filters: { q?: string; currencies?: string[] }) {
+  function handleFiltersChange(filters: { q?: string; currencies?: BankAccount["currency"][] }) {
     void navigate({
-      search: (previous) => ({ ...previous, ...filters, pageIndex: undefined }),
+      search: (previous) => {
+        const next = { ...previous, ...filters, pageIndex: undefined };
+        const canSortNextAmounts = getCanSortAmounts(getSelectedCurrencies(next.currencies ?? []));
+
+        return next.sortBy && isAmountSortColumn(next.sortBy) && !canSortNextAmounts
+          ? { ...next, sortBy: undefined, sortDirection: undefined }
+          : next;
+      },
       replace: true,
     });
   }
 
   function handleQueryChange(nextQuery: string) {
     setQuery(nextQuery);
+    pushedQueryRef.current = nextQuery;
     handleFiltersChange({ q: nextQuery || undefined });
   }
 
   function handleClearFilters() {
     setQuery("");
+    pushedQueryRef.current = "";
     handleFiltersChange({ q: undefined, currencies: undefined });
+  }
+
+  function handleSortingChange(nextSorting: SortingState) {
+    const [nextSort] = nextSorting;
+    const nextSortBy = ACCOUNT_SORT_COLUMN_IDS.find((id) => id === nextSort?.id);
+    const isDefault =
+      !nextSort ||
+      !nextSortBy ||
+      (nextSort.id === DEFAULT_SORT.id && nextSort.desc === DEFAULT_SORT.desc);
+
+    void navigate({
+      search: (previous) => ({
+        ...previous,
+        sortBy: isDefault ? undefined : nextSortBy,
+        sortDirection: isDefault ? undefined : nextSort.desc ? "desc" : "asc",
+        pageIndex: undefined,
+      }),
+    });
   }
 
   return (
@@ -211,17 +268,13 @@ function RouteComponent() {
                   }
                 />
               ) : (
-                <AccountsTable
-                  key={canSortAmounts ? "single-currency" : "mixed-currencies"}
+                <ControlledDataTable
                   columns={getIndexColumns({ canSortAmounts })}
                   data={filteredAccounts}
-                  initialSorting={[{ id: "lastTransactionDate", desc: true }]}
+                  sorting={sorting}
                   pageIndex={pageIndex}
                   pageSize={pageSize}
-                  onSortingChange={() => {
-                    if (pageIndex !== 0)
-                      void navigate({ search: (previous) => ({ ...previous, pageIndex: 0 }) });
-                  }}
+                  onSortingChange={handleSortingChange}
                 />
               )}
             </>
