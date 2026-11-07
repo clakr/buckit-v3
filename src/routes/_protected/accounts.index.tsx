@@ -27,7 +27,7 @@ import { CURRENCIES_CODES, MODULE_ICONS } from "#/lib/constants";
 import { PAGE_SIZES } from "#/lib/paging";
 import { formatPageTitle } from "#/lib/utils";
 import {
-  ACCOUNT_SORT_COLUMN_IDS,
+  BANK_ACCOUNT_SORT_COLUMN_IDS,
   getIndexColumns,
   isAmountSortColumn,
 } from "#/modules/bank-accounts/columns";
@@ -43,7 +43,7 @@ const accountsSearchSchema = z.object({
   pageSize: z.literal(PAGE_SIZES).optional().catch(undefined),
   q: z.string().optional().catch(undefined),
   currencies: z.array(z.enum(CURRENCIES_CODES)).optional().catch(undefined),
-  sortBy: z.enum(ACCOUNT_SORT_COLUMN_IDS).optional().catch(undefined),
+  sortBy: z.enum(BANK_ACCOUNT_SORT_COLUMN_IDS).optional().catch(undefined),
   sortDirection: z.enum(["asc", "desc"]).optional().catch(undefined),
 });
 
@@ -165,7 +165,7 @@ function RouteComponent() {
 
   function handleSortingChange(nextSorting: SortingState) {
     const [nextSort] = nextSorting;
-    const nextSortBy = ACCOUNT_SORT_COLUMN_IDS.find((id) => id === nextSort?.id);
+    const nextSortBy = BANK_ACCOUNT_SORT_COLUMN_IDS.find((id) => id === nextSort?.id);
     const isDefault =
       !nextSort ||
       !nextSortBy ||

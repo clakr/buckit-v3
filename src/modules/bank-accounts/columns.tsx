@@ -17,7 +17,7 @@ import { BALANCE_TREND_DAYS } from "#/modules/bank-accounts/utils";
 
 type AccountRow = Awaited<ReturnType<typeof getBankAccountsWithTrend>>[number];
 
-export const ACCOUNT_SORT_COLUMN_IDS = [
+export const BANK_ACCOUNT_SORT_COLUMN_IDS = [
   "name",
   "balance",
   "change",
